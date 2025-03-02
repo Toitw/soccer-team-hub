@@ -12,7 +12,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SoccerField } from "@/components/lineup/soccer-field";
 import { Sidebar } from "@/components/sidebar";
-import { MobileNavigation } from "@/components/layout/mobile-navigation";
+import MobileNavigation from "@/components/mobile-navigation";
 
 
 export function LineupPage() {
