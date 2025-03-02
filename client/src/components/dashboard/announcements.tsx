@@ -26,11 +26,15 @@ export default function Announcements({ announcements }: AnnouncementsProps) {
         ) : (
           <div className="space-y-3">
             {announcements.map(announcement => {
-              const borderColor = announcement.title.includes("Training") 
-                ? "border-accent" 
-                : announcement.title.includes("Equipment") 
-                  ? "border-primary" 
-                  : "border-secondary";
+              let borderColor = "border-secondary";
+              
+              if (announcement.title) {
+                if (announcement.title.includes("Training")) {
+                  borderColor = "border-accent";
+                } else if (announcement.title.includes("Equipment")) {
+                  borderColor = "border-primary";
+                }
+              }
               
               return (
                 <div key={announcement.id} className={`p-3 border-l-4 ${borderColor} bg-white rounded-r-lg shadow-sm`}>

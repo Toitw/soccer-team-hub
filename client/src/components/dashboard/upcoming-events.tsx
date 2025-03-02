@@ -65,9 +65,12 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Upcoming Events</h2>
-          <Link href="/training">
-            <a className="text-sm text-primary">View All</a>
-          </Link>
+          <div
+            onClick={() => window.location.href = '/training'}
+            className="text-sm text-primary cursor-pointer"
+          >
+            View All
+          </div>
         </div>
         
         {events.length === 0 ? (
