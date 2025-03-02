@@ -555,5 +555,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lineup routes
+  app.get("/api/teams/:id/lineups", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      const lineups = await storage.getLineups(teamId);
+      res.json(lineups);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch lineups" });
+    }
+  });
+
+  app.get("/api/teams/:id/lineups/:lineupId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const lineupId = parseInt(req.params.lineupId);
+      
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      const lineup = await storage.getLineup(lineupId);
+      if (!lineup || lineup.teamId !== teamId) {
+        return res.status(404).json({ error: "Lineup not found" });
+      }
+      
+      res.json(lineup);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch lineup" });
+    }
+  });
+
+  app.post("/api/teams/:id/lineups", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to create lineups" });
+      }
+      
+      const lineup = await storage.createLineup({
+        ...req.body,
+        teamId,
+        createdById: req.user.id,
+      });
+      
+      res.status(201).json(lineup);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create lineup" });
+    }
+  });
+
+  app.put("/api/teams/:id/lineups/:lineupId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const lineupId = parseInt(req.params.lineupId);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update lineups" });
+      }
+      
+      const lineup = await storage.getLineup(lineupId);
+      if (!lineup || lineup.teamId !== teamId) {
+        return res.status(404).json({ error: "Lineup not found" });
+      }
+      
+      const updatedLineup = await storage.updateLineup(lineupId, req.body);
+      res.json(updatedLineup);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update lineup" });
+    }
+  });
+
+  app.delete("/api/teams/:id/lineups/:lineupId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const lineupId = parseInt(req.params.lineupId);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete lineups" });
+      }
+      
+      const lineup = await storage.getLineup(lineupId);
+      if (!lineup || lineup.teamId !== teamId) {
+        return res.status(404).json({ error: "Lineup not found" });
+      }
+      
+      await storage.deleteLineup(lineupId);
+      res.sendStatus(204);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete lineup" });
+    }
+  });
+
   return httpServer;
 }

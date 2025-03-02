@@ -109,6 +109,7 @@ export class MemStorage implements IStorage {
   private playerStats: Map<number, PlayerStat>;
   private announcements: Map<number, Announcement>;
   private invitations: Map<number, Invitation>;
+  private lineups: Map<number, Lineup>;
   
   sessionStore: SessionStoreType;
   
@@ -121,6 +122,7 @@ export class MemStorage implements IStorage {
   private playerStatCurrentId: number;
   private announcementCurrentId: number;
   private invitationCurrentId: number;
+  private lineupCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -132,6 +134,7 @@ export class MemStorage implements IStorage {
     this.playerStats = new Map();
     this.announcements = new Map();
     this.invitations = new Map();
+    this.lineups = new Map();
     
     this.userCurrentId = 1;
     this.teamCurrentId = 1;
@@ -142,6 +145,7 @@ export class MemStorage implements IStorage {
     this.playerStatCurrentId = 1;
     this.announcementCurrentId = 1;
     this.invitationCurrentId = 1;
+    this.lineupCurrentId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -484,6 +488,37 @@ export class MemStorage implements IStorage {
     const updatedInvitation: Invitation = { ...invitation, ...invitationData };
     this.invitations.set(id, updatedInvitation);
     return updatedInvitation;
+  }
+  
+  // Lineup methods
+  async getLineup(id: number): Promise<Lineup | undefined> {
+    return this.lineups.get(id);
+  }
+
+  async getLineups(teamId: number): Promise<Lineup[]> {
+    return Array.from(this.lineups.values()).filter(
+      (lineup) => lineup.teamId === teamId
+    );
+  }
+
+  async createLineup(insertLineup: InsertLineup): Promise<Lineup> {
+    const id = this.lineupCurrentId++;
+    const lineup: Lineup = { ...insertLineup, id, createdAt: new Date() };
+    this.lineups.set(id, lineup);
+    return lineup;
+  }
+
+  async updateLineup(id: number, lineupData: Partial<Lineup>): Promise<Lineup | undefined> {
+    const lineup = this.lineups.get(id);
+    if (!lineup) return undefined;
+    
+    const updatedLineup: Lineup = { ...lineup, ...lineupData };
+    this.lineups.set(id, updatedLineup);
+    return updatedLineup;
+  }
+
+  async deleteLineup(id: number): Promise<boolean> {
+    return this.lineups.delete(id);
   }
 }
 
