@@ -88,6 +88,13 @@ export interface IStorage {
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   updateInvitation(id: number, invitationData: Partial<Invitation>): Promise<Invitation | undefined>;
   
+  // Lineup methods
+  getLineup(id: number): Promise<Lineup | undefined>;
+  getLineups(teamId: number): Promise<Lineup[]>;
+  createLineup(lineup: InsertLineup): Promise<Lineup>;
+  updateLineup(id: number, lineupData: Partial<Lineup>): Promise<Lineup | undefined>;
+  deleteLineup(id: number): Promise<boolean>;
+  
   // Session store for authentication
   sessionStore: SessionStoreType;
 }

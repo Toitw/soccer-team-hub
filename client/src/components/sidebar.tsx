@@ -89,6 +89,16 @@ export default function Sidebar() {
             <span>Training</span>
           </div>
           <div 
+            onClick={() => window.location.href = '/lineup'}
+            className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/lineup' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="12 6, 12 18, 12 12, 6 12, 18 12" fill="none" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+            <span>Lineup</span>
+          </div>
+          <div 
             onClick={() => window.location.href = '/statistics'}
             className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/statistics' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
