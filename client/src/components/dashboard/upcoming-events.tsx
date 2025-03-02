@@ -36,13 +36,28 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
     }
   };
 
-  const formatDate = (date: Date) => {
-    return {
-      day: format(date, "EEE").toUpperCase(),
-      number: format(date, "d"),
-      month: format(date, "MMM").toUpperCase(),
-      time: format(date, "HH:mm")
-    };
+  const formatDate = (dateInput: Date | string) => {
+    // Handle invalid dates
+    try {
+      const date = new Date(dateInput);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+      }
+      
+      return {
+        day: format(date, "EEE").toUpperCase(),
+        number: format(date, "d"),
+        month: format(date, "MMM").toUpperCase(),
+        time: format(date, "HH:mm")
+      };
+    } catch (error) {
+      return {
+        day: "---",
+        number: "--",
+        month: "---",
+        time: "--:--"
+      };
+    }
   };
 
   return (
@@ -91,7 +106,9 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                         </span>
                         <span className="text-xs flex items-center">
                           <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
-                          {event.type === "match" ? (event.location.includes("Home") ? "Home" : "Away") : event.location}
+                          {event.type === "match" ? 
+                            (event.location && typeof event.location === 'string' && event.location.includes("Home") ? "Home" : "Away") 
+                            : (event.location || "Location not set")}
                         </span>
                       </div>
                     </div>

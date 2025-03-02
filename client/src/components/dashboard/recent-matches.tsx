@@ -28,7 +28,7 @@ export default function RecentMatches({ matches }: RecentMatchesProps) {
             {matches.map(match => (
               <div key={match.id} className="bg-background rounded-lg p-3">
                 <div className="text-xs text-gray-500 mb-2">
-                  {match.location} • {format(new Date(match.matchDate), "MMMM d, yyyy")}
+                  {match.location} • {match.matchDate ? format(new Date(match.matchDate), "MMMM d, yyyy") : "Date not set"}
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
