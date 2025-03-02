@@ -14,9 +14,12 @@ export default function RecentMatches({ matches }: RecentMatchesProps) {
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Recent Matches</h2>
-          <Link href="/matches">
-            <a className="text-sm text-primary">View All Matches</a>
-          </Link>
+          <div 
+            onClick={() => window.location.href = '/matches'}
+            className="text-sm text-primary cursor-pointer"
+          >
+            View All Matches
+          </div>
         </div>
         
         {matches.length === 0 ? (
