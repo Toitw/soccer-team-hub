@@ -298,8 +298,17 @@ export default function LineupPage() {
       setFormation(lineup.formation);
       
       // Parse the positions from the stored JSON
-      const positionsData = JSON.parse(lineup.positions);
-      setSelectedPlayers(positionsData);
+      const positionsData = typeof lineup.positions === 'string' 
+        ? JSON.parse(lineup.positions) 
+        : lineup.positions;
+        
+      // Make sure player IDs are properly handled as numbers, not strings
+      const formattedPositions = positionsData.map((pos: any) => ({
+        ...pos,
+        playerId: pos.playerId === null ? null : Number(pos.playerId)
+      }));
+      
+      setSelectedPlayers(formattedPositions);
       
       toast({
         title: "Lineup Loaded",
@@ -361,42 +370,57 @@ export default function LineupPage() {
                 <div className="relative w-full mt-4 mb-6">
                   <SoccerField>
                     {selectedPlayers.map((position) => (
-                      <Droppable
+                      <div 
                         key={position.id}
-                        droppableId={`position-${position.id}`}
-                        isDropDisabled={false}
+                        className="absolute"
+                        style={{
+                          left: `${position.x}%`,
+                          top: `${position.y}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: '60px',
+                          height: '60px',
+                          zIndex: 10
+                        }}
                       >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-[60px] h-[60px] rounded-full flex items-center justify-center ${
-                              snapshot.isDraggingOver ? "bg-primary/20" : ""
-                            }`}
-                            style={{
-                              left: `${position.x}%`,
-                              top: `${position.y}%`,
-                            }}
-                          >
-                            {position.playerId !== null ? (
-                              <Draggable
-                                draggableId={`player-${position.playerId}`}
-                                index={0}
-                              >
-                                {(provided, snapshot) => {
-                                  const player = getPlayerById(position.playerId);
-                                  return (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className="w-full h-full"
-                                    >
-                                      <div className="relative">
-                                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 font-bold text-xs bg-white/70 px-1 rounded">
-                                          {getPositionLabel(position.id)}
-                                        </div>
-                                        <div className="w-[54px] h-[54px] bg-accent rounded-full flex items-center justify-center text-white border-2 border-white">
+                        {/* Position label (always visible) */}
+                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 font-bold text-xs bg-white/70 px-1 rounded z-20">
+                          {getPositionLabel(position.id)}
+                        </div>
+                        
+                        {/* Droppable area */}
+                        <Droppable
+                          droppableId={`position-${position.id}`}
+                          isDropDisabled={false}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              className={`absolute inset-0 rounded-full flex items-center justify-center 
+                                ${snapshot.isDraggingOver ? "bg-primary/20 border-2 border-primary" : ""}
+                              `}
+                              style={{ zIndex: snapshot.isDraggingOver ? 20 : 10 }}
+                            >
+                              {position.playerId !== null ? (
+                                <Draggable
+                                  draggableId={`player-${position.playerId}`}
+                                  index={0}
+                                >
+                                  {(provided, snapshot) => {
+                                    const player = getPlayerById(position.playerId);
+                                    return (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className="z-30"
+                                        style={{
+                                          ...provided.draggableProps.style,
+                                          width: '54px',
+                                          height: '54px'
+                                        }}
+                                      >
+                                        <div className="w-[54px] h-[54px] bg-accent rounded-full flex items-center justify-center text-white border-2 border-white shadow-md">
                                           <div className="flex flex-col items-center">
                                             <span className="text-xs font-bold">
                                               {player?.jerseyNumber || "?"}
@@ -409,21 +433,21 @@ export default function LineupPage() {
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  );
-                                }}
-                              </Draggable>
-                            ) : (
-                              <div className="w-[54px] h-[54px] bg-white/30 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
-                                <div className="text-xs font-bold text-gray-500">
-                                  {getPositionLabel(position.id)}
+                                    );
+                                  }}
+                                </Draggable>
+                              ) : (
+                                <div className="w-[54px] h-[54px] bg-white/30 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
+                                  <div className="text-xs font-bold text-gray-500">
+                                    {getPositionLabel(position.id)}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+                              )}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </div>
                     ))}
                   </SoccerField>
                 </div>
@@ -481,7 +505,9 @@ export default function LineupPage() {
                                         setSelectedLineupId(null);
                                         setLineupName("New Lineup");
                                         setFormation("4-4-2");
-                                        setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                                        // Create a deep copy of the default positions to ensure clean state
+                                        const freshPositions = JSON.parse(JSON.stringify(DEFAULT_FORMATIONS["4-4-2"].positions));
+                                        setSelectedPlayers(freshPositions);
                                       }
                                       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
                                       toast({
@@ -523,7 +549,15 @@ export default function LineupPage() {
                         setSelectedLineupId(null);
                         setLineupName("New Lineup");
                         setFormation("4-4-2");
-                        setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                        // Create a deep copy of the default positions to ensure clean state
+                        const freshPositions = JSON.parse(JSON.stringify(DEFAULT_FORMATIONS["4-4-2"].positions));
+                        setSelectedPlayers(freshPositions);
+                        
+                        // Tell the user that a new lineup has been created
+                        toast({
+                          title: "New Lineup",
+                          description: "Started a new lineup with 4-4-2 formation."
+                        });
                       }}
                     >
                       Create New Lineup
