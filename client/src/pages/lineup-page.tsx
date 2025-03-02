@@ -138,7 +138,7 @@ export default function LineupPage() {
       return;
     }
 
-    if (source.droppableId === 'available-players' && destination.droppableId === 'field') {
+    if (source.droppableId === 'available-players' && destination.droppableId.startsWith('position-')) {
       // Player moved from bench to field
       const playerId = parseInt(result.draggableId.split('-')[1]);
       const positionId = destination.droppableId.split('-')[1];
@@ -327,38 +327,38 @@ export default function LineupPage() {
   }
 
   return (
-    <div className="container p-4 md:p-8">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Left panel - Field */}
-        <div className="flex-1 md:w-2/3">
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="lineup-name">Lineup Name</Label>
-                  <Input
-                    id="lineup-name"
-                    value={lineupName}
-                    onChange={(e) => setLineupName(e.target.value)}
-                    placeholder="Enter lineup name"
-                  />
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="container p-4 md:p-8">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left panel - Field */}
+          <div className="flex-1 md:w-2/3">
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                  <div className="space-y-2 flex-1">
+                    <Label htmlFor="lineup-name">Lineup Name</Label>
+                    <Input
+                      id="lineup-name"
+                      value={lineupName}
+                      onChange={(e) => setLineupName(e.target.value)}
+                      placeholder="Enter lineup name"
+                    />
+                  </div>
+                  <div className="space-y-2 w-full md:w-auto">
+                    <Label htmlFor="formation">Formation</Label>
+                    <Select value={formation} onValueChange={handleFormationChange}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Select formation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="4-4-2">4-4-2</SelectItem>
+                        <SelectItem value="4-3-3">4-3-3</SelectItem>
+                        <SelectItem value="3-5-2">3-5-2</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2 w-full md:w-auto">
-                  <Label htmlFor="formation">Formation</Label>
-                  <Select value={formation} onValueChange={handleFormationChange}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="Select formation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="4-4-2">4-4-2</SelectItem>
-                      <SelectItem value="4-3-3">4-3-3</SelectItem>
-                      <SelectItem value="3-5-2">3-5-2</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <DragDropContext onDragEnd={handleDragEnd}>
+                
                 <div className="relative w-full mt-4 mb-6">
                   <SoccerField>
                     {selectedPlayers.map((position) => (
@@ -428,117 +428,115 @@ export default function LineupPage() {
                     ))}
                   </SoccerField>
                 </div>
-              </DragDropContext>
-              
-              <div className="flex justify-center">
-                <Button onClick={handleSaveLineup} className="px-8">
-                  Save Lineup
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right panel - Available Players */}
-        <div className="md:w-1/3">
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-4">Saved Lineups</h2>
-                <div className="space-y-2">
-                  {lineups && lineups.length > 0 ? (
-                    lineups.map((lineup) => (
-                      <div 
-                        key={lineup.id} 
-                        className={`p-3 rounded-md cursor-pointer flex justify-between items-center ${selectedLineupId === lineup.id ? 'bg-primary/10 border border-primary' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'}`}
-                      >
-                        <div 
-                          className="flex-1"
-                          onClick={() => handleLoadLineup(lineup.id)}
-                        >
-                          <div className="font-medium">{lineup.name}</div>
-                          <div className="text-xs text-gray-500">{lineup.formation} formation</div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => handleLoadLineup(lineup.id)}
-                          >
-                            Load
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            className="text-destructive" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.confirm(`Are you sure you want to delete "${lineup.name}"?`)) {
-                                fetch(`/api/teams/${teamId}/lineups/${lineup.id}`, {
-                                  method: 'DELETE',
-                                })
-                                .then(response => {
-                                  if (response.ok) {
-                                    if (selectedLineupId === lineup.id) {
-                                      setSelectedLineupId(null);
-                                      setLineupName("New Lineup");
-                                      setFormation("4-4-2");
-                                      setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
-                                    }
-                                    queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
-                                    toast({
-                                      title: "Lineup Deleted",
-                                      description: `${lineup.name} has been deleted.`,
-                                    });
-                                  } else {
-                                    throw new Error('Failed to delete lineup');
-                                  }
-                                })
-                                .catch(error => {
-                                  console.error('Error deleting lineup:', error);
-                                  toast({
-                                    title: "Error",
-                                    description: "Failed to delete lineup",
-                                    variant: "destructive",
-                                  });
-                                });
-                              }
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      No saved lineups
-                    </div>
-                  )}
-                </div>
                 
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedLineupId(null);
-                      setLineupName("New Lineup");
-                      setFormation("4-4-2");
-                      setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
-                    }}
-                  >
-                    Create New Lineup
+                <div className="flex justify-center">
+                  <Button onClick={handleSaveLineup} className="px-8">
+                    Save Lineup
                   </Button>
                 </div>
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-4">Available Players</h2>
-                
-                <DragDropContext onDragEnd={handleDragEnd}>
+          </div>
+
+          {/* Right panel - Available Players */}
+          <div className="md:w-1/3">
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="p-4">
+                  <h2 className="text-lg font-semibold mb-4">Saved Lineups</h2>
+                  <div className="space-y-2">
+                    {lineups && lineups.length > 0 ? (
+                      lineups.map((lineup) => (
+                        <div 
+                          key={lineup.id} 
+                          className={`p-3 rounded-md cursor-pointer flex justify-between items-center ${selectedLineupId === lineup.id ? 'bg-primary/10 border border-primary' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'}`}
+                        >
+                          <div 
+                            className="flex-1"
+                            onClick={() => handleLoadLineup(lineup.id)}
+                          >
+                            <div className="font-medium">{lineup.name}</div>
+                            <div className="text-xs text-gray-500">{lineup.formation} formation</div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleLoadLineup(lineup.id)}
+                            >
+                              Load
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-destructive" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (window.confirm(`Are you sure you want to delete "${lineup.name}"?`)) {
+                                  fetch(`/api/teams/${teamId}/lineups/${lineup.id}`, {
+                                    method: 'DELETE',
+                                  })
+                                  .then(response => {
+                                    if (response.ok) {
+                                      if (selectedLineupId === lineup.id) {
+                                        setSelectedLineupId(null);
+                                        setLineupName("New Lineup");
+                                        setFormation("4-4-2");
+                                        setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                                      }
+                                      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
+                                      toast({
+                                        title: "Lineup Deleted",
+                                        description: `${lineup.name} has been deleted.`,
+                                      });
+                                    } else {
+                                      throw new Error('Failed to delete lineup');
+                                    }
+                                  })
+                                  .catch(error => {
+                                    console.error('Error deleting lineup:', error);
+                                    toast({
+                                      title: "Error",
+                                      description: "Failed to delete lineup",
+                                      variant: "destructive",
+                                    });
+                                  });
+                                }
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        No saved lineups
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedLineupId(null);
+                        setLineupName("New Lineup");
+                        setFormation("4-4-2");
+                        setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                      }}
+                    >
+                      Create New Lineup
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <h2 className="text-lg font-semibold mb-4">Available Players</h2>
+                  
                   <Droppable droppableId="available-players">
                     {(provided) => (
                       <div
@@ -575,12 +573,12 @@ export default function LineupPage() {
                       </div>
                     )}
                   </Droppable>
-                </DragDropContext>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 }
