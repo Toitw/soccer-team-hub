@@ -253,21 +253,7 @@ export default function LineupPage() {
 
   const getPlayerById = (id: number | null) => {
     if (id === null) return null;
-    
-    const player = teamMembers?.find(player => player.userId === id) || null;
-    if (!player) return null;
-    
-    // Add the properties needed for display by extending the player object
-    return {
-      ...player,
-      // Default jersey number (randomly generated if not present in data)
-      jerseyNumber: (player as any).jerseyNumber || Math.floor(Math.random() * 99) + 1,
-      // Default user information if not already present
-      user: {
-        fullName: (player as any).user?.fullName || `Player ${id}`,
-        profilePicture: (player as any).user?.profilePicture || undefined
-      }
-    } as PlayerWithPosition;
+    return teamMembers?.find(player => player.userId === id) || null;
   };
 
   const getPositionLabel = (id: string) => {
@@ -312,16 +298,44 @@ export default function LineupPage() {
       setFormation(lineup.formation);
       
       // Parse the positions from the stored JSON
-      const positionsData = typeof lineup.positions === 'string' 
-        ? JSON.parse(lineup.positions) 
-        : lineup.positions;
-        
-      // Make sure player IDs are properly handled as numbers, not strings
-      const formattedPositions = positionsData.map((pos: any) => ({
-        ...pos,
-        playerId: pos.playerId === null ? null : Number(pos.playerId)
-      }));
+      let positionsData;
+      try {
+        positionsData = typeof lineup.positions === 'string' 
+          ? JSON.parse(lineup.positions) 
+          : lineup.positions;
+      } catch (e) {
+        console.error('Error parsing positions data:', e);
+        // If parsing fails, use default formation
+        positionsData = DEFAULT_FORMATIONS[lineup.formation || "4-4-2"].positions;
+      }
       
+      // Reset drag and drop by creating a fresh copy with properly formatted player IDs
+      const formattedPositions = [];
+      
+      // Use default positions as a template to maintain formation structure
+      const defaultPositions = DEFAULT_FORMATIONS[lineup.formation || "4-4-2"].positions;
+      
+      for (const defPos of defaultPositions) {
+        // Find the matching position in the loaded data
+        const loadedPos = positionsData.find((p: any) => p.id === defPos.id);
+        
+        if (loadedPos) {
+          formattedPositions.push({
+            id: defPos.id,
+            x: defPos.x,
+            y: defPos.y,
+            // Make sure player IDs are properly handled as numbers, not strings
+            playerId: loadedPos.playerId === null || loadedPos.playerId === undefined 
+              ? null 
+              : Number(loadedPos.playerId)
+          });
+        } else {
+          // If position not found in loaded data, use default
+          formattedPositions.push({...defPos});
+        }
+      }
+      
+      // Set the players after formatting everything
       setSelectedPlayers(formattedPositions);
       
       toast({
@@ -384,84 +398,65 @@ export default function LineupPage() {
                 <div className="relative w-full mt-4 mb-6">
                   <SoccerField>
                     {selectedPlayers.map((position) => (
-                      <div 
+                      <Droppable
                         key={position.id}
-                        className="absolute"
-                        style={{
-                          left: `${position.x}%`,
-                          top: `${position.y}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: '60px',
-                          height: '60px',
-                          zIndex: 10
-                        }}
+                        droppableId={`position-${position.id}`}
+                        isDropDisabled={false}
                       >
-                        {/* Position label (always visible) */}
-                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 font-bold text-xs bg-white/70 px-1 rounded z-20">
-                          {getPositionLabel(position.id)}
-                        </div>
-                        
-                        {/* Droppable area */}
-                        <Droppable
-                          droppableId={`position-${position.id}`}
-                          isDropDisabled={false}
-                        >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                              className={`absolute inset-0 rounded-full flex items-center justify-center 
-                                ${snapshot.isDraggingOver ? "bg-primary/20 border-2 border-primary" : ""}
-                              `}
-                              style={{ zIndex: snapshot.isDraggingOver ? 20 : 10 }}
-                            >
-                              {position.playerId !== null ? (
-                                <Draggable
-                                  draggableId={`player-${position.playerId}`}
-                                  index={0}
-                                >
-                                  {(provided, snapshot) => {
-                                    const player = getPlayerById(position.playerId);
-                                    return (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className="z-30"
-                                        style={{
-                                          ...provided.draggableProps.style,
-                                          width: '54px',
-                                          height: '54px'
-                                        }}
-                                      >
-                                        <div className="w-[54px] h-[54px] bg-accent rounded-full flex items-center justify-center text-white border-2 border-white shadow-md">
-                                          <div className="flex flex-col items-center">
-                                            <span className="text-xs font-bold">
-                                              {player?.jerseyNumber || "?"}
-                                            </span>
-                                            <span className="text-[10px] leading-tight max-w-[50px] truncate">
-                                              {player ? 
-                                                player.user?.fullName?.split(" ")[1] || player.user?.fullName || `Player ${player.userId}` :
-                                                "Empty"}
-                                            </span>
-                                          </div>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={`absolute transform -translate-x-1/2 -translate-y-1/2 w-[60px] h-[60px] rounded-full flex items-center justify-center ${
+                              snapshot.isDraggingOver ? "bg-primary/20" : ""
+                            }`}
+                            style={{
+                              left: `${position.x}%`,
+                              top: `${position.y}%`,
+                            }}
+                          >
+                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 font-bold text-xs bg-white/70 px-1 rounded">
+                              {getPositionLabel(position.id)}
+                            </div>
+                            {position.playerId !== null ? (
+                              <Draggable
+                                draggableId={`player-${position.playerId}`}
+                                index={0}
+                              >
+                                {(provided, snapshot) => {
+                                  const player = getPlayerById(position.playerId);
+                                  return (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="w-full h-full"
+                                    >
+                                      <div className="w-[54px] h-[54px] bg-accent rounded-full flex items-center justify-center text-white border-2 border-white">
+                                        <div className="flex flex-col items-center">
+                                          <span className="text-xs font-bold">
+                                            {player?.userId || "?"}
+                                          </span>
+                                          <span className="text-[10px] leading-tight max-w-[50px] truncate">
+                                            Player {player?.userId || ""}
+                                          </span>
                                         </div>
                                       </div>
-                                    );
-                                  }}
-                                </Draggable>
-                              ) : (
-                                <div className="w-[54px] h-[54px] bg-white/30 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
-                                  <div className="text-xs font-bold text-gray-500">
-                                    {getPositionLabel(position.id)}
-                                  </div>
+                                    </div>
+                                  );
+                                }}
+                              </Draggable>
+                            ) : (
+                              <div className="w-[54px] h-[54px] bg-white/30 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
+                                <div className="text-xs font-bold text-gray-500">
+                                  {getPositionLabel(position.id)}
                                 </div>
-                              )}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </div>
+                              </div>
+                            )}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
                     ))}
                   </SoccerField>
                 </div>
