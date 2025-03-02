@@ -41,7 +41,7 @@ export default function RecentMatches({ matches }: RecentMatchesProps) {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-lg">{match.goalsScored || 0}</span>
-                    {match.goalsScored !== undefined && match.goalsConceded !== undefined && (
+                    {match.goalsScored !== undefined && match.goalsConceded !== undefined && match.goalsScored !== null && match.goalsConceded !== null && (
                       <span className={`text-xs px-3 py-1 text-white rounded ${
                         match.goalsScored > match.goalsConceded 
                           ? "bg-secondary" 
