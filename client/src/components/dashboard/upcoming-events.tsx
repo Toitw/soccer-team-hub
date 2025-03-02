@@ -92,8 +92,8 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                     <div className="flex-1 p-3 pl-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.type)} mb-1`}>
-                            {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.type || 'other')} mb-1`}>
+                            {event.type ? (event.type.charAt(0).toUpperCase() + event.type.slice(1)) : 'Event'}
                           </span>
                           <h3 className="font-medium">{event.title}</h3>
                         </div>
@@ -107,7 +107,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                         <span className="text-xs flex items-center">
                           <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
                           {event.type === "match" ? 
-                            (event.location && typeof event.location === 'string' && event.location.includes("Home") ? "Home" : "Away") 
+                            ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? "Home" : "Away") 
                             : (event.location || "Location not set")}
                         </span>
                       </div>

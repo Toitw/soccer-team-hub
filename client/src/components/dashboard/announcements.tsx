@@ -38,7 +38,7 @@ export default function Announcements({ announcements }: AnnouncementsProps) {
                   <p className="text-sm text-gray-600 mt-1">{announcement.content}</p>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-gray-500">
-                      {format(new Date(announcement.createdAt), "MMMM d, yyyy")}
+                      {announcement.createdAt ? format(new Date(announcement.createdAt), "MMMM d, yyyy") : "Date not available"}
                     </span>
                     <span className="text-xs font-medium text-primary">
                       {announcement.creator?.fullName || `User ${announcement.createdById}`}
