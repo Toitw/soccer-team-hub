@@ -59,7 +59,7 @@ app.use((req, res, next) => {
   // Try to serve the app on port 5000, fallback to another port if needed
   const port = 5000;
   const startServer = (targetPort: number) => {
-    const serverInstance = server.listen({
+    server.listen({
       port: targetPort,
       host: "0.0.0.0",
       reusePort: false,
@@ -68,10 +68,6 @@ app.use((req, res, next) => {
     }).on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
         log(`Port ${targetPort} is in use, trying ${targetPort + 1}`);
-        // Close this server attempt before trying a new port
-        if (serverInstance && serverInstance.close) {
-          serverInstance.close();
-        }
         startServer(targetPort + 1);
       } else {
         console.error('Server error:', err);
