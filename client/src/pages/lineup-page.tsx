@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import SoccerField from "@/components/lineup/soccer-field";
 import PlayerCard from "@/components/lineup/player-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { TeamMember, InsertLineup } from "@shared/schema";
+import { TeamMember, InsertLineup, Lineup } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 
 type PlayerPosition = {
@@ -22,6 +22,10 @@ type PlayerPosition = {
 type PlayerWithPosition = TeamMember & {
   position?: string | null;
   jerseyNumber?: number | null;
+  user?: {
+    fullName: string;
+    profilePicture?: string;
+  };
 };
 
 type Formation = {
@@ -101,11 +105,11 @@ export default function LineupPage() {
   const [selectedLineupId, setSelectedLineupId] = useState<number | null>(null);
 
   // Get the first team from the list
-  const { data: teams } = useQuery({
+  const { data: teams = [] } = useQuery<any[]>({
     queryKey: ["/api/teams"],
   });
 
-  const teamId = teams?.[0]?.id;
+  const teamId = teams.length > 0 ? teams[0].id : null;
 
   // Get team members
   const { data: teamMembers, isLoading: isLoadingMembers } = useQuery<TeamMember[]>({
@@ -114,7 +118,7 @@ export default function LineupPage() {
   });
   
   // Get lineups
-  const { data: lineups, isLoading: isLoadingLineups } = useQuery({
+  const { data: lineups = [], isLoading: isLoadingLineups } = useQuery<Lineup[]>({
     queryKey: [`/api/teams/${teamId}/lineups`],
     enabled: !!teamId,
   });
