@@ -11,8 +11,19 @@ import {
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
+import { scrypt, randomBytes } from "crypto";
+import { promisify } from "util";
 
 const MemoryStore = createMemoryStore(session);
+
+// Separate password hashing logic since auth.ts imports this file
+const scryptAsync = promisify(scrypt);
+
+export async function hashPasswordInStorage(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export interface IStorage {
   // User methods
@@ -127,32 +138,37 @@ export class MemStorage implements IStorage {
     });
     
     // Initialize with some data
-    this.initializeData();
+    this.initializeData().catch(err => {
+      console.error("Error initializing data:", err);
+    });
   }
 
-  private initializeData() {
+  private async initializeData() {
+    // Create hashed passwords for demo users
+    const hashedPassword = await hashPasswordInStorage("password123");
+    
     // Add demo data here
-    const demoAdmin = this.createUser({
+    const demoAdmin = await this.createUser({
       username: "admin",
-      password: "password123", // This will be hashed in auth.ts
+      password: hashedPassword,
       fullName: "Admin User",
       role: "admin",
       email: "admin@example.com",
       profilePicture: "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"
     });
     
-    const demoCoach = this.createUser({
+    const demoCoach = await this.createUser({
       username: "coach",
-      password: "password123",
+      password: hashedPassword,
       fullName: "Coach Smith",
       role: "coach",
       email: "coach@example.com",
       profilePicture: "https://ui-avatars.com/api/?name=Coach+Smith&background=4CAF50&color=fff"
     });
     
-    const demoPlayer1 = this.createUser({
+    const demoPlayer1 = await this.createUser({
       username: "player1",
-      password: "password123",
+      password: hashedPassword,
       fullName: "Marcus Rashford",
       role: "player",
       position: "Forward",
@@ -161,9 +177,9 @@ export class MemStorage implements IStorage {
       profilePicture: "https://ui-avatars.com/api/?name=Marcus+Rashford&background=FFC107&color=fff"
     });
     
-    const demoPlayer2 = this.createUser({
+    const demoPlayer2 = await this.createUser({
       username: "player2",
-      password: "password123",
+      password: hashedPassword,
       fullName: "Bruno Fernandes",
       role: "player",
       position: "Midfielder",
@@ -172,9 +188,9 @@ export class MemStorage implements IStorage {
       profilePicture: "https://ui-avatars.com/api/?name=Bruno+Fernandes&background=FFC107&color=fff"
     });
     
-    const demoPlayer3 = this.createUser({
+    const demoPlayer3 = await this.createUser({
       username: "player3",
-      password: "password123",
+      password: hashedPassword,
       fullName: "Jadon Sancho",
       role: "player",
       position: "Winger",
