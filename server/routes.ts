@@ -611,14 +611,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to create lineups" });
       }
       
+      // If positions is not a string, convert it to JSON string
+      let positions = req.body.positions;
+      if (typeof positions !== 'string') {
+        positions = JSON.stringify(positions);
+      }
+      
       const lineup = await storage.createLineup({
         ...req.body,
+        positions,
         teamId,
         createdById: req.user.id,
       });
       
       res.status(201).json(lineup);
     } catch (error) {
+      console.error('Error creating lineup:', error);
       res.status(500).json({ error: "Failed to create lineup" });
     }
   });
@@ -641,9 +649,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Lineup not found" });
       }
       
-      const updatedLineup = await storage.updateLineup(lineupId, req.body);
+      // If positions is not a string, convert it to JSON string
+      let updatedData = {...req.body};
+      if (updatedData.positions && typeof updatedData.positions !== 'string') {
+        updatedData.positions = JSON.stringify(updatedData.positions);
+      }
+      
+      const updatedLineup = await storage.updateLineup(lineupId, updatedData);
       res.json(updatedLineup);
     } catch (error) {
+      console.error('Error updating lineup:', error);
       res.status(500).json({ error: "Failed to update lineup" });
     }
   });
