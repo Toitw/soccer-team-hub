@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import SoccerField from "@/components/lineup/soccer-field";
 import PlayerCard from "@/components/lineup/player-card";
-import { useQuery } from "@tanstack/react-query";
-import { TeamMember } from "@shared/schema";
-import { queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { TeamMember, InsertLineup } from "@shared/schema";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 type PlayerPosition = {
   id: string;
@@ -183,6 +183,40 @@ export default function LineupPage() {
     }
   };
 
+  // Create the save lineup mutation
+  const saveLineupMutation = useMutation({
+    mutationFn: async (lineupData: InsertLineup) => {
+      if (selectedLineupId) {
+        // Update existing lineup
+        const res = await apiRequest('PUT', `/api/teams/${teamId}/lineups/${selectedLineupId}`, lineupData);
+        return await res.json();
+      } else {
+        // Create new lineup
+        const res = await apiRequest('POST', `/api/teams/${teamId}/lineups`, lineupData);
+        return await res.json();
+      }
+    },
+    onSuccess: (data) => {
+      setSelectedLineupId(data.id);
+      // Invalidate lineups cache
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
+      
+      const actionText = selectedLineupId ? "updated" : "saved";
+      toast({
+        title: `Lineup ${actionText}`,
+        description: `${lineupName} has been ${actionText} successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Error saving lineup:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save lineup",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleSaveLineup = async () => {
     if (!teamId) {
       toast({
@@ -197,56 +231,17 @@ export default function LineupPage() {
       const lineupData = {
         name: lineupName,
         formation,
-        positions: JSON.stringify(selectedPlayers),
+        positions: selectedPlayers, // Server will handle JSON conversion
         teamId,
-        createdById: 0, // Will be set by the server
+        createdById: 0, // Will be set by the server based on authenticated user
       };
       
-      let response;
-      let actionText = "saved";
-      
-      if (selectedLineupId) {
-        // Update existing lineup
-        response = await fetch(`/api/teams/${teamId}/lineups/${selectedLineupId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(lineupData),
-        });
-        actionText = "updated";
-      } else {
-        // Create new lineup
-        response = await fetch(`/api/teams/${teamId}/lineups`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(lineupData),
-        });
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to ${actionText} lineup`);
-      }
-      
-      const savedLineup = await response.json();
-      setSelectedLineupId(savedLineup.id);
-      
-      // Invalidate lineups cache
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
-      
-      toast({
-        title: `Lineup ${actionText}`,
-        description: `${lineupName} has been ${actionText} successfully.`,
-      });
-      
-      return savedLineup;
+      saveLineupMutation.mutate(lineupData as InsertLineup);
     } catch (error) {
-      console.error('Error saving lineup:', error);
+      console.error('Error preparing lineup data:', error);
       toast({
         title: "Error",
-        description: "Failed to save lineup",
+        description: "Failed to prepare lineup data",
         variant: "destructive",
       });
     }
