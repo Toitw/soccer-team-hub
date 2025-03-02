@@ -253,7 +253,21 @@ export default function LineupPage() {
 
   const getPlayerById = (id: number | null) => {
     if (id === null) return null;
-    return teamMembers?.find(player => player.userId === id) || null;
+    
+    const player = teamMembers?.find(player => player.userId === id) || null;
+    if (!player) return null;
+    
+    // Add the properties needed for display by extending the player object
+    return {
+      ...player,
+      // Default jersey number (randomly generated if not present in data)
+      jerseyNumber: (player as any).jerseyNumber || Math.floor(Math.random() * 99) + 1,
+      // Default user information if not already present
+      user: {
+        fullName: (player as any).user?.fullName || `Player ${id}`,
+        profilePicture: (player as any).user?.profilePicture || undefined
+      }
+    } as PlayerWithPosition;
   };
 
   const getPositionLabel = (id: string) => {
