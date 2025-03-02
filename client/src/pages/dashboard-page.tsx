@@ -1,127 +1,96 @@
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
-import QuickStats from "@/components/dashboard/quick-stats";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import EventsList from "@/components/dashboard/events-list";
-import AnnouncementsList from "@/components/dashboard/announcements-list";
-import RecentMatchesList from "@/components/dashboard/recent-matches-list";
-import PlayerPerformance from "@/components/dashboard/player-performance";
-import TeamCalendar from "@/components/dashboard/team-calendar";
-import QuickActions from "@/components/dashboard/quick-actions";
-import TeamRoster from "@/components/dashboard/team-roster";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Team, Match, Event, Announcement } from "@shared/schema";
+import Header from "@/components/header";
+import Sidebar from "@/components/sidebar";
+import MobileNavigation from "@/components/mobile-navigation";
+import TeamSummary from "@/components/dashboard/team-summary";
+import UpcomingEvents from "@/components/dashboard/upcoming-events";
+import RecentMatches from "@/components/dashboard/recent-matches";
+import Announcements from "@/components/dashboard/announcements";
+import TopPerformers from "@/components/dashboard/top-performers";
+import AttendanceTracker from "@/components/dashboard/attendance-tracker";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [showCreateEventButton, setShowCreateEventButton] = useState(
-    user?.role === "admin" || user?.role === "coach"
-  );
 
-  const { data: stats } = useQuery({
-    queryKey: ["/api/dashboard/stats"],
+  const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
   });
 
-  const { data: players } = useQuery({
-    queryKey: ["/api/players"],
+  // Create mock data for demonstration if none exists
+  useEffect(() => {
+    if (teams && teams.length === 0) {
+      apiRequest("POST", "/api/mock-data")
+        .then(() => {
+          // Refetch teams after creating mock data
+          window.location.reload();
+        })
+        .catch(error => {
+          console.error("Failed to create mock data:", error);
+        });
+    }
+  }, [teams]);
+
+  // Select the first team by default
+  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+
+  // If we have a selected team, fetch related data
+  const { data: recentMatches, isLoading: matchesLoading } = useQuery<Match[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "matches/recent"],
+    enabled: !!selectedTeam,
   });
 
-  const { data: events } = useQuery({
-    queryKey: ["/api/events"],
+  const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "events/upcoming"],
+    enabled: !!selectedTeam,
   });
 
-  const { data: matches } = useQuery({
-    queryKey: ["/api/matches"],
+  const { data: announcements, isLoading: announcementsLoading } = useQuery<Announcement[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
+    enabled: !!selectedTeam,
   });
 
-  const { data: announcements } = useQuery({
-    queryKey: ["/api/announcements"],
-  });
+  const isLoading = teamsLoading || matchesLoading || eventsLoading || announcementsLoading;
 
-  const { data: team } = useQuery({
-    queryKey: ["/api/team"],
-  });
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        {/* Dashboard header */}
-        <div className="md:flex md:items-center md:justify-between mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 font-inter sm:text-3xl sm:leading-9 sm:truncate">
-              Dashboard
-            </h1>
-          </div>
-          <div className="mt-4 flex md:mt-0 md:ml-4">
-            {showCreateEventButton && (
-              <Button className="inline-flex items-center">
-                <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-                Create Event
-              </Button>
-            )}
-          </div>
-        </div>
+    <div className="flex h-screen bg-background">
+      <Sidebar />
 
-        {/* Quick stats cards */}
-        <QuickStats stats={stats} />
+      <div className="flex-1 ml-0 md:ml-64">
+        <Header title="Dashboard" />
 
-        {/* Dashboard main content */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main content column */}
-          <div className="w-full lg:w-8/12">
-            {/* Tabs component */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-medium text-gray-900 font-inter">Team Overview</h2>
-                  <Tabs defaultValue="upcoming" className="w-auto">
-                    <TabsList>
-                      <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                      <TabsTrigger value="announcements">Announcements</TabsTrigger>
-                      <TabsTrigger value="recent-matches">Recent Matches</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </div>
-              
-              <div className="p-4">
-                <Tabs defaultValue="upcoming">
-                  <TabsContent value="upcoming">
-                    <EventsList events={events} />
-                  </TabsContent>
-                  <TabsContent value="announcements">
-                    <AnnouncementsList announcements={announcements} />
-                  </TabsContent>
-                  <TabsContent value="recent-matches">
-                    <RecentMatchesList matches={matches} />
-                  </TabsContent>
-                </Tabs>
-              </div>
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-2 space-y-6">
+              <TeamSummary team={selectedTeam} />
+              <UpcomingEvents events={upcomingEvents || []} />
+              <RecentMatches matches={recentMatches || []} />
             </div>
 
-            {/* Player performance table */}
-            <PlayerPerformance players={players} />
-          </div>
-
-          {/* Sidebar column */}
-          <div className="w-full lg:w-4/12">
-            {/* Team calendar */}
-            <TeamCalendar events={events} matches={matches} />
-
-            {/* Quick actions */}
-            <QuickActions userRole={user?.role} />
-
-            {/* Team roster */}
-            <TeamRoster team={team} />
+            {/* Right Column */}
+            <div className="space-y-6">
+              <Announcements announcements={announcements || []} />
+              <TopPerformers teamId={selectedTeam?.id || 0} />
+              <AttendanceTracker teamId={selectedTeam?.id || 0} />
+            </div>
           </div>
         </div>
-      </main>
-      <Footer />
+
+        <MobileNavigation />
+      </div>
     </div>
   );
 }
