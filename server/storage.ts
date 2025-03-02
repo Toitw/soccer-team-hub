@@ -503,7 +503,20 @@ export class MemStorage implements IStorage {
 
   async createLineup(insertLineup: InsertLineup): Promise<Lineup> {
     const id = this.lineupCurrentId++;
-    const lineup: Lineup = { ...insertLineup, id, createdAt: new Date() };
+    
+    // Handle positions serialization if it's not already a string
+    let positionsData = insertLineup.positions;
+    if (typeof positionsData !== 'string') {
+      positionsData = JSON.stringify(positionsData);
+    }
+    
+    const lineup: Lineup = { 
+      ...insertLineup, 
+      positions: positionsData, 
+      id, 
+      createdAt: new Date() 
+    };
+    
     this.lineups.set(id, lineup);
     return lineup;
   }
@@ -511,6 +524,11 @@ export class MemStorage implements IStorage {
   async updateLineup(id: number, lineupData: Partial<Lineup>): Promise<Lineup | undefined> {
     const lineup = this.lineups.get(id);
     if (!lineup) return undefined;
+    
+    // Handle positions serialization if it's not already a string
+    if (lineupData.positions && typeof lineupData.positions !== 'string') {
+      lineupData.positions = JSON.stringify(lineupData.positions);
+    }
     
     const updatedLineup: Lineup = { ...lineup, ...lineupData };
     this.lineups.set(id, updatedLineup);
