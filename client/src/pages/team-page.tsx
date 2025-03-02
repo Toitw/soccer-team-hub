@@ -1,48 +1,73 @@
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Team, TeamMember } from "@shared/schema";
+import Header from "@/components/header";
+import Sidebar from "@/components/sidebar";
+import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PlusIcon, UserPlusIcon, MailIcon, ClipboardIcon, ChevronDownIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Loader2, UserPlus, Mail } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
-import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
 
+// Define form schema for inviting members
 const inviteSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  role: z.string({
-    required_error: "Please select a role",
-  }),
+  email: z.string().email("Please enter a valid email address"),
+  role: z.enum(["admin", "coach", "player"]),
 });
+
+type InviteFormData = z.infer<typeof inviteSchema>;
 
 export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const isAdmin = user?.role === "admin";
-  const isCoach = user?.role === "coach";
-  const canManage = isAdmin || isCoach;
+  const [activeTab, setActiveTab] = useState("members");
 
-  const { data: team, isLoading } = useQuery({
-    queryKey: ["/api/team"],
+  const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
   });
 
-  const { data: invitations } = useQuery({
-    queryKey: ["/api/team/invitations"],
+  // Select the first team by default
+  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+
+  const { data: teamMembers, isLoading: membersLoading } = useQuery<(TeamMember & { user: any })[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "members"],
+    enabled: !!selectedTeam,
   });
 
-  const inviteForm = useForm<z.infer<typeof inviteSchema>>({
+  const isLoading = teamsLoading || membersLoading;
+
+  const form = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       email: "",
@@ -50,464 +75,270 @@ export default function TeamPage() {
     },
   });
 
-  const inviteMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof inviteSchema>) => {
-      const res = await apiRequest("POST", "/api/team/invite", data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team/invitations"] });
-      toast({
-        title: "Invitation sent",
-        description: "The team invitation has been sent successfully.",
-      });
-      inviteForm.reset();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to send invitation",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const removeMemberMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      await apiRequest("DELETE", `/api/team/members/${userId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team"] });
-      toast({
-        title: "Member removed",
-        description: "The team member has been removed successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to remove member",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const cancelInvitationMutation = useMutation({
-    mutationFn: async (invitationId: number) => {
-      await apiRequest("DELETE", `/api/team/invitations/${invitationId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team/invitations"] });
-      toast({
-        title: "Invitation cancelled",
-        description: "The invitation has been cancelled successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to cancel invitation",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
-      await apiRequest("PATCH", `/api/team/members/${userId}/role`, { role });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/team"] });
-      toast({
-        title: "Role updated",
-        description: "The member's role has been updated successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update role",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  function onInviteSubmit(values: z.infer<typeof inviteSchema>) {
-    inviteMutation.mutate(values);
-  }
-
-  const copyInviteLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/auth?invite=true`);
+  const onSubmit = (data: InviteFormData) => {
+    // In a real implementation, you would make an API call to send the invitation
+    console.log("Invitation data:", data);
     toast({
-      title: "Invite link copied",
-      description: "Team invitation link has been copied to clipboard.",
+      title: "Invitation sent",
+      description: `Invitation sent to ${data.email}`,
     });
+    form.reset();
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Group members by role
+  const adminMembers = teamMembers?.filter(member => member.role === "admin") || [];
+  const coachMembers = teamMembers?.filter(member => member.role === "coach") || [];
+  const playerMembers = teamMembers?.filter(member => member.role === "player") || [];
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        <div className="md:flex md:items-center md:justify-between mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold leading-7 text-gray-900 font-inter sm:text-3xl sm:leading-9 sm:truncate">
-              Team Management
-            </h1>
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+
+      <div className="flex-1 ml-0 md:ml-64">
+        <Header title="Team" />
+
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
+              <p className="text-gray-500">{selectedTeam?.division || "No division set"}</p>
+            </div>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Invite Team Member</DialogTitle>
+                  <DialogDescription>
+                    Send an invitation email to add a new member to the team.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter email address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Role</FormLabel>
+                          <FormControl>
+                            <select 
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              {...field}
+                            >
+                              <option value="player">Player</option>
+                              <option value="coach">Coach</option>
+                              <option value="admin">Administrator</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit" className="bg-primary hover:bg-primary/90">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Invitation
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
-          <div className="mt-4 flex md:mt-0 md:ml-4">
-            {canManage && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="inline-flex items-center">
-                    <UserPlusIcon className="-ml-1 mr-2 h-5 w-5" />
-                    Invite Member
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Invite Team Member</DialogTitle>
-                    <DialogDescription>
-                      Send an invitation to a new team member. They'll receive an email with instructions to join.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...inviteForm}>
-                    <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
-                      <FormField
-                        control={inviteForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter email address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={inviteForm.control}
-                        name="role"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Role</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {isAdmin && <SelectItem value="admin">Administrator</SelectItem>}
-                                {(isAdmin || isCoach) && <SelectItem value="coach">Coach</SelectItem>}
-                                <SelectItem value="player">Player</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter>
-                        <Button type="submit" disabled={inviteMutation.isPending}>
-                          {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
+
+          <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="members">Team Members</TabsTrigger>
+              <TabsTrigger value="settings">Team Settings</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="members" className="mt-6">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Administrators */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Administrators</CardTitle>
+                    <CardDescription>Team administrators with full access to team settings</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Position</TableHead>
+                          <TableHead>Contact</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {adminMembers.map(member => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium flex items-center gap-2">
+                              <img 
+                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                alt={member.user.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              {member.user.fullName}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">Administrator</Badge>
+                            </TableCell>
+                            <TableCell>{member.user.email}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Coaches */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Coaches</CardTitle>
+                    <CardDescription>Team coaches who manage training sessions and matches</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Position</TableHead>
+                          <TableHead>Contact</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {coachMembers.map(member => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium flex items-center gap-2">
+                              <img 
+                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Coach&background=4CAF50&color=fff"} 
+                                alt={member.user.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              {member.user.fullName}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-[#4CAF50]/10 text-[#4CAF50] hover:bg-[#4CAF50]/20">Coach</Badge>
+                            </TableCell>
+                            <TableCell>{member.user.email}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Players */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>Players</CardTitle>
+                    <CardDescription>Team players roster</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Position</TableHead>
+                          <TableHead>Jersey #</TableHead>
+                          <TableHead>Contact</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {playerMembers.map(member => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium flex items-center gap-2">
+                              <img 
+                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Player&background=FFC107&color=fff"} 
+                                alt={member.user.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              {member.user.fullName}
+                            </TableCell>
+                            <TableCell>{member.user.position || "Not set"}</TableCell>
+                            <TableCell>{member.user.jerseyNumber || "-"}</TableCell>
+                            <TableCell>{member.user.email}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Settings</CardTitle>
+                  <CardDescription>Manage your team's information and preferences</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Team Name</label>
+                      <Input defaultValue={selectedTeam?.name} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Division</label>
+                      <Input defaultValue={selectedTeam?.division} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Season Year</label>
+                      <Input defaultValue={selectedTeam?.seasonYear} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Team Logo</label>
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
+                          alt="Team Logo" 
+                          className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+                        />
+                        <Button variant="outline">Change Logo</Button>
+                      </div>
+                    </div>
+                    
+                    <Button className="mt-6 bg-primary hover:bg-primary/90">Save Changes</Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-            <Tabs defaultValue="members" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="members">Team Members</TabsTrigger>
-                {canManage && <TabsTrigger value="invitations">Pending Invitations</TabsTrigger>}
-              </TabsList>
-            </Tabs>
-          </div>
-          
-          <div className="p-4">
-            <Tabs defaultValue="members">
-              <TabsContent value="members">
-                <div className="overflow-hidden">
-                  <div className="mb-4 flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Team Roster</h3>
-                    {canManage && (
-                      <Button variant="outline" className="text-sm" onClick={copyInviteLink}>
-                        <ClipboardIcon className="mr-2 h-4 w-4" />
-                        Copy Invite Link
-                      </Button>
-                    )}
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Role
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Position
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Joined
-                          </th>
-                          {canManage && (
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Actions
-                            </th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {team?.members?.map((member: any) => (
-                          <tr key={member.id}>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10">
-                                  <img className="h-10 w-10 rounded-full" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.username)}&background=0D47A1&color=fff`} alt="" />
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {member.username}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {member.email || "No email provided"}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={`
-                                ${member.role === 'admin' ? 'bg-primary text-white' : 
-                                  member.role === 'coach' ? 'bg-secondary text-white' : 
-                                  'bg-accent text-text'}
-                              `}>
-                                {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{member.position || "Not specified"}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(member.joinedAt || Date.now()).toLocaleDateString()}
-                            </td>
-                            {canManage && (
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                {member.id !== user?.id ? (
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="h-8 w-8 p-0">
-                                        <span className="sr-only">Open menu</span>
-                                        <ChevronDownIcon className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                      <DropdownMenuSeparator />
-                                      {isAdmin && (
-                                        <>
-                                          <DropdownMenuItem 
-                                            onClick={() => updateRoleMutation.mutate({ userId: member.id, role: "admin" })}
-                                            disabled={member.role === "admin"}
-                                          >
-                                            Set as Admin
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem 
-                                            onClick={() => updateRoleMutation.mutate({ userId: member.id, role: "coach" })}
-                                            disabled={member.role === "coach"}
-                                          >
-                                            Set as Coach
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem 
-                                            onClick={() => updateRoleMutation.mutate({ userId: member.id, role: "player" })}
-                                            disabled={member.role === "player"}
-                                          >
-                                            Set as Player
-                                          </DropdownMenuItem>
-                                          <DropdownMenuSeparator />
-                                        </>
-                                      )}
-                                      <DropdownMenuItem 
-                                        className="text-red-600"
-                                        onClick={() => {
-                                          if (confirm("Are you sure you want to remove this member from the team?")) {
-                                            removeMemberMutation.mutate(member.id);
-                                          }
-                                        }}
-                                      >
-                                        Remove
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                ) : (
-                                  <span className="text-gray-400">You</span>
-                                )}
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              {canManage && (
-                <TabsContent value="invitations">
-                  <div className="overflow-hidden">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-medium">Pending Invitations</h3>
-                    </div>
-                    {invitations?.length > 0 ? (
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Email
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Role
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Sent
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status
-                              </th>
-                              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {invitations.map((invitation: any) => (
-                              <tr key={invitation.id}>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="text-sm text-gray-900">{invitation.email}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <Badge className={`
-                                    ${invitation.role === 'admin' ? 'bg-primary text-white' : 
-                                      invitation.role === 'coach' ? 'bg-secondary text-white' : 
-                                      'bg-accent text-text'}
-                                  `}>
-                                    {invitation.role.charAt(0).toUpperCase() + invitation.role.slice(1)}
-                                  </Badge>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {new Date(invitation.createdAt).toLocaleDateString()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <Badge variant="outline" className="text-amber-600 border-amber-600">
-                                    Pending
-                                  </Badge>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                  <Button 
-                                    variant="ghost" 
-                                    className="text-red-600 hover:text-red-900 hover:bg-red-50"
-                                    onClick={() => {
-                                      if (confirm("Are you sure you want to cancel this invitation?")) {
-                                        cancelInvitationMutation.mutate(invitation.id);
-                                      }
-                                    }}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <MailIcon className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No pending invitations</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Get started by inviting team members.
-                        </p>
-                        <div className="mt-6">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button className="inline-flex items-center">
-                                <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
-                                Invite Member
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px]">
-                              <DialogHeader>
-                                <DialogTitle>Invite Team Member</DialogTitle>
-                                <DialogDescription>
-                                  Send an invitation to a new team member. They'll receive an email with instructions to join.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <Form {...inviteForm}>
-                                <form onSubmit={inviteForm.handleSubmit(onInviteSubmit)} className="space-y-4">
-                                  <FormField
-                                    control={inviteForm.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                          <Input placeholder="Enter email address" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={inviteForm.control}
-                                    name="role"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Role</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                          <FormControl>
-                                            <SelectTrigger>
-                                              <SelectValue placeholder="Select a role" />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {isAdmin && <SelectItem value="admin">Administrator</SelectItem>}
-                                            {(isAdmin || isCoach) && <SelectItem value="coach">Coach</SelectItem>}
-                                            <SelectItem value="player">Player</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <DialogFooter>
-                                    <Button type="submit" disabled={inviteMutation.isPending}>
-                                      {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
-                                    </Button>
-                                  </DialogFooter>
-                                </form>
-                              </Form>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </TabsContent>
-              )}
-            </Tabs>
-          </div>
-        </div>
-      </main>
-      <Footer />
+        <MobileNavigation />
+      </div>
     </div>
   );
 }

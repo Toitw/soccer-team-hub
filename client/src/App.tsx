@@ -7,10 +7,10 @@ import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page";
-import PlayersPage from "@/pages/players-page";
-import EventsPage from "@/pages/events-page";
-import { ProtectedRoute } from "./lib/protected-route";
+import TrainingPage from "@/pages/training-page";
+import PlayerProfilePage from "@/pages/player-profile-page";
 import { AuthProvider } from "./hooks/use-auth";
+import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
@@ -19,8 +19,8 @@ function Router() {
       <ProtectedRoute path="/" component={DashboardPage} />
       <ProtectedRoute path="/team" component={TeamPage} />
       <ProtectedRoute path="/matches" component={MatchesPage} />
-      <ProtectedRoute path="/players" component={PlayersPage} />
-      <ProtectedRoute path="/events" component={EventsPage} />
+      <ProtectedRoute path="/training" component={TrainingPage} />
+      <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
       <Route component={NotFound} />
     </Switch>
   );
