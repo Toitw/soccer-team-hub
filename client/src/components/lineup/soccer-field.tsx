@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 interface SoccerFieldProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export default function SoccerField({ children }: SoccerFieldProps) {
