@@ -9,17 +9,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { TeamMember, InsertLineup, Lineup } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { SoccerField } from "@/components/lineup/soccer-field";
-import { Sidebar } from "@/components/sidebar";
+import { useMobile } from "@/hooks/use-mobile";
+import SoccerField from "@/components/lineup/soccer-field";
+import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 
 
-export function LineupPage() {
+export default function LineupPage() {
+  const isMobile = useMobile();
+  
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
-      <Sidebar />
+      {!isMobile && <Sidebar />}
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -29,12 +31,13 @@ export function LineupPage() {
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6">
               <SoccerField />
+              {/* Players will be added later */}
             </CardContent>
           </Card>
         </div>
 
         {/* Mobile navigation for smaller screens */}
-        <MobileNavigation />
+        {isMobile && <MobileNavigation />}
       </div>
     </div>
   );

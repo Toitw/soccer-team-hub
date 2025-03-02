@@ -56,24 +56,19 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Try to serve the app on port 5000, fallback to another port if needed
-  const port = 5000;
-  const startServer = (targetPort: number) => {
-    server.listen({
-      port: targetPort,
-      host: "0.0.0.0",
-      reusePort: false,
-    }, () => {
-      log(`serving on port ${targetPort}`);
-    }).on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        log(`Port ${targetPort} is in use, trying ${targetPort + 1}`);
-        startServer(targetPort + 1);
-      } else {
-        console.error('Server error:', err);
-      }
-    });
-  };
+  // For Replit, we need to listen on port 5000 specifically
+  // Try to listen on port 5000 which Replit expects
+  const PORT = process.env.PORT || 5000;
   
-  startServer(port);
+  // Add a small delay to ensure any hanging processes have time to release
+  setTimeout(() => {
+    server.listen(PORT, "0.0.0.0", () => {
+      // These specific log formats are important for Replit
+      console.log(`Server running at http://localhost:${PORT}`);
+      log(`Server started successfully on port ${PORT}`);
+    }).on('error', (error: any) => {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    });
+  }, 1000);
 })();
