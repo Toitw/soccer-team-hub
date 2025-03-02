@@ -119,7 +119,7 @@ export default function LineupPage() {
     queryKey: [`/api/teams/${teamId}/members`],
     enabled: !!teamId,
   });
-  
+
   // Get lineups
   const { data: lineups = [], isLoading: isLoadingLineups } = useQuery<Lineup[]>({
     queryKey: [`/api/teams/${teamId}/lineups`],
@@ -131,23 +131,23 @@ export default function LineupPage() {
       setAvailablePlayers(teamMembers.filter(member => member.role === "player") as PlayerWithPosition[]);
     }
   }, [teamMembers]);
-  
+
   // Check localStorage for cached lineup on component mount
   useEffect(() => {
     try {
       const cachedLineupJson = localStorage.getItem('cachedLineup');
       if (cachedLineupJson) {
         const cachedLineup = JSON.parse(cachedLineupJson);
-        
+
         // Load the cached lineup
         setSelectedLineupId(cachedLineup.id);
         setLineupName(cachedLineup.name);
         setFormation(cachedLineup.formation);
         setSelectedPlayers(cachedLineup.positions);
-        
+
         // Clear the cache after loading
         localStorage.removeItem('cachedLineup');
-        
+
         toast({
           title: "Lineup Loaded",
           description: `${cachedLineup.name} has been loaded successfully.`,
@@ -184,12 +184,12 @@ export default function LineupPage() {
       // Player moved from bench to field
       const playerId = getPlayerIdFromDraggableId(result.draggableId);
       const positionId = destination.droppableId.split('-')[1];
-      
+
       if (playerId === -1) {
         console.error('Invalid player ID in drag end handler');
         return;
       }
-      
+
       // Update the player's position on the field
       setSelectedPlayers(prevPositions => 
         prevPositions.map(pos => 
@@ -203,7 +203,7 @@ export default function LineupPage() {
     } else if (source.droppableId.startsWith('position-') && destination.droppableId === 'available-players') {
       // Player removed from field and returned to bench
       const positionId = source.droppableId.split('-')[1];
-      
+
       setSelectedPlayers(prevPositions => 
         prevPositions.map(pos => 
           pos.id === positionId ? { ...pos, playerId: null } : pos
@@ -213,18 +213,18 @@ export default function LineupPage() {
       // Player swapped positions on the field
       const sourcePositionId = source.droppableId.split('-')[1];
       const destPositionId = destination.droppableId.split('-')[1];
-      
+
       setSelectedPlayers(prevPositions => {
         const updatedPositions = [...prevPositions];
         const sourcePos = updatedPositions.find(pos => pos.id === sourcePositionId);
         const destPos = updatedPositions.find(pos => pos.id === destPositionId);
-        
+
         if (sourcePos && destPos) {
           const tempPlayerId = sourcePos.playerId;
           sourcePos.playerId = destPos.playerId;
           destPos.playerId = tempPlayerId;
         }
-        
+
         return updatedPositions;
       });
     }
@@ -247,7 +247,7 @@ export default function LineupPage() {
       setSelectedLineupId(data.id);
       // Invalidate lineups cache
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
-      
+
       const actionText = selectedLineupId ? "updated" : "saved";
       toast({
         title: `Lineup ${actionText}`,
@@ -273,7 +273,7 @@ export default function LineupPage() {
       });
       return;
     }
-    
+
     try {
       const lineupData = {
         name: lineupName,
@@ -282,7 +282,7 @@ export default function LineupPage() {
         teamId,
         createdById: 0, // Will be set by the server based on authenticated user
       };
-      
+
       saveLineupMutation.mutate(lineupData as InsertLineup);
     } catch (error) {
       console.error('Error preparing lineup data:', error);
@@ -328,18 +328,18 @@ export default function LineupPage() {
   // Add load lineup function
   const handleLoadLineup = async (lineupId: number) => {
     if (!teamId) return;
-    
+
     try {
       const response = await fetch(`/api/teams/${teamId}/lineups/${lineupId}`);
       if (!response.ok) {
         throw new Error('Failed to load lineup');
       }
-      
+
       const lineup = await response.json();
       setSelectedLineupId(lineup.id);
       setLineupName(lineup.name);
       setFormation(lineup.formation);
-      
+
       // Parse the positions from the stored JSON
       let positionsData;
       try {
@@ -351,17 +351,17 @@ export default function LineupPage() {
         // If parsing fails, use default formation
         positionsData = DEFAULT_FORMATIONS[lineup.formation || "4-4-2"].positions;
       }
-      
+
       // Reset drag and drop by creating a fresh copy with properly formatted player IDs
       const formattedPositions = [];
-      
+
       // Use default positions as a template to maintain formation structure
       const defaultPositions = DEFAULT_FORMATIONS[lineup.formation || "4-4-2"].positions;
-      
+
       for (const defPos of defaultPositions) {
         // Find the matching position in the loaded data
         const loadedPos = positionsData.find((p: any) => p.id === defPos.id);
-        
+
         if (loadedPos) {
           formattedPositions.push({
             id: defPos.id,
@@ -377,7 +377,7 @@ export default function LineupPage() {
           formattedPositions.push({...defPos});
         }
       }
-      
+
       // Store lineup data in localStorage before reloading
       const cachedLineup = {
         id: lineup.id,
@@ -386,7 +386,7 @@ export default function LineupPage() {
         positions: formattedPositions
       };
       localStorage.setItem('cachedLineup', JSON.stringify(cachedLineup));
-      
+
       // Reload the page to get a fresh drag and drop context
       window.location.reload();
     } catch (error) {
@@ -398,9 +398,9 @@ export default function LineupPage() {
       });
     }
   };
-  
+
   const isLoading = isLoadingMembers || isLoadingLineups;
-  
+
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center">
@@ -441,7 +441,7 @@ export default function LineupPage() {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="relative w-full mt-4 mb-6">
                   <SoccerField>
                     {selectedPlayers.map((position) => (
@@ -507,7 +507,7 @@ export default function LineupPage() {
                     ))}
                   </SoccerField>
                 </div>
-                
+
                 <div className="flex justify-center">
                   <Button onClick={handleSaveLineup} className="px-8">
                     Save Lineup
@@ -590,7 +590,7 @@ export default function LineupPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="mt-4">
                     <Button 
                       variant="outline" 
@@ -605,11 +605,11 @@ export default function LineupPage() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardContent className="p-4">
                   <h2 className="text-lg font-semibold mb-4">Available Players</h2>
-                  
+
                   <Droppable droppableId="available-players">
                     {(provided) => (
                       <div
