@@ -5,7 +5,10 @@ import { useMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { Team } from "@shared/schema";
 
-export default function Sidebar() {
+// Make sure the file has necessary exports
+export { Sidebar };
+
+function Sidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const isMobile = useMobile();
@@ -15,6 +18,10 @@ export default function Sidebar() {
   });
 
   if (isMobile) return null;
+}
+
+// Export as default as well
+export default Sidebar;
 
   return (
     <div className="w-64 bg-primary text-white h-screen fixed">
