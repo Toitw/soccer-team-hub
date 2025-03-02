@@ -109,7 +109,7 @@ export default function LineupPage() {
 
   // Get team members
   const { data: teamMembers, isLoading: isLoadingMembers } = useQuery<TeamMember[]>({
-    queryKey: ["/api/team-members", teamId],
+    queryKey: [`/api/teams/${teamId}/members`],
     enabled: !!teamId,
   });
   
@@ -254,7 +254,7 @@ export default function LineupPage() {
 
   const getPlayerById = (id: number | null) => {
     if (id === null) return null;
-    return availablePlayers.find(player => player.userId === id) || null;
+    return teamMembers?.find(player => player.userId === id) || null;
   };
 
   const getPositionLabel = (id: string) => {
@@ -403,9 +403,9 @@ export default function LineupPage() {
                                               {player?.jerseyNumber || "?"}
                                             </span>
                                             <span className="text-[10px] leading-tight max-w-[50px] truncate">
-                                              {player ? player.role === "player" ? 
-                                                player.fullName?.split(" ")[1] || player.fullName :
-                                                "Unknown" : "Empty"}
+                                              {player ? 
+                                                player.user?.fullName?.split(" ")[1] || player.user?.fullName || `Player ${player.userId}` :
+                                                "Empty"}
                                             </span>
                                           </div>
                                         </div>
