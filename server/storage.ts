@@ -16,6 +16,9 @@ import { promisify } from "util";
 
 const MemoryStore = createMemoryStore(session);
 
+// Define SessionStore type explicitly
+type SessionStoreType = ReturnType<typeof createMemoryStore>;
+
 // Separate password hashing logic since auth.ts imports this file
 const scryptAsync = promisify(scrypt);
 
@@ -86,7 +89,7 @@ export interface IStorage {
   updateInvitation(id: number, invitationData: Partial<Invitation>): Promise<Invitation | undefined>;
   
   // Session store for authentication
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStoreType;
 }
 
 export class MemStorage implements IStorage {
@@ -100,7 +103,7 @@ export class MemStorage implements IStorage {
   private announcements: Map<number, Announcement>;
   private invitations: Map<number, Invitation>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: SessionStoreType;
   
   private userCurrentId: number;
   private teamCurrentId: number;
