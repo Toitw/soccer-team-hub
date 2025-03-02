@@ -98,6 +98,7 @@ export default function LineupPage() {
   const [lineupName, setLineupName] = useState<string>("Default Lineup");
   const [selectedPlayers, setSelectedPlayers] = useState<PlayerPosition[]>(DEFAULT_FORMATIONS["4-4-2"].positions);
   const [availablePlayers, setAvailablePlayers] = useState<PlayerWithPosition[]>([]);
+  const [selectedLineupId, setSelectedLineupId] = useState<number | null>(null);
 
   // Get the first team from the list
   const { data: teams } = useQuery({
@@ -107,8 +108,14 @@ export default function LineupPage() {
   const teamId = teams?.[0]?.id;
 
   // Get team members
-  const { data: teamMembers, isLoading } = useQuery<TeamMember[]>({
+  const { data: teamMembers, isLoading: isLoadingMembers } = useQuery<TeamMember[]>({
     queryKey: ["/api/team-members", teamId],
+    enabled: !!teamId,
+  });
+  
+  // Get lineups
+  const { data: lineups, isLoading: isLoadingLineups } = useQuery({
+    queryKey: [`/api/teams/${teamId}/lineups`],
     enabled: !!teamId,
   });
 
@@ -176,12 +183,73 @@ export default function LineupPage() {
     }
   };
 
-  const handleSaveLineup = () => {
-    // Save logic would go here - API implementation
-    toast({
-      title: "Lineup Saved",
-      description: `${lineupName} has been saved successfully.`,
-    });
+  const handleSaveLineup = async () => {
+    if (!teamId) {
+      toast({
+        title: "Error",
+        description: "No team selected",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const lineupData = {
+        name: lineupName,
+        formation,
+        positions: JSON.stringify(selectedPlayers),
+        teamId,
+        createdById: 0, // Will be set by the server
+      };
+      
+      let response;
+      let actionText = "saved";
+      
+      if (selectedLineupId) {
+        // Update existing lineup
+        response = await fetch(`/api/teams/${teamId}/lineups/${selectedLineupId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(lineupData),
+        });
+        actionText = "updated";
+      } else {
+        // Create new lineup
+        response = await fetch(`/api/teams/${teamId}/lineups`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(lineupData),
+        });
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to ${actionText} lineup`);
+      }
+      
+      const savedLineup = await response.json();
+      setSelectedLineupId(savedLineup.id);
+      
+      // Invalidate lineups cache
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
+      
+      toast({
+        title: `Lineup ${actionText}`,
+        description: `${lineupName} has been ${actionText} successfully.`,
+      });
+      
+      return savedLineup;
+    } catch (error) {
+      console.error('Error saving lineup:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save lineup",
+        variant: "destructive",
+      });
+    }
   };
 
   const getPlayerById = (id: number | null) => {
@@ -215,6 +283,41 @@ export default function LineupPage() {
     }
   };
 
+  // Add load lineup function
+  const handleLoadLineup = async (lineupId: number) => {
+    if (!teamId) return;
+    
+    try {
+      const response = await fetch(`/api/teams/${teamId}/lineups/${lineupId}`);
+      if (!response.ok) {
+        throw new Error('Failed to load lineup');
+      }
+      
+      const lineup = await response.json();
+      setSelectedLineupId(lineup.id);
+      setLineupName(lineup.name);
+      setFormation(lineup.formation);
+      
+      // Parse the positions from the stored JSON
+      const positionsData = JSON.parse(lineup.positions);
+      setSelectedPlayers(positionsData);
+      
+      toast({
+        title: "Lineup Loaded",
+        description: `${lineup.name} has been loaded successfully.`,
+      });
+    } catch (error) {
+      console.error('Error loading lineup:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load lineup",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const isLoading = isLoadingMembers || isLoadingLineups;
+  
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center">
@@ -338,50 +441,144 @@ export default function LineupPage() {
 
         {/* Right panel - Available Players */}
         <div className="md:w-1/3">
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="text-lg font-semibold mb-4">Available Players</h2>
-              
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="available-players">
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="space-y-2 max-h-[600px] overflow-y-auto pr-2"
-                    >
-                      {availablePlayers.map((player, index) => (
-                        <Draggable
-                          key={player.userId}
-                          draggableId={`player-${player.userId}`}
-                          index={index}
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-lg font-semibold mb-4">Saved Lineups</h2>
+                <div className="space-y-2">
+                  {lineups && lineups.length > 0 ? (
+                    lineups.map((lineup) => (
+                      <div 
+                        key={lineup.id} 
+                        className={`p-3 rounded-md cursor-pointer flex justify-between items-center ${selectedLineupId === lineup.id ? 'bg-primary/10 border border-primary' : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'}`}
+                      >
+                        <div 
+                          className="flex-1"
+                          onClick={() => handleLoadLineup(lineup.id)}
                         >
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <PlayerCard
-                                player={player}
-                                isSelected={selectedPlayers.some(pos => pos.playerId === player.userId)}
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                      {availablePlayers.length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          No players available
+                          <div className="font-medium">{lineup.name}</div>
+                          <div className="text-xs text-gray-500">{lineup.formation} formation</div>
                         </div>
-                      )}
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleLoadLineup(lineup.id)}
+                          >
+                            Load
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-destructive" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(`Are you sure you want to delete "${lineup.name}"?`)) {
+                                fetch(`/api/teams/${teamId}/lineups/${lineup.id}`, {
+                                  method: 'DELETE',
+                                })
+                                .then(response => {
+                                  if (response.ok) {
+                                    if (selectedLineupId === lineup.id) {
+                                      setSelectedLineupId(null);
+                                      setLineupName("New Lineup");
+                                      setFormation("4-4-2");
+                                      setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                                    }
+                                    queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
+                                    toast({
+                                      title: "Lineup Deleted",
+                                      description: `${lineup.name} has been deleted.`,
+                                    });
+                                  } else {
+                                    throw new Error('Failed to delete lineup');
+                                  }
+                                })
+                                .catch(error => {
+                                  console.error('Error deleting lineup:', error);
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to delete lineup",
+                                    variant: "destructive",
+                                  });
+                                });
+                              }
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      No saved lineups
                     </div>
                   )}
-                </Droppable>
-              </DragDropContext>
-            </CardContent>
-          </Card>
+                </div>
+                
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setSelectedLineupId(null);
+                      setLineupName("New Lineup");
+                      setFormation("4-4-2");
+                      setSelectedPlayers(DEFAULT_FORMATIONS["4-4-2"].positions);
+                    }}
+                  >
+                    Create New Lineup
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-lg font-semibold mb-4">Available Players</h2>
+                
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="available-players">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-2 max-h-[400px] overflow-y-auto pr-2"
+                      >
+                        {availablePlayers.map((player, index) => (
+                          <Draggable
+                            key={player.userId}
+                            draggableId={`player-${player.userId}`}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                <PlayerCard
+                                  player={player}
+                                  isSelected={selectedPlayers.some(pos => pos.playerId === player.userId)}
+                                />
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                        {availablePlayers.length === 0 && (
+                          <div className="text-center py-4 text-gray-500">
+                            No players available
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
