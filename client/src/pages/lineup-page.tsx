@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import PlayerCard from "@/components/lineup/player-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { TeamMember, InsertLineup, Lineup } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+
+// Generate a unique session key to avoid issues with React Beautiful DnD
+const SESSION_KEY = Date.now().toString();
 
 type PlayerPosition = {
   id: string;
@@ -128,6 +131,32 @@ export default function LineupPage() {
       setAvailablePlayers(teamMembers.filter(member => member.role === "player") as PlayerWithPosition[]);
     }
   }, [teamMembers]);
+  
+  // Check localStorage for cached lineup on component mount
+  useEffect(() => {
+    try {
+      const cachedLineupJson = localStorage.getItem('cachedLineup');
+      if (cachedLineupJson) {
+        const cachedLineup = JSON.parse(cachedLineupJson);
+        
+        // Load the cached lineup
+        setSelectedLineupId(cachedLineup.id);
+        setLineupName(cachedLineup.name);
+        setFormation(cachedLineup.formation);
+        setSelectedPlayers(cachedLineup.positions);
+        
+        // Clear the cache after loading
+        localStorage.removeItem('cachedLineup');
+        
+        toast({
+          title: "Lineup Loaded",
+          description: `${cachedLineup.name} has been loaded successfully.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading cached lineup:', error);
+    }
+  }, []);
 
   const handleFormationChange = (value: string) => {
     setFormation(value);
@@ -142,10 +171,24 @@ export default function LineupPage() {
       return;
     }
 
+    // Parse player ID from draggable ID - now includes SESSION_KEY
+    const getPlayerIdFromDraggableId = (draggableId: string) => {
+      const parts = draggableId.split('-');
+      if (parts.length >= 2) {
+        return parseInt(parts[1]); // Player ID is the second part
+      }
+      return -1; // Invalid ID
+    };
+
     if (source.droppableId === 'available-players' && destination.droppableId.startsWith('position-')) {
       // Player moved from bench to field
-      const playerId = parseInt(result.draggableId.split('-')[1]);
+      const playerId = getPlayerIdFromDraggableId(result.draggableId);
       const positionId = destination.droppableId.split('-')[1];
+      
+      if (playerId === -1) {
+        console.error('Invalid player ID in drag end handler');
+        return;
+      }
       
       // Update the player's position on the field
       setSelectedPlayers(prevPositions => 
@@ -335,13 +378,17 @@ export default function LineupPage() {
         }
       }
       
-      // Set the players after formatting everything
-      setSelectedPlayers(formattedPositions);
+      // Store lineup data in localStorage before reloading
+      const cachedLineup = {
+        id: lineup.id,
+        name: lineup.name, 
+        formation: lineup.formation,
+        positions: formattedPositions
+      };
+      localStorage.setItem('cachedLineup', JSON.stringify(cachedLineup));
       
-      toast({
-        title: "Lineup Loaded",
-        description: `${lineup.name} has been loaded successfully.`,
-      });
+      // Reload the page to get a fresh drag and drop context
+      window.location.reload();
     } catch (error) {
       console.error('Error loading lineup:', error);
       toast({
@@ -420,7 +467,7 @@ export default function LineupPage() {
                             </div>
                             {position.playerId !== null ? (
                               <Draggable
-                                draggableId={`player-${position.playerId}`}
+                                draggableId={`player-${position.playerId}-${position.id}-${SESSION_KEY}`}
                                 index={0}
                               >
                                 {(provided, snapshot) => {
@@ -510,14 +557,8 @@ export default function LineupPage() {
                                   })
                                   .then(response => {
                                     if (response.ok) {
-                                      if (selectedLineupId === lineup.id) {
-                                        setSelectedLineupId(null);
-                                        setLineupName("New Lineup");
-                                        setFormation("4-4-2");
-                                        // Create a deep copy of the default positions to ensure clean state
-                                        const freshPositions = JSON.parse(JSON.stringify(DEFAULT_FORMATIONS["4-4-2"].positions));
-                                        setSelectedPlayers(freshPositions);
-                                      }
+                                      // After deleting, refresh to reset all drag and drop state
+                                      window.location.reload();
                                       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/lineups`] });
                                       toast({
                                         title: "Lineup Deleted",
@@ -555,18 +596,8 @@ export default function LineupPage() {
                       variant="outline" 
                       className="w-full"
                       onClick={() => {
-                        setSelectedLineupId(null);
-                        setLineupName("New Lineup");
-                        setFormation("4-4-2");
-                        // Create a deep copy of the default positions to ensure clean state
-                        const freshPositions = JSON.parse(JSON.stringify(DEFAULT_FORMATIONS["4-4-2"].positions));
-                        setSelectedPlayers(freshPositions);
-                        
-                        // Tell the user that a new lineup has been created
-                        toast({
-                          title: "New Lineup",
-                          description: "Started a new lineup with 4-4-2 formation."
-                        });
+                        // Force a full reset by reloading the page
+                        window.location.reload();
                       }}
                     >
                       Create New Lineup
@@ -589,7 +620,7 @@ export default function LineupPage() {
                         {availablePlayers.map((player, index) => (
                           <Draggable
                             key={player.userId}
-                            draggableId={`player-${player.userId}`}
+                            draggableId={`player-${player.userId}-bench-${SESSION_KEY}`}
                             index={index}
                           >
                             {(provided) => (
