@@ -71,7 +71,7 @@ export default function TeamPage() {
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
   // Get team members
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery({
+  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMemberWithUser[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "members"],
     enabled: !!selectedTeam?.id,
     retry: 1,
@@ -96,25 +96,25 @@ export default function TeamPage() {
   const addUserMutation = useMutation({
     mutationFn: async (data: AddTeamMemberFormData) => {
       // First create the user
-      const response = await apiRequest({
-        url: "/api/register",
-        method: "POST",
-        body: data,
-      });
+      const response = await apiRequest(
+        "POST",
+        "/api/register",
+        data
+      );
       
       const newUser = await response.json();
 
       // Then add them to the team
       if (selectedTeam) {
-        await apiRequest({
-          url: `/api/teams/${selectedTeam.id}/members`,
-          method: "POST",
-          body: {
+        await apiRequest(
+          "POST", 
+          `/api/teams/${selectedTeam.id}/members`,
+          {
             userId: newUser.id,
             teamId: selectedTeam.id,
             role: data.role,
-          } as InsertTeamMember,
-        });
+          } as InsertTeamMember
+        );
       }
 
       return newUser;

@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, hashPasswordInStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 
@@ -501,7 +501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isHome: false,
             goalsScored: 3,
             goalsConceded: 1,
-            status: "completed",
+            status: "completed" as "completed",
             notes: "Great performance by the team"
           },
           {
@@ -512,7 +512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isHome: true,
             goalsScored: 1,
             goalsConceded: 2,
-            status: "completed",
+            status: "completed" as "completed",
             notes: "Need to improve defensive play"
           },
           {
