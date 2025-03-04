@@ -521,7 +521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             matchDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days from now
             location: "Anfield Stadium",
             isHome: false,
-            status: "scheduled",
+            status: "scheduled" as "scheduled",
             notes: "Important match against a top rival"
           }
         ];
@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const eventsData = [
           {
             title: "Tactical Training",
-            type: "training",
+            type: "training" as "training",
             startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
             endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000), // 90 minutes later
             location: "Training Ground",
@@ -545,7 +545,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             title: "vs. Liverpool FC",
-            type: "match",
+            type: "match" as "match",
             startTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days from now
             endTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000 + 110 * 60 * 1000), // 110 minutes later
             location: "Anfield Stadium",
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             title: "Team Meeting",
-            type: "meeting",
+            type: "meeting" as "meeting",
             startTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
             endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000), // 60 minutes later
             location: "Club House",
@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const eventData of eventsData) {
           await storage.createEvent({
             teamId: team.id,
-            createdById: coach ? coach.id : admin.id,
+            createdById: coachUser ? coachUser.id : adminUser!.id,
             ...eventData,
           });
         }
