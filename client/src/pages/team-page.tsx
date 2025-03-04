@@ -10,6 +10,17 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+
+// Define a type that includes user data with our extended fields
+interface TeamMemberWithUser extends TeamMember {
+  user: Omit<SelectUser, 'password'> & {
+    profilePicture?: string | null;
+    position?: string;
+    jerseyNumber?: number;
+    email?: string;
+    phoneNumber?: string;
+  };
+}
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -63,6 +74,8 @@ export default function TeamPage() {
   const { data: teamMembers, isLoading: teamMembersLoading } = useQuery({
     queryKey: ["/api/teams", selectedTeam?.id, "members"],
     enabled: !!selectedTeam?.id,
+    retry: 1,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Form for adding a new team member
@@ -355,49 +368,54 @@ export default function TeamPage() {
                       <TableCell colSpan={5} className="text-center">No team members found</TableCell>
                     </TableRow>
                   )}
-                  {teamMembers?.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center">
-                          <Avatar className="h-8 w-8 mr-2">
-                            <AvatarImage src={member.user.profilePicture || ''} alt={member.user.fullName} />
-                            <AvatarFallback>{member.user.fullName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          {member.user.fullName}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {member.role === "admin" ? (
-                            <Shield className="h-4 w-4 mr-1 text-primary" />
-                          ) : member.role === "coach" ? (
-                            <UserCog className="h-4 w-4 mr-1 text-primary" />
-                          ) : (
-                            <UserCircle className="h-4 w-4 mr-1 text-primary" />
-                          )}
-                          {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{member.user.position || "—"}</TableCell>
-                      <TableCell>{member.user.jerseyNumber || "—"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col space-y-1">
-                          {member.user.email && (
-                            <div className="flex items-center text-xs">
-                              <Mail className="h-3 w-3 mr-1" />
-                              {member.user.email}
-                            </div>
-                          )}
-                          {member.user.phoneNumber && (
-                            <div className="flex items-center text-xs">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {member.user.phoneNumber}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {teamMembers?.map((member) => {
+                    // Safety check to ensure both member and user data exist
+                    if (!member || !member.user) return null;
+                    
+                    return (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <Avatar className="h-8 w-8 mr-2">
+                              <AvatarImage src={member.user.profilePicture || '/default-avatar.png'} alt={member.user.fullName} />
+                              <AvatarFallback>{member.user.fullName?.charAt(0) || 'U'}</AvatarFallback>
+                            </Avatar>
+                            {member.user.fullName || 'Unknown User'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {member.role === "admin" ? (
+                              <Shield className="h-4 w-4 mr-1 text-primary" />
+                            ) : member.role === "coach" ? (
+                              <UserCog className="h-4 w-4 mr-1 text-primary" />
+                            ) : (
+                              <UserCircle className="h-4 w-4 mr-1 text-primary" />
+                            )}
+                            {member.role?.charAt(0).toUpperCase() + member.role?.slice(1) || 'Unknown'}
+                          </div>
+                        </TableCell>
+                        <TableCell>{member.user.position || "—"}</TableCell>
+                        <TableCell>{member.user.jerseyNumber || "—"}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col space-y-1">
+                            {member.user.email && (
+                              <div className="flex items-center text-xs">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {member.user.email}
+                              </div>
+                            )}
+                            {member.user.phoneNumber && (
+                              <div className="flex items-center text-xs">
+                                <Phone className="h-3 w-3 mr-1" />
+                                {member.user.phoneNumber}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>

@@ -389,16 +389,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      // Create a demo team if none exists
+      // Create mock users and team if none exists
       const existingTeams = await storage.getTeams();
       
       if (existingTeams.length === 0) {
-        // Find admin and coach
+        // Create admin user
         const admin = await storage.getUserByUsername("admin");
-        const coach = await storage.getUserByUsername("coach");
+        let adminUser = admin;
         
         if (!admin) {
-          return res.status(404).json({ error: "Admin user not found" });
+          adminUser = await storage.createUser({
+            username: "admin",
+            password: await hashPasswordInStorage("password"),
+            fullName: "Admin User",
+            role: "admin",
+            profilePicture: "https://i.pravatar.cc/150?u=admin",
+            email: "admin@example.com",
+            phoneNumber: "+1 (555) 123-4567"
+          });
+        }
+        
+        // Create coach if not exists
+        const existingCoach = await storage.getUserByUsername("coach");
+        let coachUser = existingCoach;
+        
+        if (!existingCoach) {
+          coachUser = await storage.createUser({
+            username: "coach",
+            password: await hashPasswordInStorage("password"),
+            fullName: "Erik Ten Hag",
+            role: "coach",
+            profilePicture: "https://i.pravatar.cc/150?u=coach",
+            position: "Head Coach",
+            email: "coach@example.com",
+            phoneNumber: "+1 (555) 234-5678"
+          });
         }
         
         // Create team
@@ -407,32 +432,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
           logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
           division: "Premier League",
           seasonYear: "2023/24",
-          createdById: admin.id,
+          createdById: adminUser.id,
         });
         
         // Add members
         await storage.createTeamMember({
           teamId: team.id,
-          userId: admin.id,
+          userId: adminUser.id,
           role: "admin"
         });
         
-        if (coach) {
+        if (coachUser) {
           await storage.createTeamMember({
             teamId: team.id,
-            userId: coach.id,
+            userId: coachUser.id,
             role: "coach"
           });
         }
         
-        // Add all players
-        const players = Array.from(Array(20).keys()).map(i => i + 3);
-        for (const playerId of players) {
-          const player = await storage.getUser(playerId);
-          if (player) {
+        // Create and add players
+        const playerPositions = [
+          { name: "David de Gea", position: "Goalkeeper", jersey: 1 },
+          { name: "Harry Maguire", position: "Defender", jersey: 5 },
+          { name: "Bruno Fernandes", position: "Midfielder", jersey: 8 },
+          { name: "Marcus Rashford", position: "Forward", jersey: 10 },
+          { name: "Casemiro", position: "Midfielder", jersey: 18 }
+        ];
+
+        for (let i = 0; i < playerPositions.length; i++) {
+          const player = playerPositions[i];
+          const username = `player${i + 1}`;
+          
+          // Check if player already exists
+          const existingPlayer = await storage.getUserByUsername(username);
+          let playerUser = existingPlayer;
+          
+          if (!existingPlayer) {
+            playerUser = await storage.createUser({
+              username,
+              password: await hashPasswordInStorage("password"),
+              fullName: player.name,
+              role: "player",
+              profilePicture: `https://i.pravatar.cc/150?u=${username}`,
+              position: player.position,
+              jerseyNumber: player.jersey,
+              email: `${username}@example.com`,
+              phoneNumber: `+1 (555) ${100 + i}-${1000 + i}`
+            });
+          }
+          
+          if (playerUser) {
+            // Add the player to the team
             await storage.createTeamMember({
               teamId: team.id,
-              userId: player.id,
+              userId: playerUser.id,
               role: "player"
             });
           }
