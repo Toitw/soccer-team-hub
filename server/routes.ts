@@ -432,13 +432,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
           division: "Premier League",
           seasonYear: "2023/24",
-          createdById: adminUser.id,
+          createdById: adminUser!.id,
         });
         
         // Add members
         await storage.createTeamMember({
           teamId: team.id,
-          userId: adminUser.id,
+          userId: adminUser!.id,
           role: "admin"
         });
         
@@ -588,7 +588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const announcementData of announcementsData) {
           await storage.createAnnouncement({
             teamId: team.id,
-            createdById: coach ? coach.id : admin.id,
+            createdById: coachUser ? coachUser.id : adminUser!.id,
             ...announcementData,
           });
         }
