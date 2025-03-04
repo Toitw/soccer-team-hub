@@ -9,7 +9,6 @@ import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page";
 import TrainingPage from "@/pages/training-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
-import LineupPage from "@/pages/lineup-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -21,7 +20,6 @@ function Router() {
       <ProtectedRoute path="/team" component={TeamPage} />
       <ProtectedRoute path="/matches" component={MatchesPage} />
       <ProtectedRoute path="/training" component={TrainingPage} />
-      <ProtectedRoute path="/lineup" component={LineupPage} />
       <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
       <Route component={NotFound} />
     </Switch>

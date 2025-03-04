@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -211,27 +211,5 @@ export type InsertPlayerStat = z.infer<typeof insertPlayerStatSchema>;
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 
-// Lineups table
-export const lineups = pgTable("lineups", {
-  id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
-  name: text("name").notNull(),
-  formation: text("formation").notNull(),
-  positions: jsonb("positions").notNull(), // Store positions as a JSON object
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdById: integer("created_by_id").notNull(),
-});
-
-export const insertLineupSchema = createInsertSchema(lineups).pick({
-  teamId: true,
-  name: true,
-  formation: true,
-  positions: true,
-  createdById: true,
-});
-
 export type Invitation = typeof invitations.$inferSelect;
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
-
-export type Lineup = typeof lineups.$inferSelect;
-export type InsertLineup = z.infer<typeof insertLineupSchema>;
