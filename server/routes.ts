@@ -101,6 +101,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch team members" });
     }
   });
+  
+  app.post("/api/teams/:id/members", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user has admin role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Not authorized to add team members" });
+      }
+      
+      const { userId, role } = req.body;
+      
+      // Check if user is already a member of the team
+      const existingMember = await storage.getTeamMember(teamId, userId);
+      if (existingMember) {
+        return res.status(400).json({ error: "User is already a member of this team" });
+      }
+      
+      const newTeamMember = await storage.createTeamMember({
+        teamId,
+        userId,
+        role
+      });
+      
+      res.status(201).json(newTeamMember);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add team member" });
+    }
+  });
 
   // Matches routes
   app.get("/api/teams/:id/matches", async (req, res) => {
