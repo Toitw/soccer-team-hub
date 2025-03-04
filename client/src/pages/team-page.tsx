@@ -336,8 +336,9 @@ export default function TeamPage() {
                   </div>
                 </div>
                 <div className="relative z-10 text-white text-center">
-                  {!teamMembers?.length && "No team members available for lineup"}
-                  {teamMembers?.length > 0 && "Drag & drop players here to create lineup (Coming soon)"}
+                  {!teamMembers || teamMembers.length === 0 ? 
+                    "No team members available for lineup" : 
+                    "Drag & drop players here to create lineup (Coming soon)"}
                 </div>
               </div>
             </CardContent>
