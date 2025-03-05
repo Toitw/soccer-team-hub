@@ -555,8 +555,15 @@ export default function TeamPage() {
                                   left: positions[idx].left, 
                                   bottom: positions[idx].bottom 
                                 }}>
-                                  <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  <div 
+                                    className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white overflow-hidden"
+                                    style={{
+                                      backgroundImage: member.user.profilePicture ? `url(${member.user.profilePicture})` : 'none',
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
+                                    }}
+                                  >
+                                    {!member.user.profilePicture && <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>}
                                   </div>
                                   <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
                                     {member.user.fullName?.split(" ")[0] || ""}
@@ -580,8 +587,15 @@ export default function TeamPage() {
                                   left: positions[idx].left, 
                                   bottom: positions[idx].bottom 
                                 }}>
-                                  <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  <div 
+                                    className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white overflow-hidden"
+                                    style={{
+                                      backgroundImage: member.user.profilePicture ? `url(${member.user.profilePicture})` : 'none',
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
+                                    }}
+                                  >
+                                    {!member.user.profilePicture && <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>}
                                   </div>
                                   <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
                                     {member.user.fullName?.split(" ")[0] || ""}
@@ -605,8 +619,15 @@ export default function TeamPage() {
                                   left: positions[idx].left, 
                                   bottom: positions[idx].bottom 
                                 }}>
-                                  <div className="bg-yellow-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  <div 
+                                    className="bg-yellow-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white overflow-hidden"
+                                    style={{
+                                      backgroundImage: member.user.profilePicture ? `url(${member.user.profilePicture})` : 'none',
+                                      backgroundSize: 'cover',
+                                      backgroundPosition: 'center'
+                                    }}
+                                  >
+                                    {!member.user.profilePicture && <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>}
                                   </div>
                                   <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
                                     {member.user.fullName?.split(" ")[0] || ""}
