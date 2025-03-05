@@ -295,6 +295,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update a team member
+  app.patch("/api/teams/:teamId/members/:memberId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const memberId = parseInt(req.params.memberId);
+      
+      // Check if user has admin role for the team
+      const userTeamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!userTeamMember || userTeamMember.role !== "admin") {
+        return res.status(403).json({ error: "Not authorized to update team members" });
+      }
+      
+      // Validate the request body
+      const { role, position, jerseyNumber, profilePicture } = req.body;
+      
+      // Get the team member to update
+      const teamMember = await storage.getTeamMember(teamId, memberId);
+      if (!teamMember) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      // Update the team member role
+      const updatedTeamMember = await storage.updateTeamMember(memberId, {
+        role
+      });
+      
+      // Update the user's profile data (position, jerseyNumber, profilePicture)
+      const user = await storage.getUser(teamMember.userId);
+      if (user) {
+        const updatedUser = await storage.updateUser(user.id, {
+          position,
+          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+          profilePicture: profilePicture || user.profilePicture
+        });
+        
+        if (updatedUser) {
+          // Return the updated team member with user details
+          const { password, ...userWithoutPassword } = updatedUser;
+          res.json({
+            ...updatedTeamMember,
+            user: {
+              ...userWithoutPassword,
+              profilePicture: updatedUser.profilePicture || "/default-avatar.png",
+              position: updatedUser.position || "",
+              jerseyNumber: updatedUser.jerseyNumber || null
+            }
+          });
+        } else {
+          res.status(500).json({ error: "Failed to update user" });
+        }
+      } else {
+        res.status(404).json({ error: "User not found" });
+      }
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      res.status(500).json({ error: "Failed to update team member" });
+    }
+  });
+  
   app.post("/api/teams/:id/members", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
