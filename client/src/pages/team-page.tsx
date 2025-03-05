@@ -54,6 +54,7 @@ const addTeamMemberSchema = z.object({
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
+  profilePicture: z.string().url().optional()
 });
 
 type AddTeamMemberFormData = z.infer<typeof addTeamMemberSchema>;
@@ -65,6 +66,7 @@ interface SimplifiedMemberPayload {
     fullName: string;
     position?: string;
     jerseyNumber?: number;
+    profilePicture?: string;
   };
 }
 
@@ -93,7 +95,7 @@ export default function TeamPage() {
       const response = await fetch(`/api/teams/${selectedTeam.id}/members`, {
         credentials: "include"  // Important: This ensures cookies are sent with the request
       });
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           console.error("Authorization error: User not authenticated");
@@ -101,7 +103,7 @@ export default function TeamPage() {
         }
         throw new Error(`Failed to fetch team members: ${response.statusText}`);
       }
-      
+
       return await response.json();
     },
     enabled: !!selectedTeam?.id,
@@ -112,18 +114,18 @@ export default function TeamPage() {
   // Filtered team members based on role and search query
   const filteredTeamMembers = useMemo(() => {
     if (!teamMembers) return [];
-    
+
     return teamMembers.filter(member => {
       // Filter by role
       const roleMatch = roleFilter === "all" || member.role === roleFilter;
-      
+
       // Filter by search query
       const searchMatch = 
         searchQuery === "" || 
         member.user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
         member.user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         member.user.position?.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       return roleMatch && searchMatch;
     });
   }, [teamMembers, roleFilter, searchQuery]);
@@ -136,14 +138,15 @@ export default function TeamPage() {
       role: "player",
       position: "",
       jerseyNumber: undefined,
+      profilePicture: ""
     },
   });
-  
+
   // Remove team member mutation
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
       if (!selectedTeam) throw new Error("No team selected");
-      
+
       // Delete the team member
       await apiRequest(
         "DELETE",
@@ -167,7 +170,7 @@ export default function TeamPage() {
       });
     },
   });
-  
+
   // Handle member removal confirmation
   const handleRemoveMember = () => {
     if (memberToRemove) {
@@ -179,7 +182,7 @@ export default function TeamPage() {
   const addTeamMemberMutation = useMutation({
     mutationFn: async (data: SimplifiedMemberPayload) => {
       if (!selectedTeam) throw new Error("No team selected");
-      
+
       // Add directly to the team with user information embedded
       const response = await apiRequest(
         "POST", 
@@ -189,16 +192,17 @@ export default function TeamPage() {
           user: {
             fullName: data.user.fullName,
             position: data.user.position,
-            jerseyNumber: data.user.jerseyNumber
+            jerseyNumber: data.user.jerseyNumber,
+            profilePicture: data.user.profilePicture
           }
         }
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to add team member");
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -228,27 +232,28 @@ export default function TeamPage() {
       });
       return;
     }
-    
+
     // Handle empty or undefined values
     const fullName = data.fullName || "Team Member";
     const role = data.role || "player";
-    
+
     // Convert "none" position value to empty string
     let position = data.position;
     if (position === "none" || !position) {
       position = "";
     }
-    
+
     // Pass the data to the team member creation endpoint with the user info embedded
-    const payload = {
+    const payload: SimplifiedMemberPayload = {
       role: role,
       user: {
         fullName: fullName,
         position: position,
-        jerseyNumber: data.jerseyNumber || undefined
+        jerseyNumber: data.jerseyNumber || undefined,
+        profilePicture: data.profilePicture
       }
     };
-    
+
     addTeamMemberMutation.mutate(payload);
   };
 
@@ -382,10 +387,23 @@ export default function TeamPage() {
                           <FormItem>
                             <FormLabel>Jersey Number</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} value={field.value || ""} />
+                              <Input type="number" placeholder="10" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="profilePicture"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Profile Picture URL</FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://example.com/image.jpg" {...field} />
                             </FormControl>
                             <FormDescription>
-                              Optional for players
+                              Enter a URL for the player's profile picture
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -441,7 +459,7 @@ export default function TeamPage() {
                       {/* Goal posts */}
                       <div className="absolute top-1/2 transform -translate-y-1/2 left-0 h-12 w-1 bg-white"></div>
                       <div className="absolute top-1/2 transform -translate-y-1/2 right-0 h-12 w-1 bg-white"></div>
-                      
+
                       {/* Sample player positions - these would be draggable in a full implementation */}
                       {teamMembers && teamMembers.length > 0 && (
                         <>
@@ -459,7 +477,7 @@ export default function TeamPage() {
                                 </div>
                               </div>
                             ))}
-                            
+
                           {/* Defenders */}
                           {teamMembers
                             .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("defender"))
@@ -485,7 +503,7 @@ export default function TeamPage() {
                                 </div>
                               );
                             })}
-                            
+
                           {/* Midfielders */}
                           {teamMembers
                             .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("midfielder"))
@@ -510,7 +528,7 @@ export default function TeamPage() {
                                 </div>
                               );
                             })}
-                            
+
                           {/* Forwards */}
                           {teamMembers
                             .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("forward"))
@@ -540,14 +558,14 @@ export default function TeamPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {(!teamMembers || teamMembers.length === 0) && (
                   <div className="relative z-10 text-white text-center p-4 bg-black bg-opacity-50 rounded">
                     No team members available for lineup
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-4 text-sm text-muted-foreground">
                 <p className="flex items-center">
                   <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
@@ -641,7 +659,7 @@ export default function TeamPage() {
                   {filteredTeamMembers.map((member) => {
                     // Safety check to ensure both member and user data exist
                     if (!member || !member.user) return null;
-                    
+
                     return (
                       <TableRow key={member.id} className="hover:bg-accent/50">
                         <TableCell className="font-medium">
@@ -733,7 +751,7 @@ export default function TeamPage() {
                     );
                   })}
                 </TableBody>
-                
+
                 {/* Remove Member Confirmation Dialog */}
                 <Dialog open={openRemoveMemberDialog} onOpenChange={setOpenRemoveMemberDialog}>
                   <DialogContent className="sm:max-w-[425px]">
