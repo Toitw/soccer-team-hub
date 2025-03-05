@@ -271,16 +271,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(member.userId);
           if (!user) return null;
           
+          // Exclude password but include all other user fields explicitly
           const { password, ...userWithoutPassword } = user;
           return {
             ...member,
-            user: userWithoutPassword,
+            user: {
+              ...userWithoutPassword,
+              // Explicitly ensure these fields are included
+              profilePicture: user.profilePicture || "/default-avatar.png",
+              position: user.position || "",
+              jerseyNumber: user.jerseyNumber || null,
+              email: user.email || "",
+              phoneNumber: user.phoneNumber || ""
+            },
           };
         })
       );
       
       res.json(teamMembersWithUserDetails.filter(Boolean));
     } catch (error) {
+      console.error("Error fetching team members:", error);
       res.status(500).json({ error: "Failed to fetch team members" });
     }
   });
