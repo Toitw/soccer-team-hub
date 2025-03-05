@@ -340,8 +340,8 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" className="w-full" disabled={addUserMutation.isPending}>
-                        {addUserMutation.isPending ? (
+                      <Button type="submit" className="w-full" disabled={addTeamMemberMutation.isPending}>
+                        {addTeamMemberMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Adding...

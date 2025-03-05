@@ -4,11 +4,197 @@ import { storage, hashPasswordInStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 
+// Helper to create mock data for testing the team functionality
+async function createMockData() {
+  // Create mock users
+  const mockUsers = [
+    {
+      id: 1001,
+      username: "david.gea",
+      fullName: "David De Gea",
+      role: "player",
+      position: "Goalkeeper",
+      jerseyNumber: 1,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/6/68/David_de_Gea_2017.jpg"
+    },
+    {
+      id: 1002,
+      username: "harry.maguire",
+      fullName: "Harry Maguire",
+      role: "player",
+      position: "Defender",
+      jerseyNumber: 5,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Harry_Maguire_2018.jpg"
+    },
+    {
+      id: 1003,
+      username: "raphael.varane",
+      fullName: "Raphael Varane",
+      role: "player",
+      position: "Defender",
+      jerseyNumber: 19,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Rapha%C3%ABl_Varane_2018.jpg"
+    },
+    {
+      id: 1004,
+      username: "luke.shaw",
+      fullName: "Luke Shaw",
+      role: "player",
+      position: "Defender",
+      jerseyNumber: 23,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/1/16/Uk224-Luke_Shaw_%28cropped%29.jpg"
+    },
+    {
+      id: 1005,
+      username: "aaron.bissaka",
+      fullName: "Aaron Wan-Bissaka",
+      role: "player",
+      position: "Defender",
+      jerseyNumber: 29,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/8/8d/Wan-Bissaka_2019.jpg"
+    },
+    {
+      id: 1006,
+      username: "scott.mctominay",
+      fullName: "Scott McTominay",
+      role: "player",
+      position: "Midfielder",
+      jerseyNumber: 39,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/20180612_FIFA_Friendly_Match_Austria_vs._Russia_Scott_McTominay_850_1605.jpg/800px-20180612_FIFA_Friendly_Match_Austria_vs._Russia_Scott_McTominay_850_1605.jpg"
+    },
+    {
+      id: 1007,
+      username: "fred.midfielder",
+      fullName: "Fred",
+      role: "player",
+      position: "Midfielder",
+      jerseyNumber: 17,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/8/88/Fred_2018.jpg"
+    },
+    {
+      id: 1008,
+      username: "bruno.fernandes",
+      fullName: "Bruno Fernandes",
+      role: "player",
+      position: "Attacking Midfielder",
+      jerseyNumber: 8,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/1/14/Bruno_Fernandes_%28footballer%2C_born_1994%29.jpg"
+    },
+    {
+      id: 1009,
+      username: "marcus.rashford",
+      fullName: "Marcus Rashford",
+      role: "player",
+      position: "Forward",
+      jerseyNumber: 10,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Press_Briefing_Discussing_the_Upcoming_England_V._Italy_European_Cup_Final_%28cropped%29.jpg"
+    },
+    {
+      id: 1010,
+      username: "anthony.martial",
+      fullName: "Anthony Martial",
+      role: "player",
+      position: "Forward",
+      jerseyNumber: 9,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Anthony_Martial_27_September_2017.jpg"
+    },
+    {
+      id: 1011,
+      username: "mason.greenwood",
+      fullName: "Mason Greenwood",
+      role: "player",
+      position: "Forward",
+      jerseyNumber: 11,
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Mason_Greenwood.jpg/800px-Mason_Greenwood.jpg"
+    },
+    {
+      id: 1012,
+      username: "erik.tenhag",
+      fullName: "Erik ten Hag",
+      role: "coach",
+      position: "Head Coach",
+      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/7/76/Erik_ten_Hag%2C_2017.jpg"
+    }
+  ];
+
+  // Create a mock team
+  const mockTeam = {
+    id: 101,
+    name: "Manchester United FC",
+    logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
+    division: "Premier League",
+    createdAt: new Date(),
+    ownerId: 1
+  };
+
+  return { mockUsers, mockTeam };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
 
   const httpServer = createServer(app);
+  
+  // Route to create mock data for testing
+  app.post("/api/mock-data", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const { mockUsers, mockTeam } = await createMockData();
+      
+      // Create the team
+      const team = await storage.createTeam({
+        ...mockTeam,
+        ownerId: req.user.id,
+      });
+      
+      // Make current user an admin of the team
+      await storage.createTeamMember({
+        teamId: team.id,
+        userId: req.user.id,
+        role: "admin"
+      });
+      
+      // Create the mock players and add them to the team
+      for (const mockUser of mockUsers) {
+        // Create a test password hash
+        const password = await hashPasswordInStorage("password123");
+        
+        // Create the user
+        const user = await storage.createUser({
+          username: mockUser.username,
+          password,
+          fullName: mockUser.fullName,
+          role: "user"
+        });
+        
+        // Add the user to the team as a player or coach
+        await storage.createTeamMember({
+          teamId: team.id,
+          userId: user.id,
+          role: mockUser.role as "player" | "coach" | "admin"
+        });
+        
+        // Add player-specific information (for display purposes)
+        if (mockUser.position) {
+          const teamMember = await storage.getTeamMember(team.id, user.id);
+          await storage.updateTeamMember(teamMember!.id, {
+            user: {
+              position: mockUser.position,
+              jerseyNumber: mockUser.jerseyNumber,
+              profilePicture: mockUser.profilePicture
+            }
+          });
+        }
+      }
+      
+      res.json({ message: "Mock data created successfully" });
+    } catch (error) {
+      console.error("Error creating mock data:", error);
+      res.status(500).json({ error: "Failed to create mock data" });
+    }
+  });
 
   // Team routes
   app.get("/api/teams", async (req, res) => {
@@ -114,8 +300,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to add team members" });
       }
       
-      const { userId, role } = req.body;
+      const { userId, role, user } = req.body;
       
+      // For the simplified member creation (without accounts)
+      if (user) {
+        // Generate a random user ID for the mock user
+        const mockUserId = Math.floor(Math.random() * 10000) + 1000;
+        
+        // Create a password hash for the mock user
+        const password = await hashPasswordInStorage("password123");
+        
+        // Create the user
+        const newUser = await storage.createUser({
+          username: user.username || user.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId,
+          password,
+          fullName: user.fullName,
+          role: "user"
+        });
+        
+        // Add to team
+        const newTeamMember = await storage.createTeamMember({
+          teamId,
+          userId: newUser.id,
+          role
+        });
+        
+        // Add additional user info
+        if (user.position || user.jerseyNumber) {
+          await storage.updateTeamMember(newTeamMember.id, {
+            user: {
+              position: user.position,
+              jerseyNumber: user.jerseyNumber,
+              profilePicture: user.profilePicture || `https://i.pravatar.cc/150?u=${newUser.id}`
+            }
+          });
+        }
+        
+        // Get the updated team member
+        const updatedMember = await storage.getTeamMember(teamId, newUser.id);
+        return res.status(201).json(updatedMember);
+      }
+      
+      // Regular team member addition (existing user)
       // Check if user is already a member of the team
       const existingMember = await storage.getTeamMember(teamId, userId);
       if (existingMember) {
@@ -131,6 +357,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newTeamMember);
     } catch (error) {
       res.status(500).json({ error: "Failed to add team member" });
+    }
+  });
+  
+  // Delete a team member
+  app.delete("/api/teams/:teamId/members/:memberId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const memberId = parseInt(req.params.memberId);
+      
+      // Check if user has admin role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Not authorized to remove team members" });
+      }
+      
+      // Get the member to be removed
+      const members = await storage.getTeamMembers(teamId);
+      const memberToRemove = members.find(m => m.id === memberId);
+      
+      if (!memberToRemove) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      // Don't allow removing yourself
+      if (memberToRemove.userId === req.user.id) {
+        return res.status(400).json({ error: "Cannot remove yourself from the team" });
+      }
+      
+      const success = await storage.deleteTeamMember(memberId);
+      
+      if (success) {
+        res.status(200).json({ message: "Team member removed successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to remove team member" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove team member" });
     }
   });
 
