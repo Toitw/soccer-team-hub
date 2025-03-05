@@ -207,21 +207,27 @@ export default function TeamPage() {
       return;
     }
     
+    // Handle empty or undefined values
+    const fullName = data.fullName || "Team Member";
+    const role = data.role || "player";
+    
     // Convert "none" position value to empty string
-    if (data.position === "none") {
-      data.position = "";
+    let position = data.position;
+    if (position === "none" || !position) {
+      position = "";
     }
     
     // Pass the data to the team member creation endpoint with the user info embedded
-    addTeamMemberMutation.mutate({
-      teamId: selectedTeam.id,
-      role: data.role,
+    const payload = {
+      role: role,
       user: {
-        fullName: data.fullName,
-        position: data.position,
-        jerseyNumber: data.jerseyNumber
+        fullName: fullName,
+        position: position,
+        jerseyNumber: data.jerseyNumber || undefined
       }
-    });
+    };
+    
+    addTeamMemberMutation.mutate(payload);
   };
 
   if (teamsLoading || teamMembersLoading) {
