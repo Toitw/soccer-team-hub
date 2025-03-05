@@ -336,10 +336,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profilePicture: profilePicture ? "..." : "no change"
         });
         
+        // Handle empty profile picture values
+        const profilePictureValue = profilePicture === "" || profilePicture === null || profilePicture === undefined
+          ? user.profilePicture  // Keep existing picture if empty
+          : profilePicture;      // Otherwise use the new value
+          
         const updatedUser = await storage.updateUser(user.id, {
           position,
           jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
-          profilePicture: profilePicture || user.profilePicture
+          profilePicture: profilePictureValue
         });
         
         if (updatedUser) {
@@ -393,6 +398,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create a password hash for the mock user
         const password = await hashPasswordInStorage("password123");
         
+        // Handle profile picture (use default avatar if none provided or empty string)
+        const profilePicture = user.profilePicture && user.profilePicture.trim() !== '' 
+          ? user.profilePicture 
+          : `https://i.pravatar.cc/150?u=${mockUserId}`;
+          
         // Create the user with basic info
         const newUser = await storage.createUser({
           username: user.username || user.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId,
@@ -401,7 +411,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: "player", // Use a valid role from the schema
           position: user.position || null,
           jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
-          profilePicture: user.profilePicture || `https://i.pravatar.cc/150?u=${mockUserId}`
+          profilePicture
         });
         
         // Add to team
