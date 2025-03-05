@@ -151,7 +151,7 @@ export class MemStorage implements IStorage {
     // Create hashed passwords for demo users
     const hashedPassword = await hashPasswordInStorage("password123");
     
-    // Add demo data here
+    // Add only admin user - no other mock users
     const demoAdmin = await this.createUser({
       username: "admin",
       password: hashedPassword,
@@ -161,47 +161,7 @@ export class MemStorage implements IStorage {
       profilePicture: "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"
     });
     
-    const demoCoach = await this.createUser({
-      username: "coach",
-      password: hashedPassword,
-      fullName: "Coach Smith",
-      role: "coach",
-      email: "coach@example.com",
-      profilePicture: "https://ui-avatars.com/api/?name=Coach+Smith&background=4CAF50&color=fff"
-    });
-    
-    const demoPlayer1 = await this.createUser({
-      username: "player1",
-      password: hashedPassword,
-      fullName: "Marcus Rashford",
-      role: "player",
-      position: "Forward",
-      jerseyNumber: 9,
-      email: "player1@example.com",
-      profilePicture: "https://ui-avatars.com/api/?name=Marcus+Rashford&background=FFC107&color=fff"
-    });
-    
-    const demoPlayer2 = await this.createUser({
-      username: "player2",
-      password: hashedPassword,
-      fullName: "Bruno Fernandes",
-      role: "player",
-      position: "Midfielder",
-      jerseyNumber: 7,
-      email: "player2@example.com",
-      profilePicture: "https://ui-avatars.com/api/?name=Bruno+Fernandes&background=FFC107&color=fff"
-    });
-    
-    const demoPlayer3 = await this.createUser({
-      username: "player3",
-      password: hashedPassword,
-      fullName: "Jadon Sancho",
-      role: "player",
-      position: "Winger",
-      jerseyNumber: 6,
-      email: "player3@example.com",
-      profilePicture: "https://ui-avatars.com/api/?name=Jadon+Sancho&background=FFC107&color=fff"
-    });
+    // No other users will be created automatically
   }
 
   // User methods
