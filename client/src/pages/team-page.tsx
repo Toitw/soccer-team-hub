@@ -85,8 +85,25 @@ export default function TeamPage() {
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
   // Get team members
+  const teamMembersQueryKey = ["/api/teams", selectedTeam?.id, "members"];
   const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMemberWithUser[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "members"],
+    queryKey: teamMembersQueryKey,
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/members`, {
+        credentials: "include"  // Important: This ensures cookies are sent with the request
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error("Authorization error: User not authenticated");
+          return [];
+        }
+        throw new Error(`Failed to fetch team members: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    },
     enabled: !!selectedTeam?.id,
     retry: 1,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -740,7 +757,9 @@ export default function TeamPage() {
                       <div>
                         <div className="font-semibold">{memberToRemove?.user.fullName || 'Unknown User'}</div>
                         <div className="text-sm text-muted-foreground">
-                          {memberToRemove?.role?.charAt(0).toUpperCase() + memberToRemove?.role?.slice(1) || 'Team Member'}
+                          {memberToRemove && memberToRemove.role ? 
+                            memberToRemove.role.charAt(0).toUpperCase() + memberToRemove.role.slice(1) 
+                            : 'Team Member'}
                         </div>
                       </div>
                     </div>
