@@ -407,9 +407,46 @@ export default function TeamPage() {
                                   onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
+                                      // Resize and compress image before sending
                                       const reader = new FileReader();
                                       reader.onload = (event) => {
-                                        field.onChange(event.target?.result);
+                                        const img = new Image();
+                                        img.onload = () => {
+                                          // Create canvas for resizing
+                                          const canvas = document.createElement('canvas');
+                                          // Max dimensions for profile pictures
+                                          const maxWidth = 400;
+                                          const maxHeight = 400;
+                                          
+                                          let width = img.width;
+                                          let height = img.height;
+                                          
+                                          // Calculate new dimensions while maintaining aspect ratio
+                                          if (width > height) {
+                                            if (width > maxWidth) {
+                                              height = Math.round(height * (maxWidth / width));
+                                              width = maxWidth;
+                                            }
+                                          } else {
+                                            if (height > maxHeight) {
+                                              width = Math.round(width * (maxHeight / height));
+                                              height = maxHeight;
+                                            }
+                                          }
+                                          
+                                          canvas.width = width;
+                                          canvas.height = height;
+                                          
+                                          // Draw resized image to canvas
+                                          const ctx = canvas.getContext('2d');
+                                          ctx?.drawImage(img, 0, 0, width, height);
+                                          
+                                          // Convert to compressed data URL
+                                          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                                          field.onChange(dataUrl);
+                                        };
+                                        
+                                        img.src = event.target?.result as string;
                                       };
                                       reader.readAsDataURL(file);
                                     }
