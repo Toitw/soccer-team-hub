@@ -398,12 +398,36 @@ export default function TeamPage() {
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Profile Picture URL</FormLabel>
+                            <FormLabel>Profile Picture</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com/image.jpg" {...field} />
+                              <div className="flex flex-col space-y-2">
+                                <Input 
+                                  type="file" 
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (event) => {
+                                        field.onChange(event.target?.result);
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }} 
+                                />
+                                {field.value && (
+                                  <div className="mt-2">
+                                    <img 
+                                      src={field.value} 
+                                      alt="Profile preview" 
+                                      className="w-20 h-20 object-cover rounded-full" 
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </FormControl>
                             <FormDescription>
-                              Enter a URL for the player's profile picture
+                              Upload a profile picture
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
