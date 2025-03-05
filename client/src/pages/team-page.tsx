@@ -58,6 +58,16 @@ const addTeamMemberSchema = z.object({
 
 type AddTeamMemberFormData = z.infer<typeof addTeamMemberSchema>;
 
+// Type for the simplified payload sent to the server
+interface SimplifiedMemberPayload {
+  role: "coach" | "player";
+  user: {
+    fullName: string;
+    position?: string;
+    jerseyNumber?: number;
+  };
+}
+
 export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -150,32 +160,27 @@ export default function TeamPage() {
 
   // Add team member mutation
   const addTeamMemberMutation = useMutation({
-    mutationFn: async (data: AddTeamMemberFormData) => {
+    mutationFn: async (data: SimplifiedMemberPayload) => {
       if (!selectedTeam) throw new Error("No team selected");
-      
-      // In a real app, this would create a new user or reference an existing one
-      // For our simplified version, we'll create a mock team member with the data provided
-      
-      // Generate a random ID since this is just for display purposes
-      const mockUserId = Math.floor(Math.random() * 10000) + 1;
       
       // Add directly to the team with user information embedded
       const response = await apiRequest(
         "POST", 
         `/api/teams/${selectedTeam.id}/members`,
         {
-          userId: mockUserId,
-          teamId: selectedTeam.id,
           role: data.role,
           user: {
-            fullName: data.fullName,
-            position: data.position,
-            jerseyNumber: data.jerseyNumber,
-            // Generate a random username based on the name
-            username: data.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId
+            fullName: data.user.fullName,
+            position: data.user.position,
+            jerseyNumber: data.user.jerseyNumber
           }
         }
       );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add team member");
+      }
       
       return await response.json();
     },
