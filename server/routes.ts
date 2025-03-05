@@ -823,46 +823,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Create and add players
-        const playerPositions = [
-          { name: "David de Gea", position: "Goalkeeper", jersey: 1 },
-          { name: "Harry Maguire", position: "Defender", jersey: 5 },
-          { name: "Bruno Fernandes", position: "Midfielder", jersey: 8 },
-          { name: "Marcus Rashford", position: "Forward", jersey: 10 },
-          { name: "Casemiro", position: "Midfielder", jersey: 18 }
-        ];
-
-        for (let i = 0; i < playerPositions.length; i++) {
-          const player = playerPositions[i];
-          const username = `player${i + 1}`;
-          
-          // Check if player already exists
-          const existingPlayer = await storage.getUserByUsername(username);
-          let playerUser = existingPlayer;
-          
-          if (!existingPlayer) {
-            playerUser = await storage.createUser({
-              username,
-              password: await hashPasswordInStorage("password"),
-              fullName: player.name,
-              role: "player",
-              profilePicture: `https://i.pravatar.cc/150?u=${username}`,
-              position: player.position,
-              jerseyNumber: player.jersey,
-              email: `${username}@example.com`,
-              phoneNumber: `+1 (555) ${100 + i}-${1000 + i}`
-            });
-          }
-          
-          if (playerUser) {
-            // Add the player to the team
-            await storage.createTeamMember({
-              teamId: team.id,
-              userId: playerUser.id,
-              role: "player"
-            });
-          }
-        }
+        // No mock players will be created automatically
+        // The app will start with only admin and coach users
         
         // Create some matches
         const matchesData = [
@@ -966,45 +928,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Add player stats
-        if (await storage.getUser(3) && await storage.getMatch(1)) {
-          await storage.createPlayerStat({
-            userId: 3, // Player 1
-            matchId: 1,
-            goals: 2,
-            assists: 1,
-            yellowCards: 0,
-            redCards: 0,
-            minutesPlayed: 90,
-            performance: 9
-          });
-        }
-        
-        if (await storage.getUser(4) && await storage.getMatch(1)) {
-          await storage.createPlayerStat({
-            userId: 4, // Player 2
-            matchId: 1,
-            goals: 1,
-            assists: 2,
-            yellowCards: 1,
-            redCards: 0,
-            minutesPlayed: 90,
-            performance: 8
-          });
-        }
-        
-        if (await storage.getUser(5) && await storage.getMatch(1)) {
-          await storage.createPlayerStat({
-            userId: 5, // Player 3
-            matchId: 1,
-            goals: 0,
-            assists: 1,
-            yellowCards: 0,
-            redCards: 0,
-            minutesPlayed: 80,
-            performance: 7
-          });
-        }
+        // No player statistics will be added initially
+        // These will be added when team members are created and matches are recorded
       }
       
       res.status(200).json({ message: "Mock data created successfully" });
