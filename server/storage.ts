@@ -13,8 +13,14 @@ import createMemoryStore from "memorystore";
 import session from "express-session";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
+import fs from "fs";
+import path from "path";
 
 const MemoryStore = createMemoryStore(session);
+
+// File paths for data persistence
+const DATA_DIR = './data';
+const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -117,6 +123,12 @@ export class MemStorage implements IStorage {
   private invitationCurrentId: number;
 
   constructor() {
+    // Ensure the data directory exists
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    
+    // Initialize maps
     this.users = new Map();
     this.teams = new Map();
     this.teamMembers = new Map();
@@ -141,10 +153,64 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000,
     });
     
-    // Initialize with some data
+    // Load persisted data from files
+    this.loadPersistedData();
+    
+    // Initialize with some data if no data exists
     this.initializeData().catch(err => {
       console.error("Error initializing data:", err);
     });
+  }
+  
+  // Helper method to load data from files
+  private loadPersistedData() {
+    try {
+      // Load team members if the file exists
+      if (fs.existsSync(TEAM_MEMBERS_FILE)) {
+        const teamMembersData = JSON.parse(fs.readFileSync(TEAM_MEMBERS_FILE, 'utf8'));
+        
+        // Clear current map and populate from file
+        this.teamMembers.clear();
+        let maxId = 0;
+        
+        // Process each team member
+        for (const member of teamMembersData) {
+          // Handle Date conversion (joinedAt is stored as a string in the file)
+          if (member.joinedAt) {
+            member.joinedAt = new Date(member.joinedAt);
+          }
+          
+          // Add to map
+          this.teamMembers.set(member.id, member as TeamMember);
+          
+          // Track maximum ID
+          if (member.id > maxId) {
+            maxId = member.id;
+          }
+        }
+        
+        // Update the current ID counter
+        this.teamMemberCurrentId = maxId + 1;
+        
+        console.log(`Loaded ${teamMembersData.length} team members from storage`);
+      }
+    } catch (error) {
+      console.error("Error loading persisted data:", error);
+    }
+  }
+  
+  // Helper method to save data to files
+  private saveTeamMembersData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const teamMembersArray = Array.from(this.teamMembers.values());
+      
+      // Write to file
+      fs.writeFileSync(TEAM_MEMBERS_FILE, JSON.stringify(teamMembersArray, null, 2));
+      console.log(`Saved ${teamMembersArray.length} team members to storage`);
+    } catch (error) {
+      console.error("Error saving team members data:", error);
+    }
   }
 
   private async initializeData() {
@@ -242,8 +308,21 @@ export class MemStorage implements IStorage {
 
   async createTeamMember(insertTeamMember: InsertTeamMember): Promise<TeamMember> {
     const id = this.teamMemberCurrentId++;
-    const teamMember: TeamMember = { ...insertTeamMember, id, joinedAt: new Date() };
+    // Make sure role is never undefined to satisfy TypeScript requirements
+    const role = insertTeamMember.role || "player";
+    
+    const teamMember: TeamMember = { 
+      ...insertTeamMember, 
+      id, 
+      joinedAt: new Date(),
+      role // Override with default if undefined
+    };
+    
     this.teamMembers.set(id, teamMember);
+    
+    // Save team members data to file
+    this.saveTeamMembersData();
+    
     return teamMember;
   }
 
@@ -253,11 +332,22 @@ export class MemStorage implements IStorage {
     
     const updatedTeamMember: TeamMember = { ...teamMember, ...teamMemberData };
     this.teamMembers.set(id, updatedTeamMember);
+    
+    // Save team members data to file
+    this.saveTeamMembersData();
+    
     return updatedTeamMember;
   }
 
   async deleteTeamMember(id: number): Promise<boolean> {
-    return this.teamMembers.delete(id);
+    const result = this.teamMembers.delete(id);
+    
+    // Save team members data to file after deletion
+    if (result) {
+      this.saveTeamMembersData();
+    }
+    
+    return result;
   }
 
   // Match methods
