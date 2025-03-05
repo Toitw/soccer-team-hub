@@ -312,8 +312,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the request body
       const { role, position, jerseyNumber, profilePicture } = req.body;
       
-      // Get the team member to update
-      const teamMember = await storage.getTeamMember(teamId, memberId);
+      // This is key: get the team member to update by ID instead of userId
+      // Get all team members and find the one with matching ID
+      const members = await storage.getTeamMembers(teamId);
+      const teamMember = members.find(member => member.id === memberId);
+      
       if (!teamMember) {
         return res.status(404).json({ error: "Team member not found" });
       }
@@ -378,12 +381,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create a password hash for the mock user
         const password = await hashPasswordInStorage("password123");
         
-        // Create the user
+        // Create the user with basic info
         const newUser = await storage.createUser({
           username: user.username || user.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId,
           password,
           fullName: user.fullName,
-          role: "player" // Use a valid role from the schema
+          role: "player", // Use a valid role from the schema
+          position: user.position || null,
+          jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
+          profilePicture: user.profilePicture || `https://i.pravatar.cc/150?u=${mockUserId}`
         });
         
         // Add to team
@@ -393,18 +399,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role
         });
         
-        // We can't directly update the team member with user properties
-        // In a real app with extended db schema, we'd update the user's properties here
-        // For now, we'll log what we would update
-        console.log(`Would update user properties for ${newUser.id}: 
-          position: ${user.position || 'none'},
-          jerseyNumber: ${user.jerseyNumber || 'none'},
-          profilePicture: ${user.profilePicture || `https://i.pravatar.cc/150?u=${newUser.id}`}
-        `);
+        // Get the user with all properties
+        const fullUser = await storage.getUser(newUser.id);
         
-        // Get the updated team member
-        const updatedMember = await storage.getTeamMember(teamId, newUser.id);
-        return res.status(201).json(updatedMember);
+        if (!fullUser) {
+          return res.status(500).json({ error: "Failed to retrieve created user" });
+        }
+        
+        // Return the complete team member with user details
+        const { password: pwd, ...userWithoutPassword } = fullUser;
+        
+        // Return member with full user details
+        return res.status(201).json({
+          ...newTeamMember,
+          user: {
+            ...userWithoutPassword,
+            profilePicture: fullUser.profilePicture || "/default-avatar.png",
+            position: fullUser.position || "",
+            jerseyNumber: fullUser.jerseyNumber || null
+          }
+        });
       }
       
       // Regular team member addition (existing user)
