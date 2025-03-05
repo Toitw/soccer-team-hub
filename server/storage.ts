@@ -21,6 +21,7 @@ const MemoryStore = createMemoryStore(session);
 // File paths for data persistence
 const DATA_DIR = './data';
 const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -169,6 +170,40 @@ export class MemStorage implements IStorage {
     try {
       let hasData = false;
       
+      // Load user data if the file exists
+      if (fs.existsSync(USERS_FILE)) {
+        const usersData = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+        
+        if (usersData && usersData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.users.clear();
+          let maxId = 0;
+          
+          // Process each user
+          for (const user of usersData) {
+            // Make sure user has a valid role (required by TypeScript)
+            if (!user.role) {
+              user.role = "player";
+            }
+            
+            // Add to map
+            this.users.set(user.id, user as User);
+            
+            // Track maximum ID
+            if (user.id > maxId) {
+              maxId = user.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.userCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${usersData.length} users from storage`);
+        }
+      }
+      
       // Load team members if the file exists
       if (fs.existsSync(TEAM_MEMBERS_FILE)) {
         const teamMembersData = JSON.parse(fs.readFileSync(TEAM_MEMBERS_FILE, 'utf8'));
@@ -215,7 +250,21 @@ export class MemStorage implements IStorage {
     }
   }
   
-  // Helper method to save data to files
+  // Helper method to save user data to file
+  private saveUsersData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const usersArray = Array.from(this.users.values());
+      
+      // Write to file
+      fs.writeFileSync(USERS_FILE, JSON.stringify(usersArray, null, 2));
+      console.log(`Saved ${usersArray.length} users to storage`);
+    } catch (error) {
+      console.error("Error saving users data:", error);
+    }
+  }
+  
+  // Helper method to save team members data to file
   private saveTeamMembersData() {
     try {
       // Convert Map to Array for JSON serialization
