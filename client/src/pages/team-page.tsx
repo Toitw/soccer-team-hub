@@ -24,9 +24,9 @@ interface TeamMemberWithUser extends TeamMember {
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Loader2, 
@@ -50,14 +50,10 @@ import { Badge } from "@/components/ui/badge";
 
 // Schema for adding a team member
 const addTeamMemberSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
-  email: z.string().email("Invalid email format").optional(),
-  phoneNumber: z.string().optional(),
 });
 
 type AddTeamMemberFormData = z.infer<typeof addTeamMemberSchema>;
@@ -109,13 +105,10 @@ export default function TeamPage() {
   const form = useForm<AddTeamMemberFormData>({
     resolver: zodResolver(addTeamMemberSchema),
     defaultValues: {
-      username: "",
-      password: "",
       fullName: "",
       role: "player",
       position: "",
-      email: "",
-      phoneNumber: "",
+      jerseyNumber: undefined,
     },
   });
   
@@ -155,32 +148,36 @@ export default function TeamPage() {
     }
   };
 
-  // Add user mutation
-  const addUserMutation = useMutation({
+  // Add team member mutation
+  const addTeamMemberMutation = useMutation({
     mutationFn: async (data: AddTeamMemberFormData) => {
-      // First create the user
+      if (!selectedTeam) throw new Error("No team selected");
+      
+      // In a real app, this would create a new user or reference an existing one
+      // For our simplified version, we'll create a mock team member with the data provided
+      
+      // Generate a random ID since this is just for display purposes
+      const mockUserId = Math.floor(Math.random() * 10000) + 1;
+      
+      // Add directly to the team with user information embedded
       const response = await apiRequest(
-        "POST",
-        "/api/register",
-        data
+        "POST", 
+        `/api/teams/${selectedTeam.id}/members`,
+        {
+          userId: mockUserId,
+          teamId: selectedTeam.id,
+          role: data.role,
+          user: {
+            fullName: data.fullName,
+            position: data.position,
+            jerseyNumber: data.jerseyNumber,
+            // Generate a random username based on the name
+            username: data.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId
+          }
+        }
       );
       
-      const newUser = await response.json();
-
-      // Then add them to the team
-      if (selectedTeam) {
-        await apiRequest(
-          "POST", 
-          `/api/teams/${selectedTeam.id}/members`,
-          {
-            userId: newUser.id,
-            teamId: selectedTeam.id,
-            role: data.role,
-          } as InsertTeamMember
-        );
-      }
-
-      return newUser;
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -201,7 +198,7 @@ export default function TeamPage() {
   });
 
   const onSubmit = (data: AddTeamMemberFormData) => {
-    addUserMutation.mutate(data);
+    addTeamMemberMutation.mutate(data);
   };
 
   if (teamsLoading || teamMembersLoading) {
@@ -246,32 +243,6 @@ export default function TeamPage() {
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
                         control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="johndoe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="••••••" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
                         name="fullName"
                         render={({ field }) => (
                           <FormItem>
@@ -313,9 +284,42 @@ export default function TeamPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Position</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Forward" {...field} />
-                            </FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select position" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="">None</SelectItem>
+                                <SelectGroup>
+                                  <SelectLabel>Defense</SelectLabel>
+                                  <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
+                                  <SelectItem value="Defender">Defender</SelectItem>
+                                  <SelectItem value="Center Back">Center Back</SelectItem>
+                                  <SelectItem value="Full Back">Full Back</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                  <SelectLabel>Midfield</SelectLabel>
+                                  <SelectItem value="Midfielder">Midfielder</SelectItem>
+                                  <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
+                                  <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
+                                  <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                  <SelectLabel>Attack</SelectLabel>
+                                  <SelectItem value="Forward">Forward</SelectItem>
+                                  <SelectItem value="Striker">Striker</SelectItem>
+                                  <SelectItem value="Winger">Winger</SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Only required for players
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -327,34 +331,11 @@ export default function TeamPage() {
                           <FormItem>
                             <FormLabel>Jersey Number</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="10" {...field} />
+                              <Input type="number" placeholder="10" {...field} value={field.value || ""} />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input placeholder="john.doe@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="+1 (123) 456-7890" {...field} />
-                            </FormControl>
+                            <FormDescription>
+                              Optional for players
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
