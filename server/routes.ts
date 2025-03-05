@@ -143,50 +143,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { mockUsers, mockTeam } = await createMockData();
       
-      // Create the team
-      const team = await storage.createTeam({
-        ...mockTeam,
-        createdById: req.user.id,
-      });
+      // Check if team with the same name already exists
+      const existingTeams = await storage.getTeams();
+      const existingTeam = existingTeams.find(t => t.name === mockTeam.name);
       
-      // Make current user an admin of the team
-      await storage.createTeamMember({
-        teamId: team.id,
-        userId: req.user.id,
-        role: "admin"
-      });
+      let team;
+      if (existingTeam) {
+        console.log(`Team "${mockTeam.name}" already exists, using existing team`);
+        team = existingTeam;
+      } else {
+        // Create the team if it doesn't exist
+        team = await storage.createTeam({
+          ...mockTeam,
+          createdById: req.user.id,
+        });
+        console.log(`Created new team: ${team.name} (ID: ${team.id})`);
+      }
+      
+      // Check if current user is already an admin of the team
+      const currentUserMember = await storage.getTeamMember(team.id, req.user.id);
+      if (!currentUserMember) {
+        // Make current user an admin of the team if not already a member
+        await storage.createTeamMember({
+          teamId: team.id,
+          userId: req.user.id,
+          role: "admin"
+        });
+        console.log(`Added current user (ID: ${req.user.id}) as admin to team`);
+      }
+      
+      // Track how many new users and team members were created
+      let newUsersCount = 0;
+      let newMembersCount = 0;
       
       // Create the mock players and add them to the team
       for (const mockUser of mockUsers) {
-        // Create a test password hash
-        const password = await hashPasswordInStorage("password123");
+        // Check if user with the same username already exists
+        let user = await storage.getUserByUsername(mockUser.username);
         
-        // Create the user
-        const user = await storage.createUser({
-          username: mockUser.username,
-          password,
-          fullName: mockUser.fullName,
-          role: "player"
-        });
+        if (!user) {
+          // Create a test password hash
+          const password = await hashPasswordInStorage("password123");
+          
+          // Create the user if doesn't exist
+          user = await storage.createUser({
+            username: mockUser.username,
+            password,
+            fullName: mockUser.fullName,
+            role: "player",
+            profilePicture: mockUser.profilePicture || null,
+            position: mockUser.position || null,
+            jerseyNumber: mockUser.jerseyNumber || null,
+            email: null,
+            phoneNumber: null
+          });
+          newUsersCount++;
+        }
         
-        // Add the user to the team as a player or coach
-        await storage.createTeamMember({
-          teamId: team.id,
-          userId: user.id,
-          role: mockUser.role as "player" | "coach" | "admin"
-        });
-        
-        // Add player-specific information (for display purposes)
-        if (mockUser.position) {
-          const teamMember = await storage.getTeamMember(team.id, user.id);
-          // In a real app with an expanded schema, we'd update the user's profile
-          // information with the position and jersey number
-          console.log(`Would update user ${user.id} with position: ${mockUser.position}, 
-          jerseyNumber: ${mockUser.jerseyNumber}, profilePicture: ${mockUser.profilePicture}`);
+        // Check if user is already a member of the team
+        const existingMember = await storage.getTeamMember(team.id, user.id);
+        if (!existingMember) {
+          // Add the user to the team as a player or coach
+          await storage.createTeamMember({
+            teamId: team.id,
+            userId: user.id,
+            role: mockUser.role as "player" | "coach" | "admin"
+          });
+          newMembersCount++;
         }
       }
       
-      res.json({ message: "Mock data created successfully" });
+      res.json({ 
+        message: "Mock data operation completed", 
+        details: {
+          team: team.name,
+          newUsersCreated: newUsersCount,
+          newTeamMembersCreated: newMembersCount
+        }
+      });
     } catch (error) {
       console.error("Error creating mock data:", error);
       res.status(500).json({ error: "Failed to create mock data" });
