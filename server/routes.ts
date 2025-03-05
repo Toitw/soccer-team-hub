@@ -312,7 +312,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate the request body
       const { role, position, jerseyNumber, profilePicture } = req.body;
       
-      // This is key: get the team member to update by ID instead of userId
       // Get all team members and find the one with matching ID
       const members = await storage.getTeamMembers(teamId);
       const teamMember = members.find(member => member.id === memberId);
@@ -320,6 +319,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!teamMember) {
         return res.status(404).json({ error: "Team member not found" });
       }
+      
+      console.log(`Updating team member ID: ${memberId} for user ID: ${teamMember.userId}`);
       
       // Update the team member role
       const updatedTeamMember = await storage.updateTeamMember(memberId, {
@@ -329,6 +330,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the user's profile data (position, jerseyNumber, profilePicture)
       const user = await storage.getUser(teamMember.userId);
       if (user) {
+        console.log(`Updating user ${user.fullName} (ID: ${user.id}) with new data:`, {
+          position,
+          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+          profilePicture: profilePicture ? "..." : "no change"
+        });
+        
         const updatedUser = await storage.updateUser(user.id, {
           position,
           jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
@@ -338,15 +345,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (updatedUser) {
           // Return the updated team member with user details
           const { password, ...userWithoutPassword } = updatedUser;
-          res.json({
+          
+          // Return the complete updated record with all relevant fields
+          const response = {
             ...updatedTeamMember,
             user: {
               ...userWithoutPassword,
-              profilePicture: updatedUser.profilePicture || "/default-avatar.png",
+              profilePicture: updatedUser.profilePicture || `/default-avatar.png?u=${user.id}`,
               position: updatedUser.position || "",
               jerseyNumber: updatedUser.jerseyNumber || null
             }
-          });
+          };
+          
+          console.log("Sending updated team member response:", JSON.stringify(response, null, 2));
+          res.json(response);
         } else {
           res.status(500).json({ error: "Failed to update user" });
         }
@@ -410,15 +422,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password: pwd, ...userWithoutPassword } = fullUser;
         
         // Return member with full user details
-        return res.status(201).json({
+        const response = {
           ...newTeamMember,
           user: {
             ...userWithoutPassword,
-            profilePicture: fullUser.profilePicture || "/default-avatar.png",
+            profilePicture: fullUser.profilePicture || `/default-avatar.png?u=${newUser.id}`,
             position: fullUser.position || "",
-            jerseyNumber: fullUser.jerseyNumber || null
+            jerseyNumber: fullUser.jerseyNumber || null,
+            email: fullUser.email || "",
+            phoneNumber: fullUser.phoneNumber || ""
           }
-        });
+        };
+        
+        console.log("Created new team member:", JSON.stringify(response, null, 2));
+        return res.status(201).json(response);
       }
       
       // Regular team member addition (existing user)
