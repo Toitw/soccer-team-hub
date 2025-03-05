@@ -54,7 +54,12 @@ const addTeamMemberSchema = z.object({
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
-  profilePicture: z.string().url().optional()
+  profilePicture: z.union([
+    z.string().url(), 
+    z.string().length(0),  // Allow empty string
+    z.null(),             // Allow null
+    z.undefined()         // Allow undefined
+  ]).optional()
 });
 
 // Schema for editing a team member
@@ -62,7 +67,12 @@ const editTeamMemberSchema = z.object({
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
-  profilePicture: z.string().url().optional()
+  profilePicture: z.union([
+    z.string().url(), 
+    z.string().length(0),  // Allow empty string
+    z.null(),             // Allow null
+    z.undefined()         // Allow undefined
+  ]).optional()
 });
 
 type AddTeamMemberFormData = z.infer<typeof addTeamMemberSchema>;
@@ -75,7 +85,7 @@ interface SimplifiedMemberPayload {
     fullName: string;
     position?: string;
     jerseyNumber?: number;
-    profilePicture?: string;
+    profilePicture?: string | null | undefined;
   };
 }
 
@@ -330,7 +340,7 @@ export default function TeamPage() {
         fullName: fullName,
         position: position,
         jerseyNumber: data.jerseyNumber || undefined,
-        profilePicture: data.profilePicture
+        profilePicture: data.profilePicture || undefined
       }
     };
 
