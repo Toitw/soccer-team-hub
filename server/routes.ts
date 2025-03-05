@@ -657,7 +657,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create mock users and team if none exists
       const existingTeams = await storage.getTeams();
       
-      if (existingTeams.length === 0) {
+      // Always create a new team for the current user when requested
+      if (true) {
         // Create admin user
         const admin = await storage.getUserByUsername("admin");
         let adminUser = admin;
