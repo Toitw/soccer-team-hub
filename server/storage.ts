@@ -154,48 +154,64 @@ export class MemStorage implements IStorage {
     });
     
     // Load persisted data from files
-    this.loadPersistedData();
+    const hasPersistedData = this.loadPersistedData();
     
-    // Initialize with some data if no data exists
-    this.initializeData().catch(err => {
-      console.error("Error initializing data:", err);
-    });
+    // Initialize with some data ONLY if no data exists
+    if (!hasPersistedData) {
+      this.initializeData().catch(err => {
+        console.error("Error initializing data:", err);
+      });
+    }
   }
   
   // Helper method to load data from files
-  private loadPersistedData() {
+  private loadPersistedData(): boolean {
     try {
+      let hasData = false;
+      
       // Load team members if the file exists
       if (fs.existsSync(TEAM_MEMBERS_FILE)) {
         const teamMembersData = JSON.parse(fs.readFileSync(TEAM_MEMBERS_FILE, 'utf8'));
         
-        // Clear current map and populate from file
-        this.teamMembers.clear();
-        let maxId = 0;
-        
-        // Process each team member
-        for (const member of teamMembersData) {
-          // Handle Date conversion (joinedAt is stored as a string in the file)
-          if (member.joinedAt) {
-            member.joinedAt = new Date(member.joinedAt);
+        if (teamMembersData && teamMembersData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.teamMembers.clear();
+          let maxId = 0;
+          
+          // Process each team member
+          for (const member of teamMembersData) {
+            // Handle Date conversion (joinedAt is stored as a string in the file)
+            if (member.joinedAt) {
+              member.joinedAt = new Date(member.joinedAt);
+            }
+            
+            // Make sure member has a valid role (required by TypeScript)
+            if (!member.role) {
+              member.role = "player";
+            }
+            
+            // Add to map
+            this.teamMembers.set(member.id, member as TeamMember);
+            
+            // Track maximum ID
+            if (member.id > maxId) {
+              maxId = member.id;
+            }
           }
           
-          // Add to map
-          this.teamMembers.set(member.id, member as TeamMember);
+          // Update the current ID counter
+          this.teamMemberCurrentId = maxId + 1;
           
-          // Track maximum ID
-          if (member.id > maxId) {
-            maxId = member.id;
-          }
+          console.log(`Loaded ${teamMembersData.length} team members from storage`);
         }
-        
-        // Update the current ID counter
-        this.teamMemberCurrentId = maxId + 1;
-        
-        console.log(`Loaded ${teamMembersData.length} team members from storage`);
       }
+      
+      return hasData;
     } catch (error) {
       console.error("Error loading persisted data:", error);
+      return false;
     }
   }
   
