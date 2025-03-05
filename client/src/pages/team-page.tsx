@@ -198,7 +198,30 @@ export default function TeamPage() {
   });
 
   const onSubmit = (data: AddTeamMemberFormData) => {
-    addTeamMemberMutation.mutate(data);
+    if (!selectedTeam) {
+      toast({
+        title: "Error",
+        description: "No team selected",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Convert "none" position value to empty string
+    if (data.position === "none") {
+      data.position = "";
+    }
+    
+    // Pass the data to the team member creation endpoint with the user info embedded
+    addTeamMemberMutation.mutate({
+      teamId: selectedTeam.id,
+      role: data.role,
+      user: {
+        fullName: data.fullName,
+        position: data.position,
+        jerseyNumber: data.jerseyNumber
+      }
+    });
   };
 
   if (teamsLoading || teamMembersLoading) {
@@ -294,7 +317,7 @@ export default function TeamPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="none">None</SelectItem>
                                 <SelectGroup>
                                   <SelectLabel>Defense</SelectLabel>
                                   <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
