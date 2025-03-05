@@ -262,12 +262,24 @@ export default function TeamPage() {
     mutationFn: async (data: EditTeamMemberFormData) => {
       if (!selectedTeam || !memberToEdit) throw new Error("No team or member selected");
 
-      // Since we don't have a direct PATCH endpoint for team members in the API,
-      // we'll use a client-side approach for this demo by updating the state
-      // In a real app, this would make a PATCH request to update the team member's data
-      
-      // Create a mock successful response
-      return { success: true, data };
+      // Call the PATCH endpoint to update the team member
+      const response = await apiRequest(
+        "PATCH", 
+        `/api/teams/${selectedTeam.id}/members/${memberToEdit.id}`,
+        {
+          role: data.role,
+          position: data.position,
+          jerseyNumber: data.jerseyNumber,
+          profilePicture: data.profilePicture
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update team member");
+      }
+
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -911,6 +923,221 @@ export default function TeamPage() {
                     );
                   })}
                 </TableBody>
+
+                {/* Edit Member Dialog */}
+                <Dialog open={openEditMemberDialog} onOpenChange={setOpenEditMemberDialog}>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Edit Team Member</DialogTitle>
+                      <DialogDescription>
+                        Update {memberToEdit?.user.fullName}'s information.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...editForm}>
+                      <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                        <div className="flex items-center space-x-3 py-2">
+                          <Avatar className="h-16 w-16 border border-primary/30">
+                            <AvatarImage 
+                              src={memberToEdit?.user.profilePicture || '/default-avatar.png'} 
+                              alt={memberToEdit?.user.fullName || ''} 
+                            />
+                            <AvatarFallback>
+                              {memberToEdit?.user.fullName?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-semibold text-lg">{memberToEdit?.user.fullName || 'Unknown User'}</div>
+                            <div className="text-sm text-muted-foreground">
+                              <span className="inline-flex items-center">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {memberToEdit?.user.email || 'No email'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <FormField
+                          control={editForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Role</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a role" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="coach">Coach</SelectItem>
+                                  <SelectItem value="player">Player</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={editForm.control}
+                          name="position"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Position</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select position" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="none">None</SelectItem>
+                                  <SelectGroup>
+                                    <SelectLabel>Defense</SelectLabel>
+                                    <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
+                                    <SelectItem value="Defender">Defender</SelectItem>
+                                    <SelectItem value="Center Back">Center Back</SelectItem>
+                                    <SelectItem value="Full Back">Full Back</SelectItem>
+                                  </SelectGroup>
+                                  <SelectGroup>
+                                    <SelectLabel>Midfield</SelectLabel>
+                                    <SelectItem value="Midfielder">Midfielder</SelectItem>
+                                    <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
+                                    <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
+                                    <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
+                                  </SelectGroup>
+                                  <SelectGroup>
+                                    <SelectLabel>Attack</SelectLabel>
+                                    <SelectItem value="Forward">Forward</SelectItem>
+                                    <SelectItem value="Striker">Striker</SelectItem>
+                                    <SelectItem value="Winger">Winger</SelectItem>
+                                  </SelectGroup>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Only required for players
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={editForm.control}
+                          name="jerseyNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Jersey Number</FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="10" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={editForm.control}
+                          name="profilePicture"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Profile Picture</FormLabel>
+                              <FormControl>
+                                <div className="flex flex-col space-y-2">
+                                  <Input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        // Resize and compress image before sending
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                          const img = new Image();
+                                          img.onload = () => {
+                                            // Create canvas for resizing
+                                            const canvas = document.createElement('canvas');
+                                            // Max dimensions for profile pictures
+                                            const maxWidth = 400;
+                                            const maxHeight = 400;
+                                            
+                                            let width = img.width;
+                                            let height = img.height;
+                                            
+                                            // Calculate new dimensions while maintaining aspect ratio
+                                            if (width > height) {
+                                              if (width > maxWidth) {
+                                                height = Math.round(height * (maxWidth / width));
+                                                width = maxWidth;
+                                              }
+                                            } else {
+                                              if (height > maxHeight) {
+                                                width = Math.round(width * (maxHeight / height));
+                                                height = maxHeight;
+                                              }
+                                            }
+                                            
+                                            canvas.width = width;
+                                            canvas.height = height;
+                                            
+                                            // Draw resized image to canvas
+                                            const ctx = canvas.getContext('2d');
+                                            ctx?.drawImage(img, 0, 0, width, height);
+                                            
+                                            // Convert to compressed data URL
+                                            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                                            field.onChange(dataUrl);
+                                          };
+                                          
+                                          img.src = event.target?.result as string;
+                                        };
+                                        reader.readAsDataURL(file);
+                                      }
+                                    }} 
+                                  />
+                                  {field.value && (
+                                    <div className="mt-2">
+                                      <img 
+                                        src={field.value} 
+                                        alt="Profile preview" 
+                                        className="w-20 h-20 object-cover rounded-full" 
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormDescription>
+                                Upload a new profile picture or leave empty to keep the current one
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setOpenEditMemberDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit" 
+                            disabled={editTeamMemberMutation.isPending}
+                          >
+                            {editTeamMemberMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Updating...
+                              </>
+                            ) : (
+                              "Save Changes"
+                            )}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
 
                 {/* Remove Member Confirmation Dialog */}
                 <Dialog open={openRemoveMemberDialog} onOpenChange={setOpenRemoveMemberDialog}>
