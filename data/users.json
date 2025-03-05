@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "02aa81daba6395dfd654205969a33b061c30d742336df489cd092e625a35f05f9daa6e76e7def4aa45ad8c49d9a06a8781d29ad302617a2f54775636c25fd38f.f6da1539aa93cb8452147ff6d30998ab",
+    "fullName": "Admin User",
+    "role": "admin",
+    "email": "admin@example.com",
+    "profilePicture": "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff",
+    "position": null,
+    "jerseyNumber": null,
+    "phoneNumber": null
+  }
+]
