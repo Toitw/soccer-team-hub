@@ -85,9 +85,30 @@
   },
   {
     "teamId": 1,
-    "userId": 26,
+    "userId": 27,
+    "role": "player",
+    "id": 40,
+    "joinedAt": "2025-03-06T19:28:37.645Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 28,
     "role": "player",
     "id": 41,
-    "joinedAt": "2025-03-05T19:52:28.718Z"
+    "joinedAt": "2025-03-06T19:29:53.711Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 29,
+    "role": "player",
+    "id": 42,
+    "joinedAt": "2025-03-06T19:30:07.496Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 30,
+    "role": "player",
+    "id": 43,
+    "joinedAt": "2025-03-06T19:30:20.119Z"
   }
 ]
