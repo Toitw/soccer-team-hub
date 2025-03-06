@@ -53,12 +53,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
       
-      // Add current user as admin of the team
-      await storage.createTeamMember({
-        teamId: team.id,
-        userId: req.user.id,
-        role: "admin"
-      });
+      // Check if user is already a member before adding them
+      const existingMember = await storage.getTeamMember(team.id, req.user.id);
+      if (!existingMember) {
+        // Add current user as admin of the team only if they're not already a member
+        await storage.createTeamMember({
+          teamId: team.id,
+          userId: req.user.id,
+          role: "admin"
+        });
+      }
       
       res.json({ 
         message: "Team created successfully", 
@@ -94,12 +98,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdById: req.user.id,
       });
       
-      // Add creator as team admin
-      await storage.createTeamMember({
-        teamId: team.id,
-        userId: req.user.id,
-        role: "admin"
-      });
+      // Check if user is already a member before adding them
+      const existingMember = await storage.getTeamMember(team.id, req.user.id);
+      if (!existingMember) {
+        // Add creator as team admin only if they're not already a member
+        await storage.createTeamMember({
+          teamId: team.id,
+          userId: req.user.id,
+          role: "admin"
+        });
+      }
       
       res.status(201).json(team);
     } catch (error) {
