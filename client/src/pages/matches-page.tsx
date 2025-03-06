@@ -283,19 +283,26 @@ export default function MatchesPage() {
 
   console.log("All matches data:", matches);
   
-  // Safely handle matches array and properly categorize by date
+  // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
   
   const upcomingMatches = Array.isArray(matches) ? 
     matches.filter(match => {
-      const matchDate = new Date(match.matchDate);
-      return matchDate >= currentDate && match.status === "scheduled";
+      // Consider a match as upcoming if:
+      // 1. It's scheduled (regardless of date)
+      // 2. OR it's not completed/cancelled and the date is in the future
+      if (match.status === "completed" || match.status === "cancelled") {
+        return false; // Completed or cancelled matches always go to past tab
+      }
+      return true; // All scheduled matches go to upcoming tab
     }) : [];
   
   const pastMatches = Array.isArray(matches) ?
     matches.filter(match => {
-      const matchDate = new Date(match.matchDate);
-      return matchDate < currentDate || match.status === "completed";
+      // Consider a match as past if:
+      // 1. It's completed (regardless of date)
+      // 2. OR it's cancelled (regardless of date)
+      return match.status === "completed" || match.status === "cancelled";
     }) : [];
   
   console.log("Upcoming matches:", upcomingMatches);
@@ -500,6 +507,38 @@ export default function MatchesPage() {
             </Dialog>
           </div>
 
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Match</DialogTitle>
+              </DialogHeader>
+              <div className="py-3">
+                <p className="mb-2">Are you sure you want to delete this match?</p>
+                {matchToDelete && (
+                  <div className="bg-gray-50 p-3 rounded-md flex justify-between items-center text-sm">
+                    <span>
+                      <strong>{matchToDelete.opponentName}</strong> 
+                      {' '}{format(new Date(matchToDelete.matchDate), "MMM d, yyyy")}
+                    </span>
+                    <Badge variant={matchToDelete.status === "completed" ? "default" : "outline"}>
+                      {matchToDelete.status}
+                    </Badge>
+                  </div>
+                )}
+                <p className="text-gray-500 mt-2 text-sm">This action cannot be undone.</p>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteMatch}>
+                  Delete Match
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="upcoming" className="flex items-center gap-1">
@@ -535,14 +574,29 @@ export default function MatchesPage() {
                     const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
                     
                     return (
-                      <Card key={match.id} className="overflow-hidden border-t-4 border-t-primary">
+                      <Card key={match.id} className={`overflow-hidden border-t-4 ${
+                        match.status === "cancelled" ? "border-t-gray-400" : "border-t-primary"
+                      }`}>
                         <CardHeader className="pb-2 relative">
                           {/* Status Badge */}
                           <Badge 
                             className="absolute right-4 top-4" 
-                            variant={isToday ? "destructive" : "default"}
+                            variant={
+                              match.status === "cancelled" 
+                                ? "outline" 
+                                : isToday 
+                                  ? "destructive" 
+                                  : "default"
+                            }
                           >
-                            {isToday ? "Today" : daysDifference <= 3 ? "Soon" : "Scheduled"}
+                            {match.status === "cancelled" 
+                              ? "Cancelled" 
+                              : isToday 
+                                ? "Today" 
+                                : daysDifference <= 3 
+                                  ? "Soon" 
+                                  : "Scheduled"
+                            }
                           </Badge>
                           
                           <div className="flex flex-col">
