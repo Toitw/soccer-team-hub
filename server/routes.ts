@@ -6,123 +6,56 @@ import { z } from "zod";
 
 // Helper to create mock data for testing the team functionality
 async function createMockData() {
-  // Create mock users
-  const mockUsers = [
-    {
-      id: 1001,
-      username: "david.gea",
-      fullName: "David De Gea",
-      role: "player",
-      position: "Goalkeeper",
-      jerseyNumber: 1,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/6/68/David_de_Gea_2017.jpg"
-    },
-    {
-      id: 1002,
-      username: "harry.maguire",
-      fullName: "Harry Maguire",
-      role: "player",
-      position: "Defender",
-      jerseyNumber: 5,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Harry_Maguire_2018.jpg"
-    },
-    {
-      id: 1003,
-      username: "raphael.varane",
-      fullName: "Raphael Varane",
-      role: "player",
-      position: "Defender",
-      jerseyNumber: 19,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Rapha%C3%ABl_Varane_2018.jpg"
-    },
-    {
-      id: 1004,
-      username: "luke.shaw",
-      fullName: "Luke Shaw",
-      role: "player",
-      position: "Defender",
-      jerseyNumber: 23,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/1/16/Uk224-Luke_Shaw_%28cropped%29.jpg"
-    },
-    {
-      id: 1005,
-      username: "aaron.bissaka",
-      fullName: "Aaron Wan-Bissaka",
-      role: "player",
-      position: "Defender",
-      jerseyNumber: 29,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/8/8d/Wan-Bissaka_2019.jpg"
-    },
-    {
-      id: 1006,
-      username: "scott.mctominay",
-      fullName: "Scott McTominay",
-      role: "player",
-      position: "Midfielder",
-      jerseyNumber: 39,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/20180612_FIFA_Friendly_Match_Austria_vs._Russia_Scott_McTominay_850_1605.jpg/800px-20180612_FIFA_Friendly_Match_Austria_vs._Russia_Scott_McTominay_850_1605.jpg"
-    },
-    {
-      id: 1007,
-      username: "fred.midfielder",
-      fullName: "Fred",
-      role: "player",
-      position: "Midfielder",
-      jerseyNumber: 17,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/8/88/Fred_2018.jpg"
-    },
-    {
-      id: 1008,
-      username: "bruno.fernandes",
-      fullName: "Bruno Fernandes",
-      role: "player",
-      position: "Attacking Midfielder",
-      jerseyNumber: 8,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/1/14/Bruno_Fernandes_%28footballer%2C_born_1994%29.jpg"
-    },
-    {
-      id: 1009,
-      username: "marcus.rashford",
-      fullName: "Marcus Rashford",
-      role: "player",
-      position: "Forward",
-      jerseyNumber: 10,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Press_Briefing_Discussing_the_Upcoming_England_V._Italy_European_Cup_Final_%28cropped%29.jpg"
-    },
-    {
-      id: 1010,
-      username: "anthony.martial",
-      fullName: "Anthony Martial",
-      role: "player",
-      position: "Forward",
-      jerseyNumber: 9,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Anthony_Martial_27_September_2017.jpg"
-    },
-    {
-      id: 1011,
-      username: "mason.greenwood",
-      fullName: "Mason Greenwood",
-      role: "player",
-      position: "Forward",
-      jerseyNumber: 11,
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Mason_Greenwood.jpg/800px-Mason_Greenwood.jpg"
-    },
-    {
-      id: 1012,
-      username: "erik.tenhag",
-      fullName: "Erik ten Hag",
+  // No preset mock users anymore - we'll now create mock example users with random names
+  // This avoids the issue with preset users persisting in the database
+  
+  // Function to generate random mock players
+  const generateMockPlayers = () => {
+    const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
+    const firstNames = ["Alex", "Sam", "Jordan", "Taylor", "Casey", "Morgan", "Riley", "Avery", "Quinn", "Jamie"];
+    const lastNames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Miller", "Davis", "Wilson", "Moore", "Taylor"];
+    
+    const mockPlayers = [];
+    
+    // Generate 10 random players
+    for (let i = 0; i < 10; i++) {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const fullName = `${firstName} ${lastName}`;
+      const username = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 1000)}`;
+      const position = positions[Math.floor(Math.random() * positions.length)];
+      const jerseyNumber = Math.floor(Math.random() * 30) + 1;
+      
+      mockPlayers.push({
+        username,
+        fullName,
+        role: "player",
+        position,
+        jerseyNumber,
+        profilePicture: `https://i.pravatar.cc/150?u=${username}`
+      });
+    }
+    
+    // Add a coach
+    mockPlayers.push({
+      username: `coach.team${Math.floor(Math.random() * 1000)}`,
+      fullName: "Team Coach",
       role: "coach",
       position: "Head Coach",
-      profilePicture: "https://upload.wikimedia.org/wikipedia/commons/7/76/Erik_ten_Hag%2C_2017.jpg"
-    }
-  ];
+      profilePicture: `https://i.pravatar.cc/150?u=coach${Math.floor(Math.random() * 1000)}`
+    });
+    
+    return mockPlayers;
+  };
+
+  const mockUsers = generateMockPlayers();
 
   // Create a mock team
   const mockTeam = {
-    id: 101,
-    name: "Manchester United FC",
-    logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
-    division: "Premier League",
+    id: Math.floor(Math.random() * 1000) + 100,
+    name: "Team FC",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
+    division: "League Division",
     createdAt: new Date(),
     createdById: 1
   };
