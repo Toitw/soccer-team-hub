@@ -69,94 +69,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // Route to create mock data for testing
+  // Route to create mock data - now disabled for automated mock data creation
   app.post("/api/mock-data", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      const { mockUsers, mockTeam } = await createMockData();
+      // Instead of creating mock data, we now just create a team for the user
+      // This route has been modified to not create any mock players
       
-      // Check if team with the same name already exists
-      const existingTeams = await storage.getTeams();
-      const existingTeam = existingTeams.find(t => t.name === mockTeam.name);
+      // Create a basic empty team
+      const team = await storage.createTeam({
+        name: "My Team",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
+        division: "League Division",
+        seasonYear: new Date().getFullYear().toString(),
+        createdById: req.user.id,
+      });
       
-      let team;
-      if (existingTeam) {
-        console.log(`Team "${mockTeam.name}" already exists, using existing team`);
-        team = existingTeam;
-      } else {
-        // Create the team if it doesn't exist
-        team = await storage.createTeam({
-          ...mockTeam,
-          createdById: req.user.id,
-        });
-        console.log(`Created new team: ${team.name} (ID: ${team.id})`);
-      }
+      console.log(`Created new team: ${team.name} (ID: ${team.id})`);
       
-      // Check if current user is already an admin of the team
-      const currentUserMember = await storage.getTeamMember(team.id, req.user.id);
-      if (!currentUserMember) {
-        // Make current user an admin of the team if not already a member
-        await storage.createTeamMember({
-          teamId: team.id,
-          userId: req.user.id,
-          role: "admin"
-        });
-        console.log(`Added current user (ID: ${req.user.id}) as admin to team`);
-      }
-      
-      // Track how many new users and team members were created
-      let newUsersCount = 0;
-      let newMembersCount = 0;
-      
-      // Create the mock players and add them to the team
-      for (const mockUser of mockUsers) {
-        // Check if user with the same username already exists
-        let user = await storage.getUserByUsername(mockUser.username);
-        
-        if (!user) {
-          // Create a test password hash
-          const password = await hashPasswordInStorage("password123");
-          
-          // Create the user if doesn't exist
-          user = await storage.createUser({
-            username: mockUser.username,
-            password,
-            fullName: mockUser.fullName,
-            role: "player",
-            profilePicture: mockUser.profilePicture || null,
-            position: mockUser.position || null,
-            jerseyNumber: mockUser.jerseyNumber || null,
-            email: null,
-            phoneNumber: null
-          });
-          newUsersCount++;
-        }
-        
-        // Check if user is already a member of the team
-        const existingMember = await storage.getTeamMember(team.id, user.id);
-        if (!existingMember) {
-          // Add the user to the team as a player or coach
-          await storage.createTeamMember({
-            teamId: team.id,
-            userId: user.id,
-            role: mockUser.role as "player" | "coach" | "admin"
-          });
-          newMembersCount++;
-        }
-      }
+      // Add current user as admin of the team
+      await storage.createTeamMember({
+        teamId: team.id,
+        userId: req.user.id,
+        role: "admin"
+      });
       
       res.json({ 
-        message: "Mock data operation completed", 
+        message: "Team created successfully", 
         details: {
           team: team.name,
-          newUsersCreated: newUsersCount,
-          newTeamMembersCreated: newMembersCount
+          info: "Mock data creation has been disabled. You can add members manually from the team page."
         }
       });
     } catch (error) {
-      console.error("Error creating mock data:", error);
-      res.status(500).json({ error: "Failed to create mock data" });
+      console.error("Error creating team:", error);
+      res.status(500).json({ error: "Failed to create team" });
     }
   });
 
