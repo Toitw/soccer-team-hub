@@ -27,7 +27,8 @@ import {
   ChevronRight,
   CheckCircle2,
   Users,
-  Share2
+  Share2,
+  Trash
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -55,6 +56,10 @@ export default function MatchesPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -96,6 +101,64 @@ export default function MatchesPage() {
 
   const isLoading = teamsLoading || matchesLoading;
 
+  // Handle editing a match
+  const handleEditMatch = (match: Match) => {
+    setEditingMatch(match);
+    setIsEditing(true);
+    
+    // Convert date to format expected by datetime-local input
+    const matchDate = new Date(match.matchDate);
+    const formattedDate = matchDate.toISOString().slice(0, 16);
+    
+    // Reset the form with the match data
+    form.reset({
+      opponentName: match.opponentName,
+      matchDate: formattedDate,
+      location: match.location,
+      isHome: match.isHome,
+      notes: match.notes || "",
+    });
+    
+    setDialogOpen(true);
+  };
+  
+  // Handle deleting a match
+  const handleDeleteMatch = async () => {
+    if (!matchToDelete || !selectedTeam) return;
+    
+    try {
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches/${matchToDelete.id}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to delete match");
+      }
+      
+      await refetchMatchesData();
+      setDeleteDialogOpen(false);
+      setMatchToDelete(null);
+      
+      toast({
+        title: "Match deleted",
+        description: "The match has been deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting match:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete match",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Open delete confirmation dialog
+  const confirmDelete = (match: Match) => {
+    setMatchToDelete(match);
+    setDeleteDialogOpen(true);
+  };
+
   const form = useForm<MatchFormData>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
@@ -122,22 +185,42 @@ export default function MatchesPage() {
 
       console.log("Submitting match data:", formattedData);
 
-      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedData),
-      });
+      let response;
+      let successMessage;
 
-      if (!response.ok) {
-        throw new Error("Failed to create match");
+      // If editing an existing match
+      if (isEditing && editingMatch) {
+        response = await fetch(`/api/teams/${selectedTeam.id}/matches/${editingMatch.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formattedData),
+        });
+        successMessage = "Match updated successfully";
+      } else {
+        // Creating a new match
+        response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formattedData),
+        });
+        successMessage = "Match created successfully";
       }
 
-      // Get the created match
-      const createdMatch = await response.json();
-      console.log("Created match:", createdMatch);
+      if (!response.ok) {
+        throw new Error(isEditing ? "Failed to update match" : "Failed to create match");
+      }
 
+      // Get the result
+      const result = await response.json();
+      console.log(isEditing ? "Updated match:" : "Created match:", result);
+
+      // Reset editing state
+      setIsEditing(false);
+      setEditingMatch(null);
       setDialogOpen(false);
       form.reset();
       
@@ -146,14 +229,14 @@ export default function MatchesPage() {
       console.log("Matches refetched");
 
       toast({
-        title: "Match created",
-        description: "The match has been created successfully",
+        title: isEditing ? "Match updated" : "Match created",
+        description: successMessage,
       });
     } catch (error) {
-      console.error("Error creating match:", error);
+      console.error(isEditing ? "Error updating match:" : "Error creating match:", error);
       toast({
         title: "Error",
-        description: "Failed to create match",
+        description: isEditing ? "Failed to update match" : "Failed to create match",
         variant: "destructive",
       });
     }
@@ -169,12 +252,20 @@ export default function MatchesPage() {
 
   console.log("All matches data:", matches);
   
-  // Safely handle matches array
+  // Safely handle matches array and properly categorize by date
+  const currentDate = new Date();
+  
   const upcomingMatches = Array.isArray(matches) ? 
-    matches.filter(match => match.status === "scheduled") : [];
+    matches.filter(match => {
+      const matchDate = new Date(match.matchDate);
+      return matchDate >= currentDate && match.status === "scheduled";
+    }) : [];
   
   const pastMatches = Array.isArray(matches) ?
-    matches.filter(match => match.status === "completed") : [];
+    matches.filter(match => {
+      const matchDate = new Date(match.matchDate);
+      return matchDate < currentDate || match.status === "completed";
+    }) : [];
   
   console.log("Upcoming matches:", upcomingMatches);
   console.log("Past matches:", pastMatches);
@@ -202,7 +293,7 @@ export default function MatchesPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Match</DialogTitle>
+                  <DialogTitle>{isEditing ? "Edit Match" : "Create New Match"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -430,16 +521,22 @@ export default function MatchesPage() {
                         </CardContent>
                         
                         <CardFooter className="flex gap-2 border-t bg-gray-50 px-6 py-3">
-                          <Button variant="outline" size="sm" className="flex-1 gap-1">
-                            <Users className="h-4 w-4" />
-                            Team Sheet
-                          </Button>
-                          <Button size="sm" className="flex-1 gap-1 bg-primary hover:bg-primary/90">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Confirm
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 gap-1"
+                            onClick={() => handleEditMatch(match)}
+                          >
                             <ClipboardEdit className="h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1 gap-1 bg-primary hover:bg-primary/90"
+                            onClick={() => confirmDelete(match)}
+                          >
+                            <Trash className="h-4 w-4" />
+                            Delete
                           </Button>
                         </CardFooter>
                       </Card>
@@ -468,13 +565,13 @@ export default function MatchesPage() {
                 ) : (
                   pastMatches.map(match => {
                     const matchDate = new Date(match.matchDate);
-                    const matchResult = match.goalsScored !== undefined && match.goalsConceded !== undefined
-                      ? match.goalsScored > match.goalsConceded
-                        ? "win"
-                        : match.goalsScored < match.goalsConceded
-                          ? "loss"
-                          : "draw"
-                      : null;
+                    const goalsScored = match.goalsScored || 0;
+                    const goalsConceded = match.goalsConceded || 0;
+                    const matchResult = goalsScored > goalsConceded
+                      ? "win"
+                      : goalsScored < goalsConceded
+                        ? "loss"
+                        : "draw";
                       
                     const resultColors = {
                       win: "border-t-green-500 bg-green-50",
@@ -496,7 +593,7 @@ export default function MatchesPage() {
                               className="absolute right-4 top-4" 
                               variant={
                                 matchResult === "win" 
-                                  ? "success" 
+                                  ? "default" 
                                   : matchResult === "loss" 
                                     ? "destructive" 
                                     : "outline"
@@ -594,10 +691,22 @@ export default function MatchesPage() {
                         
                         <CardFooter className="flex gap-2 border-t px-6 py-3 bg-gray-50">
                           <Button 
-                            className="w-full gap-2 bg-primary hover:bg-primary/90"
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 gap-1"
+                            onClick={() => handleEditMatch(match)}
                           >
-                            <Trophy className="h-4 w-4" />
-                            View Match Report
+                            <ClipboardEdit className="h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="destructive"
+                            size="sm" 
+                            className="flex-1 gap-1"
+                            onClick={() => confirmDelete(match)}
+                          >
+                            <Trash className="h-4 w-4" />
+                            Delete
                           </Button>
                         </CardFooter>
                       </Card>
@@ -608,6 +717,29 @@ export default function MatchesPage() {
             </TabsContent>
           </Tabs>
         </div>
+        
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Match</DialogTitle>
+            </DialogHeader>
+            <div className="py-3">
+              <p>Are you sure you want to delete this match?</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {matchToDelete && `vs ${matchToDelete.opponentName}, ${format(new Date(matchToDelete.matchDate), "MMMM d, yyyy")}`}
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteMatch}>
+                Delete
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <MobileNavigation />
       </div>
