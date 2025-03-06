@@ -8,94 +8,10 @@
   },
   {
     "teamId": 1,
-    "userId": 3,
-    "role": "player",
-    "id": 3,
-    "joinedAt": "2025-03-05T16:20:27.632Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 4,
-    "role": "player",
-    "id": 4,
-    "joinedAt": "2025-03-05T16:20:27.670Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 5,
-    "role": "player",
-    "id": 5,
-    "joinedAt": "2025-03-05T16:20:27.703Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 6,
-    "role": "player",
-    "id": 6,
-    "joinedAt": "2025-03-05T16:20:27.736Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 7,
-    "role": "player",
-    "id": 7,
-    "joinedAt": "2025-03-05T16:20:27.770Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 8,
-    "role": "player",
-    "id": 8,
-    "joinedAt": "2025-03-05T16:20:27.805Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 9,
-    "role": "player",
-    "id": 9,
-    "joinedAt": "2025-03-05T16:20:27.838Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 10,
-    "role": "player",
-    "id": 10,
-    "joinedAt": "2025-03-05T16:20:27.871Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 11,
-    "role": "player",
-    "id": 11,
-    "joinedAt": "2025-03-05T16:20:27.904Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 12,
-    "role": "player",
-    "id": 12,
-    "joinedAt": "2025-03-05T16:20:27.938Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 13,
-    "role": "coach",
-    "id": 13,
-    "joinedAt": "2025-03-05T16:20:27.971Z"
-  },
-  {
-    "teamId": 1,
     "userId": 14,
     "role": "player",
     "id": 14,
     "joinedAt": "2025-03-05T16:21:19.222Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 2,
-    "role": "player",
-    "id": 16,
-    "joinedAt": "2025-03-05T16:31:21.295Z"
   },
   {
     "teamId": 1,
