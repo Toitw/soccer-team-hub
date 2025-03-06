@@ -10,11 +10,25 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, PlusCircle, Calendar, Trophy, ClipboardEdit } from "lucide-react";
+import { 
+  Loader2, 
+  PlusCircle, 
+  Calendar, 
+  Trophy, 
+  ClipboardEdit, 
+  MapPin, 
+  Clock, 
+  Home, 
+  ChevronRight,
+  CheckCircle2,
+  Users,
+  Share2
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -22,7 +36,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, isPast, isFuture } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 // Define form schema for creating a match
 const matchSchema = z.object({
@@ -277,12 +292,18 @@ export default function MatchesPage() {
           </div>
 
           <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="upcoming">Upcoming Matches</TabsTrigger>
-              <TabsTrigger value="past">Past Matches</TabsTrigger>
+            <TabsList className="mb-6">
+              <TabsTrigger value="upcoming" className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Upcoming Matches
+              </TabsTrigger>
+              <TabsTrigger value="past" className="flex items-center gap-1">
+                <Trophy className="h-4 w-4" />
+                Past Matches
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="upcoming" className="mt-6">
+            <TabsContent value="upcoming" className="mt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingMatches.length === 0 ? (
                   <Card className="col-span-full">
@@ -291,7 +312,7 @@ export default function MatchesPage() {
                       <p className="text-lg text-gray-500">No upcoming matches scheduled</p>
                       <Button 
                         variant="link" 
-                        onClick={() => document.querySelector('[aria-label="Add Match"]')?.click()}
+                        onClick={() => setDialogOpen(true)}
                         className="text-primary mt-2"
                       >
                         Schedule your first match
@@ -299,177 +320,289 @@ export default function MatchesPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  upcomingMatches.map(match => (
-                    <Card key={match.id}>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <div>
+                  upcomingMatches.map(match => {
+                    const matchDate = new Date(match.matchDate);
+                    const isToday = new Date().toDateString() === matchDate.toDateString();
+                    const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                    
+                    return (
+                      <Card key={match.id} className="overflow-hidden border-t-4 border-t-primary">
+                        <CardHeader className="pb-2 relative">
+                          {/* Status Badge */}
+                          <Badge 
+                            className="absolute right-4 top-4" 
+                            variant={isToday ? "destructive" : "default"}
+                          >
+                            {isToday ? "Today" : daysDifference <= 3 ? "Soon" : "Scheduled"}
+                          </Badge>
+                          
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-1">
+                              {match.isHome ? 
+                                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50">
+                                  <Home className="h-3 w-3" />
+                                  Home
+                                </Badge> : 
+                                <Badge variant="outline" className="flex items-center gap-1">
+                                  <Share2 className="h-3 w-3" />
+                                  Away
+                                </Badge>
+                              }
+                              <CardDescription className="text-xs">
+                                {format(matchDate, "EEEE, MMM d, yyyy")}
+                              </CardDescription>
+                            </div>
                             <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
-                            <CardDescription>
-                              {format(new Date(match.matchDate), "EEEE, MMM d, yyyy")}
-                            </CardDescription>
                           </div>
-                          <Button variant="ghost" size="icon">
+                        </CardHeader>
+                        
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-4 text-sm">
+                              <div className="flex items-center">
+                                <Clock className="h-4 w-4 mr-1 text-gray-500" />
+                                <span>{format(matchDate, "h:mm a")}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1 text-gray-500" />
+                                <span>{match.location}</span>
+                              </div>
+                            </div>
+
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center">
+                                  <div className="relative">
+                                    <img 
+                                      src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
+                                      alt={selectedTeam?.name}
+                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                    {match.isHome && 
+                                      <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                                        H
+                                      </div>
+                                    }
+                                  </div>
+                                  <div className="ml-3">
+                                    <p className="font-medium">{selectedTeam?.name}</p>
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                    <span className="text-lg font-bold">VS</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center">
+                                  <div className="mr-3 text-right">
+                                    <p className="font-medium">{match.opponentName}</p>
+                                  </div>
+                                  <div className="relative">
+                                    <img 
+                                      src={match.opponentLogo || "https://ui-avatars.com/api/?name=" + match.opponentName.charAt(0) + "&background=f44336&color=fff"} 
+                                      alt={match.opponentName}
+                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                    {!match.isHome && 
+                                      <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                                        H
+                                      </div>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {match.notes && (
+                              <div className="text-sm p-3 bg-amber-50 rounded-md">
+                                <p className="font-medium mb-1 flex items-center">
+                                  <span className="bg-amber-200 rounded-full p-1 mr-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </span>
+                                  Notes
+                                </p>
+                                <p className="text-gray-700 pl-7">{match.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                        
+                        <CardFooter className="flex gap-2 border-t bg-gray-50 px-6 py-3">
+                          <Button variant="outline" size="sm" className="flex-1 gap-1">
+                            <Users className="h-4 w-4" />
+                            Team Sheet
+                          </Button>
+                          <Button size="sm" className="flex-1 gap-1 bg-primary hover:bg-primary/90">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Confirm
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                             <ClipboardEdit className="h-4 w-4" />
                           </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm">
-                              <p className="font-medium">Time</p>
-                              <p className="text-gray-500">
-                                {format(new Date(match.matchDate), "h:mm a")}
-                              </p>
-                            </div>
-                            <div className="text-sm text-right">
-                              <p className="font-medium">Location</p>
-                              <p className="text-gray-500">{match.location}</p>
-                            </div>
-                          </div>
-
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center">
-                                <img 
-                                  src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                                  alt={selectedTeam?.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                                <div className="ml-3">
-                                  <p className="text-sm font-medium">{selectedTeam?.name}</p>
-                                  <p className="text-xs text-gray-500">{match.isHome ? "Home" : "Away"}</p>
-                                </div>
-                              </div>
-                              <p className="text-xl font-bold">vs</p>
-                              <div className="flex items-center">
-                                <div className="mr-3 text-right">
-                                  <p className="text-sm font-medium">{match.opponentName}</p>
-                                  <p className="text-xs text-gray-500">{match.isHome ? "Away" : "Home"}</p>
-                                </div>
-                                <img 
-                                  src={match.opponentLogo || "https://ui-avatars.com/api/?name=Opponent&background=f44336&color=fff"} 
-                                  alt={match.opponentName}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {match.notes && (
-                            <div className="text-sm">
-                              <p className="font-medium mb-1">Notes</p>
-                              <p className="text-gray-500">{match.notes}</p>
-                            </div>
-                          )}
-
-                          <div className="flex gap-2">
-                            <Button variant="outline" className="flex-1">Team Sheet</Button>
-                            <Button className="flex-1 bg-primary hover:bg-primary/90">Confirm Attendance</Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                        </CardFooter>
+                      </Card>
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
 
-            <TabsContent value="past" className="mt-6">
+            <TabsContent value="past" className="mt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pastMatches.length === 0 ? (
                   <Card className="col-span-full">
                     <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
                       <Trophy className="h-12 w-12 text-gray-300 mb-2" />
                       <p className="text-lg text-gray-500">No past matches recorded</p>
+                      <Button 
+                        variant="link" 
+                        onClick={() => setDialogOpen(true)}
+                        className="text-primary mt-2"
+                      >
+                        Add a past match
+                      </Button>
                     </CardContent>
                   </Card>
                 ) : (
-                  pastMatches.map(match => (
-                    <Card key={match.id}>
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
-                            <CardDescription>
-                              {format(new Date(match.matchDate), "EEEE, MMM d, yyyy")}
-                            </CardDescription>
-                          </div>
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${
-                            match.goalsScored && match.goalsConceded 
-                              ? match.goalsScored > match.goalsConceded
-                                ? "bg-green-100 text-green-800"
-                                : match.goalsScored < match.goalsConceded
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-yellow-100 text-yellow-800"
-                              : ""
-                          }`}>
-                            {match.goalsScored && match.goalsConceded 
-                              ? match.goalsScored > match.goalsConceded
-                                ? "WIN"
-                                : match.goalsScored < match.goalsConceded
-                                  ? "LOSS"
-                                  : "DRAW"
-                              : ""}
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 p-3 rounded-md">
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center">
-                                <img 
-                                  src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                                  alt={selectedTeam?.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                                <div className="ml-3">
-                                  <p className="text-sm font-medium">{selectedTeam?.name}</p>
-                                  <p className="text-2xl font-bold">{match.goalsScored || 0}</p>
-                                </div>
-                              </div>
-                              <p className="text-gray-500">FT</p>
-                              <div className="flex items-center">
-                                <div className="mr-3 text-right">
-                                  <p className="text-sm font-medium">{match.opponentName}</p>
-                                  <p className="text-2xl font-bold">{match.goalsConceded || 0}</p>
-                                </div>
-                                <img 
-                                  src={match.opponentLogo || "https://ui-avatars.com/api/?name=Opponent&background=f44336&color=fff"} 
-                                  alt={match.opponentName}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="text-sm flex justify-between">
-                            <div>
-                              <p className="font-medium">Location</p>
-                              <p className="text-gray-500">{match.location}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">Match Type</p>
-                              <p className="text-gray-500">{match.isHome ? "Home" : "Away"}</p>
-                            </div>
-                          </div>
-
-                          {match.notes && (
-                            <div className="text-sm">
-                              <p className="font-medium mb-1">Notes</p>
-                              <p className="text-gray-500">{match.notes}</p>
-                            </div>
+                  pastMatches.map(match => {
+                    const matchDate = new Date(match.matchDate);
+                    const matchResult = match.goalsScored !== undefined && match.goalsConceded !== undefined
+                      ? match.goalsScored > match.goalsConceded
+                        ? "win"
+                        : match.goalsScored < match.goalsConceded
+                          ? "loss"
+                          : "draw"
+                      : null;
+                      
+                    const resultColors = {
+                      win: "border-t-green-500 bg-green-50",
+                      loss: "border-t-red-500 bg-red-50",
+                      draw: "border-t-yellow-500 bg-yellow-50",
+                    };
+                    
+                    return (
+                      <Card 
+                        key={match.id} 
+                        className={`overflow-hidden border-t-4 ${
+                          matchResult ? resultColors[matchResult] : "border-t-gray-300"
+                        }`}
+                      >
+                        <CardHeader className="pb-2 relative">
+                          {/* Result Badge */}
+                          {matchResult && (
+                            <Badge 
+                              className="absolute right-4 top-4" 
+                              variant={
+                                matchResult === "win" 
+                                  ? "success" 
+                                  : matchResult === "loss" 
+                                    ? "destructive" 
+                                    : "outline"
+                              }
+                            >
+                              {matchResult.toUpperCase()}
+                            </Badge>
                           )}
+                          
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-1">
+                              {match.isHome ? 
+                                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50">
+                                  <Home className="h-3 w-3" />
+                                  Home
+                                </Badge> : 
+                                <Badge variant="outline" className="flex items-center gap-1">
+                                  <Share2 className="h-3 w-3" />
+                                  Away
+                                </Badge>
+                              }
+                              <CardDescription className="text-xs">
+                                {format(matchDate, "EEEE, MMM d, yyyy")}
+                              </CardDescription>
+                            </div>
+                            <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="bg-white p-4 rounded-lg border">
+                              <p className="text-xs text-center text-gray-500 mb-2">Full Time Result</p>
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center">
+                                  <div className="relative">
+                                    <img 
+                                      src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
+                                      alt={selectedTeam?.name}
+                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                  </div>
+                                  <div className="ml-3">
+                                    <p className="font-medium">{selectedTeam?.name}</p>
+                                    <p className={`text-3xl font-bold ${matchResult === "win" ? "text-green-600" : ""}`}>
+                                      {match.goalsScored || 0}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="bg-gray-100 text-gray-500 text-xs font-medium px-2 py-1 rounded">
+                                    FT
+                                  </div>
+                                </div>
+                                <div className="flex items-center">
+                                  <div className="mr-3 text-right">
+                                    <p className="font-medium">{match.opponentName}</p>
+                                    <p className={`text-3xl font-bold ${matchResult === "loss" ? "text-red-600" : ""}`}>
+                                      {match.goalsConceded || 0}
+                                    </p>
+                                  </div>
+                                  <div className="relative">
+                                    <img 
+                                      src={match.opponentLogo || "https://ui-avatars.com/api/?name=" + match.opponentName.charAt(0) + "&background=f44336&color=fff"} 
+                                      alt={match.opponentName}
+                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
 
-                          <Button className="w-full bg-primary hover:bg-primary/90">
-                            View Match Details
+                            <div className="flex items-center space-x-4 text-sm">
+                              <div className="flex items-center">
+                                <MapPin className="h-4 w-4 mr-1 text-gray-500" />
+                                <span>{match.location}</span>
+                              </div>
+                            </div>
+
+                            {match.notes && (
+                              <div className="text-sm p-3 bg-gray-50 rounded-md">
+                                <p className="font-medium mb-1 flex items-center">
+                                  <span className="bg-gray-200 rounded-full p-1 mr-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </span>
+                                  Match Notes
+                                </p>
+                                <p className="text-gray-700 pl-7">{match.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                        
+                        <CardFooter className="flex gap-2 border-t px-6 py-3 bg-gray-50">
+                          <Button 
+                            className="w-full gap-2 bg-primary hover:bg-primary/90"
+                          >
+                            <Trophy className="h-4 w-4" />
+                            View Match Report
                           </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                        </CardFooter>
+                      </Card>
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
