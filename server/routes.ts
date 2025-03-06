@@ -4,48 +4,13 @@ import { storage, hashPasswordInStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 
-// Helper to create mock data for testing the team functionality
+// Mock data creation has been disabled
 async function createMockData() {
-  // No preset mock users anymore - we'll now create mock example users with random names
-  // This avoids the issue with preset users persisting in the database
-  
-  // Function to generate random mock players
+  // This function has been modified to no longer create any mock players
+  // It now returns an empty array of users
   const generateMockPlayers = () => {
-    const positions = ["Goalkeeper", "Defender", "Midfielder", "Forward"];
-    const firstNames = ["Alex", "Sam", "Jordan", "Taylor", "Casey", "Morgan", "Riley", "Avery", "Quinn", "Jamie"];
-    const lastNames = ["Smith", "Johnson", "Williams", "Jones", "Brown", "Miller", "Davis", "Wilson", "Moore", "Taylor"];
-    
-    const mockPlayers = [];
-    
-    // Generate 10 random players
-    for (let i = 0; i < 10; i++) {
-      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-      const fullName = `${firstName} ${lastName}`;
-      const username = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 1000)}`;
-      const position = positions[Math.floor(Math.random() * positions.length)];
-      const jerseyNumber = Math.floor(Math.random() * 30) + 1;
-      
-      mockPlayers.push({
-        username,
-        fullName,
-        role: "player",
-        position,
-        jerseyNumber,
-        profilePicture: `https://i.pravatar.cc/150?u=${username}`
-      });
-    }
-    
-    // Add a coach
-    mockPlayers.push({
-      username: `coach.team${Math.floor(Math.random() * 1000)}`,
-      fullName: "Team Coach",
-      role: "coach",
-      position: "Head Coach",
-      profilePicture: `https://i.pravatar.cc/150?u=coach${Math.floor(Math.random() * 1000)}`
-    });
-    
-    return mockPlayers;
+    // Return an empty array instead of generating random players
+    return [];
   };
 
   const mockUsers = generateMockPlayers();
