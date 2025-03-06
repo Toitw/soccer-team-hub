@@ -72,51 +72,35 @@ export default function MatchesPage() {
 
   const onSubmit = async (data: MatchFormData) => {
     try {
-      // Convert form data to match the API expectations
-      const matchDate = new Date(data.matchDate);
-      
-      const matchData = {
-        opponentName: data.opponentName,
-        matchDate: matchDate.toISOString(),
-        location: data.location,
-        isHome: data.isHome,
-        notes: data.notes || "",
-        status: "scheduled"
-      };
-      
-      // Make API call to create the match
-      if (selectedTeam) {
-        const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(matchData),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create match');
-        }
-        
-        // Refetch matches data to update the UI
-        await refetchMatches();
-        
-        toast({
-          title: "Match created",
-          description: `Match against ${data.opponentName} has been scheduled`,
-        });
-        
-        // Close the dialog
-        setDialogOpen(false);
-        
-        // Reset form
-        form.reset();
+      if (!selectedTeam) {
+        throw new Error("No team selected");
       }
+
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create match");
+      }
+
+      setDialogOpen(false);
+      form.reset();
+      await refetchMatches();
+
+      toast({
+        title: "Match created",
+        description: "The match has been created successfully",
+      });
     } catch (error) {
-      console.error('Error creating match:', error);
+      console.error("Error creating match:", error);
       toast({
         title: "Error",
-        description: "Failed to create match. Please try again.",
+        description: "Failed to create match",
         variant: "destructive",
       });
     }
@@ -146,7 +130,7 @@ export default function MatchesPage() {
               <h1 className="text-2xl font-bold text-primary">Match Management</h1>
               <p className="text-gray-500">Track fixtures, results, and match statistics</p>
             </div>
-            
+
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
