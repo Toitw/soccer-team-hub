@@ -53,8 +53,14 @@ export default function MatchesPage() {
     isLoading: matchesLoading,
     refetch: refetchMatches 
   } = useQuery<Match[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "matches"],
+    queryKey: ["matches", selectedTeam?.id],
     enabled: !!selectedTeam,
+    queryFn: async () => {
+      if (!selectedTeam) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
+      if (!response.ok) throw new Error('Failed to fetch matches');
+      return response.json();
+    },
   });
 
   const isLoading = teamsLoading || matchesLoading;
