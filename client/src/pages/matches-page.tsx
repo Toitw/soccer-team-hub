@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Team, Match } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
@@ -39,6 +39,7 @@ export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -47,10 +48,36 @@ export default function MatchesPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  const { data: matches, isLoading: matchesLoading } = useQuery<Match[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "matches"],
+  // Use React Query client for manual invalidation
+  const queryClient = useQueryClient();
+  
+  const { 
+    data: matches, 
+    isLoading: matchesLoading,
+    refetch: refetchMatches 
+  } = useQuery<Match[]>({
+    queryKey: ["matches", selectedTeam?.id],
     enabled: !!selectedTeam,
+    queryFn: async () => {
+      if (!selectedTeam) return [];
+      console.log(`Fetching matches for team ${selectedTeam.id}`);
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
+      if (!response.ok) throw new Error('Failed to fetch matches');
+      const matchesData = await response.json();
+      console.log("Fetched matches:", matchesData);
+      return matchesData;
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0 // Consider data stale immediately
   });
+  
+  // We need to make sure refetchMatches properly invalidates the cache
+  const refetchMatchesData = async () => {
+    console.log("Manually invalidating matches cache");
+    await queryClient.invalidateQueries({ queryKey: ["matches", selectedTeam?.id] });
+    return refetchMatches();
+  };
 
   const isLoading = teamsLoading || matchesLoading;
 
@@ -65,14 +92,56 @@ export default function MatchesPage() {
     },
   });
 
-  const onSubmit = (data: MatchFormData) => {
-    // In a real implementation, you would make an API call to create a match
-    console.log("Match data:", data);
-    toast({
-      title: "Match created",
-      description: `Match against ${data.opponentName} has been scheduled`,
-    });
-    form.reset();
+  const onSubmit = async (data: MatchFormData) => {
+    try {
+      if (!selectedTeam) {
+        throw new Error("No team selected");
+      }
+
+      // Format match date properly
+      const formattedData = {
+        ...data,
+        matchDate: new Date(data.matchDate).toISOString(),
+        status: "scheduled" // Ensure status is set for new matches
+      };
+
+      console.log("Submitting match data:", formattedData);
+
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create match");
+      }
+
+      // Get the created match
+      const createdMatch = await response.json();
+      console.log("Created match:", createdMatch);
+
+      setDialogOpen(false);
+      form.reset();
+      
+      // Force refetch with a different query key to trigger refresh
+      await refetchMatchesData();
+      console.log("Matches refetched");
+
+      toast({
+        title: "Match created",
+        description: "The match has been created successfully",
+      });
+    } catch (error) {
+      console.error("Error creating match:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create match",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -83,8 +152,17 @@ export default function MatchesPage() {
     );
   }
 
-  const upcomingMatches = matches?.filter(match => match.status === "scheduled") || [];
-  const pastMatches = matches?.filter(match => match.status === "completed") || [];
+  console.log("All matches data:", matches);
+  
+  // Safely handle matches array
+  const upcomingMatches = Array.isArray(matches) ? 
+    matches.filter(match => match.status === "scheduled") : [];
+  
+  const pastMatches = Array.isArray(matches) ?
+    matches.filter(match => match.status === "completed") : [];
+  
+  console.log("Upcoming matches:", upcomingMatches);
+  console.log("Past matches:", pastMatches);
 
   return (
     <div className="flex h-screen bg-background">
@@ -99,8 +177,8 @@ export default function MatchesPage() {
               <h1 className="text-2xl font-bold text-primary">Match Management</h1>
               <p className="text-gray-500">Track fixtures, results, and match statistics</p>
             </div>
-            
-            <Dialog>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
                   <PlusCircle className="h-4 w-4 mr-2" />
