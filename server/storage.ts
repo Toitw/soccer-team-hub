@@ -279,20 +279,10 @@ export class MemStorage implements IStorage {
   }
 
   private async initializeData() {
-    // Create hashed passwords for demo users
-    const hashedPassword = await hashPasswordInStorage("password123");
-    
-    // Add only admin user - no other mock users
-    const demoAdmin = await this.createUser({
-      username: "admin",
-      password: hashedPassword,
-      fullName: "Admin User",
-      role: "admin",
-      email: "admin@example.com",
-      profilePicture: "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"
-    });
-    
-    // No other users will be created automatically
+    // The initializeData method is now empty because we're using the
+    // standalone initialize-admin.js script to create the admin user
+    // This prevents the automatic creation of mock users or teams on startup
+    console.log("No automatic initialization performed - using initialize-admin.js instead");
   }
 
   // User methods
@@ -366,7 +356,16 @@ export class MemStorage implements IStorage {
 
   async createTeam(insertTeam: InsertTeam): Promise<Team> {
     const id = this.teamCurrentId++;
-    const team: Team = { ...insertTeam, id };
+    
+    // Ensure required fields have default values if not provided
+    const team: Team = { 
+      ...insertTeam, 
+      id,
+      logo: insertTeam.logo || null,
+      division: insertTeam.division || null,
+      seasonYear: insertTeam.seasonYear || null
+    };
+    
     this.teams.set(id, team);
     return team;
   }
