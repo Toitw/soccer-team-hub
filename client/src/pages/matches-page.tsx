@@ -47,6 +47,9 @@ const matchSchema = z.object({
   location: z.string().min(1, "Location is required"),
   isHome: z.boolean().default(true),
   notes: z.string().optional(),
+  status: z.enum(["scheduled", "completed", "cancelled"]).default("scheduled"),
+  goalsScored: z.number().int().optional().nullable(),
+  goalsConceded: z.number().int().optional().nullable(),
 });
 
 type MatchFormData = z.infer<typeof matchSchema>;
@@ -117,6 +120,9 @@ export default function MatchesPage() {
       location: match.location,
       isHome: match.isHome,
       notes: match.notes || "",
+      status: match.status || "scheduled",
+      goalsScored: match.goalsScored || null,
+      goalsConceded: match.goalsConceded || null,
     });
     
     setDialogOpen(true);
@@ -167,8 +173,34 @@ export default function MatchesPage() {
       location: "",
       isHome: true,
       notes: "",
+      status: "scheduled",
+      goalsScored: null,
+      goalsConceded: null,
     },
   });
+
+  // Handle dialog close - we need to clear form and reset editing state
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+      // Reset the form and editing state when dialog is closed
+      setTimeout(() => {
+        if (!isEditing) return;
+        setIsEditing(false);
+        setEditingMatch(null);
+        form.reset({
+          opponentName: "",
+          matchDate: new Date().toISOString().slice(0, 16),
+          location: "",
+          isHome: true,
+          notes: "",
+          status: "scheduled",
+          goalsScored: null,
+          goalsConceded: null,
+        });
+      }, 100);
+    }
+    setDialogOpen(open);
+  };
 
   const onSubmit = async (data: MatchFormData) => {
     try {
@@ -180,7 +212,6 @@ export default function MatchesPage() {
       const formattedData = {
         ...data,
         matchDate: new Date(data.matchDate).toISOString(),
-        status: "scheduled" // Ensure status is set for new matches
       };
 
       console.log("Submitting match data:", formattedData);
@@ -284,9 +315,28 @@ export default function MatchesPage() {
               <p className="text-gray-500">Track fixtures, results, and match statistics</p>
             </div>
 
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button 
+                  onClick={() => {
+                    // Reset form to default values before opening dialog for new match
+                    if (isEditing) {
+                      setIsEditing(false);
+                      setEditingMatch(null);
+                      form.reset({
+                        opponentName: "",
+                        matchDate: new Date().toISOString().slice(0, 16),
+                        location: "",
+                        isHome: true,
+                        notes: "",
+                        status: "scheduled",
+                        goalsScored: null,
+                        goalsConceded: null,
+                      });
+                    }
+                  }}
+                  className="bg-primary hover:bg-primary/90"
+                >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   Add Match
                 </Button>
@@ -358,6 +408,74 @@ export default function MatchesPage() {
                     />
                     <FormField
                       control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Match Status</FormLabel>
+                          <FormControl>
+                            <select 
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              onChange={(e) => field.onChange(e.target.value)}
+                              value={field.value}
+                            >
+                              <option value="scheduled">Scheduled</option>
+                              <option value="completed">Completed</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {form.watch("status") === "completed" && (
+                      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-md">
+                        <FormField
+                          control={form.control}
+                          name="goalsScored"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Goals Scored</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0"
+                                  placeholder="0" 
+                                  {...field} 
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  value={field.value === null || field.value === undefined ? "" : field.value}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="goalsConceded"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Goals Conceded</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="0"
+                                  placeholder="0" 
+                                  {...field} 
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  value={field.value === null || field.value === undefined ? "" : field.value}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    )}
+                    
+                    <FormField
+                      control={form.control}
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
@@ -374,7 +492,7 @@ export default function MatchesPage() {
                       )}
                     />
                     <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                      Schedule Match
+                      {isEditing ? "Update Match" : "Schedule Match"}
                     </Button>
                   </form>
                 </Form>
