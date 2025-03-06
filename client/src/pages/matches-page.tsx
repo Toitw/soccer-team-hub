@@ -39,6 +39,7 @@ export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -47,7 +48,11 @@ export default function MatchesPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  const { data: matches, isLoading: matchesLoading } = useQuery<Match[]>({
+  const { 
+    data: matches, 
+    isLoading: matchesLoading,
+    refetch: refetchMatches 
+  } = useQuery<Match[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "matches"],
     enabled: !!selectedTeam,
   });
@@ -65,14 +70,56 @@ export default function MatchesPage() {
     },
   });
 
-  const onSubmit = (data: MatchFormData) => {
-    // In a real implementation, you would make an API call to create a match
-    console.log("Match data:", data);
-    toast({
-      title: "Match created",
-      description: `Match against ${data.opponentName} has been scheduled`,
-    });
-    form.reset();
+  const onSubmit = async (data: MatchFormData) => {
+    try {
+      // Convert form data to match the API expectations
+      const matchDate = new Date(data.matchDate);
+      
+      const matchData = {
+        opponentName: data.opponentName,
+        matchDate: matchDate.toISOString(),
+        location: data.location,
+        isHome: data.isHome,
+        notes: data.notes || "",
+        status: "scheduled"
+      };
+      
+      // Make API call to create the match
+      if (selectedTeam) {
+        const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(matchData),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to create match');
+        }
+        
+        // Refetch matches data to update the UI
+        await refetchMatches();
+        
+        toast({
+          title: "Match created",
+          description: `Match against ${data.opponentName} has been scheduled`,
+        });
+        
+        // Close the dialog
+        setDialogOpen(false);
+        
+        // Reset form
+        form.reset();
+      }
+    } catch (error) {
+      console.error('Error creating match:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create match. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -100,7 +147,7 @@ export default function MatchesPage() {
               <p className="text-gray-500">Track fixtures, results, and match statistics</p>
             </div>
             
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
                   <PlusCircle className="h-4 w-4 mr-2" />
