@@ -4,21 +4,22 @@ const DATA_DIR = './data';
 const TEAM_MEMBERS_FILE = `${DATA_DIR}/team_members.json`;
 const USERS_FILE = `${DATA_DIR}/users.json`;
 
-// List of usernames of preset members to remove
-const mockUsernamesToRemove = [
-  'david.gea',
-  'harry.maguire',
-  'raphael.varane',
-  'luke.shaw',
-  'aaron.bissaka',
-  'scott.mctominay',
-  'fred.midfielder',
-  'bruno.fernandes',
-  'marcus.rashford',
-  'anthony.martial',
-  'mason.greenwood',
-  'erik.tenhag'
-];
+// Function to check if a username looks like an auto-generated mock user
+// This will match usernames like "sam.johnson123", "alex.wilson456", etc.
+function isMockUsername(username) {
+  // Preserve the admin user
+  if (username === 'admin') {
+    return false;
+  }
+  
+  // Check for patterns of auto-generated mock users
+  const mockPatterns = [
+    /^[a-z]+\.[a-z]+\d*$/,       // firstname.lastname123
+    /^coach\.team\d+$/           // coach.team123
+  ];
+  
+  return mockPatterns.some(pattern => pattern.test(username));
+}
 
 async function removeMockUsers() {
   try {
@@ -41,9 +42,9 @@ async function removeMockUsers() {
       if (usersData && usersData.length > 0) {
         console.log(`Found ${usersData.length} users in database`);
         
-        // Find users to remove
+        // Find users to remove using the pattern check
         const filteredUsers = usersData.filter(user => {
-          if (mockUsernamesToRemove.includes(user.username)) {
+          if (isMockUsername(user.username)) {
             userIdsToRemove.push(user.id);
             usersRemoved++;
             return false;
