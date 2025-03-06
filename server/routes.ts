@@ -456,6 +456,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create match" });
     }
   });
+  
+  // Update a match
+  app.patch("/api/teams/:teamId/matches/:matchId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update matches" });
+      }
+      
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+      
+      const updatedMatch = await storage.updateMatch(matchId, req.body);
+      res.json(updatedMatch);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update match" });
+    }
+  });
+  
+  // Delete a match
+  app.delete("/api/teams/:teamId/matches/:matchId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete matches" });
+      }
+      
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+      
+      const success = await storage.deleteMatch(matchId);
+      
+      if (success) {
+        res.status(200).json({ message: "Match deleted successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to delete match" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete match" });
+    }
+  });
 
   // Events routes
   app.get("/api/teams/:id/events", async (req, res) => {
