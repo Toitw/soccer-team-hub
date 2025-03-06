@@ -22,6 +22,7 @@ const MemoryStore = createMemoryStore(session);
 const DATA_DIR = './data';
 const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -242,6 +243,45 @@ export class MemStorage implements IStorage {
           console.log(`Loaded ${teamMembersData.length} team members from storage`);
         }
       }
+
+      // Load matches data if the file exists
+      if (fs.existsSync(MATCHES_FILE)) {
+        const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE, 'utf8'));
+        
+        if (matchesData && matchesData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matches.clear();
+          let maxId = 0;
+          
+          // Process each match
+          for (const match of matchesData) {
+            // Handle Date conversion (matchDate is stored as a string in the file)
+            if (match.matchDate) {
+              match.matchDate = new Date(match.matchDate);
+            }
+            
+            // Make sure status is valid (required by TypeScript)
+            if (!match.status) {
+              match.status = "scheduled";
+            }
+            
+            // Add to map
+            this.matches.set(match.id, match as Match);
+            
+            // Track maximum ID
+            if (match.id > maxId) {
+              maxId = match.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchesData.length} matches from storage`);
+        }
+      }
       
       return hasData;
     } catch (error) {
@@ -275,6 +315,20 @@ export class MemStorage implements IStorage {
       console.log(`Saved ${teamMembersArray.length} team members to storage`);
     } catch (error) {
       console.error("Error saving team members data:", error);
+    }
+  }
+  
+  // Helper method to save matches data to file
+  private saveMatchesData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchesArray = Array.from(this.matches.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesArray, null, 2));
+      console.log(`Saved ${matchesArray.length} matches to storage`);
+    } catch (error) {
+      console.error("Error saving matches data:", error);
     }
   }
 
@@ -457,8 +511,23 @@ export class MemStorage implements IStorage {
 
   async createMatch(insertMatch: InsertMatch): Promise<Match> {
     const id = this.matchCurrentId++;
-    const match: Match = { ...insertMatch, id };
+    
+    // Ensure required fields have default values if not provided
+    const match: Match = { 
+      ...insertMatch, 
+      id,
+      status: insertMatch.status || "scheduled", 
+      opponentLogo: insertMatch.opponentLogo || null,
+      goalsScored: insertMatch.goalsScored || null,
+      goalsConceded: insertMatch.goalsConceded || null,
+      notes: insertMatch.notes || null
+    };
+    
     this.matches.set(id, match);
+    
+    // Save matches to file
+    this.saveMatchesData();
+    
     return match;
   }
 
@@ -468,7 +537,23 @@ export class MemStorage implements IStorage {
     
     const updatedMatch: Match = { ...match, ...matchData };
     this.matches.set(id, updatedMatch);
+    
+    // Save matches to file
+    this.saveMatchesData();
+    
     return updatedMatch;
+  }
+  
+  // Delete a match - adding this method for match persistence
+  async deleteMatch(id: number): Promise<boolean> {
+    const result = this.matches.delete(id);
+    
+    // Save matches data to file after deletion
+    if (result) {
+      this.saveMatchesData();
+    }
+    
+    return result;
   }
 
   // Event methods
