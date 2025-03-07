@@ -70,5 +70,17 @@
     "id": 30,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "paquirrin5242",
+    "password": "f501636f8823b01bed1ba2bb6a810801cfa906a5e9097697d08505de760bb4e49f6a777033f0d5a7ad0d5e0ab960dfe86e8e6af5ccc1eb8a97a216ec539cb256.efa7d3b7e58b0c02bd40f1cc1c6444d7",
+    "fullName": "Paquirrin",
+    "role": "player",
+    "position": "Forward",
+    "jerseyNumber": 9,
+    "profilePicture": "https://i.pravatar.cc/150?u=5242",
+    "id": 31,
+    "email": null,
+    "phoneNumber": null
   }
 ]
