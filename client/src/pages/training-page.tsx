@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Team, Event } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
@@ -24,6 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
 
 // Define form schema for creating a training session
 const trainingSchema = z.object({
@@ -42,6 +43,10 @@ export default function TrainingPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("calendar");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // Use React Query client for manual invalidation
+  const queryClient = useQueryClient();
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -50,9 +55,53 @@ export default function TrainingPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
+  const { 
+    data: events, 
+    isLoading: eventsLoading,
+    refetch: refetchEvents 
+  } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
+  });
+
+  // Define mutation for creating training events
+  const createTrainingMutation = useMutation({
+    mutationFn: async (data: TrainingFormData) => {
+      if (!selectedTeam) {
+        throw new Error("No team selected");
+      }
+      
+      // Format dates properly for API
+      const formattedData = {
+        ...data,
+        startTime: new Date(data.startTime).toISOString(),
+        endTime: new Date(data.endTime).toISOString(),
+      };
+      
+      const response = await apiRequest(
+        "POST", 
+        `/api/teams/${selectedTeam.id}/events`, 
+        formattedData
+      );
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate events query to trigger a refetch
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "events"] });
+      setDialogOpen(false);
+      toast({
+        title: "Training session created",
+        description: "Training session has been scheduled successfully",
+      });
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create training session: ${error.message}`,
+        variant: "destructive",
+      });
+    }
   });
 
   const isLoading = teamsLoading || eventsLoading;
@@ -70,13 +119,7 @@ export default function TrainingPage() {
   });
 
   const onSubmit = (data: TrainingFormData) => {
-    // In a real implementation, you would make an API call to create a training session
-    console.log("Training data:", data);
-    toast({
-      title: "Training session created",
-      description: `Training session "${data.title}" has been scheduled`,
-    });
-    form.reset();
+    createTrainingMutation.mutate(data);
   };
 
   if (isLoading) {
@@ -109,9 +152,12 @@ export default function TrainingPage() {
               <p className="text-gray-500">Schedule and manage team training sessions</p>
             </div>
             
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
+                <Button 
+                  className="bg-primary hover:bg-primary/90"
+                  aria-label="New Training Session"
+                >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   New Training Session
                 </Button>
