@@ -10,6 +10,7 @@ import RecentMatches from "@/components/dashboard/recent-matches";
 import Announcements from "@/components/dashboard/announcements";
 import TopPerformers from "@/components/dashboard/top-performers";
 import AttendanceTracker from "@/components/dashboard/attendance-tracker";
+import NextMatch from "@/components/dashboard/next-match"; // Added import for NextMatch component
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
@@ -83,7 +84,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-6">
               <TeamSummary team={selectedTeam} />
               <UpcomingEvents events={upcomingEvents || []} />
-              <RecentMatches matches={recentMatches || []} />
+              <NextMatch matches={recentMatches || []} /> {/* Replaced RecentMatches with NextMatch */}
             </div>
 
             {/* Right Column */}
