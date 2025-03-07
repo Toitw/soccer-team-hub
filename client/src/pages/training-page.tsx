@@ -62,6 +62,14 @@ export default function TrainingPage() {
   } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
+    queryFn: async () => {
+      if (!selectedTeam) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/events`);
+      if (!response.ok) throw new Error('Failed to fetch events');
+      return await response.json();
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Define mutation for creating training events
@@ -239,8 +247,17 @@ export default function TrainingPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                      Schedule Training
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-primary hover:bg-primary/90"
+                      disabled={createTrainingMutation.isPending}
+                    >
+                      {createTrainingMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Scheduling...
+                        </>
+                      ) : "Schedule Training"}
                     </Button>
                   </form>
                 </Form>
@@ -282,7 +299,7 @@ export default function TrainingPage() {
                         <p>No events scheduled for this date</p>
                         <Button 
                           variant="link" 
-                          onClick={() => document.querySelector('[aria-label="New Training Session"]')?.click()}
+                          onClick={() => setDialogOpen(true)}
                           className="text-primary mt-2"
                         >
                           Schedule a training session
@@ -357,7 +374,7 @@ export default function TrainingPage() {
                       <p>No training sessions scheduled</p>
                       <Button 
                         variant="link" 
-                        onClick={() => document.querySelector('[aria-label="New Training Session"]')?.click()}
+                        onClick={() => setDialogOpen(true)}
                         className="text-primary mt-2"
                       >
                         Schedule your first training session
