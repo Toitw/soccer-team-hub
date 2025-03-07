@@ -139,6 +139,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Team Members routes
+  // Get specific team member by userId
+  app.get("/api/teams/:id/members/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const userId = parseInt(req.params.userId);
+      
+      // Check if user is a member of the team
+      const userTeamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!userTeamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      // Get the requested team member
+      const teamMember = await storage.getTeamMember(teamId, userId);
+      if (!teamMember) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      res.json(teamMember);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch team member" });
+    }
+  });
+
+  // Get all team members
   app.get("/api/teams/:id/members", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
