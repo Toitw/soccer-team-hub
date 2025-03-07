@@ -1,8 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Announcement } from "@shared/schema";
 import { format } from "date-fns";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 interface AnnouncementsProps {
   announcements: (Announcement & { creator?: any })[];
@@ -11,21 +12,25 @@ interface AnnouncementsProps {
 export default function Announcements({ announcements }: AnnouncementsProps) {
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Announcements</h2>
-          <Button variant="ghost" size="icon" className="text-sm text-primary">
-            <PlusIcon className="h-5 w-5" />
-          </Button>
-        </div>
-        
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex justify-between items-center">
+          <span>Announcements</span>
+          <Link to="/announcements">
+            <Button variant="ghost" size="icon" className="text-sm text-primary">
+              <PlusIcon className="h-5 w-5" />
+            </Button>
+          </Link>
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="px-4 pb-2">
         {announcements.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-4 text-muted-foreground text-sm">
             <p>No announcements found</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {announcements.map(announcement => {
+            {announcements.slice(0, 3).map(announcement => {
               let borderColor = "border-secondary";
               
               if (announcement.title) {
@@ -37,11 +42,13 @@ export default function Announcements({ announcements }: AnnouncementsProps) {
               }
               
               return (
-                <div key={announcement.id} className={`p-3 border-l-4 ${borderColor} bg-white rounded-r-lg shadow-sm`}>
+                <div key={announcement.id} className={`p-3 border-l-4 ${borderColor} bg-muted/20 rounded-r-lg shadow-sm`}>
                   <h3 className="font-medium">{announcement.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{announcement.content}</p>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {announcement.content}
+                  </p>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {announcement.createdAt ? format(new Date(announcement.createdAt), "MMMM d, yyyy") : "Date not available"}
                     </span>
                     <span className="text-xs font-medium text-primary">
@@ -54,6 +61,15 @@ export default function Announcements({ announcements }: AnnouncementsProps) {
           </div>
         )}
       </CardContent>
+      
+      <CardFooter className="pt-2">
+        <Link to="/announcements" className="w-full">
+          <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
+            View all announcements
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

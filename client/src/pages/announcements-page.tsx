@@ -151,12 +151,17 @@ export default function AnnouncementsPage() {
     createAnnouncementMutation.mutate(data);
   };
 
-  const isLoading = teamsLoading || announcementsLoading;
-
+  // Fetch team member role for the current user
+  const { data: teamMember, isLoading: teamMemberLoading } = useQuery<{ role: string }>({
+    queryKey: ["/api/teams", selectedTeam?.id, "members", user?.id],
+    enabled: !!selectedTeam && !!user,
+  });
+  
+  const isLoading = teamsLoading || announcementsLoading || teamMemberLoading;
+  
   // Check if user is admin or coach (allowed to create/delete announcements)
   const canManageAnnouncements = () => {
-    if (!selectedTeam || !user) return false;
-    const teamMember = { role: "player" }; // Placeholder
+    if (!selectedTeam || !user || !teamMember) return false;
     return teamMember.role === "admin" || teamMember.role === "coach";
   };
 
