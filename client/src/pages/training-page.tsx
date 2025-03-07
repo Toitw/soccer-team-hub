@@ -285,6 +285,18 @@ export default function TrainingPage() {
                       selected={selectedDate}
                       onSelect={setSelectedDate}
                       className="rounded-md border"
+                      modifiers={{
+                        hasEvent: events?.map(event => new Date(event.startTime)) || []
+                      }}
+                      modifiersStyles={{
+                        hasEvent: {
+                          backgroundColor: 'rgba(var(--primary), 0.1)',
+                          fontWeight: 'bold',
+                          color: 'rgb(var(--primary))',
+                          borderRadius: '0',
+                          textDecoration: 'underline'
+                        }
+                      }}
                     />
                   </CardContent>
                 </Card>
@@ -437,7 +449,7 @@ export default function TrainingPage() {
                         .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
                         .map(event => (
                           <div key={event.id} className="border rounded-lg overflow-hidden">
-                            <div className="bg-primary/5 px-4 py-2 flex justify-between items-center border-b">
+                            <div className="bg-primary/5 px-4 py-3 flex justify-between items-center border-b">
                               <div className="flex items-center">
                                 <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center mr-3">
                                   <Calendar className="h-5 w-5 text-primary" />
@@ -454,12 +466,12 @@ export default function TrainingPage() {
                               </div>
                             </div>
                             <div className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
+                              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
+                                <div className="flex-1">
                                   <h4 className="text-sm font-medium text-gray-500 mb-1">Location</h4>
                                   <p>{event.location}</p>
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                   <h4 className="text-sm font-medium text-gray-500 mb-1">Duration</h4>
                                   <p>
                                     {event.endTime 
