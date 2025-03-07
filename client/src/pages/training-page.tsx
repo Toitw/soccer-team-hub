@@ -145,6 +145,11 @@ export default function TrainingPage() {
   const eventsForSelectedDate = events?.filter(event => 
     selectedDate && isSameDay(new Date(event.startTime), selectedDate)
   ) || [];
+  
+  // Debug logs to check what events are available
+  console.log("Selected date:", selectedDate);
+  console.log("All events:", events);
+  console.log("Events for selected date:", eventsForSelectedDate);
 
   return (
     <div className="flex h-screen bg-background">
