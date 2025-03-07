@@ -44,6 +44,7 @@ export default function TrainingPage() {
   const [activeTab, setActiveTab] = useState("calendar");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState<Record<number, 'attending' | 'notAttending' | null>>({});
   
   // Use React Query client for manual invalidation
   const queryClient = useQueryClient();
@@ -142,14 +143,13 @@ export default function TrainingPage() {
   const trainingEvents = events?.filter(event => event.type === "training") || [];
   
   // Get events for the selected date
-  const eventsForSelectedDate = events?.filter(event => 
-    selectedDate && isSameDay(new Date(event.startTime), selectedDate)
-  ) || [];
-  
-  // Debug logs to check what events are available
-  console.log("Selected date:", selectedDate);
-  console.log("All events:", events);
-  console.log("Events for selected date:", eventsForSelectedDate);
+  const eventsForSelectedDate = events?.filter(event => {
+    if (!selectedDate || !event.startTime) return false;
+    
+    // Parse dates properly
+    const eventDate = new Date(event.startTime);
+    return isSameDay(eventDate, selectedDate);
+  }) || [];
 
   return (
     <div className="flex h-screen bg-background">
@@ -347,13 +347,59 @@ export default function TrainingPage() {
                             )}
                             
                             <div className="mt-4 flex space-x-2">
-                              <Button variant="outline" className="flex-1">
-                                <CheckCircle className="h-4 w-4 mr-2 text-secondary" />
-                                Confirm Attendance
+                              <Button 
+                                variant={attendanceStatus[event.id] === 'attending' ? 'default' : 'outline'} 
+                                className="flex-1"
+                                onClick={() => {
+                                  setAttendanceStatus(prev => ({
+                                    ...prev,
+                                    [event.id]: attendanceStatus[event.id] === 'attending' ? null : 'attending'
+                                  }));
+                                  toast({
+                                    title: attendanceStatus[event.id] === 'attending' 
+                                      ? "Attendance cancelled" 
+                                      : "Attending confirmed",
+                                    description: attendanceStatus[event.id] === 'attending'
+                                      ? "You've cancelled your attendance"
+                                      : "You're marked as attending this training session",
+                                  });
+                                }}
+                              >
+                                <CheckCircle 
+                                  className={`h-4 w-4 mr-2 ${
+                                    attendanceStatus[event.id] === 'attending' 
+                                      ? 'text-white' 
+                                      : 'text-secondary'
+                                  }`} 
+                                />
+                                {attendanceStatus[event.id] === 'attending' ? 'Attending' : 'Confirm Attendance'}
                               </Button>
-                              <Button variant="outline" className="flex-1">
-                                <XCircle className="h-4 w-4 mr-2 text-red-500" />
-                                Can't Attend
+                              <Button 
+                                variant={attendanceStatus[event.id] === 'notAttending' ? 'destructive' : 'outline'} 
+                                className="flex-1"
+                                onClick={() => {
+                                  setAttendanceStatus(prev => ({
+                                    ...prev,
+                                    [event.id]: attendanceStatus[event.id] === 'notAttending' ? null : 'notAttending'
+                                  }));
+                                  toast({
+                                    title: attendanceStatus[event.id] === 'notAttending' 
+                                      ? "Response cancelled" 
+                                      : "Response recorded",
+                                    description: attendanceStatus[event.id] === 'notAttending'
+                                      ? "You've cancelled your response"
+                                      : "You're marked as not attending this training session",
+                                  });
+                                }}
+                              >
+                                <XCircle 
+                                  className={`h-4 w-4 mr-2 ${
+                                    attendanceStatus[event.id] === 'notAttending' 
+                                      ? 'text-white' 
+                                      : 'text-red-500'
+                                  }`} 
+                                />
+                                {attendanceStatus[event.id] === 'notAttending' ? 'Not Attending' : 'Can\'t Attend'}
                               </Button>
                             </div>
                           </div>
@@ -431,27 +477,77 @@ export default function TrainingPage() {
                               )}
                               
                               <div className="flex justify-between items-center pt-2 border-t">
-                                <div className="flex -space-x-2">
-                                  {[1, 2, 3, 4].map(i => (
-                                    <img 
-                                      key={i}
-                                      src={`https://ui-avatars.com/api/?name=Player+${i}&background=0D47A1&color=fff`}
-                                      alt={`Player ${i}`}
-                                      className="w-8 h-8 rounded-full border-2 border-white"
-                                    />
-                                  ))}
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white">
-                                    <span className="text-xs font-medium">+12</span>
+                                <div className="flex items-center">
+                                  <div className="flex -space-x-2 mr-2">
+                                    {[1, 2, 3].map(i => (
+                                      <img 
+                                        key={i}
+                                        src={`https://ui-avatars.com/api/?name=Player+${i}&background=0D47A1&color=fff`}
+                                        alt={`Player ${i}`}
+                                        className="w-8 h-8 rounded-full border-2 border-white"
+                                      />
+                                    ))}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    <span className="font-medium">
+                                      {Object.values(attendanceStatus).filter(status => status === 'attending').length + 3}
+                                    </span> attending
                                   </div>
                                 </div>
                                 <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm">
-                                    <CheckCircle className="h-4 w-4 mr-1 text-secondary" />
-                                    Attending
+                                  <Button 
+                                    variant={attendanceStatus[event.id] === 'attending' ? 'default' : 'outline'} 
+                                    size="sm"
+                                    onClick={() => {
+                                      setAttendanceStatus(prev => ({
+                                        ...prev,
+                                        [event.id]: attendanceStatus[event.id] === 'attending' ? null : 'attending'
+                                      }));
+                                      toast({
+                                        title: attendanceStatus[event.id] === 'attending' 
+                                          ? "Attendance cancelled" 
+                                          : "Attending confirmed",
+                                        description: attendanceStatus[event.id] === 'attending'
+                                          ? "You've cancelled your attendance"
+                                          : "You're marked as attending this training session",
+                                      });
+                                    }}
+                                  >
+                                    <CheckCircle 
+                                      className={`h-4 w-4 mr-1 ${
+                                        attendanceStatus[event.id] === 'attending' 
+                                          ? 'text-white' 
+                                          : 'text-secondary'
+                                      }`} 
+                                    />
+                                    {attendanceStatus[event.id] === 'attending' ? 'Attending' : 'Attend'}
                                   </Button>
-                                  <Button variant="outline" size="sm">
-                                    <XCircle className="h-4 w-4 mr-1 text-red-500" />
-                                    Not Attending
+                                  <Button 
+                                    variant={attendanceStatus[event.id] === 'notAttending' ? 'destructive' : 'outline'} 
+                                    size="sm"
+                                    onClick={() => {
+                                      setAttendanceStatus(prev => ({
+                                        ...prev,
+                                        [event.id]: attendanceStatus[event.id] === 'notAttending' ? null : 'notAttending'
+                                      }));
+                                      toast({
+                                        title: attendanceStatus[event.id] === 'notAttending' 
+                                          ? "Response cancelled" 
+                                          : "Response recorded",
+                                        description: attendanceStatus[event.id] === 'notAttending'
+                                          ? "You've cancelled your response"
+                                          : "You're marked as not attending this training session",
+                                      });
+                                    }}
+                                  >
+                                    <XCircle 
+                                      className={`h-4 w-4 mr-1 ${
+                                        attendanceStatus[event.id] === 'notAttending' 
+                                          ? 'text-white' 
+                                          : 'text-red-500'
+                                      }`} 
+                                    />
+                                    {attendanceStatus[event.id] === 'notAttending' ? 'Not Attending' : 'Skip'}
                                   </Button>
                                 </div>
                               </div>
