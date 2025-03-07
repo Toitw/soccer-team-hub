@@ -59,15 +59,15 @@ export default function AnnouncementsPage() {
   const queryClient = useQueryClient();
 
   // Get all teams
-  const { data: teams, isLoading: teamsLoading } = useQuery({
+  const { data: teams = [], isLoading: teamsLoading } = useQuery<any[]>({
     queryKey: ["/api/teams"],
   });
 
   // Select the first team by default
-  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+  const selectedTeam = teams.length > 0 ? teams[0] : null;
 
   // Fetch all announcements for the selected team
-  const { data: announcements, isLoading: announcementsLoading } = useQuery<
+  const { data: announcements = [], isLoading: announcementsLoading } = useQuery<
     (Announcement & { creator?: any })[]
   >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
@@ -87,7 +87,7 @@ export default function AnnouncementsPage() {
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: AnnouncementFormData) => {
       if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest<Announcement>(
+      return apiRequest(
         "POST",
         `/api/teams/${selectedTeam.id}/announcements`,
         data

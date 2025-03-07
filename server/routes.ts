@@ -594,7 +594,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const announcements = await storage.getAnnouncements(teamId);
-      res.json(announcements);
+      
+      // Get user details for the creator of each announcement
+      const announcementsWithCreator = await Promise.all(
+        announcements.map(async (announcement) => {
+          const user = await storage.getUser(announcement.createdById);
+          if (!user) return announcement;
+          
+          const { password, ...creatorWithoutPassword } = user;
+          return {
+            ...announcement,
+            creator: creatorWithoutPassword,
+          };
+        })
+      );
+      
+      res.json(announcementsWithCreator);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch announcements" });
     }
@@ -656,6 +671,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(announcement);
     } catch (error) {
       res.status(500).json({ error: "Failed to create announcement" });
+    }
+  });
+  
+  app.delete("/api/teams/:id/announcements/:announcementId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const announcementId = parseInt(req.params.announcementId);
+      
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete announcements" });
+      }
+      
+      // Check if announcement belongs to the team
+      const announcement = await storage.getAnnouncement(announcementId);
+      if (!announcement || announcement.teamId !== teamId) {
+        return res.status(404).json({ error: "Announcement not found" });
+      }
+      
+      const success = await storage.deleteAnnouncement(announcementId);
+      
+      if (success) {
+        res.status(200).json({ message: "Announcement deleted successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to delete announcement" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete announcement" });
     }
   });
 
