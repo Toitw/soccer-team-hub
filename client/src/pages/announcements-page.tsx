@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Announcement, InsertAnnouncement } from "@shared/schema";
+import { Announcement, InsertAnnouncement, TeamMember } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -152,7 +152,7 @@ export default function AnnouncementsPage() {
   };
 
   // Fetch team member role for the current user
-  const { data: teamMember, isLoading: teamMemberLoading } = useQuery<{ role: string }>({
+  const { data: teamMember, isLoading: teamMemberLoading } = useQuery<TeamMember>({
     queryKey: ["/api/teams", selectedTeam?.id, "members", user?.id],
     enabled: !!selectedTeam && !!user,
   });
