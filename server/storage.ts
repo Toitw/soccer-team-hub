@@ -676,11 +676,32 @@ export class MemStorage implements IStorage {
     const id = this.announcementCurrentId++;
     const announcement: Announcement = { ...insertAnnouncement, id, createdAt: new Date() };
     this.announcements.set(id, announcement);
+    
+    // Save announcements to file
+    this.saveAnnouncementsData();
+    
     return announcement;
+  }
+  
+  private saveAnnouncementsData() {
+    try {
+      const announcementsData = Array.from(this.announcements.values());
+      fs.writeFileSync(
+        path.join(process.cwd(), 'data', 'announcements.json'),
+        JSON.stringify(announcementsData, null, 2)
+      );
+      console.log(`Saved ${announcementsData.length} announcements to storage`);
+    } catch (error) {
+      console.error('Failed to save announcements data:', error);
+    }
   }
 
   async deleteAnnouncement(id: number): Promise<boolean> {
-    return this.announcements.delete(id);
+    const result = this.announcements.delete(id);
+    if (result) {
+      this.saveAnnouncementsData();
+    }
+    return result;
   }
 
   // Invitation methods

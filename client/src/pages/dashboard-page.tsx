@@ -49,8 +49,14 @@ export default function DashboardPage() {
     enabled: !!selectedTeam,
   });
 
-  const { data: announcements, isLoading: announcementsLoading } = useQuery<Announcement[]>({
+  const { data: announcements, isLoading: announcementsLoading } = useQuery<
+    (Announcement & { creator?: any })[]
+  >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements/recent`);
+      return response as (Announcement & { creator?: any })[];
+    },
     enabled: !!selectedTeam,
   });
 
