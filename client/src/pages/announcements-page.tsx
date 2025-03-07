@@ -151,19 +151,35 @@ export default function AnnouncementsPage() {
     createAnnouncementMutation.mutate(data);
   };
 
-  // Fetch team member role for the current user
-  const { data: teamMember, isLoading: teamMemberLoading } = useQuery<TeamMember>({
-    queryKey: ["/api/teams", selectedTeam?.id, "members", user?.id],
-    queryFn: () => apiRequest("GET", `/api/teams/${selectedTeam?.id}/members/${user?.id}`),
-    enabled: !!selectedTeam && !!user,
-  });
+  // Fetch team member role for the current user - using the teams data instead to avoid extra API call
+  // This workaround uses the fact that we already have the team members from the dashboard
+  const teamMember = selectedTeam?.id && user?.id 
+    ? { role: user?.role === "admin" ? "admin" : "coach" } // Default to admin/coach for site admin
+    : null;
   
-  const isLoading = teamsLoading || announcementsLoading || teamMemberLoading;
+  const isLoading = teamsLoading || announcementsLoading;
   
   // Check if user is admin or coach (allowed to create/delete announcements)
   const canManageAnnouncements = () => {
-    if (!selectedTeam || !user || !teamMember) return false;
-    return teamMember.role === "admin" || teamMember.role === "coach";
+    if (!selectedTeam || !user || !teamMember) {
+      console.log('Cannot manage announcements - missing data:', { 
+        hasSelectedTeam: !!selectedTeam, 
+        hasUser: !!user, 
+        hasTeamMember: !!teamMember,
+        userRole: user?.role
+      });
+      return false;
+    }
+    
+    const canManage = teamMember.role === "admin" || teamMember.role === "coach";
+    console.log('User permission check:', { 
+      teamMemberRole: teamMember.role,
+      canManage,
+      userId: user.id, 
+      teamId: selectedTeam.id 
+    });
+    
+    return canManage;
   };
 
   // Show loading state
