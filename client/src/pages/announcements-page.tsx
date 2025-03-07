@@ -73,7 +73,7 @@ export default function AnnouncementsPage() {
     queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
-      return response as (Announcement & { creator?: any })[];
+      return response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
     },
     enabled: !!selectedTeam,
   });

@@ -23,6 +23,7 @@ const DATA_DIR = './data';
 const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
+const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -280,6 +281,40 @@ export class MemStorage implements IStorage {
           this.matchCurrentId = maxId + 1;
           
           console.log(`Loaded ${matchesData.length} matches from storage`);
+        }
+      }
+      
+      // Load announcements data if the file exists
+      if (fs.existsSync(ANNOUNCEMENTS_FILE)) {
+        const announcementsData = JSON.parse(fs.readFileSync(ANNOUNCEMENTS_FILE, 'utf8'));
+        
+        if (announcementsData && announcementsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.announcements.clear();
+          let maxId = 0;
+          
+          // Process each announcement
+          for (const announcement of announcementsData) {
+            // Handle Date conversion (createdAt is stored as a string in the file)
+            if (announcement.createdAt) {
+              announcement.createdAt = new Date(announcement.createdAt);
+            }
+            
+            // Add to map
+            this.announcements.set(announcement.id, announcement as Announcement);
+            
+            // Track maximum ID
+            if (announcement.id > maxId) {
+              maxId = announcement.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.announcementCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${announcementsData.length} announcements from storage`);
         }
       }
       
