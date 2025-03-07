@@ -154,6 +154,7 @@ export default function AnnouncementsPage() {
   // Fetch team member role for the current user
   const { data: teamMember, isLoading: teamMemberLoading } = useQuery<TeamMember>({
     queryKey: ["/api/teams", selectedTeam?.id, "members", user?.id],
+    queryFn: () => apiRequest("GET", `/api/teams/${selectedTeam?.id}/members/${user?.id}`),
     enabled: !!selectedTeam && !!user,
   });
   
