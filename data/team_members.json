@@ -117,5 +117,12 @@
     "role": "player",
     "id": 44,
     "joinedAt": "2025-03-07T18:25:34.356Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 32,
+    "role": "admin",
+    "id": 45,
+    "joinedAt": "2025-03-14T14:24:47.234Z"
   }
 ]
