@@ -702,6 +702,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/teams/:id/announcements/:announcementId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      const announcementId = parseInt(req.params.announcementId);
+
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update announcements" });
+      }
+
+      // Check if announcement belongs to the team
+      const announcement = await storage.getAnnouncement(announcementId);
+      if (!announcement || announcement.teamId !== teamId) {
+        return res.status(404).json({ error: "Announcement not found" });
+      }
+
+      // Update announcement
+      const updatedAnnouncement = await storage.updateAnnouncement(announcementId, {
+        title: req.body.title,
+        content: req.body.content
+      });
+
+      if (updatedAnnouncement) {
+        // Get user details for the creator
+        const user = await storage.getUser(updatedAnnouncement.createdById);
+        let announcementWithCreator = updatedAnnouncement;
+        
+        if (user) {
+          const { password, ...creatorWithoutPassword } = user;
+          announcementWithCreator = {
+            ...updatedAnnouncement,
+            creator: creatorWithoutPassword,
+          };
+        }
+        
+        res.status(200).json(announcementWithCreator);
+      } else {
+        res.status(500).json({ error: "Failed to update announcement" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update announcement" });
+    }
+  });
+
   app.delete("/api/teams/:id/announcements/:announcementId", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 

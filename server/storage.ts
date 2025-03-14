@@ -91,6 +91,7 @@ export interface IStorage {
   getAnnouncements(teamId: number): Promise<Announcement[]>;
   getRecentAnnouncements(teamId: number, limit: number): Promise<Announcement[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  updateAnnouncement(id: number, announcementData: Partial<Announcement>): Promise<Announcement | undefined>;
   deleteAnnouncement(id: number): Promise<boolean>;
   
   // Invitation methods
@@ -807,6 +808,19 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.error('Failed to save announcements data:', error);
     }
+  }
+
+  async updateAnnouncement(id: number, announcementData: Partial<Announcement>): Promise<Announcement | undefined> {
+    const announcement = this.announcements.get(id);
+    if (!announcement) return undefined;
+    
+    const updatedAnnouncement: Announcement = { ...announcement, ...announcementData };
+    this.announcements.set(id, updatedAnnouncement);
+    
+    // Save announcements to file
+    this.saveAnnouncementsData();
+    
+    return updatedAnnouncement;
   }
 
   async deleteAnnouncement(id: number): Promise<boolean> {
