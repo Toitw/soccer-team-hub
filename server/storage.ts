@@ -24,6 +24,7 @@ const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
+const TEAMS_FILE = path.join(DATA_DIR, 'teams.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -206,6 +207,35 @@ export class MemStorage implements IStorage {
         }
       }
       
+      // Load teams data if the file exists
+      if (fs.existsSync(TEAMS_FILE)) {
+        const teamsData = JSON.parse(fs.readFileSync(TEAMS_FILE, 'utf8'));
+        
+        if (teamsData && teamsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.teams.clear();
+          let maxId = 0;
+          
+          // Process each team
+          for (const team of teamsData) {
+            // Add to map
+            this.teams.set(team.id, team as Team);
+            
+            // Track maximum ID
+            if (team.id > maxId) {
+              maxId = team.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.teamCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${teamsData.length} teams from storage`);
+        }
+      }
+      
       // Load team members if the file exists
       if (fs.existsSync(TEAM_MEMBERS_FILE)) {
         const teamMembersData = JSON.parse(fs.readFileSync(TEAM_MEMBERS_FILE, 'utf8'));
@@ -366,6 +396,20 @@ export class MemStorage implements IStorage {
       console.error("Error saving matches data:", error);
     }
   }
+  
+  // Helper method to save teams data to file
+  private saveTeamsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const teamsArray = Array.from(this.teams.values());
+      
+      // Write to file
+      fs.writeFileSync(TEAMS_FILE, JSON.stringify(teamsArray, null, 2));
+      console.log(`Saved ${teamsArray.length} teams to storage`);
+    } catch (error) {
+      console.error("Error saving teams data:", error);
+    }
+  }
 
   private async initializeData() {
     // The initializeData method is now empty because we're using the
@@ -460,6 +504,10 @@ export class MemStorage implements IStorage {
     };
     
     this.teams.set(id, team);
+    
+    // Save teams data to file
+    this.saveTeamsData();
+    
     return team;
   }
 
@@ -469,6 +517,10 @@ export class MemStorage implements IStorage {
     
     const updatedTeam: Team = { ...team, ...teamData };
     this.teams.set(id, updatedTeam);
+    
+    // Save teams data to file
+    this.saveTeamsData();
+    
     return updatedTeam;
   }
 
