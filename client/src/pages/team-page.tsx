@@ -840,7 +840,7 @@ export default function TeamPage() {
                         <TableCell className="font-medium">
                           <div className="flex items-center">
                             <Avatar className="h-10 w-10 mr-3 border border-primary/30">
-                              <AvatarImage src={member.user.profilePicture || '/default-avatar.png'} alt{member.user.fullName} />
+                              <AvatarImage src={member.user.profilePicture || '/default-avatar.png'} alt={member.user.fullName} />
                               <AvatarFallback>{member.user.fullName?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <div>
