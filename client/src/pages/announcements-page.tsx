@@ -75,16 +75,29 @@ export default function AnnouncementsPage() {
   >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
     queryFn: async () => {
-      console.log(`Fetching announcements for team ${selectedTeam?.id}`);
-      const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
-      const data = response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
-      console.log('Retrieved announcements:', data);
-      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      console.log(`AnnouncementsPage: Fetching announcements for team ${selectedTeam?.id}`);
+      try {
+        const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
+        if (response instanceof Response) {
+          console.error('AnnouncementsPage: Error fetching announcements, received Response object instead of data');
+          return [];
+        }
+        const data = response as (Announcement & { creator?: any })[];
+        console.log('AnnouncementsPage: Retrieved announcements:', data);
+        const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        console.log('AnnouncementsPage: Sorted announcements:', sorted);
+        return sorted;
+      } catch (error) {
+        console.error('AnnouncementsPage: Error fetching announcements:', error);
+        return [];
+      }
     },
     enabled: !!selectedTeam,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 0 // Always consider data stale to ensure fresh data
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    retry: 3, // Retry failed requests up to 3 times
+    refetchInterval: 60000 // Refresh data every minute
   });
 
   // Create form for adding a new announcement
@@ -125,15 +138,22 @@ export default function AnnouncementsPage() {
         data
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async (response) => {
+      // Explicitly invalidate the queries
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
       });
+      
+      // Force an immediate refetch to update the UI
+      await refetchAnnouncements();
+      
+      // Close the form and show success message
       setOpen(false);
       form.reset();
+      console.log('Announcement created successfully:', response);
       toast({
         title: "Announcement created",
         description: "Your announcement has been created successfully.",

@@ -22,10 +22,19 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
     queryKey: ["/api/teams", teamId, "announcements", "recent"],
     queryFn: async () => {
       console.log(`Dashboard: Fetching announcements for team ${teamId}`);
-      const response = await apiRequest("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
-      const data = response instanceof Response ? [] : response;
-      console.log('Dashboard: Retrieved announcements:', data);
-      return data;
+      try {
+        const response = await apiRequest("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
+        if (response instanceof Response) {
+          console.error('Dashboard: Error fetching announcements, received Response object instead of data');
+          return [];
+        }
+        const data = response as (Announcement & { creator?: any })[];
+        console.log('Dashboard: Retrieved announcements:', data);
+        return data;
+      } catch (error) {
+        console.error('Dashboard: Error fetching announcements:', error);
+        return [];
+      }
     },
     enabled: !!teamId,
     refetchOnMount: true,
