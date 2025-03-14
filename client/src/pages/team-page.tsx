@@ -162,7 +162,7 @@ export default function TeamPage() {
       profilePicture: ""
     },
   });
-  
+
   // Form for editing an existing team member
   const editForm = useForm<EditTeamMemberFormData>({
     resolver: zodResolver(editTeamMemberSchema),
@@ -173,7 +173,7 @@ export default function TeamPage() {
       profilePicture: ""
     },
   });
-  
+
   // Update the edit form when memberToEdit changes
   useEffect(() => {
     if (memberToEdit) {
@@ -266,7 +266,7 @@ export default function TeamPage() {
       });
     },
   });
-  
+
   // Edit team member mutation
   const editTeamMemberMutation = useMutation({
     mutationFn: async (data: EditTeamMemberFormData) => {
@@ -296,11 +296,11 @@ export default function TeamPage() {
         title: "Team member updated",
         description: "The team member has been updated successfully.",
       });
-      
+
       // Close the dialog and clear the selected member
       setOpenEditMemberDialog(false);
       setMemberToEdit(null);
-      
+
       // Refresh the team members data
       queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
     },
@@ -391,7 +391,7 @@ export default function TeamPage() {
       <div className="flex-1 ml-0 md:ml-64 overflow-y-auto">
         <Header title="Team" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16"> {/* Added padding here */}
           <div className="mb-6 flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
@@ -531,10 +531,10 @@ export default function TeamPage() {
                                           // Max dimensions for profile pictures
                                           const maxWidth = 400;
                                           const maxHeight = 400;
-                                          
+
                                           let width = img.width;
                                           let height = img.height;
-                                          
+
                                           // Calculate new dimensions while maintaining aspect ratio
                                           if (width > height) {
                                             if (width > maxWidth) {
@@ -547,19 +547,19 @@ export default function TeamPage() {
                                               height = maxHeight;
                                             }
                                           }
-                                          
+
                                           canvas.width = width;
                                           canvas.height = height;
-                                          
+
                                           // Draw resized image to canvas
                                           const ctx = canvas.getContext('2d');
                                           ctx?.drawImage(img, 0, 0, width, height);
-                                          
+
                                           // Convert to compressed data URL
                                           const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                                           field.onChange(dataUrl);
                                         };
-                                        
+
                                         img.src = event.target?.result as string;
                                       };
                                       reader.readAsDataURL(file);
@@ -1073,10 +1073,10 @@ export default function TeamPage() {
                                             // Max dimensions for profile pictures
                                             const maxWidth = 400;
                                             const maxHeight = 400;
-                                            
+
                                             let width = img.width;
                                             let height = img.height;
-                                            
+
                                             // Calculate new dimensions while maintaining aspect ratio
                                             if (width > height) {
                                               if (width > maxWidth) {
@@ -1089,19 +1089,19 @@ export default function TeamPage() {
                                                 height = maxHeight;
                                               }
                                             }
-                                            
+
                                             canvas.width = width;
                                             canvas.height = height;
-                                            
+
                                             // Draw resized image to canvas
                                             const ctx = canvas.getContext('2d');
                                             ctx?.drawImage(img, 0, 0, width, height);
-                                            
+
                                             // Convert to compressed data URL
                                             const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                                             field.onChange(dataUrl);
                                           };
-                                          
+
                                           img.src = event.target?.result as string;
                                         };
                                         reader.readAsDataURL(file);
@@ -1204,7 +1204,9 @@ export default function TeamPage() {
           </Card>
         </div>
 
-        <MobileNavigation />
+        <div className="pb-16">
+          <MobileNavigation />
+        </div>
       </div>
     </div>
   );

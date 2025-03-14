@@ -73,7 +73,7 @@ export default function MatchesPage() {
 
   // Use React Query client for manual invalidation
   const queryClient = useQueryClient();
-  
+
   const { 
     data: matches, 
     isLoading: matchesLoading,
@@ -94,7 +94,7 @@ export default function MatchesPage() {
     refetchOnWindowFocus: true,
     staleTime: 0 // Consider data stale immediately
   });
-  
+
   // We need to make sure refetchMatches properly invalidates the cache
   const refetchMatchesData = async () => {
     console.log("Manually invalidating matches cache");
@@ -108,11 +108,11 @@ export default function MatchesPage() {
   const handleEditMatch = (match: Match) => {
     setEditingMatch(match);
     setIsEditing(true);
-    
+
     // Convert date to format expected by datetime-local input
     const matchDate = new Date(match.matchDate);
     const formattedDate = matchDate.toISOString().slice(0, 16);
-    
+
     // Reset the form with the match data
     form.reset({
       opponentName: match.opponentName,
@@ -124,27 +124,27 @@ export default function MatchesPage() {
       goalsScored: match.goalsScored || null,
       goalsConceded: match.goalsConceded || null,
     });
-    
+
     setDialogOpen(true);
   };
-  
+
   // Handle deleting a match
   const handleDeleteMatch = async () => {
     if (!matchToDelete || !selectedTeam) return;
-    
+
     try {
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches/${matchToDelete.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete match");
       }
-      
+
       await refetchMatchesData();
       setDeleteDialogOpen(false);
       setMatchToDelete(null);
-      
+
       toast({
         title: "Match deleted",
         description: "The match has been deleted successfully",
@@ -158,7 +158,7 @@ export default function MatchesPage() {
       });
     }
   };
-  
+
   // Open delete confirmation dialog
   const confirmDelete = (match: Match) => {
     setMatchToDelete(match);
@@ -254,7 +254,7 @@ export default function MatchesPage() {
       setEditingMatch(null);
       setDialogOpen(false);
       form.reset();
-      
+
       // Force refetch with a different query key to trigger refresh
       await refetchMatchesData();
       console.log("Matches refetched");
@@ -282,10 +282,10 @@ export default function MatchesPage() {
   }
 
   console.log("All matches data:", matches);
-  
+
   // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
-  
+
   const upcomingMatches = Array.isArray(matches) ? 
     matches.filter(match => {
       // Consider a match as upcoming if:
@@ -296,7 +296,7 @@ export default function MatchesPage() {
       }
       return true; // All scheduled matches go to upcoming tab
     }) : [];
-  
+
   const pastMatches = Array.isArray(matches) ?
     matches.filter(match => {
       // Consider a match as past if:
@@ -304,7 +304,7 @@ export default function MatchesPage() {
       // 2. OR it's cancelled (regardless of date)
       return match.status === "completed" || match.status === "cancelled";
     }) : [];
-  
+
   console.log("Upcoming matches:", upcomingMatches);
   console.log("Past matches:", pastMatches);
 
@@ -434,7 +434,7 @@ export default function MatchesPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     {form.watch("status") === "completed" && (
                       <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-md">
                         <FormField
@@ -457,7 +457,7 @@ export default function MatchesPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={form.control}
                           name="goalsConceded"
@@ -480,7 +480,7 @@ export default function MatchesPage() {
                         />
                       </div>
                     )}
-                    
+
                     <FormField
                       control={form.control}
                       name="notes"
@@ -572,7 +572,7 @@ export default function MatchesPage() {
                     const matchDate = new Date(match.matchDate);
                     const isToday = new Date().toDateString() === matchDate.toDateString();
                     const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-                    
+
                     return (
                       <Card key={match.id} className={`overflow-hidden border-t-4 ${
                         match.status === "cancelled" ? "border-t-gray-400" : "border-t-primary"
@@ -598,7 +598,7 @@ export default function MatchesPage() {
                                   : "Scheduled"
                             }
                           </Badge>
-                          
+
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2 mb-1">
                               {match.isHome ? 
@@ -618,7 +618,7 @@ export default function MatchesPage() {
                             <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
                           </div>
                         </CardHeader>
-                        
+
                         <CardContent>
                           <div className="space-y-4">
                             <div className="flex items-center space-x-4 text-sm">
@@ -691,7 +691,7 @@ export default function MatchesPage() {
                             )}
                           </div>
                         </CardContent>
-                        
+
                         <CardFooter className="flex gap-2 border-t bg-gray-50 px-6 py-3">
                           <Button 
                             variant="outline" 
@@ -744,13 +744,13 @@ export default function MatchesPage() {
                       : goalsScored < goalsConceded
                         ? "loss"
                         : "draw";
-                      
+
                     const resultColors = {
                       win: "border-t-green-500 bg-green-50",
                       loss: "border-t-red-500 bg-red-50",
                       draw: "border-t-yellow-500 bg-yellow-50",
                     };
-                    
+
                     return (
                       <Card 
                         key={match.id} 
@@ -774,7 +774,7 @@ export default function MatchesPage() {
                               {matchResult.toUpperCase()}
                             </Badge>
                           )}
-                          
+
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2 mb-1">
                               {match.isHome ? 
@@ -794,7 +794,7 @@ export default function MatchesPage() {
                             <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
                           </div>
                         </CardHeader>
-                        
+
                         <CardContent>
                           <div className="space-y-4">
                             <div className="bg-white p-4 rounded-lg border">
@@ -860,7 +860,7 @@ export default function MatchesPage() {
                             )}
                           </div>
                         </CardContent>
-                        
+
                         <CardFooter className="flex gap-2 border-t px-6 py-3 bg-gray-50">
                           <Button 
                             variant="outline" 
@@ -889,7 +889,7 @@ export default function MatchesPage() {
             </TabsContent>
           </Tabs>
         </div>
-        
+
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
@@ -913,7 +913,9 @@ export default function MatchesPage() {
           </DialogContent>
         </Dialog>
 
-        <MobileNavigation />
+        <div className="pb-16">
+          <MobileNavigation />
+        </div>
       </div>
     </div>
   );

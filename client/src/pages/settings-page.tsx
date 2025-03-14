@@ -111,7 +111,7 @@ export default function SettingsPage() {
               <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
               <p className="text-gray-500">{selectedTeam?.division || "No division set"}</p>
             </div>
-            
+
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
@@ -306,17 +306,17 @@ export default function SettingsPage() {
                       <label className="text-sm font-medium">Team Name</label>
                       <Input defaultValue={selectedTeam?.name || ''} />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Division</label>
                       <Input defaultValue={selectedTeam?.division || ''} />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Season Year</label>
                       <Input defaultValue={selectedTeam?.seasonYear || ''} />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Team Logo</label>
                       <div className="flex items-center gap-4">
@@ -328,7 +328,7 @@ export default function SettingsPage() {
                         <Button variant="outline">Change Logo</Button>
                       </div>
                     </div>
-                    
+
                     <Button className="mt-6 bg-primary hover:bg-primary/90">Save Changes</Button>
                   </form>
                 </CardContent>
@@ -337,7 +337,9 @@ export default function SettingsPage() {
           </Tabs>
         </div>
 
-        <MobileNavigation />
+        <div className="pb-16">
+          <MobileNavigation />
+        </div>
       </div>
     </div>
   );

@@ -78,7 +78,7 @@ export default function DashboardPage() {
       <div className="flex-1 ml-0 md:ml-64">
         <Header title="Dashboard" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-20"> {/* Changed padding-bottom */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">

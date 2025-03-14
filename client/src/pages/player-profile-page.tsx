@@ -108,7 +108,7 @@ export default function PlayerProfilePage() {
                       <span className="bg-secondary/10 text-secondary text-sm px-3 py-1 rounded-full">{player.position}</span>
                       <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">#{player.jerseyNumber}</span>
                     </div>
-                    
+
                     <div className="w-full mt-6 space-y-4">
                       <div className="flex items-center">
                         <Phone className="h-5 w-5 text-gray-400 mr-3" />
@@ -119,7 +119,7 @@ export default function PlayerProfilePage() {
                         <span>{player.email || "Not provided"}</span>
                       </div>
                     </div>
-                    
+
                     {canEdit && (
                       <Button className="w-full mt-6 bg-primary hover:bg-primary/90">
                         Edit Profile
@@ -128,7 +128,7 @@ export default function PlayerProfilePage() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Season Stats</CardTitle>
@@ -175,7 +175,7 @@ export default function PlayerProfilePage() {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Main Content */}
             <div>
               <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
@@ -241,7 +241,7 @@ export default function PlayerProfilePage() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="grid grid-cols-5 gap-2 mt-3 pt-3 border-t text-center">
                               <div>
                                 <p className="text-xs text-gray-500">Goals</p>
@@ -368,7 +368,7 @@ export default function PlayerProfilePage() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div>
                           <h3 className="text-lg font-medium mb-4">Defensive Stats</h3>
                           <div className="space-y-4">
@@ -447,7 +447,7 @@ export default function PlayerProfilePage() {
                           <Progress value={playerStats.matchAttendance} className="h-2 mb-2" />
                           <p className="text-sm text-gray-500">Attended {Math.round(playerStats.matches * playerStats.matchAttendance / 100)} of {playerStats.matches} matches</p>
                         </div>
-                        
+
                         <div className="bg-background p-4 rounded-lg">
                           <div className="flex items-center justify-between mb-2">
                             <h3 className="font-medium">Training Attendance</h3>
@@ -536,7 +536,9 @@ export default function PlayerProfilePage() {
           </div>
         </div>
 
-        <MobileNavigation />
+        <div className="pb-16">
+          <MobileNavigation />
+        </div>
       </div>
     </div>
   );
