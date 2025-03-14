@@ -89,38 +89,6 @@ export default function AnnouncementsPage() {
   });
 
   // Create announcement mutation
-  const createAnnouncementMutation = useMutation({
-    mutationFn: async (data: AnnouncementFormData) => {
-      const response = await apiRequest(
-        "POST",
-        `/api/teams/${selectedTeam?.id}/announcements`,
-        data
-      );
-      return response;
-    },
-    onSuccess: () => {
-      setOpen(false);
-      form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "announcements"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "announcements", "recent"] });
-      toast({
-        title: "Success",
-        description: "Announcement created successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create announcement",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = async (data: AnnouncementFormData) => {
-    createAnnouncementMutation.mutate(data);
-  };
-
   // Create mutation for adding a new announcement
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: AnnouncementFormData) => {
