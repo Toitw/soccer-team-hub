@@ -740,7 +740,9 @@ export default function TrainingPage() {
           </Tabs>
         </div>
 
-        <MobileNavigation />
+        <div className="pb-16">
+          <MobileNavigation />
+        </div>
       </div>
     </div>
   );

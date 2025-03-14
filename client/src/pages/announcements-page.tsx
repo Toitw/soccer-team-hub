@@ -160,9 +160,9 @@ export default function AnnouncementsPage() {
   const teamMember = selectedTeam?.id && user?.id 
     ? { role: user?.role === "admin" ? "admin" : "coach" } // Default to admin/coach for site admin
     : null;
-  
+
   const isLoading = teamsLoading || announcementsLoading;
-  
+
   // Check if user is admin or coach (allowed to create/delete announcements)
   const canManageAnnouncements = () => {
     if (!selectedTeam || !user || !teamMember) {
@@ -174,7 +174,7 @@ export default function AnnouncementsPage() {
       });
       return false;
     }
-    
+
     const canManage = teamMember.role === "admin" || teamMember.role === "coach";
     console.log('User permission check:', { 
       teamMemberRole: teamMember.role,
@@ -182,7 +182,7 @@ export default function AnnouncementsPage() {
       userId: user.id, 
       teamId: selectedTeam.id 
     });
-    
+
     return canManage;
   };
 
@@ -202,10 +202,10 @@ export default function AnnouncementsPage() {
       <div className="flex-1 ml-0 md:ml-64">
         <Header title="Announcements" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16"> {/* Added padding here */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Team Announcements</h1>
-            
+
             {canManageAnnouncements() && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
@@ -218,7 +218,7 @@ export default function AnnouncementsPage() {
                   <DialogHeader>
                     <DialogTitle>Create Announcement</DialogTitle>
                   </DialogHeader>
-                  
+
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
@@ -234,7 +234,7 @@ export default function AnnouncementsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="content"
@@ -252,7 +252,7 @@ export default function AnnouncementsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <DialogFooter>
                         <Button 
                           type="submit" 
@@ -292,7 +292,7 @@ export default function AnnouncementsPage() {
             <div className="grid gap-4">
               {announcements?.map((announcement) => {
                 let borderColor = "border-secondary";
-                
+
                 // Assign different border colors based on the announcement title
                 if (announcement.title) {
                   if (announcement.title.includes("Training")) {
@@ -301,7 +301,7 @@ export default function AnnouncementsPage() {
                     borderColor = "border-primary";
                   }
                 }
-                
+
                 return (
                   <Card key={announcement.id} className={`border-l-4 ${borderColor}`}>
                     <CardHeader>
