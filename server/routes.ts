@@ -39,6 +39,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
+      // First, get user's current teams to avoid duplicate default teams
+      const existingTeams = await storage.getTeamsByUserId(req.user.id);
+      if (existingTeams.length > 0) {
+        return res.json({
+          message: "User already has a team",
+          details: {
+            team: existingTeams[0].name,
+            info: "You already have a team set up."
+          }
+        });
+      }
+      
       // Create a basic empty team specifically for this user
       const team = await storage.createTeam({
         name: "My Team",

@@ -138,5 +138,12 @@
     "role": "admin",
     "id": 47,
     "joinedAt": "2025-03-14T14:35:34.332Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 34,
+    "role": "admin",
+    "id": 48,
+    "joinedAt": "2025-03-14T14:39:09.914Z"
   }
 ]

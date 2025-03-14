@@ -106,5 +106,17 @@
     "position": null,
     "jerseyNumber": null,
     "phoneNumber": null
+  },
+  {
+    "username": "Rey",
+    "password": "03903f37f263d0b3689a5bd558ed7e2f92150991c8385459e8883f3fd395a900d2dbdb40432e5402bb2d348ebee691793930b11a9fd3793582f81751abca3e96.27d987debec68a86ae77c961cbf366cf",
+    "fullName": "Rey",
+    "role": "admin",
+    "email": "rey@test.com",
+    "id": 34,
+    "profilePicture": null,
+    "position": null,
+    "jerseyNumber": null,
+    "phoneNumber": null
   }
 ]
