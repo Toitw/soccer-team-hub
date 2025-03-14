@@ -178,15 +178,22 @@ export default function AnnouncementsPage() {
         { title: data.title, content: data.content }
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async (response) => {
+      // Explicitly invalidate the queries
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
       });
+      
+      // Force an immediate refetch to update the UI
+      await refetchAnnouncements();
+      
+      // Close the form and show success message
       setEditDialogOpen(false);
       setCurrentAnnouncement(null);
+      console.log('Announcement updated successfully:', response);
       toast({
         title: "Announcement updated",
         description: "Your announcement has been updated successfully.",
@@ -210,13 +217,19 @@ export default function AnnouncementsPage() {
         `/api/teams/${selectedTeam.id}/announcements/${id}`
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async (response) => {
+      // Explicitly invalidate the queries
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
       });
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
       });
+      
+      // Force an immediate refetch to update the UI
+      await refetchAnnouncements();
+      
+      console.log('Announcement deleted successfully:', response);
       toast({
         title: "Announcement deleted",
         description: "The announcement has been deleted successfully.",

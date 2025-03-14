@@ -23,14 +23,9 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
     queryFn: async () => {
       console.log(`Dashboard: Fetching announcements for team ${teamId}`);
       try {
-        const response = await apiRequest("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
-        if (response instanceof Response) {
-          console.error('Dashboard: Error fetching announcements, received Response object instead of data');
-          return [];
-        }
-        const data = response as (Announcement & { creator?: any })[];
-        console.log('Dashboard: Retrieved announcements:', data);
-        return data;
+        const response = await apiRequest<(Announcement & { creator?: any })[]>("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
+        console.log('Dashboard: Retrieved announcements:', response);
+        return response.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       } catch (error) {
         console.error('Dashboard: Error fetching announcements:', error);
         return [];
@@ -40,6 +35,8 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale
+    retry: 3, // Retry failed requests up to 3 times
+    refetchInterval: 60000 // Refresh data every minute
   });
   
   // Force refetch on component mount
@@ -49,19 +46,28 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
     }
   }, [teamId, refetch]);
   
-  // Manual refresh function
+  // Manual refresh function with improved error handling
   const handleRefresh = async () => {
+    console.log('Dashboard: Manually refreshing announcements for team', teamId);
     setIsRefreshing(true);
     try {
-      await refetch();
-      toast({
-        title: "Refreshed",
-        description: "Announcements have been updated.",
-      });
+      const result = await refetch();
+      console.log('Dashboard: Manual refresh result:', result);
+      
+      if (result.isSuccess) {
+        toast({
+          title: "Refreshed",
+          description: `${result.data?.length || 0} announcements loaded successfully.`,
+        });
+      } else if (result.isError && result.error) {
+        console.error('Dashboard: Error during manual refresh:', result.error);
+        throw result.error;
+      }
     } catch (error) {
+      console.error('Dashboard: Failed to refresh announcements:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh announcements",
+        description: error instanceof Error ? error.message : "Failed to refresh announcements",
         variant: "destructive",
       });
     } finally {
