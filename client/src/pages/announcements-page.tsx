@@ -70,16 +70,21 @@ export default function AnnouncementsPage() {
   const selectedTeam = teams.length > 0 ? teams[0] : null;
 
   // Fetch all announcements for the selected team
-  const { data: announcements = [], isLoading: announcementsLoading } = useQuery<
+  const { data: announcements = [], isLoading: announcementsLoading, refetch: refetchAnnouncements } = useQuery<
     (Announcement & { creator?: any })[]
   >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
     queryFn: async () => {
+      console.log(`Fetching announcements for team ${selectedTeam?.id}`);
       const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
       const data = response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
+      console.log('Retrieved announcements:', data);
       return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },
     enabled: !!selectedTeam,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0 // Always consider data stale to ensure fresh data
   });
 
   // Create form for adding a new announcement
@@ -271,7 +276,24 @@ export default function AnnouncementsPage() {
 
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24"> {/* Added more bottom padding for mobile nav */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Team Announcements</h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold">Team Announcements</h1>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => {
+                  console.log('Current announcements:', announcements);
+                  refetchAnnouncements();
+                  toast({
+                    title: "Refreshed",
+                    description: "Announcements have been updated.",
+                  });
+                }}
+                className="ml-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
 
             {canManageAnnouncements() && (
               <Dialog open={open} onOpenChange={setOpen}>

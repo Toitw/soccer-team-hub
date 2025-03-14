@@ -3,24 +3,62 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Announcement } from "@shared/schema";
 import { format } from "date-fns";
-import { PlusIcon, ArrowRight, Loader2 } from "lucide-react";
+import { PlusIcon, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface AnnouncementsProps {
   teamId: number;
 }
 
 export default function Announcements({ teamId }: AnnouncementsProps) {
-  const { data: announcements = [], isLoading } = useQuery<(Announcement & { creator?: any })[]>({
+  const { toast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const { data: announcements = [], isLoading, refetch } = useQuery<(Announcement & { creator?: any })[]>({
     queryKey: ["/api/teams", teamId, "announcements", "recent"],
     queryFn: async () => {
+      console.log(`Dashboard: Fetching announcements for team ${teamId}`);
       const response = await apiRequest("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
-      return response instanceof Response ? [] : response;
+      const data = response instanceof Response ? [] : response;
+      console.log('Dashboard: Retrieved announcements:', data);
+      return data;
     },
     enabled: !!teamId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale
   });
+  
+  // Force refetch on component mount
+  useEffect(() => {
+    if (teamId) {
+      refetch();
+    }
+  }, [teamId, refetch]);
+  
+  // Manual refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast({
+        title: "Refreshed",
+        description: "Announcements have been updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh announcements",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -37,11 +75,22 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex justify-between items-center">
           <span>Announcements</span>
-          <Link to="/announcements">
-            <Button variant="ghost" size="icon" className="text-sm text-primary">
-              <PlusIcon className="h-5 w-5" />
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-sm mr-1"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-          </Link>
+            <Link to="/announcements">
+              <Button variant="ghost" size="icon" className="text-sm text-primary">
+                <PlusIcon className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </CardTitle>
       </CardHeader>
       
