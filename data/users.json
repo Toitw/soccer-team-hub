@@ -82,5 +82,17 @@
     "id": 31,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "juroga",
+    "password": "474f9d74d841d700cedf2c9474a1fb1b816024c2d59ae63f515fddc59655521bb7870c7f9209a812e332f1233270cb150a4cd4162cc2b4e299a0cd96b4ebbe78.996c590555e923d31d67b37ab1400743",
+    "fullName": "Juan",
+    "role": "admin",
+    "email": "juanjrgast@gmail.com",
+    "id": 32,
+    "profilePicture": null,
+    "position": null,
+    "jerseyNumber": null,
+    "phoneNumber": null
   }
 ]
