@@ -696,7 +696,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdById: req.user.id,
       });
 
-      res.status(201).json(announcement);
+      // Get user details for the creator
+      const user = await storage.getUser(announcement.createdById);
+      let announcementWithCreator = announcement;
+      
+      if (user) {
+        const { password, ...creatorWithoutPassword } = user;
+        announcementWithCreator = {
+          ...announcement,
+          creator: creatorWithoutPassword,
+        };
+      }
+      
+      res.status(201).json(announcementWithCreator);
     } catch (error) {
       res.status(500).json({ error: "Failed to create announcement" });
     }
