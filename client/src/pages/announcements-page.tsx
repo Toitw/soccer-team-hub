@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -268,7 +269,7 @@ export default function AnnouncementsPage() {
       <div className="flex-1 ml-0 md:ml-64">
         <Header title="Announcements" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16"> {/* Added padding here */}
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24"> {/* Added more bottom padding for mobile nav */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Team Announcements</h1>
 
@@ -283,6 +284,9 @@ export default function AnnouncementsPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Create Announcement</DialogTitle>
+                    <DialogDescription>
+                      Fill out the form below to create a new announcement.
+                    </DialogDescription>
                   </DialogHeader>
 
                   <Form {...form}>
@@ -443,6 +447,9 @@ export default function AnnouncementsPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit Announcement</DialogTitle>
+              <DialogDescription>
+                Update the announcement details below.
+              </DialogDescription>
             </DialogHeader>
 
             <Form {...editForm}>
