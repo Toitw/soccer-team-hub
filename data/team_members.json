@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "teamId": 1,
+    "userId": 33,
+    "role": "admin",
+    "id": 1,
+    "joinedAt": "2025-03-14T14:56:41.252Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 36,
+    "role": "player",
+    "id": 2,
+    "joinedAt": "2025-03-14T14:57:32.997Z"
+  },
+  {
+    "teamId": 2,
+    "userId": 32,
+    "role": "admin",
+    "id": 3,
+    "joinedAt": "2025-03-14T14:57:57.700Z"
+  }
+]
