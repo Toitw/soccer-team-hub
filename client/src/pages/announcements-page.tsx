@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -100,7 +100,7 @@ export default function AnnouncementsPage() {
   });
   
   // Update form values when currentAnnouncement changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentAnnouncement) {
       editForm.reset({
         title: currentAnnouncement.title,
@@ -142,6 +142,39 @@ export default function AnnouncementsPage() {
     },
   });
 
+  // Update announcement mutation
+  const updateAnnouncementMutation = useMutation({
+    mutationFn: async (data: { id: number; title: string; content: string }) => {
+      if (!selectedTeam) throw new Error("No team selected");
+      return apiRequest(
+        "PATCH",
+        `/api/teams/${selectedTeam.id}/announcements/${data.id}`,
+        { title: data.title, content: data.content }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
+      });
+      setEditDialogOpen(false);
+      setCurrentAnnouncement(null);
+      toast({
+        title: "Announcement updated",
+        description: "Your announcement has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update announcement",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete announcement mutation
   const deleteAnnouncementMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -175,6 +208,17 @@ export default function AnnouncementsPage() {
   // Handle form submission
   const onSubmit = (data: AnnouncementFormData) => {
     createAnnouncementMutation.mutate(data);
+  };
+  
+  // Handle edit form submission
+  const onEditSubmit = (data: AnnouncementFormData) => {
+    if (!currentAnnouncement) return;
+    
+    updateAnnouncementMutation.mutate({
+      id: currentAnnouncement.id,
+      title: data.title,
+      content: data.content,
+    });
   };
 
   // Fetch team member role for the current user - using the teams data instead to avoid extra API call
@@ -330,34 +374,47 @@ export default function AnnouncementsPage() {
                       <div className="flex justify-between items-start">
                         <CardTitle>{announcement.title}</CardTitle>
                         {canManageAnnouncements() && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive">
-                                <TrashIcon className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete this announcement.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
-                                  className="bg-destructive text-destructive-foreground"
-                                >
-                                  {deleteAnnouncementMutation.isPending ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    "Delete"
-                                  )}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <div className="flex">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                setCurrentAnnouncement(announcement);
+                                setEditDialogOpen(true);
+                              }}
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </Button>
+                            
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive">
+                                  <TrashIcon className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete this announcement.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
+                                    className="bg-destructive text-destructive-foreground"
+                                  >
+                                    {deleteAnnouncementMutation.isPending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Delete"
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         )}
                       </div>
                     </CardHeader>
@@ -380,6 +437,63 @@ export default function AnnouncementsPage() {
             </div>
           )}
         </div>
+
+        {/* Edit Announcement Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Announcement</DialogTitle>
+            </DialogHeader>
+
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter announcement title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter announcement content"
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button 
+                    type="submit" 
+                    disabled={updateAnnouncementMutation.isPending}
+                  >
+                    {updateAnnouncementMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Update Announcement
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <MobileNavigation />
       </div>
