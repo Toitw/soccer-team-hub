@@ -59,10 +59,19 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     try {
+      // Always fetch fresh user data from storage
+      // This is critical to ensure we don't use stale user data
       const user = await storage.getUser(id);
+      
+      if (!user) {
+        return done(new Error("User not found"), null);
+      }
+      
+      // We only store the user ID in the session and fetch the complete data each time
       done(null, user);
     } catch (error) {
-      done(error);
+      console.error("Error deserializing user:", error);
+      done(error, null);
     }
   });
 
@@ -90,16 +99,50 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    // Don't send the password to the client
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
-    res.status(200).json(userWithoutPassword);
+  app.post("/api/login", passport.authenticate("local"), async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication failed" });
+      }
+      
+      // Get fresh user data directly from storage to ensure we have the most up-to-date information
+      const freshUser = await storage.getUser(req.user.id);
+      
+      if (!freshUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't send the password to the client
+      const { password, ...userWithoutPassword } = freshUser;
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching fresh user data on login:", error);
+      
+      // Fall back to session user if we can't get fresh data
+      if (req.user) {
+        const { password, ...userWithoutPassword } = req.user as SelectUser;
+        res.status(200).json(userWithoutPassword);
+      } else {
+        res.status(500).json({ error: "Failed to retrieve user data" });
+      }
+    }
   });
 
   app.post("/api/logout", (req, res, next) => {
+    // First log out the user from passport
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      
+      // Then destroy the session completely to ensure clean state
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error("Error destroying session:", sessionErr);
+        }
+        
+        // Clear the session cookie
+        res.clearCookie('connect.sid');
+        res.sendStatus(200);
+      });
     });
   });
 

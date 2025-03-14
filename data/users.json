@@ -118,5 +118,17 @@
     "position": null,
     "jerseyNumber": null,
     "phoneNumber": null
+  },
+  {
+    "username": "reisi3381",
+    "password": "9a86dc185f35ef2ed8f8c08d79505fcfb7c628999bbe62ce526ae29bafc6b7631719e05c1046a1f527544c7de1d340c67e55320db9fbf9f11684c395f4a71a29.48df8d629453f00227e9fd881c27a51f",
+    "fullName": "Reisi",
+    "role": "player",
+    "position": "Goalkeeper",
+    "jerseyNumber": 1,
+    "profilePicture": "https://i.pravatar.cc/150?u=3381",
+    "id": 35,
+    "email": null,
+    "phoneNumber": null
   }
 ]
