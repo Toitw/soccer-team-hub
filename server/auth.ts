@@ -103,11 +103,23 @@ export function setupAuth(app: Express) {
     });
   });
 
-  app.get("/api/user", (req, res) => {
+  app.get("/api/user", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
-    // Don't send the password to the client
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
-    res.json(userWithoutPassword);
+    try {
+      // Always fetch the most up-to-date user data from storage
+      const currentUser = await storage.getUser(req.user.id);
+      
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't send the password to the client
+      const { password, ...userWithoutPassword } = currentUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user data" });
+    }
   });
 }
