@@ -1,18 +1,1 @@
-[
-  {
-    "name": "My Team",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
-    "division": "League Division",
-    "seasonYear": "2025",
-    "createdById": 32,
-    "id": 1
-  },
-  {
-    "name": "My Team",
-    "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
-    "division": "League Division",
-    "seasonYear": "2025",
-    "createdById": 33,
-    "id": 2
-  }
-]
+[]

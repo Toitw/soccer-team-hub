@@ -1,15 +1,1 @@
-[
-  {
-    "opponentName": "Prueba",
-    "matchDate": "2025-03-15T13:43:00.000Z",
-    "location": "Candas",
-    "isHome": true,
-    "notes": "Prueba",
-    "status": "scheduled",
-    "goalsScored": null,
-    "goalsConceded": null,
-    "teamId": 1,
-    "id": 1,
-    "opponentLogo": null
-  }
-]
+[]

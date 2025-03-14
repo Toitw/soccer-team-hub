@@ -33,11 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      // First clear any stale data
+      queryClient.clear();
+      
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
+      // Set the user data
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Invalidate any potentially cached queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.fullName}`,
@@ -78,7 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // Clear all cached queries to ensure fresh data on login
+      queryClient.clear();
+      
+      // Set the user to null
       queryClient.setQueryData(["/api/user"], null);
+      
+      // Force reload the window to ensure a clean state
+      window.location.href = "/auth";
+      
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
