@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Announcement } from "@shared/schema";
@@ -21,7 +22,16 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
     enabled: !!teamId,
   });
 
-export default function Announcements({ announcements }: AnnouncementsProps) {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
