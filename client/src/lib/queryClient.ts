@@ -7,11 +7,11 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
+export async function apiRequest<T = any>(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<T> {
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -20,7 +20,23 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res;
+  
+  // For empty responses or non-JSON responses
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    if (res.status === 204) { // No content
+      return {} as T;
+    }
+    console.warn(`Non-JSON response from ${url}`);
+    return {} as T;
+  }
+
+  try {
+    return await res.json() as T;
+  } catch (error) {
+    console.error('Error parsing JSON response:', error);
+    throw new Error('Failed to parse server response');
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
