@@ -1,15 +1,37 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Announcement } from "@shared/schema";
 import { format } from "date-fns";
-import { PlusIcon, ArrowRight } from "lucide-react";
+import { PlusIcon, ArrowRight, Loader2 } from "lucide-react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AnnouncementsProps {
-  announcements: (Announcement & { creator?: any })[];
+  teamId: number;
 }
 
-export default function Announcements({ announcements }: AnnouncementsProps) {
+export default function Announcements({ teamId }: AnnouncementsProps) {
+  const { data: announcements = [], isLoading } = useQuery<(Announcement & { creator?: any })[]>({
+    queryKey: ["/api/teams", teamId, "announcements", "recent"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
+      return response instanceof Response ? [] : response;
+    },
+    enabled: !!teamId,
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-6">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">

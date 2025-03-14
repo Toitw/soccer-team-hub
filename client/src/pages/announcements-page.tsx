@@ -73,7 +73,8 @@ export default function AnnouncementsPage() {
     queryKey: ["/api/teams", selectedTeam?.id, "announcements"],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
-      return response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
+      const data = response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
+      return data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     },
     enabled: !!selectedTeam,
   });
