@@ -88,6 +88,7 @@ export default function AnnouncementsPage() {
     },
   });
 
+  // Create announcement mutation
   // Create mutation for adding a new announcement
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: AnnouncementFormData) => {
