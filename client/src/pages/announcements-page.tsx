@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Loader2, PlusIcon, TrashIcon, AlertTriangle } from "lucide-react";
+import { Loader2, PlusIcon, TrashIcon, AlertTriangle, PencilIcon } from "lucide-react";
 import { format } from "date-fns";
 import {
   Form,
@@ -55,6 +55,8 @@ type AnnouncementFormData = z.infer<typeof announcementSchema>;
 export default function AnnouncementsPage() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -87,9 +89,27 @@ export default function AnnouncementsPage() {
       content: "",
     },
   });
+  
+  // Edit form
+  const editForm = useForm<AnnouncementFormData>({
+    resolver: zodResolver(announcementSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+    },
+  });
+  
+  // Update form values when currentAnnouncement changes
+  React.useEffect(() => {
+    if (currentAnnouncement) {
+      editForm.reset({
+        title: currentAnnouncement.title,
+        content: currentAnnouncement.content,
+      });
+    }
+  }, [currentAnnouncement, editForm]);
 
   // Create announcement mutation
-  // Create mutation for adding a new announcement
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: AnnouncementFormData) => {
       if (!selectedTeam) throw new Error("No team selected");
