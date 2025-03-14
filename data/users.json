@@ -94,5 +94,17 @@
     "position": null,
     "jerseyNumber": null,
     "phoneNumber": null
+  },
+  {
+    "username": "Olaya",
+    "password": "d864151c3b159c3558e9d0e19e34ff74eadf5a2941b0f0005657743bc1ec4cbc5caeaeb5f6cb50b048e26f5f45e99d3ac5391d88e250c37f5aba622df0a29f7c.94b56a5b5fac0ed80236d128fa07e81b",
+    "fullName": "Olaya",
+    "role": "admin",
+    "email": "olaya.1997@hotmail.com",
+    "id": 33,
+    "profilePicture": null,
+    "position": null,
+    "jerseyNumber": null,
+    "phoneNumber": null
   }
 ]
