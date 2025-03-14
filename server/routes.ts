@@ -34,15 +34,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // Route to create mock data - now disabled for automated mock data creation
+  // Route to create a new team for the user
   app.post("/api/mock-data", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
-      // Instead of creating mock data, we now just create a team for the user
-      // This route has been modified to not create any mock players
-      
-      // Create a basic empty team
+      // Create a basic empty team specifically for this user
       const team = await storage.createTeam({
         name: "My Team",
         logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
@@ -53,22 +50,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
       
-      // Check if user is already a member before adding them
-      const existingMember = await storage.getTeamMember(team.id, req.user.id);
-      if (!existingMember) {
-        // Add current user as admin of the team only if they're not already a member
-        await storage.createTeamMember({
-          teamId: team.id,
-          userId: req.user.id,
-          role: "admin"
-        });
-      }
+      // Always add the current user as admin of the new team
+      await storage.createTeamMember({
+        teamId: team.id,
+        userId: req.user.id,
+        role: "admin"
+      });
       
       res.json({ 
         message: "Team created successfully", 
         details: {
           team: team.name,
-          info: "Mock data creation has been disabled. You can add members manually from the team page."
+          info: "You can add members manually from the team page."
         }
       });
     } catch (error) {
@@ -98,16 +91,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdById: req.user.id,
       });
       
-      // Check if user is already a member before adding them
-      const existingMember = await storage.getTeamMember(team.id, req.user.id);
-      if (!existingMember) {
-        // Add creator as team admin only if they're not already a member
-        await storage.createTeamMember({
-          teamId: team.id,
-          userId: req.user.id,
-          role: "admin"
-        });
-      }
+      // Always add the current user as the admin of the team they create
+      await storage.createTeamMember({
+        teamId: team.id,
+        userId: req.user.id,
+        role: "admin"
+      });
       
       res.status(201).json(team);
     } catch (error) {

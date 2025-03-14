@@ -433,11 +433,15 @@ export class MemStorage implements IStorage {
   }
 
   async getTeamsByUserId(userId: number): Promise<Team[]> {
+    // First, get all team memberships for this user
     const teamMemberEntries = Array.from(this.teamMembers.values()).filter(
       (member) => member.userId === userId
     );
     
+    // Extract only the team IDs that this user is a member of
     const teamIds = teamMemberEntries.map((member) => member.teamId);
+    
+    // Return only teams where the user is a member
     return Array.from(this.teams.values()).filter(
       (team) => teamIds.includes(team.id)
     );
@@ -613,7 +617,13 @@ export class MemStorage implements IStorage {
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = this.eventCurrentId++;
-    const event: Event = { ...insertEvent, id };
+    // Ensure all required fields have values to satisfy TypeScript
+    const event: Event = { 
+      ...insertEvent, 
+      id,
+      endTime: insertEvent.endTime || null,
+      description: insertEvent.description || null
+    };
     this.events.set(id, event);
     return event;
   }
@@ -646,7 +656,13 @@ export class MemStorage implements IStorage {
 
   async createAttendance(insertAttendance: InsertAttendance): Promise<Attendance> {
     const id = this.attendanceCurrentId++;
-    const attendance: Attendance = { ...insertAttendance, id };
+    // Ensure status is set to satisfy TypeScript
+    const status = insertAttendance.status || "pending";
+    const attendance: Attendance = { 
+      ...insertAttendance, 
+      id,
+      status
+    };
     this.attendance.set(id, attendance);
     return attendance;
   }
@@ -675,7 +691,17 @@ export class MemStorage implements IStorage {
 
   async createPlayerStat(insertPlayerStat: InsertPlayerStat): Promise<PlayerStat> {
     const id = this.playerStatCurrentId++;
-    const playerStat: PlayerStat = { ...insertPlayerStat, id };
+    // Ensure all required fields have values to satisfy TypeScript
+    const playerStat: PlayerStat = { 
+      ...insertPlayerStat, 
+      id,
+      goals: insertPlayerStat.goals || null,
+      assists: insertPlayerStat.assists || null,
+      yellowCards: insertPlayerStat.yellowCards || null,
+      redCards: insertPlayerStat.redCards || null,
+      minutesPlayed: insertPlayerStat.minutesPlayed || null,
+      performance: insertPlayerStat.performance || null
+    };
     this.playerStats.set(id, playerStat);
     return playerStat;
   }
@@ -752,7 +778,15 @@ export class MemStorage implements IStorage {
 
   async createInvitation(insertInvitation: InsertInvitation): Promise<Invitation> {
     const id = this.invitationCurrentId++;
-    const invitation: Invitation = { ...insertInvitation, id, createdAt: new Date(), status: "pending" };
+    // Ensure all required fields have values for TypeScript
+    const role = insertInvitation.role || "player";
+    const invitation: Invitation = { 
+      ...insertInvitation, 
+      id, 
+      role,
+      createdAt: new Date(), 
+      status: "pending" 
+    };
     this.invitations.set(id, invitation);
     return invitation;
   }
