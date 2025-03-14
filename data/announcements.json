@@ -38,5 +38,21 @@
     "createdById": 33,
     "id": 5,
     "createdAt": "2025-03-14T15:56:41.799Z"
+  },
+  {
+    "title": "Probando",
+    "content": "Dmdm",
+    "teamId": 1,
+    "createdById": 33,
+    "id": 6,
+    "createdAt": "2025-03-14T16:00:01.216Z"
+  },
+  {
+    "title": "Holaa",
+    "content": "Hhh",
+    "teamId": 2,
+    "createdById": 32,
+    "id": 7,
+    "createdAt": "2025-03-14T16:00:38.865Z"
   }
 ]

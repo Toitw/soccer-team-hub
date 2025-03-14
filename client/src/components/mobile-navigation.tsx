@@ -1,6 +1,5 @@
 import { Link, useLocation } from "wouter";
 import { useMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -51,6 +50,18 @@ export default function MobileNavigation() {
         />
         
         <NavItem 
+          href="/announcements" 
+          icon={
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          }
+          label="Announcements"
+        />
+        
+        <NavItem 
           href="/matches" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,84 +75,72 @@ export default function MobileNavigation() {
           label="Matches" 
         />
         
-        {/* More menu that opens a sheet with additional navigation options */}
-        <Sheet>
-          <SheetTrigger className="flex flex-col items-center py-1 text-gray-500">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="12" cy="5" r="1" />
-              <circle cx="12" cy="19" r="1" />
-            </svg>
-            <span className="text-xs mt-1">More</span>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-xl">
-            <div className="grid grid-cols-3 gap-4 py-4">
-              <div className="flex flex-col items-center">
-                <Link href="/training">
-                  <div className={`flex flex-col items-center px-4 py-2 ${location === '/training' ? 'text-primary' : 'text-gray-700'}`}>
+        <div className="flex flex-col items-center py-1 text-gray-500">
+          <Sheet>
+            <SheetTrigger className="flex flex-col items-center py-1 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+              <span className="text-xs mt-1">More</span>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-xl">
+              <div className="grid grid-cols-3 gap-4 py-4">
+                <div className="flex flex-col items-center">
+                  <Link href="/training">
+                    <div className={`flex flex-col items-center px-4 py-2 ${location === '/training' ? 'text-primary' : 'text-gray-700'}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                        <line x1="4" y1="22" x2="4" y2="15"></line>
+                      </svg>
+                      <span className="text-sm mt-1">Training</span>
+                    </div>
+                  </Link>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <Link href="/statistics">
+                    <div className={`flex flex-col items-center px-4 py-2 ${location === '/statistics' ? 'text-primary' : 'text-gray-700'}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                      </svg>
+                      <span className="text-sm mt-1">Statistics</span>
+                    </div>
+                  </Link>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <Link href="/settings">
+                    <div className={`flex flex-col items-center px-4 py-2 ${location === '/settings' ? 'text-primary' : 'text-gray-700'}`}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
+                      <span className="text-sm mt-1">Settings</span>
+                    </div>
+                  </Link>
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <button 
+                    onClick={() => logoutMutation.mutate()}
+                    className="flex flex-col items-center px-4 py-2 text-gray-700"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                      <line x1="4" y1="22" x2="4" y2="15"></line>
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16 17 21 12 16 7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
-                    <span className="text-sm mt-1">Training</span>
-                  </div>
-                </Link>
+                    <span className="text-sm mt-1">Logout</span>
+                  </button>
+                </div>
               </div>
-              
-              <div className="flex flex-col items-center">
-                <Link href="/statistics">
-                  <div className={`flex flex-col items-center px-4 py-2 ${location === '/statistics' ? 'text-primary' : 'text-gray-700'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="20" x2="18" y2="10"></line>
-                      <line x1="12" y1="20" x2="12" y2="4"></line>
-                      <line x1="6" y1="20" x2="6" y2="14"></line>
-                    </svg>
-                    <span className="text-sm mt-1">Statistics</span>
-                  </div>
-                </Link>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <Link href="/announcements">
-                  <div className={`flex flex-col items-center px-4 py-2 ${location === '/announcements' ? 'text-primary' : 'text-gray-700'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                      <line x1="12" y1="9" x2="12" y2="13"></line>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
-                    <span className="text-sm mt-1">Announcements</span>
-                  </div>
-                </Link>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <Link href="/settings">
-                  <div className={`flex flex-col items-center px-4 py-2 ${location === '/settings' ? 'text-primary' : 'text-gray-700'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                    <span className="text-sm mt-1">Settings</span>
-                  </div>
-                </Link>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <button 
-                  onClick={() => logoutMutation.mutate()}
-                  className="flex flex-col items-center px-4 py-2 text-gray-700"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  <span className="text-sm mt-1">Logout</span>
-                </button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </div>
   );
