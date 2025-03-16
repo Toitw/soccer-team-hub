@@ -703,11 +703,28 @@ export default function TeamPage() {
                 <Shield className="mr-2 h-5 w-5 text-primary" />
                 Team Lineup
               </CardTitle>
-              {isAdmin && (
-                <Button variant="outline" size="sm">
-                  Save Lineup
-                </Button>
-              )}
+              <div className="flex items-center space-x-2">
+                <Select 
+                  value={selectedFormation} 
+                  onValueChange={handleFormationChange}
+                >
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Formation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableFormations.map(formation => (
+                      <SelectItem key={formation} value={formation}>
+                        {formation}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isAdmin && (
+                  <Button variant="outline" size="sm">
+                    Save Lineup
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <div className="relative bg-green-800 w-full aspect-[16/9] min-h-[400px] rounded-md flex items-center justify-center">
