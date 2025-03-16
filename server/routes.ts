@@ -348,13 +348,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password: pwd, ...userWithoutPassword } = fullUser;
 
         // Return member with full user details
-        // Include complete user details in response
         const memberResponse = {
-          id: newTeamMember.id,
-          teamId: newTeamMember.teamId,
-          userId: newTeamMember.userId,
-          role: newTeamMember.role,
-          joinedAt: newTeamMember.joinedAt,
+          ...newTeamMember,
           user: {
             id: fullUser.id,
             username: fullUser.username,
@@ -369,8 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         console.log("Created new team member:", JSON.stringify(memberResponse, null, 2));
-        res.status(201).json(memberResponse);
-        return;
+        return res.status(201).json(memberResponse);
       }
 
       // Regular team member addition (existing user)
