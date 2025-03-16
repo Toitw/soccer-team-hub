@@ -46,34 +46,32 @@ export async function apiRequest<T = any>(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <TData>(options: {
+export const getQueryFn = <TData = any>({ on401: unauthorizedBehavior }: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<TData> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const url = queryKey[0] as string;
-    const res = await fetch(url, {
-      credentials: "include",
-    });
+}): QueryFunction<TData> => async ({ queryKey }) => {
+  const url = queryKey[0] as string;
+  const res = await fetch(url, {
+    credentials: "include",
+  });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null as any;
-    }
+  if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    return null as any;
+  }
 
-    await throwIfResNotOk(res);
-    
-    // For empty responses
-    if (res.status === 204) {
-      return {} as TData;
-    }
-    
-    try {
-      return await res.json() as TData;
-    } catch (error) {
-      console.warn(`getQueryFn: Could not parse JSON from ${url}:`, error);
-      return {} as TData;  // Return empty object rather than failing
-    }
-  };
+  await throwIfResNotOk(res);
+  
+  // For empty responses
+  if (res.status === 204) {
+    return {} as TData;
+  }
+  
+  try {
+    return await res.json() as TData;
+  } catch (error) {
+    console.warn(`getQueryFn: Could not parse JSON from ${url}:`, error);
+    return {} as TData;  // Return empty object rather than failing
+  }
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {

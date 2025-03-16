@@ -84,12 +84,12 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-6">
               <TeamSummary team={selectedTeam} />
               <UpcomingEvents events={upcomingEvents || []} />
-              <NextMatch matches={recentMatches || []} /> {/* Replaced RecentMatches with NextMatch */}
+              <NextMatch teamId={selectedTeam?.id} /> {/* Use NextMatch with teamId */}
             </div>
 
             {/* Right Column */}
             <div className="space-y-6">
-              <Announcements announcements={announcements || []} />
+              <Announcements teamId={selectedTeam?.id} announcements={announcements || []} />
               <TopPerformers teamId={selectedTeam?.id || 0} />
               <AttendanceTracker teamId={selectedTeam?.id || 0} />
             </div>
