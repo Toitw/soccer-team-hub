@@ -610,7 +610,15 @@ export default function TeamPage() {
                           <FormItem>
                             <FormLabel>Profile Picture URL (optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://example.com/photo.jpg" {...field} />
+                              <Input 
+                                placeholder="https://example.com/photo.jpg" 
+                                value={field.value || ""} 
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                disabled={field.disabled}
+                                name={field.name}
+                                ref={field.ref}
+                              />
                             </FormControl>
                             <FormDescription>
                               Enter a valid URL for the player's profile picture
@@ -661,104 +669,176 @@ export default function TeamPage() {
               </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-              <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] min-h-[400px] rounded-md flex items-center justify-center overflow-hidden">
-                {/* Field container - just the bottom half of the field */}
-                <div className="absolute top-0 left-0 w-full h-full">
-                  {/* Field markings - half field only */}
-                  <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                    {/* Center circle - half circle at the top */}
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                    
-                    {/* Penalty area */}
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                    
-                    {/* Goal area */}
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                    
-                    {/* Goal */}
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                    
-                    {/* Penalty spot */}
-                    <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                    
-                    {/* Interactive player positions */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+                {/* Field container - responsive for desktop and mobile */}
+                <div className="lg:col-span-3">
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/3] sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                    {/* Field markings - half field only */}
                     <div className="absolute top-0 left-0 w-full h-full">
-                      {getPositionsByFormation(selectedFormation).map((position) => {
-                        const player = lineup[position.id];
-                        return (
-                          <div
-                            key={position.id}
-                            className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                            style={{ top: `${position.top}%`, left: `${position.left}%` }}
-                            onClick={() => handlePositionClick(position.id)}
-                          >
-                            <div 
-                              className={`
-                                w-12 h-12 rounded-full flex items-center justify-center text-white
-                                border-2 border-white shadow-lg transition-all
-                                ${player ? 'scale-100' : 'scale-90 opacity-70'}
-                                ${position.label === 'GK' ? "bg-blue-500" : 
-                                  position.label === 'DEF' ? "bg-red-500" :
-                                  position.label === 'MID' ? "bg-green-500" : "bg-yellow-500"}
-                                ${isAdmin ? 'hover:scale-110 hover:opacity-100' : ''}
-                              `}
-                            >
-                              {player ? (
-                                <div className="flex flex-col items-center">
-                                  <span className="font-bold text-sm">{player.user.jerseyNumber || "?"}</span>
+                      <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                        {/* Center circle - half circle at the top */}
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                        
+                        {/* Penalty area */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                        
+                        {/* Goal area */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                        
+                        {/* Goal */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                        
+                        {/* Penalty spot */}
+                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        
+                        {/* Interactive player positions */}
+                        <div className="absolute top-0 left-0 w-full h-full">
+                          {getPositionsByFormation(selectedFormation).map((position) => {
+                            const player = lineup[position.id];
+                            // Adjust position coordinates
+                            const adjustedLeft = position.left + 3; // Move right by 3%
+                            const adjustedTop = position.top - 3; // Move up by 3%
+                            
+                            return (
+                              <div
+                                key={position.id}
+                                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                                style={{ top: `${adjustedTop}%`, left: `${adjustedLeft}%` }}
+                                onClick={() => handlePositionClick(position.id)}
+                              >
+                                <div 
+                                  className={`
+                                    w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white
+                                    border-2 border-white shadow-lg transition-all
+                                    ${player ? 'scale-100' : 'scale-90 opacity-70'}
+                                    ${position.label === 'GK' ? "bg-blue-500" : 
+                                      position.label === 'DEF' ? "bg-red-500" :
+                                      position.label === 'MID' ? "bg-green-500" : "bg-yellow-500"}
+                                    ${isAdmin ? 'hover:scale-110 hover:opacity-100' : ''}
+                                  `}
+                                >
+                                  {player ? (
+                                    <div className="flex flex-col items-center">
+                                      <span className="font-bold text-sm">{player.user.jerseyNumber || "?"}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs md:text-sm font-bold">{position.label}</div>
+                                  )}
                                 </div>
-                              ) : (
-                                <div className="text-sm font-bold">{position.label}</div>
+                                
+                                {player && (
+                                  <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
+                                    <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
+                                      {player.user.fullName?.split(" ")[0] || ""}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {player && isAdmin && (
+                                  <div 
+                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removePlayerFromLineup(position.id);
+                                    }}
+                                  >
+                                    <span className="text-white text-xs font-bold">✕</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {(!teamMembers || teamMembers.length === 0) && (
+                      <div className="relative z-10 text-white text-center p-4 bg-black bg-opacity-50 rounded">
+                        No team members available for lineup
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Legend - Only show on desktop */}
+                  <div className="mt-4 text-sm text-muted-foreground hidden md:block">
+                    <p className="flex items-center mb-2">
+                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                      Goalkeeper
+                      <span className="inline-block w-3 h-3 bg-red-500 rounded-full ml-4 mr-2"></span>
+                      Defender
+                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full ml-4 mr-2"></span>
+                      Midfielder
+                      <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full ml-4 mr-2"></span>
+                      Forward
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {isAdmin ? "Click on a position to assign a player to it." : "Team lineup is set by the coach."}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Bench players section */}
+                <div className="lg:col-span-2">
+                  <div className="bg-muted/30 rounded-md p-4">
+                    <h3 className="text-lg font-semibold mb-3">Bench</h3>
+                    
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                      {teamMembers?.filter(member => 
+                        member.role === "player" && 
+                        !Object.values(lineup).some(p => p?.id === member.id)
+                      ).map(member => (
+                        <div 
+                          key={member.id}
+                          className="flex items-center p-2 bg-background rounded-md hover:bg-accent/50 transition-colors"
+                        >
+                          <Avatar className="h-8 w-8 mr-3">
+                            <AvatarImage src={member.user.profilePicture || undefined} alt={member.user.fullName || ""} />
+                            <AvatarFallback>{member.user.fullName?.charAt(0) || "U"}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{member.user.fullName}</div>
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              {member.user.position && (
+                                <span className="truncate">{member.user.position}</span>
+                              )}
+                              {member.user.jerseyNumber && (
+                                <Badge variant="outline" className="text-xs ml-1">#{member.user.jerseyNumber}</Badge>
                               )}
                             </div>
-                            
-                            {player && (
-                              <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
-                                <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
-                                  {player.user.fullName?.split(" ")[0] || ""}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {player && isAdmin && (
-                              <div 
-                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removePlayerFromLineup(position.id);
-                                }}
-                              >
-                                <span className="text-white text-xs font-bold">✕</span>
-                              </div>
-                            )}
                           </div>
-                        );
-                      })}
+                          {isAdmin && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="ml-2"
+                              onClick={() => {
+                                if (selectedPosition) {
+                                  addPlayerToLineup(member);
+                                } else {
+                                  toast({
+                                    title: "Select a position",
+                                    description: "Click on a position on the field first.",
+                                  });
+                                }
+                              }}
+                            >
+                              Add
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {teamMembers?.filter(member => 
+                        member.role === "player" && 
+                        !Object.values(lineup).some(p => p?.id === member.id)
+                      ).length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>All players are in the lineup</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-
-                {(!teamMembers || teamMembers.length === 0) && (
-                  <div className="relative z-10 text-white text-center p-4 bg-black bg-opacity-50 rounded">
-                    No team members available for lineup
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 text-sm text-muted-foreground">
-                <p className="flex items-center mb-2">
-                  <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                  Goalkeeper
-                  <span className="inline-block w-3 h-3 bg-red-500 rounded-full ml-4 mr-2"></span>
-                  Defender
-                  <span className="inline-block w-3 h-3 bg-green-500 rounded-full ml-4 mr-2"></span>
-                  Midfielder
-                  <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full ml-4 mr-2"></span>
-                  Forward
-                </p>
-                <p className="text-xs text-gray-500">
-                  {isAdmin ? "Click on a position to assign a player to it." : "Team lineup is set by the coach."}
-                </p>
               </div>
               
               {/* Dialog for adding a player to the lineup */}
@@ -1119,7 +1199,15 @@ export default function TeamPage() {
                             <FormItem>
                               <FormLabel>Profile Picture URL (optional)</FormLabel>
                               <FormControl>
-                                <Input placeholder="https://example.com/photo.jpg" {...field} />
+                                <Input 
+                                  placeholder="https://example.com/photo.jpg" 
+                                  value={field.value || ""} 
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  disabled={field.disabled}
+                                  name={field.name}
+                                  ref={field.ref}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
