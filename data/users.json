@@ -142,5 +142,29 @@
     "id": 36,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "defensa.izdo5805",
+    "password": "b4335b0f7e3f0a21aa2bda4ab1b0e8b4730bb11b12110c891c78ce7a875a26750920d290ff48cff6b09fdaeb571c01417666bccb6e6d81560a87313e4c501f6d.ba6f4825a35d4f29d097592a8a3ad431",
+    "fullName": "Defensa izdo",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 2,
+    "profilePicture": "https://i.pravatar.cc/150?u=5805",
+    "id": 37,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "lateral.derecho7913",
+    "password": "755cee457edc247ce6e5316cc8fe481e5367fbe63211784dd3f4c129f659f9b57d8cfa6f1e2b63a14ca3f2a1eb06bc2d48ee15d7af9b5121825dcd1389ec2ac1.7c5d9bde9beeeeaf369731dead3d020a",
+    "fullName": "Lateral derecho",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 2,
+    "profilePicture": "https://i.pravatar.cc/150?u=7913",
+    "id": 38,
+    "email": null,
+    "phoneNumber": null
   }
 ]
