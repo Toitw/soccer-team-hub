@@ -11,18 +11,26 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface AnnouncementsProps {
-  teamId: number;
+  teamId?: number;
+  announcements?: (Announcement & { creator?: any })[];
 }
 
-export default function Announcements({ teamId }: AnnouncementsProps) {
+export default function Announcements({ teamId, announcements: propAnnouncements }: AnnouncementsProps) {
+  // Use the teamId if provided, otherwise use announcement data passed as props
+  const useProvidedData = !!propAnnouncements;
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  const { data: announcements = [], isLoading, refetch } = useQuery<(Announcement & { creator?: any })[]>({
+  // If propAnnouncements is provided, use that instead of making an API call
+  const { data: fetchedAnnouncements = [], isLoading, refetch } = useQuery<(Announcement & { creator?: any })[]>({
     queryKey: ["/api/teams", teamId, "announcements", "recent"],
     queryFn: async () => {
       console.log(`Dashboard: Fetching announcements for team ${teamId}`);
       try {
+        if (!teamId) {
+          console.warn('Dashboard: No teamId provided for announcements fetch');
+          return [];
+        }
         const response = await apiRequest<(Announcement & { creator?: any })[]>("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
         console.log('Dashboard: Retrieved announcements:', response);
         return response.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -31,13 +39,16 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
         return [];
       }
     },
-    enabled: !!teamId,
+    enabled: !!teamId && !useProvidedData, // Only enable if teamId is provided and we're not using prop data
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale
     retry: 3, // Retry failed requests up to 3 times
     refetchInterval: 60000 // Refresh data every minute
   });
+  
+  // Use provided announcements or fetched announcements
+  const announcements = useProvidedData ? propAnnouncements || [] : fetchedAnnouncements;
   
   // Force refetch on component mount
   useEffect(() => {
@@ -50,7 +61,22 @@ export default function Announcements({ teamId }: AnnouncementsProps) {
   const handleRefresh = async () => {
     console.log('Dashboard: Manually refreshing announcements for team', teamId);
     setIsRefreshing(true);
+    
     try {
+      // If we're using provided data, we can't refresh it directly
+      if (useProvidedData) {
+        // Show a toast that we can't refresh provided data
+        toast({
+          title: "Info",
+          description: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
+        });
+        
+        // Allow a small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return;
+      }
+      
+      // Otherwise, use the refetch function from the query
       const result = await refetch();
       console.log('Dashboard: Manual refresh result:', result);
       
