@@ -166,5 +166,17 @@
     "id": 38,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "lateral.derecho4240",
+    "password": "47a19ec9b4de8127616ff8a883ddf693fb3c644e06c033a22094b109561896adf3a98cd1360908aa4ecd99182db5cc7da0df3c3a9f80dcf3af33132b8249a669.3bd7a85d6453b9efd830b92b7aeb44bf",
+    "fullName": "Lateral derecho",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 2,
+    "profilePicture": "https://i.pravatar.cc/150?u=4240",
+    "id": 39,
+    "email": null,
+    "phoneNumber": null
   }
 ]
