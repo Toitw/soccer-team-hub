@@ -178,5 +178,17 @@
     "id": 39,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "lat.der9686",
+    "password": "e78f69a3e0471fa1aeb948aa6484acb1a24e50d1f066fc34ef587fec34f93a277eee29e931418fceab61e61d229182dcfd3a2d3066d212e69710075e87b59070.2a3bdd5f12eb7819b9c02c68347ab534",
+    "fullName": "lat der",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 2,
+    "profilePicture": "https://i.pravatar.cc/150?u=9686",
+    "id": 40,
+    "email": null,
+    "phoneNumber": null
   }
 ]
