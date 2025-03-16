@@ -298,5 +298,17 @@
     "id": 49,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "medio7062",
+    "password": "21cbf3f5689d0bdd98dda0000ae30b7196cc1a5a2da293fa00e7f9f6555d1464b0dc9bee3db70ed7c509a8b7bea21d82d8125f0113fb0fae48f1cac866cc32be.2720aa7a99d583227af0b4c9fcb6b965",
+    "fullName": "medio",
+    "role": "player",
+    "position": "Central Midfielder",
+    "jerseyNumber": 6,
+    "profilePicture": "https://i.pravatar.cc/150?u=7062",
+    "id": 50,
+    "email": null,
+    "phoneNumber": null
   }
 ]
