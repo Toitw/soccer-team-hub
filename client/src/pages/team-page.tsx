@@ -457,6 +457,9 @@ export default function TeamPage() {
                                   <SelectItem value="Defender">Defender</SelectItem>
                                   <SelectItem value="Center Back">Center Back</SelectItem>
                                   <SelectItem value="Full Back">Full Back</SelectItem>
+                                  <SelectItem value="Left Back">Left Back</SelectItem>
+                                  <SelectItem value="Right Back">Right Back</SelectItem>
+                                  <SelectItem value="Sweeper">Sweeper</SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>Midfield</SelectLabel>
@@ -464,12 +467,17 @@ export default function TeamPage() {
                                   <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
                                   <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
                                   <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
+                                  <SelectItem value="Left Midfielder">Left Midfielder</SelectItem>
+                                  <SelectItem value="Right Midfielder">Right Midfielder</SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>Attack</SelectLabel>
                                   <SelectItem value="Forward">Forward</SelectItem>
                                   <SelectItem value="Striker">Striker</SelectItem>
+                                  <SelectItem value="Center Forward">Center Forward</SelectItem>
                                   <SelectItem value="Winger">Winger</SelectItem>
+                                  <SelectItem value="Left Winger">Left Winger</SelectItem>
+                                  <SelectItem value="Right Winger">Right Winger</SelectItem>
                                 </SelectGroup>
                               </SelectContent>
                             </Select>
@@ -621,100 +629,103 @@ export default function TeamPage() {
                       <div className="absolute top-1/2 transform -translate-y-1/2 left-0 h-12 w-1 bg-white"></div>
                       <div className="absolute top-1/2 transform -translate-y-1/2 right-0 h-12 w-1 bg-white"></div>
 
-                      {/* Sample player positions - these would be draggable in a full implementation */}
+                      {/* Simple grid layout for players by position */}
                       {teamMembers && teamMembers.length > 0 && (
-                        <>
-                          {/* Display players by position - simplified version */}
-                          {teamMembers
-                            .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("goalkeeper"))
-                            .slice(0, 1)
-                            .map(member => (
-                              <div key={member.id} className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-10 h-10">
-                                <div className="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                  <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                </div>
-                                <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                  {member.user.fullName?.split(" ")[0] || ""}
-                                </div>
-                              </div>
-                            ))}
-
-                          {/* Defenders */}
-                          {teamMembers
-                            .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("defender"))
-                            .slice(0, 4)
-                            .map((member, idx) => {
-                              const positions = [
-                                { left: '20%', bottom: '30%' },
-                                { left: '40%', bottom: '30%' },
-                                { left: '60%', bottom: '30%' },
-                                { left: '80%', bottom: '30%' }
-                              ];
-                              return (
-                                <div key={member.id} className="absolute w-10 h-10" style={{ 
-                                  left: positions[idx].left, 
-                                  bottom: positions[idx].bottom 
-                                }}>
-                                  <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                </div>
-                              );
-                            })}
-
-                          {/* Midfielders */}
-                          {teamMembers
-                            .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("midfielder"))
-                            .slice(0, 3)
-                            .map((member, idx) => {
-                              const positions = [
-                                { left: '30%', bottom: '50%' },
-                                { left: '50%', bottom: '50%' },
-                                { left: '70%', bottom: '50%' }
-                              ];
-                              return (
-                                <div key={member.id} className="absolute w-10 h-10" style={{ 
-                                  left: positions[idx].left, 
-                                  bottom: positions[idx].bottom 
-                                }}>
-                                  <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                </div>
-                              );
-                            })}
-
-                          {/* Forwards */}
-                          {teamMembers
-                            .filter(member => member.role === "player" && member.user.position?.toLowerCase().includes("forward"))
-                            .slice(0, 3)
-                            .map((member, idx) => {
-                              const positions = [
-                                { left: '30%', bottom: '70%' },
-                                { left: '50%', bottom: '75%' },
-                                { left: '70%', bottom: '70%' }
-                              ];
-                              return (
-                                <div key={member.id} className="absolute w-10 h-10" style={{ 
-                                  left: positions[idx].left, 
-                                  bottom: positions[idx].bottom 
-                                }}>
+                        <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 gap-2 p-6">
+                          {/* Formation display - simplified grid layout */}
+                          
+                          {/* Top row: Forwards */}
+                          <div className="col-span-3 grid grid-cols-3 gap-2">
+                            {teamMembers
+                              .filter(member => 
+                                member.role === "player" && 
+                                member.user.position?.toLowerCase().includes("forward") || 
+                                member.user.position?.toLowerCase().includes("striker") ||
+                                member.user.position?.toLowerCase().includes("winger"))
+                              .slice(0, 3)
+                              .map((member, idx) => (
+                                <div key={member.id} className="flex flex-col items-center justify-center">
                                   <div className="bg-yellow-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
                                     <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
                                   </div>
                                   <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
                                     {member.user.fullName?.split(" ")[0] || ""}
                                   </div>
+                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
+                                    {member.user.position || ""}
+                                  </div>
                                 </div>
-                              );
-                            })}
-                        </>
+                              ))}
+                          </div>
+                          
+                          {/* Middle row: Midfielders */}
+                          <div className="col-span-3 grid grid-cols-3 gap-2">
+                            {teamMembers
+                              .filter(member => 
+                                member.role === "player" && 
+                                member.user.position?.toLowerCase().includes("midfielder"))
+                              .slice(0, 3)
+                              .map((member, idx) => (
+                                <div key={member.id} className="flex flex-col items-center justify-center">
+                                  <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
+                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  </div>
+                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
+                                    {member.user.fullName?.split(" ")[0] || ""}
+                                  </div>
+                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
+                                    {member.user.position || ""}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                          
+                          {/* Defense row */}
+                          <div className="col-span-3 grid grid-cols-4 gap-2">
+                            {teamMembers
+                              .filter(member => 
+                                member.role === "player" && 
+                                (member.user.position?.toLowerCase().includes("defender") || 
+                                 member.user.position?.toLowerCase().includes("back") || 
+                                 member.user.position?.toLowerCase().includes("sweeper")))
+                              .slice(0, 4)
+                              .map((member, idx) => (
+                                <div key={member.id} className="flex flex-col items-center justify-center">
+                                  <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
+                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  </div>
+                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
+                                    {member.user.fullName?.split(" ")[0] || ""}
+                                  </div>
+                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
+                                    {member.user.position || ""}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                          
+                          {/* Goalkeeper row */}
+                          <div className="col-span-3 flex justify-center items-center">
+                            {teamMembers
+                              .filter(member => 
+                                member.role === "player" && 
+                                member.user.position?.toLowerCase().includes("goalkeeper"))
+                              .slice(0, 1)
+                              .map(member => (
+                                <div key={member.id} className="flex flex-col items-center justify-center">
+                                  <div className="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
+                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
+                                  </div>
+                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
+                                    {member.user.fullName?.split(" ")[0] || ""}
+                                  </div>
+                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
+                                    {member.user.position || ""}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -999,6 +1010,9 @@ export default function TeamPage() {
                                     <SelectItem value="Defender">Defender</SelectItem>
                                     <SelectItem value="Center Back">Center Back</SelectItem>
                                     <SelectItem value="Full Back">Full Back</SelectItem>
+                                    <SelectItem value="Left Back">Left Back</SelectItem>
+                                    <SelectItem value="Right Back">Right Back</SelectItem>
+                                    <SelectItem value="Sweeper">Sweeper</SelectItem>
                                   </SelectGroup>
                                   <SelectGroup>
                                     <SelectLabel>Midfield</SelectLabel>
@@ -1006,12 +1020,17 @@ export default function TeamPage() {
                                     <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
                                     <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
                                     <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
+                                    <SelectItem value="Left Midfielder">Left Midfielder</SelectItem>
+                                    <SelectItem value="Right Midfielder">Right Midfielder</SelectItem>
                                   </SelectGroup>
                                   <SelectGroup>
                                     <SelectLabel>Attack</SelectLabel>
                                     <SelectItem value="Forward">Forward</SelectItem>
                                     <SelectItem value="Striker">Striker</SelectItem>
+                                    <SelectItem value="Center Forward">Center Forward</SelectItem>
                                     <SelectItem value="Winger">Winger</SelectItem>
+                                    <SelectItem value="Left Winger">Left Winger</SelectItem>
+                                    <SelectItem value="Right Winger">Right Winger</SelectItem>
                                   </SelectGroup>
                                 </SelectContent>
                               </Select>
