@@ -348,10 +348,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password: pwd, ...userWithoutPassword } = fullUser;
 
         // Return member with full user details
+        // Include complete user details in response
         const memberResponse = {
-          ...newTeamMember,
+          id: newTeamMember.id,
+          teamId: newTeamMember.teamId,
+          userId: newTeamMember.userId,
+          role: newTeamMember.role,
+          joinedAt: newTeamMember.joinedAt,
           user: {
-            ...userWithoutPassword,
+            id: fullUser.id,
+            username: fullUser.username,
+            fullName: fullUser.fullName,
+            role: fullUser.role,
             profilePicture: fullUser.profilePicture || `/default-avatar.png?u=${newUser.id}`,
             position: fullUser.position || "",
             jerseyNumber: fullUser.jerseyNumber || null,
