@@ -21,40 +21,58 @@ export async function apiRequest<T = any>(
 
   await throwIfResNotOk(res);
   
-  // For empty responses or non-JSON responses
-  const contentType = res.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    if (res.status === 204) { // No content
-      return {} as T;
+  // Return the original response for authentication responses
+  if (url.includes('/api/login') || url.includes('/api/register')) {
+    try {
+      return await res.json() as T;
+    } catch (error) {
+      console.error('Error parsing authentication response:', error);
+      return {} as T;  // Return empty object rather than failing
     }
-    console.warn(`Non-JSON response from ${url}`);
+  }
+  
+  // For empty responses
+  if (res.status === 204) {
     return {} as T;
   }
-
+  
+  // For all other responses, attempt to parse JSON
   try {
     return await res.json() as T;
   } catch (error) {
-    console.error('Error parsing JSON response:', error);
-    throw new Error('Failed to parse server response');
+    console.warn(`Could not parse JSON from ${url}:`, error);
+    return {} as T;  // Return empty object rather than failing
   }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
+export const getQueryFn: <TData>(options: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+}) => QueryFunction<TData> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    const url = queryKey[0] as string;
+    const res = await fetch(url, {
       credentials: "include",
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      return null as any;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    
+    // For empty responses
+    if (res.status === 204) {
+      return {} as TData;
+    }
+    
+    try {
+      return await res.json() as TData;
+    } catch (error) {
+      console.warn(`getQueryFn: Could not parse JSON from ${url}:`, error);
+      return {} as TData;  // Return empty object rather than failing
+    }
   };
 
 export const queryClient = new QueryClient({
