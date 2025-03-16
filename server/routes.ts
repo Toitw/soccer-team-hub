@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password: pwd, ...userWithoutPassword } = fullUser;
 
         // Return member with full user details
-        const response = {
+        const memberResponse = {
           ...newTeamMember,
           user: {
             ...userWithoutPassword,
@@ -360,8 +360,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         };
 
-        console.log("Created new team member:", JSON.stringify(response, null, 2));
-        return res.status(201).json(response);
+        console.log("Created new team member:", JSON.stringify(memberResponse, null, 2));
+        res.status(201).json(memberResponse);
+        return;
       }
 
       // Regular team member addition (existing user)
@@ -699,7 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user details for the creator
       const user = await storage.getUser(announcement.createdById);
       let announcementWithCreator = announcement;
-      
+
       if (user) {
         const { password, ...creatorWithoutPassword } = user;
         announcementWithCreator = {
@@ -707,7 +708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           creator: creatorWithoutPassword,
         };
       }
-      
+
       res.status(201).json(announcementWithCreator);
     } catch (error) {
       res.status(500).json({ error: "Failed to create announcement" });
@@ -743,7 +744,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get user details for the creator
         const user = await storage.getUser(updatedAnnouncement.createdById);
         let announcementWithCreator = updatedAnnouncement;
-        
+
         if (user) {
           const { password, ...creatorWithoutPassword } = user;
           announcementWithCreator = {
@@ -751,7 +752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             creator: creatorWithoutPassword,
           };
         }
-        
+
         res.status(200).json(announcementWithCreator);
       } else {
         res.status(500).json({ error: "Failed to update announcement" });
