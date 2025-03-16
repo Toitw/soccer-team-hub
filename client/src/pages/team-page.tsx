@@ -629,102 +629,137 @@ export default function TeamPage() {
                       <div className="absolute top-1/2 transform -translate-y-1/2 left-0 h-12 w-1 bg-white"></div>
                       <div className="absolute top-1/2 transform -translate-y-1/2 right-0 h-12 w-1 bg-white"></div>
 
-                      {/* Simple grid layout for players by position */}
+                      {/* Traditional soccer formation layout */}
                       {teamMembers && teamMembers.length > 0 && (
-                        <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 gap-2 p-6">
-                          {/* Formation display - simplified grid layout */}
-                          
-                          {/* Top row: Forwards */}
-                          <div className="col-span-3 grid grid-cols-3 gap-2">
-                            {teamMembers
-                              .filter(member => 
-                                member.role === "player" && 
-                                member.user.position?.toLowerCase().includes("forward") || 
-                                member.user.position?.toLowerCase().includes("striker") ||
-                                member.user.position?.toLowerCase().includes("winger"))
-                              .slice(0, 3)
-                              .map((member, idx) => (
-                                <div key={member.id} className="flex flex-col items-center justify-center">
-                                  <div className="bg-yellow-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
-                                    {member.user.position || ""}
-                                  </div>
+                        <div className="absolute top-0 left-0 w-full h-full p-2">
+                          {/* Player Card Component */}
+                          {(() => {
+                            const PlayerCard = ({ member, top, left }) => (
+                              <div 
+                                key={member.id} 
+                                className="absolute flex flex-col items-center"
+                                style={{ top: `${top}%`, left: `${left}%` }}
+                              >
+                                <div 
+                                  className={`
+                                    text-white rounded-full w-10 h-10 flex items-center justify-center 
+                                    shadow-lg border-2 border-white
+                                    ${member.user.position?.toLowerCase().includes("goalkeeper") ? "bg-blue-500" : 
+                                      member.user.position?.toLowerCase().includes("defender") || 
+                                      member.user.position?.toLowerCase().includes("back") || 
+                                      member.user.position?.toLowerCase().includes("sweeper") ? "bg-red-500" :
+                                      member.user.position?.toLowerCase().includes("midfielder") ? "bg-green-500" : "bg-yellow-500"}
+                                  `}
+                                >
+                                  <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
                                 </div>
-                              ))}
-                          </div>
-                          
-                          {/* Middle row: Midfielders */}
-                          <div className="col-span-3 grid grid-cols-3 gap-2">
-                            {teamMembers
-                              .filter(member => 
-                                member.role === "player" && 
-                                member.user.position?.toLowerCase().includes("midfielder"))
-                              .slice(0, 3)
-                              .map((member, idx) => (
-                                <div key={member.id} className="flex flex-col items-center justify-center">
-                                  <div className="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
-                                    {member.user.position || ""}
-                                  </div>
+                                <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-60 rounded px-1">
+                                  {member.user.fullName?.split(" ")[0] || ""}
                                 </div>
-                              ))}
-                          </div>
-                          
-                          {/* Defense row */}
-                          <div className="col-span-3 grid grid-cols-4 gap-2">
-                            {teamMembers
-                              .filter(member => 
-                                member.role === "player" && 
-                                (member.user.position?.toLowerCase().includes("defender") || 
-                                 member.user.position?.toLowerCase().includes("back") || 
-                                 member.user.position?.toLowerCase().includes("sweeper")))
-                              .slice(0, 4)
-                              .map((member, idx) => (
-                                <div key={member.id} className="flex flex-col items-center justify-center">
-                                  <div className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
-                                    {member.user.position || ""}
-                                  </div>
+                                <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-60 rounded px-1 mt-0.5">
+                                  {member.user.position || ""}
                                 </div>
-                              ))}
-                          </div>
-                          
-                          {/* Goalkeeper row */}
-                          <div className="col-span-3 flex justify-center items-center">
-                            {teamMembers
-                              .filter(member => 
-                                member.role === "player" && 
-                                member.user.position?.toLowerCase().includes("goalkeeper"))
-                              .slice(0, 1)
-                              .map(member => (
-                                <div key={member.id} className="flex flex-col items-center justify-center">
-                                  <div className="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white">
-                                    <span className="font-bold text-xs">{member.user.jerseyNumber || "?"}</span>
-                                  </div>
-                                  <div className="text-white text-xs mt-1 text-center font-semibold bg-black bg-opacity-50 rounded px-1">
-                                    {member.user.fullName?.split(" ")[0] || ""}
-                                  </div>
-                                  <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-50 rounded px-1 mt-0.5">
-                                    {member.user.position || ""}
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
+                              </div>
+                            );
+
+                            // Group players by position types
+                            const goalkeepers = teamMembers.filter(member => 
+                              member.role === "player" && 
+                              member.user.position?.toLowerCase().includes("goalkeeper")
+                            ).slice(0, 1);
+                            
+                            const defenders = teamMembers.filter(member => 
+                              member.role === "player" && 
+                              (member.user.position?.toLowerCase().includes("defender") || 
+                               member.user.position?.toLowerCase().includes("back") || 
+                               member.user.position?.toLowerCase().includes("sweeper"))
+                            ).slice(0, 4);
+                            
+                            const midfielders = teamMembers.filter(member => 
+                              member.role === "player" && 
+                              member.user.position?.toLowerCase().includes("midfielder")
+                            ).slice(0, 3);
+                            
+                            const forwards = teamMembers.filter(member => 
+                              member.role === "player" && 
+                              (member.user.position?.toLowerCase().includes("forward") || 
+                               member.user.position?.toLowerCase().includes("striker") ||
+                               member.user.position?.toLowerCase().includes("winger"))
+                            ).slice(0, 3);
+
+                            // Position data based on specific roles
+                            const positionByType = {
+                              // Goalkeeper at the bottom center
+                              goalkeeper: { top: 85, left: 50 },
+                              
+                              // Defenders positioned across the lower part of the field
+                              defenders: [
+                                { top: 70, left: 20 },  // Left Back
+                                { top: 70, left: 40 },  // Left Center Back
+                                { top: 70, left: 60 },  // Right Center Back
+                                { top: 70, left: 80 }   // Right Back
+                              ],
+                              
+                              // Midfielders across the middle
+                              midfielders: [
+                                { top: 50, left: 30 },  // Left Midfielder
+                                { top: 50, left: 50 },  // Central Midfielder
+                                { top: 50, left: 70 }   // Right Midfielder
+                              ],
+                              
+                              // Forwards at the top
+                              forwards: [
+                                { top: 25, left: 30 },  // Left Winger/Forward
+                                { top: 25, left: 50 },  // Center Forward/Striker
+                                { top: 25, left: 70 }   // Right Winger/Forward
+                              ]
+                            };
+                            
+                            // Render specific players in their positions
+                            return (
+                              <>
+                                {/* Goalkeeper */}
+                                {goalkeepers.map(member => (
+                                  <PlayerCard 
+                                    key={member.id} 
+                                    member={member} 
+                                    top={positionByType.goalkeeper.top} 
+                                    left={positionByType.goalkeeper.left} 
+                                  />
+                                ))}
+                                
+                                {/* Defenders */}
+                                {defenders.map((member, idx) => (
+                                  <PlayerCard 
+                                    key={member.id} 
+                                    member={member} 
+                                    top={positionByType.defenders[idx].top} 
+                                    left={positionByType.defenders[idx].left} 
+                                  />
+                                ))}
+                                
+                                {/* Midfielders */}
+                                {midfielders.map((member, idx) => (
+                                  <PlayerCard 
+                                    key={member.id} 
+                                    member={member} 
+                                    top={positionByType.midfielders[idx].top} 
+                                    left={positionByType.midfielders[idx].left} 
+                                  />
+                                ))}
+                                
+                                {/* Forwards */}
+                                {forwards.map((member, idx) => (
+                                  <PlayerCard 
+                                    key={member.id} 
+                                    member={member} 
+                                    top={positionByType.forwards[idx].top} 
+                                    left={positionByType.forwards[idx].left} 
+                                  />
+                                ))}
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
