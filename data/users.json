@@ -214,5 +214,65 @@
     "id": 42,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "wing6935",
+    "password": "971b32b9c3ce4bbae915c927c5eaf33911283635e7854bea6ea09bef8ce083bde1599a1910a0b08c2f8d36eac8f2b3617a4c26ad9f898746652a8de2b724daef.6394d3d9e05c1356b59c055ed0d39b32",
+    "fullName": "Wing",
+    "role": "player",
+    "position": "Left Midfielder",
+    "jerseyNumber": 7,
+    "profilePicture": "https://i.pravatar.cc/150?u=6935",
+    "id": 43,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "lat.der3929",
+    "password": "195646e090502d5deeedf76acb8698567f55c549b1f190e481ad0cc138ad55d2daf5c4a9578f9c66dbfe8f09ebd40037931cd4b275e5b134169ea87ee47c071c.086edb70f71977ee7a5f8119b8f739b1",
+    "fullName": "lat der",
+    "role": "player",
+    "position": "Right Back",
+    "jerseyNumber": 2,
+    "profilePicture": "https://i.pravatar.cc/150?u=3929",
+    "id": 44,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "mid2916",
+    "password": "f2f32d969c05641a9785c1ef5c5c48fb48535da83a8159fade9227168f67bcc1cb084a92a2b7020fcf86ec93acf8ede3536008501a1d59c94d25938f1cf80263.ed96549204ff0142e7cc54eb11c94d63",
+    "fullName": "mid",
+    "role": "player",
+    "position": "Midfielder",
+    "jerseyNumber": 6,
+    "profilePicture": "https://i.pravatar.cc/150?u=2916",
+    "id": 45,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "delantero7259",
+    "password": "9042c77251367406c359f9a7aeeeb5f726aa48990e9d34cc47e529ea9cd707c006c223cfc8e3d3039d988dc868e05a5127252e224f197bf181fa3baacdf394b4.3bb1e71fd352a8fbba0e5ce0ca1c67fc",
+    "fullName": "delantero",
+    "role": "player",
+    "position": "Striker",
+    "jerseyNumber": 9,
+    "profilePicture": "https://i.pravatar.cc/150?u=7259",
+    "id": 46,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "extremo.izdo9088",
+    "password": "9d8aae831bf146d06245fe486ef07be89d720d92bb24ef06a454a0fd57204987b5625c1dd54ae6756cbaee85fa3ba14478a75e21a132bb5e6d63b02d375515a3.2c957441dc24054fceb74091f044428f",
+    "fullName": "extremo izdo",
+    "role": "player",
+    "position": "Left Winger",
+    "jerseyNumber": 11,
+    "profilePicture": "https://i.pravatar.cc/150?u=9088",
+    "id": 47,
+    "email": null,
+    "phoneNumber": null
   }
 ]
