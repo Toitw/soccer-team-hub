@@ -228,7 +228,7 @@ export default function TeamPage() {
       if (!selectedTeam) throw new Error("No team selected");
 
       // Add directly to the team with user information embedded
-      const response = await apiRequest(
+      return apiRequest(
         "POST", 
         `/api/teams/${selectedTeam.id}/members`,
         {
@@ -241,13 +241,6 @@ export default function TeamPage() {
           }
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add team member");
-      }
-
-      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -273,7 +266,7 @@ export default function TeamPage() {
       if (!selectedTeam || !memberToEdit) throw new Error("No team or member selected");
 
       // Call the PATCH endpoint to update the team member
-      const response = await apiRequest(
+      return apiRequest(
         "PATCH", 
         `/api/teams/${selectedTeam.id}/members/${memberToEdit.id}`,
         {
@@ -283,13 +276,6 @@ export default function TeamPage() {
           profilePicture: data.profilePicture
         }
       );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update team member");
-      }
-
-      return await response.json();
     },
     onSuccess: () => {
       toast({
