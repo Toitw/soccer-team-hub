@@ -202,5 +202,17 @@
     "id": 41,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "lat.izd10115",
+    "password": "b6216e9a2eca07755d1a1d72cbbb0de245f2543f33a82f0a34fad8a8a52c2d9c205a1b3d505eca178d32bead508e2e7827b2509b80ab7d63397fef6213309c06.987d87d52a253288529e6e79f3bf0f04",
+    "fullName": "Lat izd",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 3,
+    "profilePicture": "https://i.pravatar.cc/150?u=10115",
+    "id": 42,
+    "email": null,
+    "phoneNumber": null
   }
 ]
