@@ -29,16 +29,9 @@
   },
   {
     "teamId": 1,
-    "userId": 37,
+    "userId": 39,
     "role": "player",
-    "id": 5,
-    "joinedAt": "2025-03-16T09:04:49.789Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 38,
-    "role": "player",
-    "id": 6,
-    "joinedAt": "2025-03-16T09:05:41.143Z"
+    "id": 7,
+    "joinedAt": "2025-03-16T09:08:57.986Z"
   }
 ]
