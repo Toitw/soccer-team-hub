@@ -274,5 +274,29 @@
     "id": 47,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "delantero10670",
+    "password": "baed43341cc9fe732b5aaa4f495661f48417104887ec1ac5d023b9731ecc179b6f091cae46de6f4b2f751b695a9d4e8a47c82d21dbd9a163ba4befd57351d59e.7bc153aacc13b42598c0396ecf69ec1b",
+    "fullName": "delantero",
+    "role": "player",
+    "position": "Forward",
+    "jerseyNumber": 9,
+    "profilePicture": "https://i.pravatar.cc/150?u=10670",
+    "id": 48,
+    "email": null,
+    "phoneNumber": null
+  },
+  {
+    "username": "portero7648",
+    "password": "17d77a59034b7592c591a745f9b428db8f88d518149ad2dc443bb537713ceae50baacb5cc61b72d6852d80ef34222bded4fd83f984e2088c29bee59a9fed9a41.2f95b91c837d8bef434f81539e306379",
+    "fullName": "portero",
+    "role": "player",
+    "position": "Goalkeeper",
+    "jerseyNumber": 1,
+    "profilePicture": "https://i.pravatar.cc/150?u=7648",
+    "id": 49,
+    "email": null,
+    "phoneNumber": null
   }
 ]

@@ -7,13 +7,6 @@
     "joinedAt": "2025-03-14T14:56:41.252Z"
   },
   {
-    "teamId": 1,
-    "userId": 36,
-    "role": "player",
-    "id": 2,
-    "joinedAt": "2025-03-14T14:57:32.997Z"
-  },
-  {
     "teamId": 2,
     "userId": 32,
     "role": "admin",
@@ -29,44 +22,16 @@
   },
   {
     "teamId": 1,
-    "userId": 42,
+    "userId": 48,
     "role": "player",
-    "id": 10,
-    "joinedAt": "2025-03-16T09:18:00.160Z"
+    "id": 16,
+    "joinedAt": "2025-03-16T19:56:06.907Z"
   },
   {
     "teamId": 1,
-    "userId": 43,
+    "userId": 49,
     "role": "player",
-    "id": 11,
-    "joinedAt": "2025-03-16T09:29:10.047Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 44,
-    "role": "player",
-    "id": 12,
-    "joinedAt": "2025-03-16T09:29:28.345Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 45,
-    "role": "player",
-    "id": 13,
-    "joinedAt": "2025-03-16T09:29:50.444Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 46,
-    "role": "player",
-    "id": 14,
-    "joinedAt": "2025-03-16T09:30:07.816Z"
-  },
-  {
-    "teamId": 1,
-    "userId": 47,
-    "role": "player",
-    "id": 15,
-    "joinedAt": "2025-03-16T09:31:02.157Z"
+    "id": 17,
+    "joinedAt": "2025-03-16T20:04:33.177Z"
   }
 ]
