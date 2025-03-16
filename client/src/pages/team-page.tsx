@@ -99,6 +99,10 @@ export default function TeamPage() {
   const [memberToRemove, setMemberToRemove] = useState<TeamMemberWithUser | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
+  const [lineup, setLineup] = useState<{ [position: string]: TeamMemberWithUser | null }>({});
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [showAddToLineupDialog, setShowAddToLineupDialog] = useState<boolean>(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -354,6 +358,103 @@ export default function TeamPage() {
     editTeamMemberMutation.mutate({
       ...data,
       position
+    });
+  };
+  
+  // Get positions based on formation
+  const getPositionsByFormation = (formation: string) => {
+    const positions: { id: string; label: string; top: number; left: number }[] = [];
+    
+    // Parse formation (e.g., 4-3-3 means 4 defenders, 3 midfielders, 3 forwards)
+    const [defenders, midfielders, forwards] = formation.split('-').map(Number);
+    
+    // Always add one goalkeeper
+    positions.push({ id: 'gk', label: 'GK', top: 85, left: 50 });
+    
+    // Add defenders
+    const defenderWidth = 80 / (defenders + 1);
+    for (let i = 1; i <= defenders; i++) {
+      positions.push({
+        id: `def-${i}`,
+        label: 'DEF',
+        top: 70,
+        left: i * defenderWidth
+      });
+    }
+    
+    // Add midfielders
+    const midfielderWidth = 80 / (midfielders + 1);
+    for (let i = 1; i <= midfielders; i++) {
+      positions.push({
+        id: `mid-${i}`,
+        label: 'MID', 
+        top: 50,
+        left: i * midfielderWidth
+      });
+    }
+    
+    // Add forwards
+    const forwardWidth = 80 / (forwards + 1);
+    for (let i = 1; i <= forwards; i++) {
+      positions.push({
+        id: `fwd-${i}`,
+        label: 'FWD',
+        top: 25,
+        left: i * forwardWidth
+      });
+    }
+    
+    return positions;
+  };
+  
+  // Get available formations
+  const availableFormations = [
+    '4-3-3', // Traditional
+    '4-4-2', // Classic
+    '3-5-2', // Wing-backs
+    '3-4-3', // Attacking
+    '5-3-2', // Defensive
+    '4-2-3-1' // Modern
+  ];
+  
+  // Handle formation change
+  const handleFormationChange = (formation: string) => {
+    setSelectedFormation(formation);
+  };
+  
+  // Handle position click
+  const handlePositionClick = (positionId: string) => {
+    setSelectedPosition(positionId);
+    setShowAddToLineupDialog(true);
+  };
+  
+  // Add player to lineup
+  const addPlayerToLineup = (member: TeamMemberWithUser) => {
+    if (selectedPosition) {
+      setLineup(prev => ({
+        ...prev,
+        [selectedPosition]: member
+      }));
+      setShowAddToLineupDialog(false);
+      setSelectedPosition(null);
+      
+      toast({
+        title: "Player added to lineup",
+        description: `${member.user.fullName} has been added to the lineup.`,
+      });
+    }
+  };
+  
+  // Remove player from lineup
+  const removePlayerFromLineup = (positionId: string) => {
+    setLineup(prev => ({
+      ...prev,
+      [positionId]: null
+    }));
+    
+    toast({
+      title: "Player removed from lineup",
+      description: "Player has been removed from the lineup.",
     });
   };
 
