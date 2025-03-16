@@ -190,5 +190,17 @@
     "id": 40,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "lat.iz8750",
+    "password": "2c019a1b20988d01fbf3c18853af992f5420915a7fb2b4bb80ba645a235abef2120011c4aff72a019b468d91004484476218ccfbd939608f72d3f161dbab63c6.1546e9fe1eb38c206b2d8064b8905e4b",
+    "fullName": "lat iz",
+    "role": "player",
+    "position": "Full Back",
+    "jerseyNumber": 3,
+    "profilePicture": "https://i.pravatar.cc/150?u=8750",
+    "id": 41,
+    "email": null,
+    "phoneNumber": null
   }
 ]
