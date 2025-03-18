@@ -361,53 +361,58 @@ export default function TeamPage() {
       position
     });
   };
-  
-  // Get positions based on formation
+
+  // Updated getPositionsByFormation with more vertical separation.
+  // Positions now cover most of the field:
+  // - Goalkeeper: top 95%
+  // - Defenders: top 70%
+  // - Midfielders: top 45%
+  // - Forwards: top 10%
   const getPositionsByFormation = (formation: string) => {
     const positions: { id: string; label: string; top: number; left: number }[] = [];
-    
-    // Parse formation (e.g., 4-3-3 means 4 defenders, 3 midfielders, 3 forwards)
+
+    // Parse formation (e.g., "4-3-3" means 4 defenders, 3 midfielders, 3 forwards)
     const [defenders, midfielders, forwards] = formation.split('-').map(Number);
-    
-    // Always add one goalkeeper
-    positions.push({ id: 'gk', label: 'GK', top: 85, left: 50 });
-    
-    // Add defenders
+
+    // Always add one goalkeeper (centered)
+    positions.push({ id: 'gk', label: 'GK', top: 95, left: 50 });
+
+    // Add defenders at top 70%
     const defenderWidth = 80 / (defenders + 1);
     for (let i = 1; i <= defenders; i++) {
       positions.push({
         id: `def-${i}`,
         label: 'DEF',
         top: 70,
-        left: i * defenderWidth
+        left: 10 + i * defenderWidth  // Centering adjustment: start at 10%
       });
     }
-    
-    // Add midfielders
+
+    // Add midfielders at top 45%
     const midfielderWidth = 80 / (midfielders + 1);
     for (let i = 1; i <= midfielders; i++) {
       positions.push({
         id: `mid-${i}`,
         label: 'MID', 
-        top: 50,
-        left: i * midfielderWidth
+        top: 45,
+        left: 10 + i * midfielderWidth  // Centering adjustment: start at 10%
       });
     }
-    
-    // Add forwards
+
+    // Add forwards at top 10%
     const forwardWidth = 80 / (forwards + 1);
     for (let i = 1; i <= forwards; i++) {
       positions.push({
         id: `fwd-${i}`,
         label: 'FWD',
-        top: 25,
-        left: i * forwardWidth
+        top: 10,
+        left: 10 + i * forwardWidth  // Centering adjustment: start at 10%
       });
     }
-    
+
     return positions;
   };
-  
+
   // Get available formations
   const availableFormations = [
     '4-3-3', // Traditional
@@ -417,20 +422,28 @@ export default function TeamPage() {
     '5-3-2', // Defensive
     '4-2-3-1' // Modern
   ];
-  
+
   // Handle formation change
   const handleFormationChange = (formation: string) => {
     setSelectedFormation(formation);
   };
-  
-  // Handle position click
+
+  // Handle position click (when a field position is clicked)
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
     setShowAddToLineupDialog(true);
   };
-  
-  // Add player to lineup
+
+  // Add player to lineup (with duplicate check)
   const addPlayerToLineup = (member: TeamMemberWithUser) => {
+    if (Object.values(lineup).some(p => p?.id === member.id)) {
+      toast({
+        title: "Player already in lineup",
+        description: "This player is already assigned to a position.",
+        variant: "destructive"
+      });
+      return;
+    }
     if (selectedPosition) {
       setLineup(prev => ({
         ...prev,
@@ -438,21 +451,51 @@ export default function TeamPage() {
       }));
       setShowAddToLineupDialog(false);
       setSelectedPosition(null);
-      
+
       toast({
         title: "Player added to lineup",
         description: `${member.user.fullName} has been added to the lineup.`,
       });
     }
   };
-  
+
+  // New: Add player to first available position from bench (with duplicate check)
+  const addPlayerToFirstAvailablePosition = (member: TeamMemberWithUser) => {
+    if (Object.values(lineup).some(p => p?.id === member.id)) {
+      toast({
+        title: "Player already in lineup",
+        description: "This player is already assigned to a position.",
+        variant: "destructive"
+      });
+      return;
+    }
+    const positions = getPositionsByFormation(selectedFormation);
+    const available = positions.find(pos => !lineup[pos.id]);
+    if (available) {
+      setLineup(prev => ({
+        ...prev,
+        [available.id]: member
+      }));
+      toast({
+        title: "Player added to lineup",
+        description: `${member.user.fullName} has been added at position ${available.label}.`,
+      });
+    } else {
+      toast({
+        title: "No available position",
+        description: "There is no available position in the lineup.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Remove player from lineup
   const removePlayerFromLineup = (positionId: string) => {
     setLineup(prev => ({
       ...prev,
       [positionId]: null
     }));
-    
+
     toast({
       title: "Player removed from lineup",
       description: "Player has been removed from the lineup.",
@@ -479,7 +522,7 @@ export default function TeamPage() {
       <div className="flex-1 ml-0 md:ml-64 overflow-y-auto">
         <Header title="Team" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16"> {/* Added padding here */}
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16">
           <div className="mb-6 flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
@@ -670,40 +713,36 @@ export default function TeamPage() {
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* Field container - responsive for desktop and mobile */}
+                {/* Field container */}
                 <div className="lg:col-span-3">
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/3] sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                    {/* Field markings - half field only */}
+                    {/* Field markings */}
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                        {/* Center circle - half circle at the top */}
+                        {/* Center circle */}
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                        
+
                         {/* Penalty area */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                        
+
                         {/* Goal area */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                        
+
                         {/* Goal */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                        
+
                         {/* Penalty spot */}
                         <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                        
-                        {/* Interactive player positions */}
+
+                        {/* Interactive positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
                           {getPositionsByFormation(selectedFormation).map((position) => {
                             const player = lineup[position.id];
-                            // Adjust position coordinates
-                            const adjustedLeft = position.left + 3; // Move right by 3%
-                            const adjustedTop = position.top - 3; // Move up by 3%
-                            
                             return (
                               <div
                                 key={position.id}
                                 className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                                style={{ top: `${adjustedTop}%`, left: `${adjustedLeft}%` }}
+                                style={{ top: `${position.top}%`, left: `${position.left}%` }}
                                 onClick={() => handlePositionClick(position.id)}
                               >
                                 <div 
@@ -725,7 +764,7 @@ export default function TeamPage() {
                                     <div className="text-xs md:text-sm font-bold">{position.label}</div>
                                   )}
                                 </div>
-                                
+
                                 {player && (
                                   <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
                                     <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
@@ -733,7 +772,7 @@ export default function TeamPage() {
                                     </div>
                                   </div>
                                 )}
-                                
+
                                 {player && isAdmin && (
                                   <div 
                                     className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -759,7 +798,7 @@ export default function TeamPage() {
                     )}
                   </div>
 
-                  {/* Legend - Only show on desktop */}
+                  {/* Legend */}
                   <div className="mt-4 text-sm text-muted-foreground hidden md:block">
                     <p className="flex items-center mb-2">
                       <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
@@ -776,12 +815,12 @@ export default function TeamPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Bench players section */}
                 <div className="lg:col-span-2">
                   <div className="bg-muted/30 rounded-md p-4">
                     <h3 className="text-lg font-semibold mb-3">Bench</h3>
-                    
+
                     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                       {teamMembers?.filter(member => 
                         member.role === "player" && 
@@ -811,23 +850,14 @@ export default function TeamPage() {
                               variant="ghost" 
                               size="sm" 
                               className="ml-2"
-                              onClick={() => {
-                                if (selectedPosition) {
-                                  addPlayerToLineup(member);
-                                } else {
-                                  toast({
-                                    title: "Select a position",
-                                    description: "Click on a position on the field first.",
-                                  });
-                                }
-                              }}
+                              onClick={() => addPlayerToFirstAvailablePosition(member)}
                             >
-                              Add
+                              Add to Lineup
                             </Button>
                           )}
                         </div>
                       ))}
-                      
+
                       {teamMembers?.filter(member => 
                         member.role === "player" && 
                         !Object.values(lineup).some(p => p?.id === member.id)
@@ -840,8 +870,8 @@ export default function TeamPage() {
                   </div>
                 </div>
               </div>
-              
-              {/* Dialog for adding a player to the lineup */}
+
+              {/* Dialog for adding a player when a field position is selected */}
               <Dialog open={showAddToLineupDialog} onOpenChange={setShowAddToLineupDialog}>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
@@ -850,7 +880,7 @@ export default function TeamPage() {
                       Select a player to add to the selected position.
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <div className="max-h-80 overflow-y-auto py-4">
                     <div className="space-y-2">
                       <div className="mb-4">
@@ -861,7 +891,7 @@ export default function TeamPage() {
                           className="mb-2"
                         />
                       </div>
-                      
+
                       {teamMembers
                         ?.filter(m => 
                           m.role === "player" && 
@@ -893,7 +923,7 @@ export default function TeamPage() {
                             </div>
                           </div>
                         ))}
-                      
+
                       {teamMembers?.filter(m => m.role === "player").length === 0 && (
                         <div className="text-center p-4 text-gray-500">
                           No players available. Add players to your team first.
@@ -901,7 +931,7 @@ export default function TeamPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setShowAddToLineupDialog(false)}>
                       Cancel
@@ -979,304 +1009,3 @@ export default function TeamPage() {
                           <AlertCircle className="h-12 w-12 mb-2" />
                           <div className="text-lg font-medium">No team members found</div>
                           {searchQuery || roleFilter !== "all" ? (
-                            <p>Try adjusting your filters</p>
-                          ) : (
-                            <p>Add team members to get started</p>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {filteredTeamMembers.map((member) => {
-                    // Safety check to ensure both member and user data exist
-                    if (!member || !member.user) return null;
-
-                    return (
-                      <TableRow key={member.id} className="hover:bg-accent/50">
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <Avatar className="h-10 w-10 mr-3 border border-primary/30">
-                              <AvatarImage src={member.user.profilePicture || '/default-avatar.png'} alt={member.user.fullName} />
-                              <AvatarFallback>{member.user.fullName?.charAt(0) || 'U'}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-semibold">{member.user.fullName || 'Unknown User'}</div>
-                              <div className="text-xs text-muted-foreground">@{member.user.username}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            member.role === "admin" ? "destructive" : 
-                            member.role === "coach" ? "default" : 
-                            "secondary"
-                          }>
-                            {member.role === "admin" ? (
-                              <Shield className="h-3 w-3 mr-1" />
-                            ) : member.role === "coach" ? (
-                              <UserCog className="h-3 w-3 mr-1" />
-                            ) : (
-                              <UserCircle className="h-3 w-3 mr-1" />
-                            )}
-                            <span className="capitalize">{member.role}</span>
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{member.user.position || "-"}</TableCell>
-                        <TableCell>
-                          {member.user.jerseyNumber ? (
-                            <Badge variant="outline">#{member.user.jerseyNumber}</Badge>
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col space-y-1">
-                            {member.user.email && (
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Mail className="h-3 w-3 mr-1" />
-                                <span>{member.user.email}</span>
-                              </div>
-                            )}
-                            {member.user.phoneNumber && (
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Phone className="h-3 w-3 mr-1" />
-                                <span>{member.user.phoneNumber}</span>
-                              </div>
-                            )}
-                            {!member.user.email && !member.user.phoneNumber && "-"}
-                          </div>
-                        </TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => {
-                                  setMemberToEdit(member);
-                                  setOpenEditMemberDialog(true);
-                                }}
-                              >
-                                Edit
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="text-destructive hover:text-destructive/90"
-                                onClick={() => {
-                                  setMemberToRemove(member);
-                                  setOpenRemoveMemberDialog(true);
-                                }}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              
-              {/* Edit Team Member Dialog */}
-              <Dialog open={openEditMemberDialog} onOpenChange={setOpenEditMemberDialog}>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Edit Team Member</DialogTitle>
-                  </DialogHeader>
-                  {memberToEdit && (
-                    <Form {...editForm}>
-                      <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-                        <div className="flex flex-col items-center mb-4">
-                          <Avatar className="h-16 w-16 mb-2">
-                            <AvatarImage 
-                              src={memberToEdit.user.profilePicture || undefined} 
-                              alt={memberToEdit.user.fullName || ""}
-                            />
-                            <AvatarFallback>{memberToEdit.user.fullName?.charAt(0) || "U"}</AvatarFallback>
-                          </Avatar>
-                          <div className="text-center">
-                            <div className="font-semibold text-lg">{memberToEdit.user.fullName}</div>
-                            <div className="text-sm text-muted-foreground">@{memberToEdit.user.username}</div>
-                          </div>
-                        </div>
-
-                        <FormField
-                          control={editForm.control}
-                          name="role"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Role</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="coach">Coach</SelectItem>
-                                  <SelectItem value="player">Player</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={editForm.control}
-                          name="position"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Position (optional)</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select position" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectGroup>
-                                    <SelectLabel>Goalkeepers</SelectLabel>
-                                    <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
-                                  </SelectGroup>
-                                  <SelectGroup>
-                                    <SelectLabel>Defenders</SelectLabel>
-                                    <SelectItem value="Center Back">Center Back</SelectItem>
-                                    <SelectItem value="Left Back">Left Back</SelectItem>
-                                    <SelectItem value="Right Back">Right Back</SelectItem>
-                                    <SelectItem value="Wing Back">Wing Back</SelectItem>
-                                    <SelectItem value="Sweeper">Sweeper</SelectItem>
-                                  </SelectGroup>
-                                  <SelectGroup>
-                                    <SelectLabel>Midfielders</SelectLabel>
-                                    <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
-                                    <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
-                                    <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
-                                    <SelectItem value="Left Midfielder">Left Midfielder</SelectItem>
-                                    <SelectItem value="Right Midfielder">Right Midfielder</SelectItem>
-                                  </SelectGroup>
-                                  <SelectGroup>
-                                    <SelectLabel>Forwards</SelectLabel>
-                                    <SelectItem value="Center Forward">Center Forward</SelectItem>
-                                    <SelectItem value="Striker">Striker</SelectItem>
-                                    <SelectItem value="Left Winger">Left Winger</SelectItem>
-                                    <SelectItem value="Right Winger">Right Winger</SelectItem>
-                                  </SelectGroup>
-                                  <SelectItem value="none">None</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={editForm.control}
-                          name="jerseyNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Jersey Number (optional)</FormLabel>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={editForm.control}
-                          name="profilePicture"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Profile Picture URL (optional)</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="https://example.com/photo.jpg" 
-                                  value={field.value || ""} 
-                                  onChange={field.onChange}
-                                  onBlur={field.onBlur}
-                                  disabled={field.disabled}
-                                  name={field.name}
-                                  ref={field.ref}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <DialogFooter>
-                          <Button type="submit" disabled={editTeamMemberMutation.isPending}>
-                            {editTeamMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Changes
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </Form>
-                  )}
-                </DialogContent>
-              </Dialog>
-
-              {/* Remove Team Member Dialog */}
-              <Dialog open={openRemoveMemberDialog} onOpenChange={setOpenRemoveMemberDialog}>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Remove Team Member</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to remove this team member?
-                    </DialogDescription>
-                  </DialogHeader>
-                  {memberToRemove && (
-                    <div className="flex flex-col items-center py-4">
-                      <Avatar className="h-16 w-16 mb-2">
-                        <AvatarImage 
-                          src={memberToRemove.user.profilePicture || undefined} 
-                          alt={memberToRemove.user.fullName || ""}
-                        />
-                        <AvatarFallback>{memberToRemove.user.fullName?.charAt(0) || "U"}</AvatarFallback>
-                      </Avatar>
-                      <div className="text-center mb-4">
-                        <div className="font-semibold text-lg">{memberToRemove.user.fullName}</div>
-                        <div className="text-sm text-muted-foreground capitalize">{memberToRemove.role}</div>
-                      </div>
-                      <p className="text-center text-muted-foreground mb-4">
-                        This action cannot be undone. The member will be removed from your team.
-                      </p>
-                    </div>
-                  )}
-                  <DialogFooter>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setOpenRemoveMemberDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      onClick={handleRemoveMember}
-                      disabled={removeMemberMutation.isPending}
-                    >
-                      {removeMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Remove Member
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-            </CardContent>
-          </Card>
-        </div>
-        <MobileNavigation />
-      </div>
-    </div>
-  );
-}
