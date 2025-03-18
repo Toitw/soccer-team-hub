@@ -1009,3 +1009,7 @@ export default function TeamPage() {
                           <AlertCircle className="h-12 w-12 mb-2" />
                           <div className="text-lg font-medium">No team members found</div>
                           {searchQuery || roleFilter !== "all" ? (
+                            <div className="text-sm text-muted-foreground">Try adjusting your filters</div>
+                          ) : (
+                            <div className="text-sm text-muted-foreground">Add team members to get started</div>
+                          )} (
