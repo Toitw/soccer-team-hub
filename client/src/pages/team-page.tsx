@@ -1013,3 +1013,4 @@ export default function TeamPage() {
                           ) : (
                             <div className="text-sm text-muted-foreground">Add team members to get started</div>
                           )}
+                        </div>
