@@ -1,45 +1,65 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Team, TeamMember, User, User as SelectUser, InsertTeamMember } from "@shared/schema";
+import {
+  Team,
+  TeamMember,
+  User,
+  User as SelectUser,
+  InsertTeamMember,
+} from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
-
 import { useAuth } from "@/hooks/use-auth";
-import { 
-  Card, 
-  CardContent,
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-
-// Define a type that includes user data with our extended fields
-interface TeamMemberWithUser extends TeamMember {
-  user: Omit<SelectUser, 'password'> & {
-    profilePicture?: string | null;
-    position?: string;
-    jerseyNumber?: number;
-    email?: string;
-    phoneNumber?: string;
-  };
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Loader2, 
-  UserPlus, 
-  UserCog, 
-  Shield, 
-  UserCircle, 
+import {
+  Loader2,
+  UserPlus,
+  UserCog,
+  Shield,
+  UserCircle,
   Mail,
   Phone,
   AlertCircle,
   Search,
-  Filter
+  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -49,18 +69,26 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 
+// Define a type that includes user data with our extended fields
+interface TeamMemberWithUser extends TeamMember {
+  user: Omit<SelectUser, "password"> & {
+    profilePicture?: string | null;
+    position?: string;
+    jerseyNumber?: number;
+    email?: string;
+    phoneNumber?: string;
+  };
+}
+
 // Schema for adding a team member
 const addTeamMemberSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
-  profilePicture: z.union([
-    z.string().url(), 
-    z.string().length(0),  // Allow empty string
-    z.null(),             // Allow null
-    z.undefined()         // Allow undefined
-  ]).optional()
+  profilePicture: z
+    .union([z.string().url(), z.string().length(0), z.null(), z.undefined()])
+    .optional(),
 });
 
 // Schema for editing a team member
@@ -68,12 +96,9 @@ const editTeamMemberSchema = z.object({
   role: z.enum(["coach", "player"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
-  profilePicture: z.union([
-    z.string().url(), 
-    z.string().length(0),  // Allow empty string
-    z.null(),             // Allow null
-    z.undefined()         // Allow undefined
-  ]).optional()
+  profilePicture: z
+    .union([z.string().url(), z.string().length(0), z.null(), z.undefined()])
+    .optional(),
 });
 
 type AddTeamMemberFormData = z.infer<typeof addTeamMemberSchema>;
@@ -96,14 +121,20 @@ export default function TeamPage() {
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
   const [openEditMemberDialog, setOpenEditMemberDialog] = useState(false);
   const [openRemoveMemberDialog, setOpenRemoveMemberDialog] = useState(false);
-  const [memberToEdit, setMemberToEdit] = useState<TeamMemberWithUser | null>(null);
-  const [memberToRemove, setMemberToRemove] = useState<TeamMemberWithUser | null>(null);
+  const [memberToEdit, setMemberToEdit] = useState<TeamMemberWithUser | null>(
+    null,
+  );
+  const [memberToRemove, setMemberToRemove] =
+    useState<TeamMemberWithUser | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
-  const [lineup, setLineup] = useState<{ [position: string]: TeamMemberWithUser | null }>({});
+  const [lineup, setLineup] = useState<{
+    [position: string]: TeamMemberWithUser | null;
+  }>({});
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [showAddToLineupDialog, setShowAddToLineupDialog] = useState<boolean>(false);
+  const [showAddToLineupDialog, setShowAddToLineupDialog] =
+    useState<boolean>(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -114,14 +145,15 @@ export default function TeamPage() {
 
   // Get team members
   const teamMembersQueryKey = ["/api/teams", selectedTeam?.id, "members"];
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMemberWithUser[]>({
+  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
+    TeamMemberWithUser[]
+  >({
     queryKey: teamMembersQueryKey,
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/members`, {
-        credentials: "include"  // Important: This ensures cookies are sent with the request
+        credentials: "include",
       });
-
       if (!response.ok) {
         if (response.status === 401) {
           console.error("Authorization error: User not authenticated");
@@ -129,29 +161,27 @@ export default function TeamPage() {
         }
         throw new Error(`Failed to fetch team members: ${response.statusText}`);
       }
-
       return await response.json();
     },
     enabled: !!selectedTeam?.id,
     retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   // Filtered team members based on role and search query
   const filteredTeamMembers = useMemo(() => {
     if (!teamMembers) return [];
-
-    return teamMembers.filter(member => {
-      // Filter by role
+    return teamMembers.filter((member) => {
       const roleMatch = roleFilter === "all" || member.role === roleFilter;
-
-      // Filter by search query
-      const searchMatch = 
-        searchQuery === "" || 
-        member.user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        member.user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const searchMatch =
+        searchQuery === "" ||
+        member.user.fullName
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        member.user.username
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         member.user.position?.toLowerCase().includes(searchQuery.toLowerCase());
-
       return roleMatch && searchMatch;
     });
   }, [teamMembers, roleFilter, searchQuery]);
@@ -164,7 +194,7 @@ export default function TeamPage() {
       role: "player",
       position: "",
       jerseyNumber: undefined,
-      profilePicture: ""
+      profilePicture: "",
     },
   });
 
@@ -175,7 +205,7 @@ export default function TeamPage() {
       role: "player",
       position: "",
       jerseyNumber: undefined,
-      profilePicture: ""
+      profilePicture: "",
     },
   });
 
@@ -186,7 +216,7 @@ export default function TeamPage() {
         role: memberToEdit.role as "coach" | "player",
         position: memberToEdit.user.position || "",
         jerseyNumber: memberToEdit.user.jerseyNumber || undefined,
-        profilePicture: memberToEdit.user.profilePicture || ""
+        profilePicture: memberToEdit.user.profilePicture || "",
       });
     }
   }, [memberToEdit, editForm]);
@@ -195,11 +225,9 @@ export default function TeamPage() {
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
       if (!selectedTeam) throw new Error("No team selected");
-
-      // Delete the team member
       await apiRequest(
         "DELETE",
-        `/api/teams/${selectedTeam.id}/members/${memberId}`
+        `/api/teams/${selectedTeam.id}/members/${memberId}`,
       );
     },
     onSuccess: () => {
@@ -209,18 +237,20 @@ export default function TeamPage() {
       });
       setOpenRemoveMemberDialog(false);
       setMemberToRemove(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "members"],
+      });
     },
     onError: (error) => {
       toast({
         title: "Error removing team member",
-        description: error.message || "There was an error removing the team member.",
+        description:
+          error.message || "There was an error removing the team member.",
         variant: "destructive",
       });
     },
   });
 
-  // Handle member removal confirmation
   const handleRemoveMember = () => {
     if (memberToRemove) {
       removeMemberMutation.mutate(memberToRemove.id);
@@ -231,21 +261,15 @@ export default function TeamPage() {
   const addTeamMemberMutation = useMutation({
     mutationFn: async (data: SimplifiedMemberPayload) => {
       if (!selectedTeam) throw new Error("No team selected");
-
-      // Add directly to the team with user information embedded
-      return apiRequest(
-        "POST", 
-        `/api/teams/${selectedTeam.id}/members`,
-        {
-          role: data.role,
-          user: {
-            fullName: data.user.fullName,
-            position: data.user.position,
-            jerseyNumber: data.user.jerseyNumber,
-            profilePicture: data.user.profilePicture
-          }
-        }
-      );
+      return apiRequest("POST", `/api/teams/${selectedTeam.id}/members`, {
+        role: data.role,
+        user: {
+          fullName: data.user.fullName,
+          position: data.user.position,
+          jerseyNumber: data.user.jerseyNumber,
+          profilePicture: data.user.profilePicture,
+        },
+      });
     },
     onSuccess: () => {
       toast({
@@ -254,12 +278,15 @@ export default function TeamPage() {
       });
       setOpenAddMemberDialog(false);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "members"],
+      });
     },
     onError: (error) => {
       toast({
         title: "Error adding team member",
-        description: error.message || "There was an error adding the team member.",
+        description:
+          error.message || "There was an error adding the team member.",
         variant: "destructive",
       });
     },
@@ -268,18 +295,17 @@ export default function TeamPage() {
   // Edit team member mutation
   const editTeamMemberMutation = useMutation({
     mutationFn: async (data: EditTeamMemberFormData) => {
-      if (!selectedTeam || !memberToEdit) throw new Error("No team or member selected");
-
-      // Call the PATCH endpoint to update the team member
+      if (!selectedTeam || !memberToEdit)
+        throw new Error("No team or member selected");
       return apiRequest(
-        "PATCH", 
+        "PATCH",
         `/api/teams/${selectedTeam.id}/members/${memberToEdit.id}`,
         {
           role: data.role,
           position: data.position,
           jerseyNumber: data.jerseyNumber,
-          profilePicture: data.profilePicture
-        }
+          profilePicture: data.profilePicture,
+        },
       );
     },
     onSuccess: () => {
@@ -287,18 +313,17 @@ export default function TeamPage() {
         title: "Team member updated",
         description: "The team member has been updated successfully.",
       });
-
-      // Close the dialog and clear the selected member
       setOpenEditMemberDialog(false);
       setMemberToEdit(null);
-
-      // Refresh the team members data
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "members"],
+      });
     },
     onError: (error) => {
       toast({
         title: "Error updating team member",
-        description: error.message || "There was an error updating the team member.",
+        description:
+          error.message || "There was an error updating the team member.",
         variant: "destructive",
       });
     },
@@ -309,149 +334,109 @@ export default function TeamPage() {
       toast({
         title: "Error",
         description: "No team selected",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-
-    // Handle empty or undefined values
     const fullName = data.fullName || "Team Member";
     const role = data.role || "player";
-
-    // Convert "none" position value to empty string
     let position = data.position;
-    if (position === "none" || !position) {
-      position = "";
-    }
-
-    // Pass the data to the team member creation endpoint with the user info embedded
+    if (position === "none" || !position) position = "";
     const payload: SimplifiedMemberPayload = {
-      role: role,
+      role,
       user: {
-        fullName: fullName,
-        position: position,
+        fullName,
+        position,
         jerseyNumber: data.jerseyNumber || undefined,
-        profilePicture: data.profilePicture || undefined
-      }
+        profilePicture: data.profilePicture || undefined,
+      },
     };
-
     addTeamMemberMutation.mutate(payload);
   };
 
-  // Handle team member edit
   const onEditSubmit = (data: EditTeamMemberFormData) => {
     if (!selectedTeam || !memberToEdit) {
       toast({
         title: "Error",
         description: "No team or member selected to edit",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
-
-    // Convert "none" position value to empty string
     let position = data.position;
-    if (position === "none" || !position) {
-      position = "";
-    }
-
-    // Submit the edit
-    editTeamMemberMutation.mutate({
-      ...data,
-      position
-    });
+    if (position === "none" || !position) position = "";
+    editTeamMemberMutation.mutate({ ...data, position });
   };
 
-  // Updated getPositionsByFormation with more vertical separation.
-  // Positions now cover most of the field:
-  // - Goalkeeper: top 95%
-  // - Defenders: top 70%
-  // - Midfielders: top 45%
-  // - Forwards: top 10%
+  // Expanded vertical spacing: GK at 95%, defenders at 70%, midfielders at 45%, forwards at 10%
   const getPositionsByFormation = (formation: string) => {
-    const positions: { id: string; label: string; top: number; left: number }[] = [];
-
-    // Parse formation (e.g., "4-3-3" means 4 defenders, 3 midfielders, 3 forwards)
-    const [defenders, midfielders, forwards] = formation.split('-').map(Number);
-
-    // Always add one goalkeeper (centered)
-    positions.push({ id: 'gk', label: 'GK', top: 95, left: 50 });
-
-    // Add defenders at top 70%
-    const defenderWidth = 80 / (defenders + 1);
+    const positions: {
+      id: string;
+      label: string;
+      top: number;
+      left: number;
+    }[] = [];
+    const [defenders, midfielders, forwards] = formation.split("-").map(Number);
+    positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+    const defenderWidth = 90 / (defenders + 1);
     for (let i = 1; i <= defenders; i++) {
       positions.push({
         id: `def-${i}`,
-        label: 'DEF',
-        top: 70,
-        left: 10 + i * defenderWidth  // Centering adjustment: start at 10%
+        label: "DEF",
+        top: 60,
+        left: 5 + i * defenderWidth,
       });
     }
-
-    // Add midfielders at top 45%
     const midfielderWidth = 80 / (midfielders + 1);
     for (let i = 1; i <= midfielders; i++) {
       positions.push({
         id: `mid-${i}`,
-        label: 'MID', 
-        top: 45,
-        left: 10 + i * midfielderWidth  // Centering adjustment: start at 10%
+        label: "MID",
+        top: 35,
+        left: 10 + i * midfielderWidth,
       });
     }
-
-    // Add forwards at top 10%
     const forwardWidth = 80 / (forwards + 1);
     for (let i = 1; i <= forwards; i++) {
       positions.push({
         id: `fwd-${i}`,
-        label: 'FWD',
+        label: "FWD",
         top: 10,
-        left: 10 + i * forwardWidth  // Centering adjustment: start at 10%
+        left: 10 + i * forwardWidth,
       });
     }
-
     return positions;
   };
 
-  // Get available formations
   const availableFormations = [
-    '4-3-3', // Traditional
-    '4-4-2', // Classic
-    '3-5-2', // Wing-backs
-    '3-4-3', // Attacking
-    '5-3-2', // Defensive
-    '4-2-3-1' // Modern
+    "4-3-3",
+    "4-4-2",
+    "3-5-2",
+    "3-4-3",
+    "5-3-2",
+    "4-2-3-1",
   ];
 
-  // Handle formation change
-  const handleFormationChange = (formation: string) => {
+  const handleFormationChange = (formation: string) =>
     setSelectedFormation(formation);
-  };
-
-  // Handle position click (when a field position is clicked)
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
     setShowAddToLineupDialog(true);
   };
 
-  // Add player to lineup (with duplicate check)
   const addPlayerToLineup = (member: TeamMemberWithUser) => {
-    if (Object.values(lineup).some(p => p?.id === member.id)) {
+    if (Object.values(lineup).some((p) => p?.id === member.id)) {
       toast({
         title: "Player already in lineup",
         description: "This player is already assigned to a position.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
     if (selectedPosition) {
-      setLineup(prev => ({
-        ...prev,
-        [selectedPosition]: member
-      }));
+      setLineup((prev) => ({ ...prev, [selectedPosition]: member }));
       setShowAddToLineupDialog(false);
       setSelectedPosition(null);
-
       toast({
         title: "Player added to lineup",
         description: `${member.user.fullName} has been added to the lineup.`,
@@ -459,23 +444,19 @@ export default function TeamPage() {
     }
   };
 
-  // New: Add player to first available position from bench (with duplicate check)
   const addPlayerToFirstAvailablePosition = (member: TeamMemberWithUser) => {
-    if (Object.values(lineup).some(p => p?.id === member.id)) {
+    if (Object.values(lineup).some((p) => p?.id === member.id)) {
       toast({
         title: "Player already in lineup",
         description: "This player is already assigned to a position.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
     const positions = getPositionsByFormation(selectedFormation);
-    const available = positions.find(pos => !lineup[pos.id]);
+    const available = positions.find((pos) => !lineup[pos.id]);
     if (available) {
-      setLineup(prev => ({
-        ...prev,
-        [available.id]: member
-      }));
+      setLineup((prev) => ({ ...prev, [available.id]: member }));
       toast({
         title: "Player added to lineup",
         description: `${member.user.fullName} has been added at position ${available.label}.`,
@@ -484,18 +465,13 @@ export default function TeamPage() {
       toast({
         title: "No available position",
         description: "There is no available position in the lineup.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
-  // Remove player from lineup
   const removePlayerFromLineup = (positionId: string) => {
-    setLineup(prev => ({
-      ...prev,
-      [positionId]: null
-    }));
-
+    setLineup((prev) => ({ ...prev, [positionId]: null }));
     toast({
       title: "Player removed from lineup",
       description: "Player has been removed from the lineup.",
@@ -510,26 +486,32 @@ export default function TeamPage() {
     );
   }
 
-  // Check if user is an admin to enable member management
-  const isAdmin = user?.role === "admin" || teamMembers?.some(
-    member => member.userId === user?.id && member.role === "admin"
-  );
+  const isAdmin =
+    user?.role === "admin" ||
+    teamMembers?.some(
+      (member) => member.userId === user?.id && member.role === "admin",
+    );
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-
       <div className="flex-1 ml-0 md:ml-64 overflow-y-auto">
         <Header title="Team" />
-
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16">
           <div className="mb-6 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
-              <p className="text-gray-500">{selectedTeam?.division || "No division set"}</p>
+              <h1 className="text-2xl font-bold text-primary">
+                {selectedTeam?.name || "Team"}
+              </h1>
+              <p className="text-gray-500">
+                {selectedTeam?.division || "No division set"}
+              </p>
             </div>
             {isAdmin && (
-              <Dialog open={openAddMemberDialog} onOpenChange={setOpenAddMemberDialog}>
+              <Dialog
+                open={openAddMemberDialog}
+                onOpenChange={setOpenAddMemberDialog}
+              >
                 <DialogTrigger asChild>
                   <Button>
                     <UserPlus className="mr-2 h-4 w-4" />
@@ -541,7 +523,10 @@ export default function TeamPage() {
                     <DialogTitle>Add Team Member</DialogTitle>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={form.control}
                         name="fullName"
@@ -555,7 +540,6 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="role"
@@ -580,7 +564,6 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="position"
@@ -599,30 +582,60 @@ export default function TeamPage() {
                               <SelectContent>
                                 <SelectGroup>
                                   <SelectLabel>Goalkeepers</SelectLabel>
-                                  <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
+                                  <SelectItem value="Goalkeeper">
+                                    Goalkeeper
+                                  </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>Defenders</SelectLabel>
-                                  <SelectItem value="Center Back">Center Back</SelectItem>
-                                  <SelectItem value="Left Back">Left Back</SelectItem>
-                                  <SelectItem value="Right Back">Right Back</SelectItem>
-                                  <SelectItem value="Wing Back">Wing Back</SelectItem>
-                                  <SelectItem value="Sweeper">Sweeper</SelectItem>
+                                  <SelectItem value="Center Back">
+                                    Center Back
+                                  </SelectItem>
+                                  <SelectItem value="Left Back">
+                                    Left Back
+                                  </SelectItem>
+                                  <SelectItem value="Right Back">
+                                    Right Back
+                                  </SelectItem>
+                                  <SelectItem value="Wing Back">
+                                    Wing Back
+                                  </SelectItem>
+                                  <SelectItem value="Sweeper">
+                                    Sweeper
+                                  </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>Midfielders</SelectLabel>
-                                  <SelectItem value="Defensive Midfielder">Defensive Midfielder</SelectItem>
-                                  <SelectItem value="Central Midfielder">Central Midfielder</SelectItem>
-                                  <SelectItem value="Attacking Midfielder">Attacking Midfielder</SelectItem>
-                                  <SelectItem value="Left Midfielder">Left Midfielder</SelectItem>
-                                  <SelectItem value="Right Midfielder">Right Midfielder</SelectItem>
+                                  <SelectItem value="Defensive Midfielder">
+                                    Defensive Midfielder
+                                  </SelectItem>
+                                  <SelectItem value="Central Midfielder">
+                                    Central Midfielder
+                                  </SelectItem>
+                                  <SelectItem value="Attacking Midfielder">
+                                    Attacking Midfielder
+                                  </SelectItem>
+                                  <SelectItem value="Left Midfielder">
+                                    Left Midfielder
+                                  </SelectItem>
+                                  <SelectItem value="Right Midfielder">
+                                    Right Midfielder
+                                  </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>Forwards</SelectLabel>
-                                  <SelectItem value="Center Forward">Center Forward</SelectItem>
-                                  <SelectItem value="Striker">Striker</SelectItem>
-                                  <SelectItem value="Left Winger">Left Winger</SelectItem>
-                                  <SelectItem value="Right Winger">Right Winger</SelectItem>
+                                  <SelectItem value="Center Forward">
+                                    Center Forward
+                                  </SelectItem>
+                                  <SelectItem value="Striker">
+                                    Striker
+                                  </SelectItem>
+                                  <SelectItem value="Left Winger">
+                                    Left Winger
+                                  </SelectItem>
+                                  <SelectItem value="Right Winger">
+                                    Right Winger
+                                  </SelectItem>
                                 </SelectGroup>
                                 <SelectItem value="none">None</SelectItem>
                               </SelectContent>
@@ -631,7 +644,6 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="jerseyNumber"
@@ -645,17 +657,18 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Profile Picture URL (optional)</FormLabel>
+                            <FormLabel>
+                              Profile Picture URL (optional)
+                            </FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="https://example.com/photo.jpg" 
-                                value={field.value || ""} 
+                              <Input
+                                placeholder="https://example.com/photo.jpg"
+                                value={field.value || ""}
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
                                 disabled={field.disabled}
@@ -670,10 +683,14 @@ export default function TeamPage() {
                           </FormItem>
                         )}
                       />
-
                       <DialogFooter>
-                        <Button type="submit" disabled={addTeamMemberMutation.isPending}>
-                          {addTeamMemberMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button
+                          type="submit"
+                          disabled={addTeamMemberMutation.isPending}
+                        >
+                          {addTeamMemberMutation.isPending && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
                           Add Team Member
                         </Button>
                       </DialogFooter>
@@ -689,15 +706,15 @@ export default function TeamPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl">Team Lineup</CardTitle>
               <div className="flex items-center space-x-2">
-                <Select 
-                  defaultValue={selectedFormation} 
+                <Select
+                  defaultValue={selectedFormation}
                   onValueChange={handleFormationChange}
                 >
                   <SelectTrigger className="w-[100px]">
                     <SelectValue placeholder="Formation" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableFormations.map(formation => (
+                    {availableFormations.map((formation) => (
                       <SelectItem key={formation} value={formation}>
                         {formation}
                       </SelectItem>
@@ -713,92 +730,93 @@ export default function TeamPage() {
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* Field container */}
+                {/* Field Container */}
                 <div className="lg:col-span-3">
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/3] sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                    {/* Field markings */}
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                        {/* Center circle */}
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-
-                        {/* Penalty area */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-
-                        {/* Goal area */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-
-                        {/* Goal */}
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-
-                        {/* Penalty spot */}
                         <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-
-                        {/* Interactive positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
-                          {getPositionsByFormation(selectedFormation).map((position) => {
-                            const player = lineup[position.id];
-                            return (
-                              <div
-                                key={position.id}
-                                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                                style={{ top: `${position.top}%`, left: `${position.left}%` }}
-                                onClick={() => handlePositionClick(position.id)}
-                              >
-                                <div 
-                                  className={`
-                                    w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white
-                                    border-2 border-white shadow-lg transition-all
-                                    ${player ? 'scale-100' : 'scale-90 opacity-70'}
-                                    ${position.label === 'GK' ? "bg-blue-500" : 
-                                      position.label === 'DEF' ? "bg-red-500" :
-                                      position.label === 'MID' ? "bg-green-500" : "bg-yellow-500"}
-                                    ${isAdmin ? 'hover:scale-110 hover:opacity-100' : ''}
-                                  `}
+                          {getPositionsByFormation(selectedFormation).map(
+                            (position) => {
+                              const player = lineup[position.id];
+                              return (
+                                <div
+                                  key={position.id}
+                                  className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                                  style={{
+                                    top: `${position.top}%`,
+                                    left: `${position.left}%`,
+                                  }}
+                                  onClick={() =>
+                                    handlePositionClick(position.id)
+                                  }
                                 >
-                                  {player ? (
-                                    <div className="flex flex-col items-center">
-                                      <span className="font-bold text-sm">{player.user.jerseyNumber || "?"}</span>
+                                  <div
+                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg transition-all ${
+                                      player
+                                        ? "scale-100"
+                                        : "scale-90 opacity-70"
+                                    } ${
+                                      position.label === "GK"
+                                        ? "bg-blue-500"
+                                        : position.label === "DEF"
+                                          ? "bg-red-500"
+                                          : position.label === "MID"
+                                            ? "bg-green-500"
+                                            : "bg-yellow-500"
+                                    } ${isAdmin ? "hover:scale-110 hover:opacity-100" : ""}`}
+                                  >
+                                    {player ? (
+                                      <div className="flex flex-col items-center">
+                                        <span className="font-bold text-sm">
+                                          {player.user.jerseyNumber || "?"}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs md:text-sm font-bold">
+                                        {position.label}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {player && (
+                                    <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
+                                      <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
+                                        {player.user.fullName?.split(" ")[0] ||
+                                          ""}
+                                      </div>
                                     </div>
-                                  ) : (
-                                    <div className="text-xs md:text-sm font-bold">{position.label}</div>
+                                  )}
+                                  {player && isAdmin && (
+                                    <div
+                                      className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removePlayerFromLineup(position.id);
+                                      }}
+                                    >
+                                      <span className="text-white text-xs font-bold">
+                                        ✕
+                                      </span>
+                                    </div>
                                   )}
                                 </div>
-
-                                {player && (
-                                  <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
-                                    <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
-                                      {player.user.fullName?.split(" ")[0] || ""}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {player && isAdmin && (
-                                  <div 
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removePlayerFromLineup(position.id);
-                                    }}
-                                  >
-                                    <span className="text-white text-xs font-bold">✕</span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                              );
+                            },
+                          )}
                         </div>
                       </div>
                     </div>
-
                     {(!teamMembers || teamMembers.length === 0) && (
                       <div className="relative z-10 text-white text-center p-4 bg-black bg-opacity-50 rounded">
                         No team members available for lineup
                       </div>
                     )}
                   </div>
-
-                  {/* Legend */}
                   <div className="mt-4 text-sm text-muted-foreground hidden md:block">
                     <p className="flex items-center mb-2">
                       <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
@@ -811,56 +829,78 @@ export default function TeamPage() {
                       Forward
                     </p>
                     <p className="text-xs text-gray-500">
-                      {isAdmin ? "Click on a position to assign a player to it." : "Team lineup is set by the coach."}
+                      {isAdmin
+                        ? "Click on a position to assign a player to it."
+                        : "Team lineup is set by the coach."}
                     </p>
                   </div>
                 </div>
-
-                {/* Bench players section */}
                 <div className="lg:col-span-2">
                   <div className="bg-muted/30 rounded-md p-4">
                     <h3 className="text-lg font-semibold mb-3">Bench</h3>
-
                     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                      {teamMembers?.filter(member => 
-                        member.role === "player" && 
-                        !Object.values(lineup).some(p => p?.id === member.id)
-                      ).map(member => (
-                        <div 
-                          key={member.id}
-                          className="flex items-center p-2 bg-background rounded-md hover:bg-accent/50 transition-colors"
-                        >
-                          <Avatar className="h-8 w-8 mr-3">
-                            <AvatarImage src={member.user.profilePicture || undefined} alt={member.user.fullName || ""} />
-                            <AvatarFallback>{member.user.fullName?.charAt(0) || "U"}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">{member.user.fullName}</div>
-                            <div className="text-xs text-muted-foreground flex items-center">
-                              {member.user.position && (
-                                <span className="truncate">{member.user.position}</span>
-                              )}
-                              {member.user.jerseyNumber && (
-                                <Badge variant="outline" className="text-xs ml-1">#{member.user.jerseyNumber}</Badge>
-                              )}
+                      {teamMembers
+                        ?.filter(
+                          (member) =>
+                            member.role === "player" &&
+                            !Object.values(lineup).some(
+                              (p) => p?.id === member.id,
+                            ),
+                        )
+                        .map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center p-2 bg-background rounded-md hover:bg-accent/50 transition-colors"
+                          >
+                            <Avatar className="h-8 w-8 mr-3">
+                              <AvatarImage
+                                src={member.user.profilePicture || undefined}
+                                alt={member.user.fullName || ""}
+                              />
+                              <AvatarFallback>
+                                {member.user.fullName?.charAt(0) || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">
+                                {member.user.fullName}
+                              </div>
+                              <div className="text-xs text-muted-foreground flex items-center">
+                                {member.user.position && (
+                                  <span className="truncate">
+                                    {member.user.position}
+                                  </span>
+                                )}
+                                {member.user.jerseyNumber && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs ml-1"
+                                  >
+                                    #{member.user.jerseyNumber}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="ml-2"
+                                onClick={() =>
+                                  addPlayerToFirstAvailablePosition(member)
+                                }
+                              >
+                                Add to Lineup
+                              </Button>
+                            )}
                           </div>
-                          {isAdmin && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="ml-2"
-                              onClick={() => addPlayerToFirstAvailablePosition(member)}
-                            >
-                              Add to Lineup
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-
-                      {teamMembers?.filter(member => 
-                        member.role === "player" && 
-                        !Object.values(lineup).some(p => p?.id === member.id)
+                        ))}
+                      {teamMembers?.filter(
+                        (member) =>
+                          member.role === "player" &&
+                          !Object.values(lineup).some(
+                            (p) => p?.id === member.id,
+                          ),
                       ).length === 0 && (
                         <div className="text-center py-8 text-muted-foreground">
                           <p>All players are in the lineup</p>
@@ -870,9 +910,10 @@ export default function TeamPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Dialog for adding a player when a field position is selected */}
-              <Dialog open={showAddToLineupDialog} onOpenChange={setShowAddToLineupDialog}>
+              <Dialog
+                open={showAddToLineupDialog}
+                onOpenChange={setShowAddToLineupDialog}
+              >
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Add Player to Lineup</DialogTitle>
@@ -880,7 +921,6 @@ export default function TeamPage() {
                       Select a player to add to the selected position.
                     </DialogDescription>
                   </DialogHeader>
-
                   <div className="max-h-80 overflow-y-auto py-4">
                     <div className="space-y-2">
                       <div className="mb-4">
@@ -891,49 +931,65 @@ export default function TeamPage() {
                           className="mb-2"
                         />
                       </div>
-
                       {teamMembers
-                        ?.filter(m => 
-                          m.role === "player" && 
-                          (m.user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           m.user.position?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           !searchQuery
-                          )
+                        ?.filter(
+                          (m) =>
+                            m.role === "player" &&
+                            (m.user.fullName
+                              ?.toLowerCase()
+                              .includes(searchQuery.toLowerCase()) ||
+                              m.user.position
+                                ?.toLowerCase()
+                                .includes(searchQuery.toLowerCase()) ||
+                              !searchQuery),
                         )
-                        .map(member => (
-                          <div 
+                        .map((member) => (
+                          <div
                             key={member.id}
                             className="flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer"
                             onClick={() => addPlayerToLineup(member)}
                           >
                             <Avatar className="h-10 w-10 mr-3">
-                              <AvatarImage src={member.user.profilePicture || undefined} alt={member.user.fullName || ""} />
-                              <AvatarFallback>{member.user.fullName?.charAt(0) || "U"}</AvatarFallback>
+                              <AvatarImage
+                                src={member.user.profilePicture || undefined}
+                                alt={member.user.fullName || ""}
+                              />
+                              <AvatarFallback>
+                                {member.user.fullName?.charAt(0) || "U"}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{member.user.fullName}</div>
+                              <div className="font-medium">
+                                {member.user.fullName}
+                              </div>
                               <div className="text-sm text-gray-500 flex items-center">
                                 {member.user.position && (
-                                  <span className="mr-2">{member.user.position}</span>
+                                  <span className="mr-2">
+                                    {member.user.position}
+                                  </span>
                                 )}
                                 {member.user.jerseyNumber && (
-                                  <Badge variant="outline" className="text-xs">#{member.user.jerseyNumber}</Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    #{member.user.jerseyNumber}
+                                  </Badge>
                                 )}
                               </div>
                             </div>
                           </div>
                         ))}
-
-                      {teamMembers?.filter(m => m.role === "player").length === 0 && (
+                      {teamMembers?.filter((m) => m.role === "player")
+                        .length === 0 && (
                         <div className="text-center p-4 text-gray-500">
                           No players available. Add players to your team first.
                         </div>
                       )}
                     </div>
                   </div>
-
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowAddToLineupDialog(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddToLineupDialog(false)}
+                    >
                       Cancel
                     </Button>
                   </DialogFooter>
@@ -941,8 +997,6 @@ export default function TeamPage() {
               </Dialog>
             </CardContent>
           </Card>
-
-          {/* Team Members Table */}
           <Card className="mb-8">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center">
@@ -950,18 +1004,18 @@ export default function TeamPage() {
                 Team Members
               </CardTitle>
               <div className="flex items-center space-x-2">
-                <Select 
-                  value={roleFilter} 
-                  onValueChange={setRoleFilter}
-                >
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Filter by role">
                       <div className="flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
-                        {roleFilter === "all" ? "All Members" : 
-                         roleFilter === "admin" ? "Admins" : 
-                         roleFilter === "coach" ? "Coaches" : 
-                         "Players"}
+                        {roleFilter === "all"
+                          ? "All Members"
+                          : roleFilter === "admin"
+                            ? "Admins"
+                            : roleFilter === "coach"
+                              ? "Coaches"
+                              : "Players"}
                       </div>
                     </SelectValue>
                   </SelectTrigger>
@@ -974,9 +1028,9 @@ export default function TeamPage() {
                 </Select>
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    className="w-[200px] pl-9" 
-                    placeholder="Search members..." 
+                  <Input
+                    className="w-[200px] pl-9"
+                    placeholder="Search members..."
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -984,7 +1038,8 @@ export default function TeamPage() {
                 </div>
                 {(roleFilter !== "all" || searchQuery) && (
                   <Badge variant="outline" className="px-3 py-1">
-                    {filteredTeamMembers.length} {filteredTeamMembers.length === 1 ? 'result' : 'results'}
+                    {filteredTeamMembers.length}{" "}
+                    {filteredTeamMembers.length === 1 ? "result" : "results"}
                   </Badge>
                 )}
               </div>
@@ -1004,13 +1059,138 @@ export default function TeamPage() {
                 <TableBody>
                   {!filteredTeamMembers.length && (
                     <TableRow>
-                      <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8">
+                      <TableCell
+                        colSpan={isAdmin ? 6 : 5}
+                        className="text-center py-8"
+                      >
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mb-2" />
-                          <div className="text-lg font-medium">No team members found</div>
+                          <div className="text-lg font-medium">
+                            No team members found
+                          </div>
                           {searchQuery || roleFilter !== "all" ? (
-                            <div className="text-sm text-muted-foreground">Try adjusting your filters</div>
+                            <p>Try adjusting your filters</p>
                           ) : (
-                            <div className="text-sm text-muted-foreground">Add team members to get started</div>
+                            <p>Add team members to get started</p>
                           )}
                         </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {filteredTeamMembers.map((member) => {
+                    if (!member || !member.user) return null;
+                    return (
+                      <TableRow key={member.id} className="hover:bg-accent/50">
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <Avatar className="h-10 w-10 mr-3 border border-primary/30">
+                              <AvatarImage
+                                src={
+                                  member.user.profilePicture ||
+                                  "/default-avatar.png"
+                                }
+                                alt={member.user.fullName}
+                              />
+                              <AvatarFallback>
+                                {member.user.fullName?.charAt(0) || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-semibold">
+                                {member.user.fullName || "Unknown User"}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                @{member.user.username}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              member.role === "admin"
+                                ? "destructive"
+                                : member.role === "coach"
+                                  ? "default"
+                                  : "secondary"
+                            }
+                          >
+                            {member.role === "admin" ? (
+                              <Shield className="h-3 w-3 mr-1" />
+                            ) : member.role === "coach" ? (
+                              <UserCog className="h-3 w-3 mr-1" />
+                            ) : (
+                              <UserCircle className="h-3 w-3 mr-1" />
+                            )}
+                            <span className="capitalize">{member.role}</span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{member.user.position || "-"}</TableCell>
+                        <TableCell>
+                          {member.user.jerseyNumber ? (
+                            <Badge variant="outline">
+                              #{member.user.jerseyNumber}
+                            </Badge>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col space-y-1">
+                            {member.user.email && (
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3 mr-1" />
+                                <span>{member.user.email}</span>
+                              </div>
+                            )}
+                            {member.user.phoneNumber && (
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3 mr-1" />
+                                <span>{member.user.phoneNumber}</span>
+                              </div>
+                            )}
+                            {!member.user.email &&
+                              !member.user.phoneNumber &&
+                              "-"}
+                          </div>
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setMemberToEdit(member);
+                                  setOpenEditMemberDialog(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive/90"
+                                onClick={() => {
+                                  setMemberToRemove(member);
+                                  setOpenRemoveMemberDialog(true);
+                                }}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+        <MobileNavigation />
+      </div>
+    </div>
+  );
+}
