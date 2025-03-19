@@ -662,23 +662,19 @@ export default function TeamPage() {
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>
-                              Profile Picture URL (optional)
-                            </FormLabel>
+                            <FormLabel>Profile Picture</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="https://example.com/photo.jpg"
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                disabled={field.disabled}
-                                name={field.name}
-                                ref={field.ref}
+                              <Input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    field.onChange(file);
+                                  }
+                                }}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Enter a valid URL for the player's profile picture
-                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -934,7 +930,7 @@ export default function TeamPage() {
                       {teamMembers
                         ?.filter(
                           (m) =>
-                            m.role === "player" &&
+                            m.role=== "player" &&
                             (m.user.fullName
                               ?.toLowerCase()
                               .includes(searchQuery.toLowerCase()) ||

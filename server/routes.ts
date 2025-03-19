@@ -305,6 +305,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { userId, role, user } = req.body;
+      let profilePicture = user?.profilePicture;
+
+      // Handle base64 image data
+      if (profilePicture && profilePicture.startsWith('data:image')) {
+        const timestamp = Date.now();
+        const fileName = `avatar-${timestamp}.jpg`;
+        const filePath = `./data/uploads/${fileName}`;
+        
+        // Ensure uploads directory exists
+        if (!fs.existsSync('./data/uploads')) {
+          fs.mkdirSync('./data/uploads', { recursive: true });
+        }
+
+        // Convert base64 to file and save
+        const base64Data = profilePicture.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
+        profilePicture = `/uploads/${fileName}`;
+      }
 
       // For the simplified member creation (without accounts)
       if (user) {
