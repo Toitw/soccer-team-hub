@@ -310,5 +310,17 @@
     "id": 50,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "rober7302",
+    "password": "ebbe96508f7c78c55ddf193d45585d2f5dbfcd90897c66543b349f85cb6602535d96b9679fffc9f9cfed49cfb5aa8cf5a93d08fdda2a65707ca43f386e3c744d.5c75cb37d93062dbc5fdf3118dddda23",
+    "fullName": "Rober",
+    "role": "player",
+    "position": "Goalkeeper",
+    "jerseyNumber": 1,
+    "profilePicture": "https://i.pravatar.cc/150?u=7302",
+    "id": 51,
+    "email": null,
+    "phoneNumber": null
   }
 ]
