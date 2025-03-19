@@ -670,7 +670,12 @@ export default function TeamPage() {
                                 onChange={(e) => {
                                   const file = e.target.files?.[0];
                                   if (file) {
-                                    field.onChange(file);
+                                    // Convert file to base64
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      field.onChange(reader.result);
+                                    };
+                                    reader.readAsDataURL(file);
                                   }
                                 }}
                               />
