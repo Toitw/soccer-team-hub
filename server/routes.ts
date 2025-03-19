@@ -307,21 +307,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId, role, user } = req.body;
       let profilePicture = user?.profilePicture;
 
-      // Handle base64 image data
-      if (profilePicture && profilePicture.startsWith('data:image')) {
-        const timestamp = Date.now();
-        const fileName = `avatar-${timestamp}.jpg`;
-        const filePath = `./data/uploads/${fileName}`;
-        
-        // Ensure uploads directory exists
-        if (!fs.existsSync('./data/uploads')) {
-          fs.mkdirSync('./data/uploads', { recursive: true });
+      // Handle profile picture URL or base64
+      if (profilePicture) {
+        if (profilePicture.startsWith('data:image')) {
+          // For base64 encoded images, we'll just use them as-is
+          // Client-side will handle displaying base64 images correctly
+          // No need to save to disk since we'll store the base64 string directly
+        } else if (!profilePicture.startsWith('http')) {
+          // If not a URL and not base64, use a default avatar
+          profilePicture = `https://i.pravatar.cc/150?u=${mockUserId}`;
         }
-
-        // Convert base64 to file and save
-        const base64Data = profilePicture.replace(/^data:image\/\w+;base64,/, '');
-        fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
-        profilePicture = `/uploads/${fileName}`;
       }
 
       // For the simplified member creation (without accounts)
