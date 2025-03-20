@@ -7,7 +7,12 @@ import {
   attendance, type Attendance, type InsertAttendance,
   playerStats, type PlayerStat, type InsertPlayerStat,
   announcements, type Announcement, type InsertAnnouncement,
-  invitations, type Invitation, type InsertInvitation
+  invitations, type Invitation, type InsertInvitation,
+  matchLineups, type MatchLineup, type InsertMatchLineup,
+  matchSubstitutions, type MatchSubstitution, type InsertMatchSubstitution,
+  matchGoals, type MatchGoal, type InsertMatchGoal,
+  matchCards, type MatchCard, type InsertMatchCard,
+  matchPhotos, type MatchPhoto, type InsertMatchPhoto
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
@@ -25,6 +30,11 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
 const TEAMS_FILE = path.join(DATA_DIR, 'teams.json');
+const MATCH_LINEUPS_FILE = path.join(DATA_DIR, 'match_lineups.json');
+const MATCH_SUBSTITUTIONS_FILE = path.join(DATA_DIR, 'match_substitutions.json');
+const MATCH_GOALS_FILE = path.join(DATA_DIR, 'match_goals.json');
+const MATCH_CARDS_FILE = path.join(DATA_DIR, 'match_cards.json');
+const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match_photos.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -182,6 +192,11 @@ export class MemStorage implements IStorage {
     this.playerStats = new Map();
     this.announcements = new Map();
     this.invitations = new Map();
+    this.matchLineups = new Map();
+    this.matchSubstitutions = new Map();
+    this.matchGoals = new Map();
+    this.matchCards = new Map();
+    this.matchPhotos = new Map();
     
     this.userCurrentId = 1;
     this.teamCurrentId = 1;
@@ -192,6 +207,11 @@ export class MemStorage implements IStorage {
     this.playerStatCurrentId = 1;
     this.announcementCurrentId = 1;
     this.invitationCurrentId = 1;
+    this.matchLineupCurrentId = 1;
+    this.matchSubstitutionCurrentId = 1;
+    this.matchGoalCurrentId = 1;
+    this.matchCardCurrentId = 1;
+    this.matchPhotoCurrentId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -434,6 +454,76 @@ export class MemStorage implements IStorage {
       console.log(`Saved ${matchesArray.length} matches to storage`);
     } catch (error) {
       console.error("Error saving matches data:", error);
+    }
+  }
+  
+  // Helper method to save match lineups data to file
+  private saveMatchLineupsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchLineupsArray = Array.from(this.matchLineups.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCH_LINEUPS_FILE, JSON.stringify(matchLineupsArray, null, 2));
+      console.log(`Saved ${matchLineupsArray.length} match lineups to storage`);
+    } catch (error) {
+      console.error("Error saving match lineups data:", error);
+    }
+  }
+  
+  // Helper method to save match substitutions data to file
+  private saveMatchSubstitutionsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchSubstitutionsArray = Array.from(this.matchSubstitutions.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCH_SUBSTITUTIONS_FILE, JSON.stringify(matchSubstitutionsArray, null, 2));
+      console.log(`Saved ${matchSubstitutionsArray.length} match substitutions to storage`);
+    } catch (error) {
+      console.error("Error saving match substitutions data:", error);
+    }
+  }
+  
+  // Helper method to save match goals data to file
+  private saveMatchGoalsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchGoalsArray = Array.from(this.matchGoals.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCH_GOALS_FILE, JSON.stringify(matchGoalsArray, null, 2));
+      console.log(`Saved ${matchGoalsArray.length} match goals to storage`);
+    } catch (error) {
+      console.error("Error saving match goals data:", error);
+    }
+  }
+  
+  // Helper method to save match cards data to file
+  private saveMatchCardsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchCardsArray = Array.from(this.matchCards.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCH_CARDS_FILE, JSON.stringify(matchCardsArray, null, 2));
+      console.log(`Saved ${matchCardsArray.length} match cards to storage`);
+    } catch (error) {
+      console.error("Error saving match cards data:", error);
+    }
+  }
+  
+  // Helper method to save match photos data to file
+  private saveMatchPhotosData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const matchPhotosArray = Array.from(this.matchPhotos.values());
+      
+      // Write to file
+      fs.writeFileSync(MATCH_PHOTOS_FILE, JSON.stringify(matchPhotosArray, null, 2));
+      console.log(`Saved ${matchPhotosArray.length} match photos to storage`);
+    } catch (error) {
+      console.error("Error saving match photos data:", error);
     }
   }
   
@@ -685,6 +775,184 @@ export class MemStorage implements IStorage {
     }
     
     return result;
+  }
+  
+  // Match Lineup methods
+  async getMatchLineup(matchId: number): Promise<MatchLineup | undefined> {
+    return Array.from(this.matchLineups.values()).find(
+      (lineup) => lineup.matchId === matchId
+    );
+  }
+
+  async createMatchLineup(lineup: InsertMatchLineup): Promise<MatchLineup> {
+    const id = this.matchLineupCurrentId++;
+    
+    const matchLineup: MatchLineup = { 
+      ...lineup, 
+      id,
+      formation: lineup.formation || null,
+      createdAt: new Date() 
+    };
+    
+    this.matchLineups.set(id, matchLineup);
+    
+    // Save match lineups to file
+    this.saveMatchLineupsData();
+    
+    return matchLineup;
+  }
+
+  async updateMatchLineup(id: number, lineupData: Partial<MatchLineup>): Promise<MatchLineup | undefined> {
+    const lineup = this.matchLineups.get(id);
+    if (!lineup) return undefined;
+    
+    const updatedLineup: MatchLineup = { ...lineup, ...lineupData };
+    this.matchLineups.set(id, updatedLineup);
+    
+    // Save match lineups to file
+    this.saveMatchLineupsData();
+    
+    return updatedLineup;
+  }
+
+  // Match Substitution methods
+  async getMatchSubstitutions(matchId: number): Promise<MatchSubstitution[]> {
+    return Array.from(this.matchSubstitutions.values()).filter(
+      (sub) => sub.matchId === matchId
+    );
+  }
+
+  async createMatchSubstitution(substitution: InsertMatchSubstitution): Promise<MatchSubstitution> {
+    const id = this.matchSubstitutionCurrentId++;
+    
+    const matchSubstitution: MatchSubstitution = { 
+      ...substitution, 
+      id,
+      createdAt: new Date() 
+    };
+    
+    this.matchSubstitutions.set(id, matchSubstitution);
+    
+    return matchSubstitution;
+  }
+
+  async updateMatchSubstitution(id: number, substitutionData: Partial<MatchSubstitution>): Promise<MatchSubstitution | undefined> {
+    const substitution = this.matchSubstitutions.get(id);
+    if (!substitution) return undefined;
+    
+    const updatedSubstitution: MatchSubstitution = { ...substitution, ...substitutionData };
+    this.matchSubstitutions.set(id, updatedSubstitution);
+    
+    return updatedSubstitution;
+  }
+
+  async deleteMatchSubstitution(id: number): Promise<boolean> {
+    return this.matchSubstitutions.delete(id);
+  }
+
+  // Match Goal methods
+  async getMatchGoals(matchId: number): Promise<MatchGoal[]> {
+    return Array.from(this.matchGoals.values()).filter(
+      (goal) => goal.matchId === matchId
+    );
+  }
+
+  async createMatchGoal(goal: InsertMatchGoal): Promise<MatchGoal> {
+    const id = this.matchGoalCurrentId++;
+    
+    const matchGoal: MatchGoal = { 
+      ...goal, 
+      id,
+      createdAt: new Date() 
+    };
+    
+    this.matchGoals.set(id, matchGoal);
+    
+    return matchGoal;
+  }
+
+  async updateMatchGoal(id: number, goalData: Partial<MatchGoal>): Promise<MatchGoal | undefined> {
+    const goal = this.matchGoals.get(id);
+    if (!goal) return undefined;
+    
+    const updatedGoal: MatchGoal = { ...goal, ...goalData };
+    this.matchGoals.set(id, updatedGoal);
+    
+    return updatedGoal;
+  }
+
+  async deleteMatchGoal(id: number): Promise<boolean> {
+    return this.matchGoals.delete(id);
+  }
+
+  // Match Card methods
+  async getMatchCards(matchId: number): Promise<MatchCard[]> {
+    return Array.from(this.matchCards.values()).filter(
+      (card) => card.matchId === matchId
+    );
+  }
+
+  async createMatchCard(card: InsertMatchCard): Promise<MatchCard> {
+    const id = this.matchCardCurrentId++;
+    
+    const matchCard: MatchCard = { 
+      ...card, 
+      id,
+      createdAt: new Date() 
+    };
+    
+    this.matchCards.set(id, matchCard);
+    
+    return matchCard;
+  }
+
+  async updateMatchCard(id: number, cardData: Partial<MatchCard>): Promise<MatchCard | undefined> {
+    const card = this.matchCards.get(id);
+    if (!card) return undefined;
+    
+    const updatedCard: MatchCard = { ...card, ...cardData };
+    this.matchCards.set(id, updatedCard);
+    
+    return updatedCard;
+  }
+
+  async deleteMatchCard(id: number): Promise<boolean> {
+    return this.matchCards.delete(id);
+  }
+
+  // Match Photo methods
+  async getMatchPhotos(matchId: number): Promise<MatchPhoto[]> {
+    return Array.from(this.matchPhotos.values()).filter(
+      (photo) => photo.matchId === matchId
+    );
+  }
+
+  async createMatchPhoto(photo: InsertMatchPhoto): Promise<MatchPhoto> {
+    const id = this.matchPhotoCurrentId++;
+    
+    const matchPhoto: MatchPhoto = { 
+      ...photo, 
+      id,
+      uploadedAt: new Date() 
+    };
+    
+    this.matchPhotos.set(id, matchPhoto);
+    
+    return matchPhoto;
+  }
+
+  async updateMatchPhoto(id: number, photoData: Partial<MatchPhoto>): Promise<MatchPhoto | undefined> {
+    const photo = this.matchPhotos.get(id);
+    if (!photo) return undefined;
+    
+    const updatedPhoto: MatchPhoto = { ...photo, ...photoData };
+    this.matchPhotos.set(id, updatedPhoto);
+    
+    return updatedPhoto;
+  }
+
+  async deleteMatchPhoto(id: number): Promise<boolean> {
+    return this.matchPhotos.delete(id);
   }
 
   // Event methods
