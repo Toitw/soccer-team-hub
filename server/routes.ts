@@ -1180,6 +1180,235 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Match Cards routes
+  app.get("/api/teams/:teamId/matches/:matchId/cards", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const cards = await storage.getMatchCards(matchId);
+
+      // Get player details for cards
+      const cardsWithPlayerDetails = await Promise.all(
+        cards.map(async (card) => {
+          const player = await storage.getUser(card.playerId);
+          if (!player) return null;
+
+          // Remove password from user details
+          const { password, ...playerWithoutPassword } = player;
+
+          return {
+            ...card,
+            player: playerWithoutPassword
+          };
+        })
+      );
+
+      res.json(cardsWithPlayerDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch match cards" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/matches/:matchId/cards", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const { playerId, type, minute, reason } = req.body;
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      // Create new card
+      const card = await storage.createMatchCard({
+        matchId,
+        playerId,
+        type,
+        minute,
+        reason
+      });
+
+      res.status(201).json(card);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match card" });
+    }
+  });
+
+  app.delete("/api/teams/:teamId/matches/:matchId/cards/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const cardId = parseInt(req.params.id);
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const result = await storage.deleteMatchCard(cardId);
+      if (!result) {
+        return res.status(404).json({ error: "Card not found" });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete match card" });
+    }
+  });
+
+  // Match Photos routes
+  app.get("/api/teams/:teamId/matches/:matchId/photos", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const photos = await storage.getMatchPhotos(matchId);
+
+      // Get uploader details for photos
+      const photosWithUploaderDetails = await Promise.all(
+        photos.map(async (photo) => {
+          const uploader = await storage.getUser(photo.uploadedById);
+          if (!uploader) return null;
+
+          // Remove password from user details
+          const { password, ...uploaderWithoutPassword } = uploader;
+
+          return {
+            ...photo,
+            uploader: uploaderWithoutPassword
+          };
+        })
+      );
+
+      res.json(photosWithUploaderDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch match photos" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/matches/:matchId/photos", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const { url, caption } = req.body;
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      // Create new photo
+      const photo = await storage.createMatchPhoto({
+        matchId,
+        url,
+        caption,
+        uploadedById: req.user.id
+      });
+
+      res.status(201).json(photo);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match photo" });
+    }
+  });
+
+  app.delete("/api/teams/:teamId/matches/:matchId/photos/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const photoId = parseInt(req.params.id);
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      
+      // Get the photo
+      const photo = await storage.getMatchPhoto(photoId);
+      if (!photo) {
+        return res.status(404).json({ error: "Photo not found" });
+      }
+      
+      // Allow deletion only for admin/coach or the original uploader
+      if (!teamMember || 
+          ((teamMember.role !== "admin" && teamMember.role !== "coach") && 
+           photo.uploadedById !== req.user.id)) {
+        return res.status(403).json({ error: "Not authorized to delete this photo" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const result = await storage.deleteMatchPhoto(photoId);
+      if (!result) {
+        return res.status(404).json({ error: "Photo not found" });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete match photo" });
+    }
+  });
+
   // Mock data creation for demo
   app.post("/api/mock-data", async (req, res) => {
     if (process.env.NODE_ENV === "production") {
