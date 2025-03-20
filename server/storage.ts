@@ -99,6 +99,35 @@ export interface IStorage {
   getInvitations(teamId: number): Promise<Invitation[]>;
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   updateInvitation(id: number, invitationData: Partial<Invitation>): Promise<Invitation | undefined>;
+
+  // Match Lineup methods
+  getMatchLineup(matchId: number): Promise<MatchLineup | undefined>;
+  createMatchLineup(lineup: InsertMatchLineup): Promise<MatchLineup>;
+  updateMatchLineup(id: number, lineupData: Partial<MatchLineup>): Promise<MatchLineup | undefined>;
+  
+  // Match Substitution methods
+  getMatchSubstitutions(matchId: number): Promise<MatchSubstitution[]>;
+  createMatchSubstitution(substitution: InsertMatchSubstitution): Promise<MatchSubstitution>;
+  updateMatchSubstitution(id: number, substitutionData: Partial<MatchSubstitution>): Promise<MatchSubstitution | undefined>;
+  deleteMatchSubstitution(id: number): Promise<boolean>;
+  
+  // Match Goal methods
+  getMatchGoals(matchId: number): Promise<MatchGoal[]>;
+  createMatchGoal(goal: InsertMatchGoal): Promise<MatchGoal>;
+  updateMatchGoal(id: number, goalData: Partial<MatchGoal>): Promise<MatchGoal | undefined>;
+  deleteMatchGoal(id: number): Promise<boolean>;
+
+  // Match Card methods
+  getMatchCards(matchId: number): Promise<MatchCard[]>;
+  createMatchCard(card: InsertMatchCard): Promise<MatchCard>;
+  updateMatchCard(id: number, cardData: Partial<MatchCard>): Promise<MatchCard | undefined>;
+  deleteMatchCard(id: number): Promise<boolean>;
+
+  // Match Photo methods
+  getMatchPhotos(matchId: number): Promise<MatchPhoto[]>;
+  createMatchPhoto(photo: InsertMatchPhoto): Promise<MatchPhoto>;
+  updateMatchPhoto(id: number, photoData: Partial<MatchPhoto>): Promise<MatchPhoto | undefined>;
+  deleteMatchPhoto(id: number): Promise<boolean>;
   
   // Session store for authentication
   sessionStore: SessionStoreType;
@@ -114,6 +143,11 @@ export class MemStorage implements IStorage {
   private playerStats: Map<number, PlayerStat>;
   private announcements: Map<number, Announcement>;
   private invitations: Map<number, Invitation>;
+  private matchLineups: Map<number, MatchLineup>;
+  private matchSubstitutions: Map<number, MatchSubstitution>;
+  private matchGoals: Map<number, MatchGoal>;
+  private matchCards: Map<number, MatchCard>;
+  private matchPhotos: Map<number, MatchPhoto>;
   
   sessionStore: SessionStoreType;
   
@@ -126,6 +160,11 @@ export class MemStorage implements IStorage {
   private playerStatCurrentId: number;
   private announcementCurrentId: number;
   private invitationCurrentId: number;
+  private matchLineupCurrentId: number;
+  private matchSubstitutionCurrentId: number;
+  private matchGoalCurrentId: number;
+  private matchCardCurrentId: number;
+  private matchPhotoCurrentId: number;
 
   constructor() {
     // Ensure the data directory exists
