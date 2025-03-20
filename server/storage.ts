@@ -134,6 +134,7 @@ export interface IStorage {
   deleteMatchCard(id: number): Promise<boolean>;
 
   // Match Photo methods
+  getMatchPhoto(id: number): Promise<MatchPhoto | undefined>;
   getMatchPhotos(matchId: number): Promise<MatchPhoto[]>;
   createMatchPhoto(photo: InsertMatchPhoto): Promise<MatchPhoto>;
   updateMatchPhoto(id: number, photoData: Partial<MatchPhoto>): Promise<MatchPhoto | undefined>;
@@ -962,6 +963,10 @@ export class MemStorage implements IStorage {
   }
 
   // Match Photo methods
+  async getMatchPhoto(id: number): Promise<MatchPhoto | undefined> {
+    return this.matchPhotos.get(id);
+  }
+
   async getMatchPhotos(matchId: number): Promise<MatchPhoto[]> {
     return Array.from(this.matchPhotos.values()).filter(
       (photo) => photo.matchId === matchId
