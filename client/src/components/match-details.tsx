@@ -894,11 +894,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(e.target.value as any)}
                               >
                                 <option value="">Select goal type</option>
-                                <option value="open_play">Open Play</option>
+                                <option value="regular">Regular</option>
                                 <option value="penalty">Penalty</option>
                                 <option value="free_kick">Free Kick</option>
                                 <option value="own_goal">Own Goal</option>
-                                <option value="other">Other</option>
                               </select>
                             </FormControl>
                             <FormMessage />
@@ -966,11 +965,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         ) : "-"}
                       </TableCell>
                       <TableCell>
-                        {goal.type === "open_play" ? "Open Play" : 
+                        {goal.type === "regular" ? "Regular" : 
                          goal.type === "penalty" ? "Penalty" : 
                          goal.type === "free_kick" ? "Free Kick" : 
                          goal.type === "own_goal" ? "Own Goal" : 
-                         goal.type === "other" ? "Other" : "Unknown"}
+                         "Unknown"}
                       </TableCell>
                       <TableCell>
                         <Button 
