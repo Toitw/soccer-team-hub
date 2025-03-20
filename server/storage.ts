@@ -828,10 +828,13 @@ export class MemStorage implements IStorage {
     const matchSubstitution: MatchSubstitution = { 
       ...substitution, 
       id,
-      createdAt: new Date() 
+      reason: substitution.reason || null
     };
     
     this.matchSubstitutions.set(id, matchSubstitution);
+    
+    // Save match substitutions to file
+    this.saveMatchSubstitutionsData();
     
     return matchSubstitution;
   }
@@ -843,11 +846,21 @@ export class MemStorage implements IStorage {
     const updatedSubstitution: MatchSubstitution = { ...substitution, ...substitutionData };
     this.matchSubstitutions.set(id, updatedSubstitution);
     
+    // Save match substitutions to file
+    this.saveMatchSubstitutionsData();
+    
     return updatedSubstitution;
   }
 
   async deleteMatchSubstitution(id: number): Promise<boolean> {
-    return this.matchSubstitutions.delete(id);
+    const result = this.matchSubstitutions.delete(id);
+    
+    // Save match substitutions to file if deleted
+    if (result) {
+      this.saveMatchSubstitutionsData();
+    }
+    
+    return result;
   }
 
   // Match Goal methods
@@ -863,10 +876,15 @@ export class MemStorage implements IStorage {
     const matchGoal: MatchGoal = { 
       ...goal, 
       id,
-      createdAt: new Date() 
+      type: goal.type || "regular",
+      description: goal.description || null,
+      assistId: goal.assistId || null
     };
     
     this.matchGoals.set(id, matchGoal);
+    
+    // Save match goals to file
+    this.saveMatchGoalsData();
     
     return matchGoal;
   }
@@ -878,11 +896,21 @@ export class MemStorage implements IStorage {
     const updatedGoal: MatchGoal = { ...goal, ...goalData };
     this.matchGoals.set(id, updatedGoal);
     
+    // Save match goals to file
+    this.saveMatchGoalsData();
+    
     return updatedGoal;
   }
 
   async deleteMatchGoal(id: number): Promise<boolean> {
-    return this.matchGoals.delete(id);
+    const result = this.matchGoals.delete(id);
+    
+    // Save match goals to file if deleted
+    if (result) {
+      this.saveMatchGoalsData();
+    }
+    
+    return result;
   }
 
   // Match Card methods
@@ -898,10 +926,13 @@ export class MemStorage implements IStorage {
     const matchCard: MatchCard = { 
       ...card, 
       id,
-      createdAt: new Date() 
+      reason: card.reason || null
     };
     
     this.matchCards.set(id, matchCard);
+    
+    // Save match cards to file
+    this.saveMatchCardsData();
     
     return matchCard;
   }
@@ -913,11 +944,21 @@ export class MemStorage implements IStorage {
     const updatedCard: MatchCard = { ...card, ...cardData };
     this.matchCards.set(id, updatedCard);
     
+    // Save match cards to file
+    this.saveMatchCardsData();
+    
     return updatedCard;
   }
 
   async deleteMatchCard(id: number): Promise<boolean> {
-    return this.matchCards.delete(id);
+    const result = this.matchCards.delete(id);
+    
+    // Save match cards to file if deleted
+    if (result) {
+      this.saveMatchCardsData();
+    }
+    
+    return result;
   }
 
   // Match Photo methods
@@ -933,10 +974,14 @@ export class MemStorage implements IStorage {
     const matchPhoto: MatchPhoto = { 
       ...photo, 
       id,
+      caption: photo.caption || null,
       uploadedAt: new Date() 
     };
     
     this.matchPhotos.set(id, matchPhoto);
+    
+    // Save match photos to file
+    this.saveMatchPhotosData();
     
     return matchPhoto;
   }
@@ -948,11 +993,21 @@ export class MemStorage implements IStorage {
     const updatedPhoto: MatchPhoto = { ...photo, ...photoData };
     this.matchPhotos.set(id, updatedPhoto);
     
+    // Save match photos to file
+    this.saveMatchPhotosData();
+    
     return updatedPhoto;
   }
 
   async deleteMatchPhoto(id: number): Promise<boolean> {
-    return this.matchPhotos.delete(id);
+    const result = this.matchPhotos.delete(id);
+    
+    // Save match photos to file if deleted
+    if (result) {
+      this.saveMatchPhotosData();
+    }
+    
+    return result;
   }
 
   // Event methods

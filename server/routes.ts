@@ -855,6 +855,331 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Match Lineup routes
+  app.get("/api/teams/:teamId/matches/:matchId/lineup", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const lineup = await storage.getMatchLineup(matchId);
+
+      if (!lineup) {
+        return res.status(404).json({ error: "Lineup not found" });
+      }
+
+      // Get player details for each player in the lineup
+      const playersDetails = await Promise.all(
+        lineup.playerIds.map(async (playerId) => {
+          const user = await storage.getUser(playerId);
+          if (!user) return null;
+
+          const { password, ...userWithoutPassword } = user;
+          return userWithoutPassword;
+        })
+      );
+
+      res.json({
+        ...lineup,
+        players: playersDetails.filter(Boolean)
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch match lineup" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/matches/:matchId/lineup", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const { playerIds, formation } = req.body;
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      // Check if lineup already exists
+      const existingLineup = await storage.getMatchLineup(matchId);
+      if (existingLineup) {
+        const updatedLineup = await storage.updateMatchLineup(existingLineup.id, {
+          playerIds,
+          formation
+        });
+        return res.json(updatedLineup);
+      }
+
+      // Create new lineup
+      const lineup = await storage.createMatchLineup({
+        matchId,
+        teamId,
+        playerIds,
+        formation
+      });
+
+      res.status(201).json(lineup);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match lineup" });
+    }
+  });
+
+  // Match Substitutions routes
+  app.get("/api/teams/:teamId/matches/:matchId/substitutions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const substitutions = await storage.getMatchSubstitutions(matchId);
+
+      // Get player details for substitutions
+      const substitutionsWithPlayerDetails = await Promise.all(
+        substitutions.map(async (sub) => {
+          const playerIn = await storage.getUser(sub.playerInId);
+          const playerOut = await storage.getUser(sub.playerOutId);
+
+          if (!playerIn || !playerOut) return null;
+
+          // Remove password from user details
+          const { password: p1, ...playerInWithoutPassword } = playerIn;
+          const { password: p2, ...playerOutWithoutPassword } = playerOut;
+
+          return {
+            ...sub,
+            playerIn: playerInWithoutPassword,
+            playerOut: playerOutWithoutPassword
+          };
+        })
+      );
+
+      res.json(substitutionsWithPlayerDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch match substitutions" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/matches/:matchId/substitutions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const { playerInId, playerOutId, minute, reason } = req.body;
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      // Create new substitution
+      const substitution = await storage.createMatchSubstitution({
+        matchId,
+        playerInId,
+        playerOutId,
+        minute,
+        reason
+      });
+
+      res.status(201).json(substitution);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match substitution" });
+    }
+  });
+
+  app.delete("/api/teams/:teamId/matches/:matchId/substitutions/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const substitutionId = parseInt(req.params.id);
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const result = await storage.deleteMatchSubstitution(substitutionId);
+      if (!result) {
+        return res.status(404).json({ error: "Substitution not found" });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete match substitution" });
+    }
+  });
+
+  // Match Goals routes
+  app.get("/api/teams/:teamId/matches/:matchId/goals", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const goals = await storage.getMatchGoals(matchId);
+
+      // Get player details for goals
+      const goalsWithPlayerDetails = await Promise.all(
+        goals.map(async (goal) => {
+          const scorer = await storage.getUser(goal.scorerId);
+          if (!scorer) return null;
+
+          // Remove password from user details
+          const { password, ...scorerWithoutPassword } = scorer;
+
+          let assistPlayerWithoutPassword = null;
+          if (goal.assistId) {
+            const assistPlayer = await storage.getUser(goal.assistId);
+            if (assistPlayer) {
+              const { password, ...assistDetails } = assistPlayer;
+              assistPlayerWithoutPassword = assistDetails;
+            }
+          }
+
+          return {
+            ...goal,
+            scorer: scorerWithoutPassword,
+            assistPlayer: assistPlayerWithoutPassword
+          };
+        })
+      );
+
+      res.json(goalsWithPlayerDetails.filter(Boolean));
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch match goals" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/matches/:matchId/goals", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const { scorerId, assistId, minute, type, description } = req.body;
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      // Create new goal
+      const goal = await storage.createMatchGoal({
+        matchId,
+        scorerId,
+        assistId,
+        minute,
+        type,
+        description
+      });
+
+      res.status(201).json(goal);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match goal" });
+    }
+  });
+
+  app.delete("/api/teams/:teamId/matches/:matchId/goals/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const matchId = parseInt(req.params.matchId);
+      const goalId = parseInt(req.params.id);
+
+      // Check if user is a member of the team with admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to modify team data" });
+      }
+
+      // Check if match belongs to the team
+      const match = await storage.getMatch(matchId);
+      if (!match || match.teamId !== teamId) {
+        return res.status(404).json({ error: "Match not found" });
+      }
+
+      const result = await storage.deleteMatchGoal(goalId);
+      if (!result) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+
+      res.sendStatus(204);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete match goal" });
+    }
+  });
+
   // Mock data creation for demo
   app.post("/api/mock-data", async (req, res) => {
     if (process.env.NODE_ENV === "production") {
