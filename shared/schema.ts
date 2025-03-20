@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -186,6 +186,96 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
   createdById: true,
 });
 
+// MatchLineups table for initial lineups
+export const matchLineups = pgTable("match_lineups", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  teamId: integer("team_id").notNull(),
+  playerIds: integer("player_ids").array().notNull(), // Array of player IDs in the lineup
+  formation: text("formation"), // e.g., "4-4-2", "4-3-3"
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
+  matchId: true,
+  teamId: true,
+  playerIds: true,
+  formation: true,
+});
+
+// MatchSubstitutions table for player changes
+export const matchSubstitutions = pgTable("match_substitutions", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  playerInId: integer("player_in_id").notNull(),
+  playerOutId: integer("player_out_id").notNull(),
+  minute: integer("minute").notNull(),
+  reason: text("reason"),
+});
+
+export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutions).pick({
+  matchId: true,
+  playerInId: true,
+  playerOutId: true,
+  minute: true,
+  reason: true,
+});
+
+// MatchGoals table for detailed goal information
+export const matchGoals = pgTable("match_goals", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  scorerId: integer("scorer_id").notNull(),
+  assistId: integer("assist_id"), // Optional, not all goals have assists
+  minute: integer("minute").notNull(),
+  type: text("type", { enum: ["regular", "penalty", "free_kick", "own_goal"] }).default("regular"),
+  description: text("description"),
+});
+
+export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
+  matchId: true,
+  scorerId: true,
+  assistId: true,
+  minute: true,
+  type: true,
+  description: true,
+});
+
+// MatchCards table for yellow and red cards
+export const matchCards = pgTable("match_cards", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  playerId: integer("player_id").notNull(),
+  type: text("type", { enum: ["yellow", "red", "second_yellow"] }).notNull(),
+  minute: integer("minute").notNull(),
+  reason: text("reason"),
+});
+
+export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
+  matchId: true,
+  playerId: true,
+  type: true,
+  minute: true,
+  reason: true,
+});
+
+// MatchPhotos table for storing match photos
+export const matchPhotos = pgTable("match_photos", {
+  id: serial("id").primaryKey(),
+  matchId: integer("match_id").notNull(),
+  url: text("url").notNull(),
+  caption: text("caption"),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  uploadedById: integer("uploaded_by_id").notNull(),
+});
+
+export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
+  matchId: true,
+  url: true,
+  caption: true,
+  uploadedById: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -213,3 +303,18 @@ export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
 
 export type Invitation = typeof invitations.$inferSelect;
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+
+export type MatchLineup = typeof matchLineups.$inferSelect;
+export type InsertMatchLineup = z.infer<typeof insertMatchLineupSchema>;
+
+export type MatchSubstitution = typeof matchSubstitutions.$inferSelect;
+export type InsertMatchSubstitution = z.infer<typeof insertMatchSubstitutionSchema>;
+
+export type MatchGoal = typeof matchGoals.$inferSelect;
+export type InsertMatchGoal = z.infer<typeof insertMatchGoalSchema>;
+
+export type MatchCard = typeof matchCards.$inferSelect;
+export type InsertMatchCard = z.infer<typeof insertMatchCardSchema>;
+
+export type MatchPhoto = typeof matchPhotos.$inferSelect;
+export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
