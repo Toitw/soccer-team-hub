@@ -305,6 +305,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { userId, role, user } = req.body;
+      let profilePicture = user?.profilePicture;
+
+      // Handle profile picture URL or base64
+      if (profilePicture) {
+        if (profilePicture.startsWith('data:image')) {
+          // For base64 encoded images, we'll just use them as-is
+          // Client-side will handle displaying base64 images correctly
+          // No need to save to disk since we'll store the base64 string directly
+        } else if (!profilePicture.startsWith('http')) {
+          // If not a URL and not base64, use a default avatar
+          profilePicture = `https://i.pravatar.cc/150?u=${mockUserId}`;
+        }
+      }
 
       // For the simplified member creation (without accounts)
       if (user) {

@@ -662,23 +662,24 @@ export default function TeamPage() {
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>
-                              Profile Picture URL (optional)
-                            </FormLabel>
+                            <FormLabel>Profile Picture</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="https://example.com/photo.jpg"
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                disabled={field.disabled}
-                                name={field.name}
-                                ref={field.ref}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    // Convert file to base64
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      field.onChange(reader.result);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Enter a valid URL for the player's profile picture
-                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -732,7 +733,7 @@ export default function TeamPage() {
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* Field Container */}
                 <div className="lg:col-span-3">
-                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/3] sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
