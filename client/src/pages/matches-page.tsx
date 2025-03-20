@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import MatchDetails from "@/components/match-details";
 import { 
   Card, 
   CardContent, 
@@ -860,6 +861,10 @@ export default function MatchesPage() {
                             )}
                           </div>
                         </CardContent>
+
+                        {match.status === "completed" && (
+                          <MatchDetails match={match} teamId={selectedTeam?.id || 0} onUpdate={refetchMatchesData} />
+                        )}
 
                         <CardFooter className="flex gap-2 border-t px-6 py-3 bg-gray-50">
                           <Button 
