@@ -349,12 +349,12 @@ export default function MatchesPage() {
                   Add Match
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{isEditing ? "Edit Match" : "Create New Match"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                     <FormField
                       control={form.control}
                       name="opponentName"
