@@ -489,21 +489,17 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="lineup" className="flex items-center">
-              <Users className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Lineup</span>
+            <TabsTrigger value="lineup">
+              Lineup
             </TabsTrigger>
-            <TabsTrigger value="substitutions" className="flex items-center">
-              <ArrowRightLeft className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Substitutions</span>
+            <TabsTrigger value="substitutions">
+              Substitutions
             </TabsTrigger>
-            <TabsTrigger value="goals" className="flex items-center">
-              <Trophy className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Goals</span>
+            <TabsTrigger value="goals">
+              Goals
             </TabsTrigger>
-            <TabsTrigger value="cards" className="flex items-center">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Cards</span>
+            <TabsTrigger value="cards">
+              Cards
             </TabsTrigger>
           </TabsList>
 
