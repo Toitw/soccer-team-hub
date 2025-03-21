@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -131,6 +132,116 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   
   // Forms
+  // Available formations for the soccer field
+  const availableFormations = [
+    "4-3-3",
+    "4-4-2",
+    "3-5-2",
+    "3-4-3",
+    "5-3-2",
+    "4-2-3-1",
+  ];
+  
+  // State for the soccer field player positioning
+  const [lineupPositions, setLineupPositions] = useState<{
+    [position: string]: TeamMemberWithUser | null;
+  }>({});
+  
+  // Function to calculate player positions based on formation
+  const getPositionsByFormation = (formation: string) => {
+    const positions: {
+      id: string;
+      label: string;
+      top: number;
+      left: number;
+    }[] = [];
+    const [defenders, midfielders, forwards] = formation.split("-").map(Number);
+    
+    // Add goalkeeper
+    positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+    
+    // Add defenders
+    const defenderWidth = 90 / (defenders + 1);
+    for (let i = 1; i <= defenders; i++) {
+      positions.push({
+        id: `def-${i}`,
+        label: "DEF",
+        top: 60,
+        left: 5 + i * defenderWidth,
+      });
+    }
+    
+    // Add midfielders
+    const midfielderWidth = 80 / (midfielders + 1);
+    for (let i = 1; i <= midfielders; i++) {
+      positions.push({
+        id: `mid-${i}`,
+        label: "MID",
+        top: 35,
+        left: 10 + i * midfielderWidth,
+      });
+    }
+    
+    // Add forwards
+    const forwardWidth = 80 / (forwards + 1);
+    for (let i = 1; i <= forwards; i++) {
+      positions.push({
+        id: `fwd-${i}`,
+        label: "FWD",
+        top: 10,
+        left: 10 + i * forwardWidth,
+      });
+    }
+    
+    return positions;
+  };
+  
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  
+  const handlePositionClick = (positionId: string) => {
+    setSelectedPosition(positionId);
+  };
+  
+  const addPlayerToPosition = (member: TeamMemberWithUser, positionId: string) => {
+    if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
+      toast({
+        title: "Player already in lineup",
+        description: "This player is already assigned to a position.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setLineupPositions(prev => ({
+      ...prev,
+      [positionId]: member
+    }));
+    
+    // Add to form's playerIds if not already included
+    const currentIds = lineupForm.getValues().playerIds;
+    if (!currentIds.includes(member.userId)) {
+      lineupForm.setValue('playerIds', [...currentIds, member.userId]);
+    }
+    
+    setSelectedPosition(null);
+  };
+  
+  const removePlayerFromPosition = (positionId: string) => {
+    const player = lineupPositions[positionId];
+    if (player) {
+      // Remove from form's playerIds
+      const currentIds = lineupForm.getValues().playerIds;
+      lineupForm.setValue('playerIds', currentIds.filter(id => id !== player.userId));
+      
+      // Remove from positions
+      setLineupPositions(prev => {
+        const newPositions = { ...prev };
+        delete newPositions[positionId];
+        return newPositions;
+      });
+    }
+  };
+  
   const lineupForm = useForm<z.infer<typeof lineupSchema>>({
     resolver: zodResolver(lineupSchema),
     defaultValues: {
@@ -520,6 +631,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   </DialogHeader>
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">
+
+                      
                       <FormField
                         control={lineupForm.control}
                         name="formation"
@@ -527,7 +640,25 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Formation</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="e.g. 4-4-2" />
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Reset lineup positions when formation changes
+                                  setLineupPositions({});
+                                }}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select formation" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableFormations.map((formation) => (
+                                    <SelectItem key={formation} value={formation}>
+                                      {formation}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -539,34 +670,193 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="playerIds"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Starting Players</FormLabel>
-                            <div className="border rounded-md p-3 space-y-2 max-h-60 overflow-y-auto">
-                              {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                <div key={member.userId} className="flex items-center space-x-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`player-${member.userId}`}
-                                    className="rounded border-gray-300"
-                                    checked={field.value.includes(member.userId)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        // Add to selected players
-                                        field.onChange([...field.value, member.userId]);
-                                      } else {
-                                        // Remove from selected players
-                                        field.onChange(field.value.filter(id => id !== member.userId));
-                                      }
-                                    }}
-                                  />
-                                  <label htmlFor={`player-${member.userId}`} className="text-sm flex-1">
-                                    {member.user.fullName}
-                                    {member.user.position && <span className="text-gray-500 ml-2">{member.user.position}</span>}
-                                    {member.user.jerseyNumber && <span className="text-gray-500 ml-2">#{member.user.jerseyNumber}</span>}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
+                            <FormLabel>Team Lineup</FormLabel>
                             <FormMessage />
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
+                              {/* Soccer Field */}
+                              <div className="lg:col-span-3">
+                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-80 sm:aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                                  <div className="absolute top-0 left-0 w-full h-full">
+                                    <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                                      {/* Soccer field markings */}
+                                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                                      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                                      
+                                      {/* Player positions */}
+                                      <div className="absolute top-0 left-0 w-full h-full">
+                                        {getPositionsByFormation(lineupForm.watch("formation")).map(
+                                          (position) => {
+                                            const player = lineupPositions[position.id];
+                                            return (
+                                              <div
+                                                key={position.id}
+                                                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                                                style={{
+                                                  top: `${position.top}%`,
+                                                  left: `${position.left}%`,
+                                                }}
+                                                onClick={() => handlePositionClick(position.id)}
+                                              >
+                                                <div
+                                                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg transition-all ${
+                                                    player
+                                                      ? "scale-100"
+                                                      : "scale-90 opacity-70"
+                                                  } ${
+                                                    position.label === "GK"
+                                                      ? "bg-blue-500"
+                                                      : position.label === "DEF"
+                                                        ? "bg-red-500"
+                                                        : position.label === "MID"
+                                                          ? "bg-green-500"
+                                                          : "bg-yellow-500"
+                                                  } hover:scale-110 hover:opacity-100`}
+                                                >
+                                                  {player ? (
+                                                    <div className="flex flex-col items-center">
+                                                      <span className="font-bold text-sm">
+                                                        {player.user.jerseyNumber || "?"}
+                                                      </span>
+                                                    </div>
+                                                  ) : (
+                                                    <div className="opacity-50 text-sm">+</div>
+                                                  )}
+                                                </div>
+                                                
+                                                {/* Player tooltip */}
+                                                {player && (
+                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
+                                                    {player.user.fullName}
+                                                    {player.user.position && ` (${player.user.position})`}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          }
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
+                                  <div className="flex items-center mr-3 mb-1">
+                                    <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                                    <span>GK</span>
+                                  </div>
+                                  <div className="flex items-center mr-3 mb-1">
+                                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
+                                    <span>DEF</span>
+                                  </div>
+                                  <div className="flex items-center mr-3 mb-1">
+                                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                                    <span>MID</span>
+                                  </div>
+                                  <div className="flex items-center mb-1">
+                                    <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
+                                    <span>FWD</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Available Players */}
+                              <div className="lg:col-span-2">
+                                <div className="bg-muted/30 rounded-md p-2">
+                                  <h4 className="font-medium mb-2 text-sm">Available Players</h4>
+                                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                                    {selectedPosition && (
+                                      <div className="bg-primary/10 p-2 rounded-md mb-2 text-sm">
+                                        <p>Select a player for position: <span className="font-bold">{selectedPosition}</span></p>
+                                      </div>
+                                    )}
+                                    
+                                    {teamMembers
+                                      ?.filter(
+                                        (member) =>
+                                          member.role === "player" &&
+                                          !Object.values(lineupPositions).some(
+                                            (p) => p?.id === member.id
+                                          )
+                                      )
+                                      .map((member) => (
+                                        <div
+                                          key={member.userId}
+                                          className={`flex items-center justify-between p-2 bg-white border rounded-md ${
+                                            selectedPosition ? "cursor-pointer hover:bg-primary/5" : ""
+                                          }`}
+                                          onClick={() => {
+                                            if (selectedPosition) {
+                                              addPlayerToPosition(member, selectedPosition);
+                                            }
+                                          }}
+                                        >
+                                          <div className="flex items-center">
+                                            <div className="ml-2">
+                                              <div className="font-medium">{member.user.fullName}</div>
+                                              <div className="text-xs text-gray-500 flex">
+                                                {member.user.position && (
+                                                  <span className="mr-2">{member.user.position}</span>
+                                                )}
+                                                {member.user.jerseyNumber && (
+                                                  <span>#{member.user.jerseyNumber}</span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      
+                                    {/* Empty state */}
+                                    {teamMembers?.filter(
+                                      (member) =>
+                                        member.role === "player" &&
+                                        !Object.values(lineupPositions).some(
+                                          (p) => p?.id === member.id
+                                        )
+                                    ).length === 0 && (
+                                      <div className="text-center py-4 text-muted-foreground">
+                                        <p>All players are in the lineup</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {/* Bench section */}
+                                <div className="mt-4 bg-muted/30 rounded-md p-2">
+                                  <h4 className="font-medium mb-2 text-sm">Players on the Bench</h4>
+                                  <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+                                    {Object.entries(lineupPositions).length > 0 ? (
+                                      <div className="flex flex-col gap-2">
+                                        {Object.entries(lineupPositions).map(([positionId, player]) => (
+                                          <div key={positionId} className="flex justify-between items-center bg-white p-2 rounded-md">
+                                            <div className="text-sm font-medium">
+                                              {player?.user.fullName} 
+                                              {player?.user.jerseyNumber && <span className="text-xs ml-1">#{player?.user.jerseyNumber}</span>}
+                                            </div>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => removePlayerFromPosition(positionId)}
+                                              className="h-7 w-7 p-0"
+                                            >
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-center py-4 text-muted-foreground">
+                                        <p>No players assigned yet</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </FormItem>
                         )}
                       />
