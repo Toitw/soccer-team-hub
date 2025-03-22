@@ -132,6 +132,52 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   
+  // Function to handle opening the lineup dialog and initialize form with existing data
+  const handleOpenLineupDialog = () => {
+    if (lineup) {
+      // Reset positions state
+      setLineupPositions({});
+      
+      // Initialize form with existing lineup data
+      lineupForm.setValue('formation', lineup.formation || '4-4-2');
+      lineupForm.setValue('playerIds', lineup.players.map(player => player.id));
+      lineupForm.setValue('benchPlayerIds', lineup.benchPlayers?.map(player => player.id) || []);
+      
+      // Populate positions with players
+      if (lineup.players.length > 0 && lineup.formation) {
+        const positions = getPositionsByFormation(lineup.formation);
+        
+        // Map players to positions
+        lineup.players.forEach((player, index) => {
+          if (index < positions.length) {
+            const position = positions[index];
+            const teamMember = teamMembers?.find(m => m.userId === player.id);
+            
+            if (teamMember) {
+              setLineupPositions(prev => ({
+                ...prev,
+                [position.id]: {
+                  ...teamMember,
+                  user: player
+                }
+              }));
+            }
+          }
+        });
+      }
+    } else {
+      // Reset form for new lineup
+      lineupForm.reset({
+        formation: "4-4-2",
+        playerIds: [],
+        benchPlayerIds: []
+      });
+      setLineupPositions({});
+    }
+    
+    setLineupDialogOpen(true);
+  };
+  
   // Forms
   // Available formations for the soccer field
   const availableFormations = [
@@ -663,7 +709,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               <h3 className="text-lg font-medium">Starting Lineup</h3>
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
+                  <Button size="sm" onClick={handleOpenLineupDialog}>
                     {lineup ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                     {lineup ? "Edit Lineup" : "Add Lineup"}
                   </Button>
