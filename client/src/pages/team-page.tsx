@@ -356,8 +356,8 @@ export default function TeamPage() {
 
   // Remove team member mutation
   const removeMemberMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedTeam || !memberToRemove) throw new Error("No team or member selected");
+    mutationFn: async (memberId: number) => {
+      if (!selectedTeam) throw new Error("No team selected");
       return apiRequest(
         "DELETE",
         `/api/teams/${selectedTeam.id}/members/${memberToRemove.id}`
@@ -398,7 +398,9 @@ export default function TeamPage() {
   };
 
   const onRemoveSubmit = () => {
-    removeMemberMutation.mutate();
+    if (memberToRemove) {
+      removeMemberMutation.mutate(memberToRemove.id);
+    }
   };
 
   // Expanded vertical spacing: GK at 95%, defenders at 70%, midfielders at 45%, forwards at 10%
