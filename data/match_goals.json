@@ -2,10 +2,10 @@
   {
     "matchId": 2,
     "scorerId": 53,
-    "assistId": 51,
+    "assistId": null,
     "minute": 3,
-    "type": "free_kick",
-    "description": "dfa",
+    "type": "regular",
+    "description": null,
     "id": 1
   }
 ]
