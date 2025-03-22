@@ -3,13 +3,12 @@
     "matchId": 2,
     "teamId": 1,
     "playerIds": [
-      49,
-      51,
       50,
-      52
+      62,
+      63
     ],
     "formation": "4-4-2",
     "id": 1,
-    "createdAt": "2025-03-21T11:08:13.429Z"
+    "createdAt": "2025-03-22T10:01:31.600Z"
   }
 ]
