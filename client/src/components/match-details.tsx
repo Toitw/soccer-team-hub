@@ -791,7 +791,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 onClick={() => handlePositionClick(position.id)}
                                               >
                                                 <div
-                                                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg transition-all ${
+                                                  className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg transition-all ${
                                                     player
                                                       ? "scale-100"
                                                       : "scale-90 opacity-70"
@@ -807,7 +807,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 >
                                                   {player ? (
                                                     <div className="flex flex-col items-center">
-                                                      <span className="font-bold text-sm">
+                                                      <span className="font-bold text-xs">
                                                         {player.user.jerseyNumber || "?"}
                                                       </span>
                                                     </div>
@@ -1056,7 +1056,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 }}
                               >
                                 <div
-                                  className={`w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg ${
+                                  className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg ${
                                     player
                                       ? "scale-100"
                                       : "scale-90 opacity-70"
