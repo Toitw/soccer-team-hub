@@ -67,7 +67,8 @@ import { Badge } from "@/components/ui/badge";
 // Define schemas for the various forms
 const lineupSchema = z.object({
   formation: z.string().min(1, "Formation is required"),
-  playerIds: z.array(z.number()).min(1, "At least one player must be selected")
+  playerIds: z.array(z.number()).min(1, "At least one player must be selected"),
+  benchPlayerIds: z.array(z.number()).optional().default([])
 });
 
 const substitutionSchema = z.object({
@@ -91,7 +92,7 @@ const goalSchema = z.object({
   minute: z.number({
     required_error: "Minute is required"
   }).int().positive(),
-  type: z.enum(["open_play", "penalty", "free_kick", "own_goal", "other"], {
+  type: z.enum(["regular", "penalty", "free_kick", "own_goal", "other"], {
     required_error: "Goal type is required"
   }),
   description: z.string().optional()
@@ -242,11 +243,50 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     }
   };
   
+  // State for bench players
+  const [benchPlayers, setBenchPlayers] = useState<number[]>([]);
+  
+  // Add player to bench
+  const addPlayerToBench = (member: TeamMemberWithUser) => {
+    const currentBenchIds = lineupForm.getValues().benchPlayerIds || [];
+    
+    // Check if player is already on the field
+    if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
+      toast({
+        title: "Player already in lineup",
+        description: "Remove the player from the field position first before adding to bench.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check if player is already on the bench
+    if (currentBenchIds.includes(member.userId)) {
+      toast({
+        title: "Player already on bench",
+        description: "This player is already on the bench.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    lineupForm.setValue('benchPlayerIds', [...currentBenchIds, member.userId]);
+    setBenchPlayers([...benchPlayers, member.userId]);
+  };
+  
+  // Remove player from bench
+  const removePlayerFromBench = (userId: number) => {
+    const currentBenchIds = lineupForm.getValues().benchPlayerIds || [];
+    lineupForm.setValue('benchPlayerIds', currentBenchIds.filter(id => id !== userId));
+    setBenchPlayers(benchPlayers.filter(id => id !== userId));
+  };
+
   const lineupForm = useForm<z.infer<typeof lineupSchema>>({
     resolver: zodResolver(lineupSchema),
     defaultValues: {
       formation: "4-4-2",
-      playerIds: []
+      playerIds: [],
+      benchPlayerIds: []
     }
   });
   
@@ -625,7 +665,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     {lineup ? "Edit Lineup" : "Add Lineup"}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{lineup ? "Edit Match Lineup" : "Add Match Lineup"}</DialogTitle>
                   </DialogHeader>

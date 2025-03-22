@@ -2,9 +2,9 @@
   {
     "matchId": 2,
     "playerId": 50,
-    "type": "yellow",
-    "minute": 10,
-    "reason": null,
+    "type": "red",
+    "minute": 5,
+    "reason": "a",
     "id": 1
   }
 ]
