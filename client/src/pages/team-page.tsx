@@ -354,35 +354,6 @@ export default function TeamPage() {
     addTeamMemberMutation.mutate(payload);
   };
 
-  // Remove team member mutation
-  const removeMemberMutation = useMutation({
-    mutationFn: async (memberId: number) => {
-      if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest(
-        "DELETE",
-        `/api/teams/${selectedTeam.id}/members/${memberToRemove.id}`
-      );
-    },
-    onSuccess: () => {
-      toast({
-        title: "Team member removed",
-        description: "The team member has been removed successfully.",
-      });
-      setOpenRemoveMemberDialog(false);
-      setMemberToRemove(null);
-      queryClient.invalidateQueries({
-        queryKey: ["/api/teams", selectedTeam?.id, "members"],
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error removing team member",
-        description: error.message || "There was an error removing the team member.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const onEditSubmit = (data: EditTeamMemberFormData) => {
     if (!selectedTeam || !memberToEdit) {
       toast({
