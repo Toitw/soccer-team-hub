@@ -368,6 +368,12 @@ export default function TeamPage() {
     editTeamMemberMutation.mutate({ ...data, position });
   };
 
+  const onRemoveSubmit = () => {
+    if (memberToRemove) {
+      removeMemberMutation.mutate(memberToRemove.id);
+    }
+  };
+
   // Expanded vertical spacing: GK at 95%, defenders at 70%, midfielders at 45%, forwards at 10%
   const getPositionsByFormation = (formation: string) => {
     const positions: {
@@ -897,7 +903,7 @@ export default function TeamPage() {
                           </div>
                         ))}
                       {teamMembers?.filter(
-                        (member) =>
+                        (member)=>
                           member.role === "player" &&
                           !Object.values(lineup).some(
                             (p) => p?.id === member.id,
