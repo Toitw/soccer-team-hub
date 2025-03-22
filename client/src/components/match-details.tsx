@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import {
   Match,
   MatchLineup,
@@ -667,27 +667,40 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     }
   });
 
+  // Helper function to safely format dates
+  const formatDate = (dateValue: string | Date | null) => {
+    if (!dateValue) return 'Date unavailable';
+    
+    // Parse string dates to Date objects
+    const date = typeof dateValue === 'string' ? parseISO(dateValue) : dateValue;
+    
+    // Check if the date is valid before formatting
+    if (!isValid(date)) return 'Invalid date';
+    
+    return format(date, "EEEE, MMMM d, yyyy 'at' h:mm a");
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div>
-            <CardTitle className="text-xl">{match.opponentTeam}</CardTitle>
+            <CardTitle className="text-xl">{match.opponentName}</CardTitle>
             <CardDescription className="text-sm mt-1">
-              {format(new Date(match.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+              {formatDate(match.matchDate)}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={match.status === "upcoming" ? "outline" : match.status === "ongoing" ? "secondary" : "default"}>
+            <Badge variant={match.status === "scheduled" ? "outline" : match.status === "completed" ? "default" : "secondary"}>
               {match.status.charAt(0).toUpperCase() + match.status.slice(1)}
             </Badge>
             <Badge variant="outline" className="flex items-center gap-1">
               <Trophy className="h-3.5 w-3.5" />
-              Score: {match.homeScore ?? 0} - {match.awayScore ?? 0}
+              Score: {match.goalsScored ?? 0} - {match.goalsConceded ?? 0}
             </Badge>
             <Badge variant="outline" className="flex items-center gap-1">
               <Users className="h-3.5 w-3.5" />
-              {match.locationType}
+              {match.isHome ? "Home" : "Away"}
             </Badge>
           </div>
         </div>
@@ -1669,7 +1682,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           )}
         </div>
         <div className="text-sm">
-          <span className="font-medium">Last updated:</span> {format(new Date(match.updatedAt || match.date), "MMM d, yyyy")}
+          <span className="font-medium">Last updated:</span> {formatDate(match.matchDate)}
         </div>
       </CardFooter>
     </Card>
