@@ -326,7 +326,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     queryKey: [`/api/teams/${teamId}/members`],
   });
 
-  const { data: lineup, isLoading: lineupLoading } = useQuery<MatchLineup & { players: User[] }>({
+  const { data: lineup, isLoading: lineupLoading } = useQuery<MatchLineup & { 
+    players: User[],
+    benchPlayers?: User[] 
+  }>({
     queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`],
     enabled: match.status === "completed"
   });
@@ -866,35 +869,93 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 </div>
                                 
                                 {/* Bench section */}
-                                <div className="mt-4 bg-muted/30 rounded-md p-2">
-                                  <h4 className="font-medium mb-2 text-sm">Players on the Bench</h4>
-                                  <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
-                                    {Object.entries(lineupPositions).length > 0 ? (
-                                      <div className="flex flex-col gap-2">
-                                        {Object.entries(lineupPositions).map(([positionId, player]) => (
-                                          <div key={positionId} className="flex justify-between items-center bg-white p-2 rounded-md">
-                                            <div className="text-sm font-medium">
-                                              {player?.user.fullName} 
-                                              {player?.user.jerseyNumber && <span className="text-xs ml-1">#{player?.user.jerseyNumber}</span>}
-                                            </div>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => removePlayerFromPosition(positionId)}
-                                              className="h-7 w-7 p-0"
+                                <FormField
+                                  control={lineupForm.control}
+                                  name="benchPlayerIds"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <div className="mt-4 bg-muted/30 rounded-md p-2">
+                                        <h4 className="font-medium mb-2 text-sm">Players on the Bench</h4>
+                                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                                          {/* Players not in the field lineup or on bench */}
+                                          {teamMembers?.filter(member => 
+                                            member.role === "player" && 
+                                            !Object.values(lineupPositions).some(p => p?.id === member.id) &&
+                                            !field.value.includes(member.userId)
+                                          ).map(member => (
+                                            <div
+                                              key={member.userId}
+                                              className="flex items-center justify-between p-2 bg-white border rounded-md cursor-pointer hover:bg-gray-50"
+                                              onClick={() => addPlayerToBench(member)}
                                             >
-                                              <X className="h-4 w-4" />
-                                            </Button>
-                                          </div>
-                                        ))}
+                                              <div className="flex items-center">
+                                                <div>
+                                                  <div className="font-medium">{member.user.fullName}</div>
+                                                  <div className="text-xs text-gray-500 flex">
+                                                    {member.user.position && (
+                                                      <span className="mr-2">{member.user.position}</span>
+                                                    )}
+                                                    {member.user.jerseyNumber && (
+                                                      <span>#{member.user.jerseyNumber}</span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                className="h-7 p-0"
+                                              >
+                                                <Plus className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          ))}
+                                          
+                                          {/* Show bench players */}
+                                          {field.value.length > 0 && (
+                                            <div className="mt-4">
+                                              <h5 className="text-xs font-medium text-gray-500 mb-2">Selected Bench Players:</h5>
+                                              <div className="flex flex-col gap-2">
+                                                {field.value.map((playerId) => {
+                                                  const member = teamMembers?.find(m => m.userId === playerId);
+                                                  return member ? (
+                                                    <div key={playerId} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
+                                                      <div className="text-sm font-medium">
+                                                        {member.user.fullName}
+                                                        {member.user.jerseyNumber && <span className="text-xs ml-1">#{member.user.jerseyNumber}</span>}
+                                                      </div>
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        type="button"
+                                                        onClick={() => removePlayerFromBench(playerId)}
+                                                        className="h-7 w-7 p-0"
+                                                      >
+                                                        <X className="h-4 w-4" />
+                                                      </Button>
+                                                    </div>
+                                                  ) : null;
+                                                })}
+                                              </div>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Empty state */}
+                                          {teamMembers?.filter(member => 
+                                            member.role === "player" && 
+                                            !Object.values(lineupPositions).some(p => p?.id === member.id) &&
+                                            !field.value.includes(member.userId)
+                                          ).length === 0 && field.value.length === 0 && (
+                                            <div className="text-center py-4 text-muted-foreground">
+                                              <p>No players available for bench</p>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
-                                    ) : (
-                                      <div className="text-center py-4 text-muted-foreground">
-                                        <p>No players assigned yet</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
+                                    </FormItem>
+                                  )}
+                                />
                               </div>
                             </div>
                           </FormItem>
@@ -921,8 +982,98 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <div className="bg-gray-50 p-3 rounded-md mb-3">
                   <div className="font-medium">Formation: {lineup.formation}</div>
                 </div>
+                
+                {/* Field Visualization */}
+                <div className="mb-6">
+                  <h4 className="font-medium text-sm mb-2">Field Positions</h4>
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full">
+                      <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                        {/* Soccer field markings */}
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        
+                        {/* Player positions */}
+                        <div className="absolute top-0 left-0 w-full h-full">
+                          {lineup.players && lineup.players.length > 0 && getPositionsByFormation(lineup.formation).map((position, index) => {
+                            const player = index < lineup.players.length ? lineup.players[index] : null;
+                            return (
+                              <div
+                                key={position.id}
+                                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
+                                style={{
+                                  top: `${position.top}%`,
+                                  left: `${position.left}%`,
+                                }}
+                              >
+                                <div
+                                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg ${
+                                    player
+                                      ? "scale-100"
+                                      : "scale-90 opacity-70"
+                                  } ${
+                                    position.label === "GK"
+                                      ? "bg-blue-500"
+                                      : position.label === "DEF"
+                                        ? "bg-red-500"
+                                        : position.label === "MID"
+                                          ? "bg-green-500"
+                                          : "bg-yellow-500"
+                                  }`}
+                                >
+                                  {player ? (
+                                    <div className="flex flex-col items-center">
+                                      <span className="font-bold text-sm">
+                                        {player.jerseyNumber || "?"}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="opacity-50 text-sm">?</div>
+                                  )}
+                                </div>
+                                
+                                {/* Player tooltip */}
+                                {player && (
+                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
+                                    {player.fullName}
+                                    {player.position && ` (${player.position})`}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                      <span>GK</span>
+                    </div>
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
+                      <span>DEF</span>
+                    </div>
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                      <span>MID</span>
+                    </div>
+                    <div className="flex items-center mb-1">
+                      <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
+                      <span>FWD</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Starting Lineup List */}
+                <h4 className="font-medium text-sm mb-2">Starting Players</h4>
                 {lineup.players && lineup.players.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                     {lineup.players.map((player) => (
                       <div key={player.id} className="flex items-center p-2 bg-white border rounded-md">
                         <div className="flex-1 ml-2">
@@ -936,7 +1087,27 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 italic">No players in lineup</p>
+                  <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
+                )}
+                
+                {/* Bench Players List */}
+                {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
+                  <>
+                    <h4 className="font-medium text-sm mb-2">Bench Players</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {lineup.benchPlayers.map((player) => (
+                        <div key={player.id} className="flex items-center p-2 bg-gray-50 border rounded-md">
+                          <div className="flex-1 ml-2">
+                            <div className="font-medium">{player.fullName}</div>
+                            <div className="text-sm text-gray-500 flex items-center">
+                              {player.position && <span className="mr-2">{player.position}</span>}
+                              {player.jerseyNumber && <span>#{player.jerseyNumber}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             ) : (
