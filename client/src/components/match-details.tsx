@@ -327,6 +327,42 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     setBenchPlayers(benchPlayers.filter(id => id !== userId));
   };
 
+  // Handle lineup form submission
+  const handleLineupSubmit = async (data: z.infer<typeof lineupSchema>) => {
+    try {
+      await saveLineup.mutateAsync(data);
+    } catch (error) {
+      console.error("Failed to save lineup:", error);
+    }
+  };
+  
+  // Handle substitution form submission
+  const handleSubstitutionSubmit = async (data: z.infer<typeof substitutionSchema>) => {
+    try {
+      await addSubstitution.mutateAsync(data);
+    } catch (error) {
+      console.error("Failed to add substitution:", error);
+    }
+  };
+  
+  // Handle goal form submission
+  const handleGoalSubmit = async (data: z.infer<typeof goalSchema>) => {
+    try {
+      await addGoal.mutateAsync(data);
+    } catch (error) {
+      console.error("Failed to add goal:", error);
+    }
+  };
+  
+  // Handle card form submission
+  const handleCardSubmit = async (data: z.infer<typeof cardSchema>) => {
+    try {
+      await addCard.mutateAsync(data);
+    } catch (error) {
+      console.error("Failed to add card:", error);
+    }
+  };
+
   const lineupForm = useForm<z.infer<typeof lineupSchema>>({
     resolver: zodResolver(lineupSchema),
     defaultValues: {
@@ -631,60 +667,30 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     }
   });
 
-  // Form handlers
-  const handleLineupSubmit = (data: z.infer<typeof lineupSchema>) => {
-    saveLineup.mutate(data);
-  };
-
-  const handleSubstitutionSubmit = (data: z.infer<typeof substitutionSchema>) => {
-    addSubstitution.mutate(data);
-  };
-
-  const handleGoalSubmit = (data: z.infer<typeof goalSchema>) => {
-    addGoal.mutate(data);
-  };
-
-  const handleCardSubmit = (data: z.infer<typeof cardSchema>) => {
-    addCard.mutate(data);
-  };
-
-  // Only show match statistics if match is completed
-  if (match.status !== "completed") {
-    return (
-      <Card className="border-dashed border-gray-300">
-        <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Match statistics will be available once the match is completed.</p>
-          <p className="text-sm text-gray-400 mt-2">Update match status to "completed" to add lineup, goals, and other details.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Loading state
-  const isLoading = teamMembersLoading || lineupLoading || substitutionsLoading || goalsLoading || cardsLoading;
-  if (isLoading) {
-    return (
-      <Card className="border-gray-300">
-        <CardContent className="p-6 text-center">
-          <p className="text-gray-500">Loading match statistics...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Match Details</span>
-          <div className="text-sm font-normal flex items-center">
-            <span className="mr-2">Score:</span>
-            <Badge className="bg-green-500">{match.goalsScored} - {match.goalsConceded}</Badge>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div>
+            <CardTitle className="text-xl">{match.opponentTeam}</CardTitle>
+            <CardDescription className="text-sm mt-1">
+              {format(new Date(match.date), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+            </CardDescription>
           </div>
-        </CardTitle>
-        <CardDescription>
-          {format(new Date(match.matchDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
-        </CardDescription>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={match.status === "upcoming" ? "outline" : match.status === "ongoing" ? "secondary" : "default"}>
+              {match.status.charAt(0).toUpperCase() + match.status.slice(1)}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Trophy className="h-3.5 w-3.5" />
+              Score: {match.homeScore ?? 0} - {match.awayScore ?? 0}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              {match.locationType}
+            </Badge>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -720,8 +726,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   </DialogHeader>
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">
-
-                      
                       <FormField
                         control={lineupForm.control}
                         name="formation"
@@ -729,7 +733,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Formation</FormLabel>
                             <FormControl>
-                              <Select 
+                              <Select
                                 onValueChange={(value) => {
                                   field.onChange(value);
                                   // Reset lineup positions when formation changes
@@ -760,257 +764,218 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Team Lineup</FormLabel>
-                            <FormMessage />
-                            
-                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
-                              {/* Soccer Field */}
-                              <div className="lg:col-span-3">
-                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-80 sm:aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                                  <div className="absolute top-0 left-0 w-full h-full">
-                                    <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                            <FormControl>
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/5] rounded-md flex items-center justify-center overflow-hidden border-4 border-green-900/50">
+                                    <div className="absolute top-0 left-0 w-full h-full">
+                                      <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                                       {/* Soccer field markings */}
                                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
                                       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                                      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                                      
-                                      {/* Player positions */}
-                                      <div className="absolute top-0 left-0 w-full h-full">
-                                        {getPositionsByFormation(lineupForm.watch("formation")).map(
-                                          (position) => {
-                                            const player = lineupPositions[position.id];
-                                            return (
-                                              <div
-                                                key={position.id}
-                                                className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                                                style={{
-                                                  top: `${position.top}%`,
-                                                  left: `${position.left}%`,
-                                                }}
-                                                onClick={() => handlePositionClick(position.id)}
-                                              >
-                                                <div
-                                                  className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg transition-all ${
-                                                    player
-                                                      ? "scale-100"
-                                                      : "scale-90 opacity-70"
-                                                  } ${
-                                                    position.label === "GK"
-                                                      ? "bg-blue-500"
-                                                      : position.label === "DEF"
-                                                        ? "bg-red-500"
-                                                        : position.label === "MID"
-                                                          ? "bg-green-500"
-                                                          : "bg-yellow-500"
-                                                  } hover:scale-110 hover:opacity-100`}
-                                                >
-                                                  {player ? (
-                                                    <div className="flex flex-col items-center">
-                                                      <span className="font-bold text-xs">
-                                                        {player.user.jerseyNumber || "?"}
-                                                      </span>
-                                                    </div>
-                                                  ) : (
-                                                    <div className="opacity-50 text-sm">+</div>
-                                                  )}
-                                                </div>
-                                                
-                                                {/* Player tooltip */}
-                                                {player && (
-                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
-                                                    {player.user.fullName}
-                                                    {player.user.position && ` (${player.user.position})`}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            );
-                                          }
-                                        )}
+                                      <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 h-0.5 bg-white"></div>
+                                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-white"></div>
                                       </div>
                                     </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
-                                  <div className="flex items-center mr-3 mb-1">
-                                    <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-                                    <span>GK</span>
-                                  </div>
-                                  <div className="flex items-center mr-3 mb-1">
-                                    <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
-                                    <span>DEF</span>
-                                  </div>
-                                  <div className="flex items-center mr-3 mb-1">
-                                    <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
-                                    <span>MID</span>
-                                  </div>
-                                  <div className="flex items-center mb-1">
-                                    <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
-                                    <span>FWD</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {/* Available Players */}
-                              <div className="lg:col-span-2">
-                                <div className="bg-muted/30 rounded-md p-2">
-                                  <h4 className="font-medium mb-2 text-sm">Available Players</h4>
-                                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                                    {selectedPosition && (
-                                      <div className="bg-primary/10 p-2 rounded-md mb-2 text-sm">
-                                        <p>Select a player for position: <span className="font-bold">{selectedPosition}</span></p>
+                                    
+                                    {/* Players positioned on field */}
+                                    {lineupForm.watch('formation') && (
+                                      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                                        {getPositionsByFormation(lineupForm.watch('formation')).map((position) => (
+                                          <div
+                                            key={position.id}
+                                            className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+                                            style={{ top: `${position.top}%`, left: `${position.left}%` }}
+                                          >
+                                            {lineupPositions[position.id] ? (
+                                              <div
+                                                className="relative group cursor-pointer"
+                                                onClick={() => removePlayerFromPosition(position.id)}
+                                              >
+                                                <div 
+                                                  className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-white relative ${
+                                                    position.label === "GK" ? "bg-yellow-600" :
+                                                    position.label === "DEF" ? "bg-blue-600" :
+                                                    position.label === "MID" ? "bg-green-600" :
+                                                    "bg-red-600"
+                                                  }`}
+                                                >
+                                                  <span className="text-[10px]">
+                                                    {lineupPositions[position.id]?.user?.jerseyNumber || "?"}
+                                                  </span>
+                                                </div>
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap px-2 py-1 bg-black/75 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                  {lineupPositions[position.id]?.user?.fullName}
+                                                  <span className="block text-[10px] opacity-75">Click to remove</span>
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <div
+                                                className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-medium text-white/50 border-2 border-white/50 cursor-pointer ${
+                                                  position.label === "GK" ? "bg-yellow-600/30" :
+                                                  position.label === "DEF" ? "bg-blue-600/30" :
+                                                  position.label === "MID" ? "bg-green-600/30" :
+                                                  "bg-red-600/30"
+                                                }`}
+                                                onClick={() => handlePositionClick(position.id)}
+                                              >
+                                                <span>{position.label}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
                                       </div>
                                     )}
                                     
-                                    {teamMembers
-                                      ?.filter(
-                                        (member) =>
-                                          member.role === "player" &&
-                                          !Object.values(lineupPositions).some(
-                                            (p) => p?.id === member.id
-                                          )
-                                      )
-                                      .map((member) => (
-                                        <div
-                                          key={member.userId}
-                                          className={`flex items-center justify-between p-2 bg-white border rounded-md ${
-                                            selectedPosition ? "cursor-pointer hover:bg-primary/5" : ""
-                                          }`}
-                                          onClick={() => {
-                                            if (selectedPosition) {
-                                              addPlayerToPosition(member, selectedPosition);
-                                            }
-                                          }}
-                                        >
-                                          <div className="flex items-center">
-                                            <div className="ml-2">
-                                              <div className="font-medium">{member.user.fullName}</div>
-                                              <div className="text-xs text-gray-500 flex">
-                                                {member.user.position && (
-                                                  <span className="mr-2">{member.user.position}</span>
-                                                )}
-                                                {member.user.jerseyNumber && (
-                                                  <span>#{member.user.jerseyNumber}</span>
-                                                )}
+                                    {/* Player selection modal */}
+                                    {selectedPosition && (
+                                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedPosition(null)}>
+                                        <div className="bg-card p-4 rounded-md max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                          <h3 className="text-lg font-medium mb-4">Select Player for Position</h3>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {teamMembers?.filter(member => 
+                                              member.role === "player" && 
+                                              !Object.values(lineupPositions).some(p => p?.id === member.id)
+                                            ).map(member => (
+                                              <div 
+                                                key={member.id}
+                                                className="flex items-center p-2 border rounded-md cursor-pointer hover:bg-muted"
+                                                onClick={() => addPlayerToPosition(member, selectedPosition)}
+                                              >
+                                                <div className="mr-2 h-8 w-8 rounded-full flex items-center justify-center bg-primary text-white text-xs">
+                                                  {member.user.jerseyNumber || "?"}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  <div className="font-medium truncate">{member.user.fullName}</div>
+                                                  <div className="text-xs text-muted-foreground">
+                                                    {member.user.position || "No position"}
+                                                  </div>
+                                                </div>
                                               </div>
-                                            </div>
+                                            ))}
+                                            
+                                            {teamMembers?.filter(member => 
+                                              member.role === "player" && 
+                                              !Object.values(lineupPositions).some(p => p?.id === member.id)
+                                            ).length === 0 && (
+                                              <div className="col-span-2 text-center py-4">
+                                                <p className="text-muted-foreground">No more players available</p>
+                                                <p className="text-xs">All players are already assigned or there are no players in the team.</p>
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
-                                      ))}
-                                      
-                                    {/* Empty state */}
-                                    {teamMembers?.filter(
-                                      (member) =>
-                                        member.role === "player" &&
-                                        !Object.values(lineupPositions).some(
-                                          (p) => p?.id === member.id
-                                        )
-                                    ).length === 0 && (
-                                      <div className="text-center py-4 text-muted-foreground">
-                                        <p>All players are in the lineup</p>
                                       </div>
                                     )}
                                   </div>
                                 </div>
                                 
-                                {/* Bench section */}
-                                <FormField
-                                  control={lineupForm.control}
-                                  name="benchPlayerIds"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <div className="mt-4 bg-muted/30 rounded-md p-2">
-                                        <h4 className="font-medium mb-2 text-sm">Players on the Bench</h4>
-                                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                                          {/* Players not in the field lineup or on bench */}
-                                          {teamMembers?.filter(member => 
-                                            member.role === "player" && 
-                                            !Object.values(lineupPositions).some(p => p?.id === member.id) &&
-                                            !field.value.includes(member.userId)
-                                          ).map(member => (
-                                            <div
-                                              key={member.userId}
-                                              className="flex items-center justify-between p-2 bg-white border rounded-md cursor-pointer hover:bg-gray-50"
-                                              onClick={() => addPlayerToBench(member)}
-                                            >
-                                              <div className="flex items-center">
-                                                <div>
-                                                  <div className="font-medium">{member.user.fullName}</div>
-                                                  <div className="text-xs text-gray-500 flex">
-                                                    {member.user.position && (
-                                                      <span className="mr-2">{member.user.position}</span>
-                                                    )}
-                                                    {member.user.jerseyNumber && (
-                                                      <span>#{member.user.jerseyNumber}</span>
-                                                    )}
+                                <div>
+                                  <h5 className="font-medium text-sm mb-2">Players for Selection</h5>
+                                  <div className="bg-muted/30 rounded-md p-2 h-[calc(100%-2rem)] min-h-[250px] overflow-y-auto">
+                                    <FormField
+                                      control={lineupForm.control}
+                                      name="benchPlayerIds"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <div className="mt-4 bg-muted/30 rounded-md p-2">
+                                            <h5 className="text-xs font-medium text-gray-500 mb-2">Click to add to bench:</h5>
+                                            {/* Players not in the field lineup or on bench */}
+                                            {teamMembers?.filter(member => 
+                                              member.role === "player" && 
+                                              !Object.values(lineupPositions).some(p => p?.id === member.id) &&
+                                              !field.value.includes(member.userId)
+                                            ).map(member => (
+                                              <div 
+                                                key={member.id}
+                                                className="flex items-center p-2 border rounded-md cursor-pointer hover:bg-muted mb-1"
+                                                onClick={() => addPlayerToBench(member)}
+                                              >
+                                                <div className="mr-2 h-6 w-6 rounded-full flex items-center justify-center bg-primary text-white text-xs">
+                                                  {member.user.jerseyNumber || "?"}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                  <div className="font-medium truncate text-xs">{member.user.fullName}</div>
+                                                  <div className="text-[10px] text-muted-foreground">
+                                                    {member.user.position || "No position"}
                                                   </div>
                                                 </div>
+                                                <Button 
+                                                  size="sm" 
+                                                  variant="secondary" 
+                                                  className="h-6 text-xs ml-1"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    addPlayerToBench(member);
+                                                  }}
+                                                >
+                                                  Add
+                                                </Button>
                                               </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                type="button"
-                                                className="h-7 p-0"
-                                              >
-                                                <Plus className="h-4 w-4" />
-                                              </Button>
-                                            </div>
-                                          ))}
-                                          
-                                          {/* Show bench players */}
-                                          {field.value.length > 0 && (
-                                            <div className="mt-4">
-                                              <h5 className="text-xs font-medium text-gray-500 mb-2">Selected Bench Players:</h5>
-                                              <div className="flex flex-col gap-2">
-                                                {field.value.map((playerId) => {
-                                                  const member = teamMembers?.find(m => m.userId === playerId);
-                                                  return member ? (
-                                                    <div key={playerId} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
-                                                      <div className="text-sm font-medium">
-                                                        {member.user.fullName}
-                                                        {member.user.jerseyNumber && <span className="text-xs ml-1">#{member.user.jerseyNumber}</span>}
-                                                      </div>
-                                                      <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        type="button"
-                                                        onClick={() => removePlayerFromBench(playerId)}
-                                                        className="h-7 w-7 p-0"
+                                            ))}
+                                            
+                                            {/* Selected bench players */}
+                                            {field.value.length > 0 && (
+                                              <div className="mt-4">
+                                                <h5 className="text-xs font-medium text-gray-500 mb-2">Selected Bench Players:</h5>
+                                                <div className="space-y-1 mt-2">
+                                                  {field.value.map((playerId) => {
+                                                    const member = teamMembers?.find(m => m.userId === playerId);
+                                                    return member ? (
+                                                      <div 
+                                                        key={member.id} 
+                                                        className="flex items-center p-2 border rounded-md bg-muted/50"
                                                       >
-                                                        <X className="h-4 w-4" />
-                                                      </Button>
-                                                    </div>
-                                                  ) : null;
-                                                })}
+                                                        <div className="mr-2 h-6 w-6 rounded-full flex items-center justify-center bg-secondary text-secondary-foreground text-xs">
+                                                          {member.user.jerseyNumber || "?"}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                          <div className="font-medium truncate text-xs">{member.user.fullName}</div>
+                                                          <div className="text-[10px] text-muted-foreground">
+                                                            {member.user.position || "No position"}
+                                                          </div>
+                                                        </div>
+                                                        <Button 
+                                                          size="sm" 
+                                                          variant="ghost" 
+                                                          className="h-6 w-6 p-0 text-destructive"
+                                                          onClick={() => removePlayerFromBench(member.userId)}
+                                                        >
+                                                          <X className="h-3 w-3" />
+                                                        </Button>
+                                                      </div>
+                                                    ) : null;
+                                                  })}
+                                                </div>
                                               </div>
-                                            </div>
-                                          )}
-                                          
-                                          {/* Empty state */}
-                                          {teamMembers?.filter(member => 
-                                            member.role === "player" && 
-                                            !Object.values(lineupPositions).some(p => p?.id === member.id) &&
-                                            !field.value.includes(member.userId)
-                                          ).length === 0 && field.value.length === 0 && (
-                                            <div className="text-center py-4 text-muted-foreground">
-                                              <p>No players available for bench</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </FormItem>
-                                  )}
-                                />
+                                            )}
+                                            
+                                            {/* Empty state for players */}
+                                            {teamMembers?.filter(member => 
+                                              member.role === "player" && 
+                                              !Object.values(lineupPositions).some(p => p?.id === member.id) &&
+                                              !field.value.includes(member.userId)
+                                            ).length === 0 && field.value.length === 0 && (
+                                              <div className="text-center py-4 text-muted-foreground">
+                                                <p>No players available for bench</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            </FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
                       
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end space-x-2 pt-4">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button variant="outline" type="button">Cancel</Button>
                         </DialogClose>
                         <Button type="submit" disabled={saveLineup.isPending}>
                           {saveLineup.isPending && <span className="mr-2 animate-spin">⟳</span>}
@@ -1025,235 +990,104 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             
             {lineup ? (
               <div>
-                <div className="bg-gray-50 p-3 rounded-md mb-3">
-                  <div className="font-medium">Formation: {lineup.formation}</div>
-                </div>
-                
-                {/* Field Visualization */}
-                <div className="mb-6">
-                  <h4 className="font-medium text-sm mb-2">Field Positions</h4>
-                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full">
-                      <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                {/* Field and Players Content */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  {/* Field Visualization - Smaller */}
+                  <div className="md:col-span-1">
+                    <h4 className="font-medium text-sm mb-2">Formation: {lineup.formation}</h4>
+                    <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[4/5] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-full">
+                        <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                         {/* Soccer field markings */}
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
                         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                        
-                        {/* Player positions */}
-                        <div className="absolute top-0 left-0 w-full h-full">
-                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position, index) => {
-                            const player = index < lineup.players.length ? lineup.players[index] : null;
-                            return (
-                              <div
-                                key={position.id}
-                                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                                style={{
-                                  top: `${position.top}%`,
-                                  left: `${position.left}%`,
-                                }}
-                              >
-                                <div
-                                  className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg ${
-                                    player
-                                      ? "scale-100"
-                                      : "scale-90 opacity-70"
-                                  } ${
-                                    position.label === "GK"
-                                      ? "bg-blue-500"
-                                      : position.label === "DEF"
-                                        ? "bg-red-500"
-                                        : position.label === "MID"
-                                          ? "bg-green-500"
-                                          : "bg-yellow-500"
+                        <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 h-0.5 bg-white"></div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-white"></div>
+                        </div>
+                      </div>
+                      
+                      {/* Players positioned on field */}
+                      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                        {getPositionsByFormation(lineup.formation).map((position, index) => {
+                          const player = index < lineup.players.length ? lineup.players[index] : null;
+                          
+                          if (!player) return null;
+                          
+                          return (
+                            <div
+                              key={position.id}
+                              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                              style={{ top: `${position.top}%`, left: `${position.left}%` }}
+                            >
+                              <div className="relative group">
+                                <div 
+                                  className={`h-10 w-10 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-white ${
+                                    position.label === "GK" ? "bg-yellow-600" :
+                                    position.label === "DEF" ? "bg-blue-600" :
+                                    position.label === "MID" ? "bg-green-600" :
+                                    "bg-red-600"
                                   }`}
                                 >
-                                  {player ? (
-                                    <div className="flex flex-col items-center">
-                                      <span className="font-bold text-xs">
-                                        {player.jerseyNumber || "?"}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="opacity-50 text-xs">?</div>
-                                  )}
+                                  <span className="text-[10px]">{player.jerseyNumber || "?"}</span>
                                 </div>
-                                
-                                {/* Player name below icon (instead of tooltip) */}
-                                {player && (
-                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[80px] truncate">
-                                    {player.fullName}
-                                  </div>
-                                )}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap px-2 py-1 bg-black/75 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {player.fullName}
+                                  <span className="block text-[10px] opacity-75">{player.position || "No position"}</span>
+                                </div>
                               </div>
-                            );
-                          })}
-                        </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
-                    <div className="flex items-center mr-3 mb-1">
-                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-                      <span>GK</span>
-                    </div>
-                    <div className="flex items-center mr-3 mb-1">
-                      <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
-                      <span>DEF</span>
-                    </div>
-                    <div className="flex items-center mr-3 mb-1">
-                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
-                      <span>MID</span>
-                    </div>
-                    <div className="flex items-center mb-1">
-                      <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
-                      <span>FWD</span>
-                    </div>
+                  {/* Starting Players */}
+                  <div className="md:col-span-1">
+                    <h4 className="font-medium text-sm mb-2">Starting Players</h4>
+                    <ul className="space-y-2 max-h-[300px] overflow-y-auto bg-muted/20 p-2 rounded-md">
+                      {lineup.players.map((player) => (
+                        <li key={player.id} className="flex items-center p-2 bg-card rounded-md border">
+                          <div className="mr-3 h-8 w-8 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground text-xs">
+                            {player.jerseyNumber || "?"}
+                          </div>
+                          <div>
+                            <div className="font-medium">{player.fullName}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {player.position || "No position"}
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* Bench Players */}
+                  <div className="md:col-span-1">
+                    <h4 className="font-medium text-sm mb-2">Bench Players</h4>
+                    <ul className="space-y-2 max-h-[300px] overflow-y-auto bg-muted/20 p-2 rounded-md">
+                      {lineup.benchPlayers && lineup.benchPlayers.length > 0 ? (
+                        lineup.benchPlayers.map((player) => (
+                          <li key={player.id} className="flex items-center p-2 bg-card rounded-md border">
+                            <div className="mr-3 h-8 w-8 rounded-full flex items-center justify-center bg-secondary/80 text-secondary-foreground text-xs">
+                              {player.jerseyNumber || "?"}
+                            </div>
+                            <div>
+                              <div className="font-medium">{player.fullName}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {player.position || "No position"}
+                              </div>
+                            </div>
+                          </li>
+                        ))
+                      ) : (
+                        <div className="text-center py-4 text-muted-foreground">
+                          <p>No bench players assigned</p>
+                        </div>
+                      )}
+                    </ul>
                   </div>
                 </div>
-                
-                {/* Starting Lineup List */}
-                <h4 className="font-medium text-sm mb-2">Starting Players</h4>
-                {lineup.players && lineup.players.length > 0 ? (
-                  <div className="mb-6">
-                    <ul className="divide-y">
-                      {lineup.players.map((player) => {
-                        // Find stats for this player
-                        const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
-                        const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
-                        const playerCards = cards?.filter(c => c.playerId === player.id) || [];
-                        const yellowCards = playerCards.filter(c => c.type === "yellow");
-                        const redCards = playerCards.filter(c => c.type === "red");
-                        const playerSubstitutions = substitutions?.filter(s => 
-                          s.playerInId === player.id || s.playerOutId === player.id
-                        ) || [];
-                        
-                        return (
-                          <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <div className="font-medium">{player.fullName}</div>
-                                {player.jerseyNumber && (
-                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
-                                )}
-                                {player.position && (
-                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="flex space-x-2 items-center">
-                              {/* Show goals as soccer ball icons */}
-                              {playerGoals.length > 0 && (
-                                <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{playerGoals.length}</span>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
-                                    <path d="M12 7v4l3 3" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {/* Show assists */}
-                              {playerAssists.length > 0 && (
-                                <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{playerAssists.length}</span>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M4 12h16" />
-                                    <path d="M16 6l4 6-4 6" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {/* Show yellow cards */}
-                              {yellowCards.length > 0 && (
-                                <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{yellowCards.length}</span>
-                                  <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
-                                </div>
-                              )}
-                              
-                              {/* Show red cards */}
-                              {redCards.length > 0 && (
-                                <div className="flex items-center" title="Red card">
-                                  <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
-                                </div>
-                              )}
-                              
-                              {/* Show substitutions */}
-                              {playerSubstitutions.some(s => s.playerOutId === player.id) && (
-                                <div className="flex items-center" title="Substituted out">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 11 12 6 17 11" />
-                                    <polyline points="7 17 12 12 17 17" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
-                                <div className="flex items-center" title="Substituted in">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 13 12 18 17 13" />
-                                    <polyline points="7 6 12 11 17 6" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
-                )}
-                
-                {/* Bench Players List */}
-                {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
-                  <>
-                    <h4 className="font-medium text-sm mb-2">Bench Players</h4>
-                    <ul className="divide-y">
-                      {lineup.benchPlayers.map((player) => {
-                        // Find stats for bench players
-                        const playerSubstitutions = substitutions?.filter(s => 
-                          s.playerInId === player.id || s.playerOutId === player.id
-                        ) || [];
-                        
-                        return (
-                          <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <div className="font-medium">{player.fullName}</div>
-                                {player.jerseyNumber && (
-                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
-                                )}
-                                {player.position && (
-                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="flex space-x-2 items-center">
-                              {/* Show substitutions for bench players */}
-                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
-                                <div className="flex items-center" title="Substituted in">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 13 12 18 17 13" />
-                                    <polyline points="7 6 12 11 17 6" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                )}
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
@@ -1282,56 +1116,61 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     <form onSubmit={substitutionForm.handleSubmit(handleSubstitutionSubmit)} className="space-y-4">
                       <FormField
                         control={substitutionForm.control}
-                        name="playerInId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Player In</FormLabel>
-                            <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
-                              >
-                                <option value="">Select player coming in</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName} 
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
-                                  </option>
-                                ))}
-                              </select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={substitutionForm.control}
                         name="playerOutId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Player Out</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                defaultValue={field.value?.toString()}
                               >
-                                <option value="">Select player going out</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select player going out" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                    <SelectItem key={member.user.id} value={member.user.id.toString()}>
+                                      {member.user.fullName} {member.user.jerseyNumber ? `(#${member.user.jerseyNumber})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
+                      <FormField
+                        control={substitutionForm.control}
+                        name="playerInId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Player In</FormLabel>
+                            <FormControl>
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                defaultValue={field.value?.toString()}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select player coming in" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teamMembers?.filter(member => 
+                                    member.role === "player" && 
+                                    member.user.id !== substitutionForm.watch("playerOutId")
+                                  ).map((member) => (
+                                    <SelectItem key={member.user.id} value={member.user.id.toString()}>
+                                      {member.user.fullName} {member.user.jerseyNumber ? `(#${member.user.jerseyNumber})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={substitutionForm.control}
                         name="minute"
@@ -1343,9 +1182,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 type="number" 
                                 min="1" 
                                 max="120"
-                                placeholder="When the substitution happened" 
+                                placeholder="When the substitution occurred" 
                                 {...field}
-                                value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                               />
                             </FormControl>
@@ -1353,7 +1191,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={substitutionForm.control}
                         name="reason"
@@ -1361,23 +1198,19 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Reason (Optional)</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="e.g. Tactical, Injury, etc."
-                                {...field}
-                              />
+                              <Input placeholder="Reason for the substitution" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end space-x-2 pt-4">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button variant="outline" type="button">Cancel</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addSubstitution.isPending}>
                           {addSubstitution.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Substitution
+                          Save Substitution
                         </Button>
                       </div>
                     </form>
@@ -1387,46 +1220,53 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {substitutions && substitutions.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Player In</TableHead>
-                    <TableHead>Player Out</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {substitutions.map((sub) => (
-                    <TableRow key={sub.id}>
-                      <TableCell className="font-medium">{sub.minute}'</TableCell>
-                      <TableCell>
-                        {sub.playerIn.fullName}
-                        {sub.playerIn.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerIn.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        {sub.playerOut.fullName}
-                        {sub.playerOut.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerOut.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>{sub.reason || "-"}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteSubstitution.mutate(sub.id)}
-                          disabled={deleteSubstitution.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Minute</TableHead>
+                      <TableHead>Out</TableHead>
+                      <TableHead>In</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {substitutions.map((substitution) => (
+                      <TableRow key={substitution.id}>
+                        <TableCell>{substitution.minute}'</TableCell>
+                        <TableCell className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full flex items-center justify-center bg-secondary/80 text-secondary-foreground text-xs">
+                            {substitution.playerOut.jerseyNumber || "?"}
+                          </div>
+                          <span>{substitution.playerOut.fullName}</span>
+                        </TableCell>
+                        <TableCell className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground text-xs">
+                            {substitution.playerIn.jerseyNumber || "?"}
+                          </div>
+                          <span>{substitution.playerIn.fullName}</span>
+                        </TableCell>
+                        <TableCell>{substitution.reason || "-"}</TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive"
+                            onClick={() => deleteSubstitution.mutate(substitution.id)}
+                            disabled={deleteSubstitution.isPending}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No substitutions recorded for this match.</p>
+                <p className="text-gray-500">No substitutions have been recorded for this match.</p>
                 <p className="text-sm text-gray-400 mt-1">Record player substitutions to track changes during the match.</p>
               </div>
             )}
@@ -1456,25 +1296,26 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Scorer</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                defaultValue={field.value?.toString()}
                               >
-                                <option value="">Select goal scorer</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select goal scorer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                    <SelectItem key={member.user.id} value={member.user.id.toString()}>
+                                      {member.user.fullName} {member.user.jerseyNumber ? `(#${member.user.jerseyNumber})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={goalForm.control}
                         name="assistId"
@@ -1482,25 +1323,30 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Assist (Optional)</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              <Select
+                                onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
+                                defaultValue={field.value?.toString()}
                               >
-                                <option value="">No assist / Not applicable</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select player who assisted" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="">No assist</SelectItem>
+                                  {teamMembers?.filter(member => 
+                                    member.role === "player" && 
+                                    member.user.id !== goalForm.watch("scorerId")
+                                  ).map((member) => (
+                                    <SelectItem key={member.user.id} value={member.user.id.toString()}>
+                                      {member.user.fullName} {member.user.jerseyNumber ? `(#${member.user.jerseyNumber})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={goalForm.control}
                         name="minute"
@@ -1514,7 +1360,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 max="120"
                                 placeholder="When the goal was scored" 
                                 {...field}
-                                value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                               />
                             </FormControl>
@@ -1522,7 +1367,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={goalForm.control}
                         name="type"
@@ -1530,23 +1374,25 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Goal Type</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value as any)}
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
                               >
-                                <option value="">Select goal type</option>
-                                <option value="regular">Regular</option>
-                                <option value="penalty">Penalty</option>
-                                <option value="free_kick">Free Kick</option>
-                                <option value="own_goal">Own Goal</option>
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select goal type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="regular">Regular play</SelectItem>
+                                  <SelectItem value="penalty">Penalty kick</SelectItem>
+                                  <SelectItem value="free_kick">Free kick</SelectItem>
+                                  <SelectItem value="own_goal">Own goal</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={goalForm.control}
                         name="description"
@@ -1554,23 +1400,19 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Description (Optional)</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Brief description of the goal"
-                                {...field}
-                              />
+                              <Input placeholder="Brief description of the goal" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end space-x-2 pt-4">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button variant="outline" type="button">Cancel</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addGoal.isPending}>
                           {addGoal.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Goal
+                          Save Goal
                         </Button>
                       </div>
                     </form>
@@ -1580,56 +1422,68 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {goals && goals.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Scorer</TableHead>
-                    <TableHead>Assist</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {goals.map((goal) => (
-                    <TableRow key={goal.id}>
-                      <TableCell className="font-medium">{goal.minute}'</TableCell>
-                      <TableCell>
-                        {goal.scorer.fullName}
-                        {goal.scorer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.scorer.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        {goal.assistPlayer ? (
-                          <>
-                            {goal.assistPlayer.fullName}
-                            {goal.assistPlayer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.assistPlayer.jerseyNumber}</span>}
-                          </>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {goal.type === "regular" ? "Regular" : 
-                         goal.type === "penalty" ? "Penalty" : 
-                         goal.type === "free_kick" ? "Free Kick" : 
-                         goal.type === "own_goal" ? "Own Goal" : 
-                         "Unknown"}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteGoal.mutate(goal.id)}
-                          disabled={deleteGoal.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Minute</TableHead>
+                      <TableHead>Scorer</TableHead>
+                      <TableHead>Assist</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Details</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {goals.map((goal) => (
+                      <TableRow key={goal.id}>
+                        <TableCell>{goal.minute}'</TableCell>
+                        <TableCell className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground text-xs">
+                            {goal.scorer.jerseyNumber || "?"}
+                          </div>
+                          <span>{goal.scorer.fullName}</span>
+                        </TableCell>
+                        <TableCell>
+                          {goal.assistPlayer ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full flex items-center justify-center bg-secondary/80 text-secondary-foreground text-xs">
+                                {goal.assistPlayer.jerseyNumber || "?"}
+                              </div>
+                              <span>{goal.assistPlayer.fullName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {goal.type === "regular" ? "Regular play" :
+                             goal.type === "penalty" ? "Penalty kick" :
+                             goal.type === "free_kick" ? "Free kick" :
+                             "Own goal"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{goal.description || "-"}</TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive"
+                            onClick={() => deleteGoal.mutate(goal.id)}
+                            disabled={deleteGoal.isPending}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No goals recorded for this match.</p>
+                <p className="text-gray-500">No goals have been recorded for this match.</p>
                 <p className="text-sm text-gray-400 mt-1">Add details of each goal scored by your team.</p>
               </div>
             )}
@@ -1659,25 +1513,26 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Player</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
+                              <Select
+                                onValueChange={(value) => field.onChange(parseInt(value))}
+                                defaultValue={field.value?.toString()}
                               >
-                                <option value="">Select player</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
-                                  </option>
-                                ))}
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select player who received card" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                    <SelectItem key={member.user.id} value={member.user.id.toString()}>
+                                      {member.user.fullName} {member.user.jerseyNumber ? `(#${member.user.jerseyNumber})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={cardForm.control}
                         name="type"
@@ -1685,21 +1540,23 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Card Type</FormLabel>
                             <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value as any)}
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
                               >
-                                <option value="">Select card type</option>
-                                <option value="yellow">Yellow Card</option>
-                                <option value="red">Red Card</option>
-                              </select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select card type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="yellow">Yellow card</SelectItem>
+                                  <SelectItem value="red">Red card</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={cardForm.control}
                         name="minute"
@@ -1713,7 +1570,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 max="120"
                                 placeholder="When the card was shown" 
                                 {...field}
-                                value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                               />
                             </FormControl>
@@ -1721,7 +1577,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
                       <FormField
                         control={cardForm.control}
                         name="reason"
@@ -1729,23 +1584,19 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>Reason (Optional)</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Reason for the card"
-                                {...field}
-                              />
+                              <Input placeholder="Reason for the card" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end space-x-2 pt-4">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button variant="outline" type="button">Cancel</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addCard.isPending}>
                           {addCard.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Card
+                          Save Card
                         </Button>
                       </div>
                     </form>
@@ -1755,53 +1606,72 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {cards && cards.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cards.map((card) => (
-                    <TableRow key={card.id}>
-                      <TableCell className="font-medium">{card.minute}'</TableCell>
-                      <TableCell>
-                        {card.player.fullName}
-                        {card.player.jerseyNumber && <span className="text-gray-500 ml-1">#{card.player.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={card.type === "yellow" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
-                          {card.type === "yellow" ? "Yellow" : "Red"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{card.reason || "-"}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteCard.mutate(card.id)}
-                          disabled={deleteCard.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Minute</TableHead>
+                      <TableHead>Player</TableHead>
+                      <TableHead>Card</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {cards.map((card) => (
+                      <TableRow key={card.id}>
+                        <TableCell>{card.minute}'</TableCell>
+                        <TableCell className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground text-xs">
+                            {card.player.jerseyNumber || "?"}
+                          </div>
+                          <span>{card.player.fullName}</span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={card.type === "yellow" ? "warning" : "destructive"}>
+                            {card.type === "yellow" ? "Yellow" : "Red"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{card.reason || "-"}</TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive"
+                            onClick={() => deleteCard.mutate(card.id)}
+                            disabled={deleteCard.isPending}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No cards recorded for this match.</p>
-                <p className="text-sm text-gray-400 mt-1">Record yellow and red cards received by your team.</p>
+                <p className="text-gray-500">No cards have been recorded for this match.</p>
+                <p className="text-sm text-gray-400 mt-1">Record any yellow or red cards received by your team.</p>
               </div>
             )}
           </TabsContent>
         </Tabs>
       </CardContent>
+      <CardFooter className="flex justify-between border-t pt-4">
+        <div className="text-sm text-muted-foreground">
+          {match.location ? (
+            <>
+              <span className="font-medium">Location:</span> {match.location}
+            </>
+          ) : (
+            <span>No location specified</span>
+          )}
+        </div>
+        <div className="text-sm">
+          <span className="font-medium">Last updated:</span> {format(new Date(match.updatedAt || match.date), "MMM d, yyyy")}
+        </div>
+      </CardFooter>
     </Card>
   );
 }
