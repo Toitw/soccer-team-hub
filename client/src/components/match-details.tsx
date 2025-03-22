@@ -92,7 +92,7 @@ const goalSchema = z.object({
   minute: z.number({
     required_error: "Minute is required"
   }).int().positive(),
-  type: z.enum(["regular", "penalty", "free_kick", "own_goal", "other"], {
+  type: z.enum(["regular", "penalty", "free_kick", "own_goal"], {
     required_error: "Goal type is required"
   }),
   description: z.string().optional()
@@ -998,7 +998,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
-                          {lineup.players && lineup.players.length > 0 && getPositionsByFormation(lineup.formation).map((position, index) => {
+                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position, index) => {
                             const player = index < lineup.players.length ? lineup.players[index] : null;
                             return (
                               <div
