@@ -706,7 +706,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Lineup Tab */}
           <TabsContent value="lineup" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Starting Lineup</h3>
+              <h3 className="text-lg font-medium">Match Lineup</h3>
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
