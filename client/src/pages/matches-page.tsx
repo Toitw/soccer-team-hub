@@ -26,12 +26,14 @@ import {
   Clock, 
   Home, 
   ChevronRight,
-  CheckCircle2,
-  Users,
+  Check,
+  X,
   Share2,
-  Trash
+  Trash,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -40,6 +42,8 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isPast, isFuture } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 
 // Define form schema for creating a match
 const matchSchema = z.object({
@@ -64,6 +68,7 @@ export default function MatchesPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -487,75 +492,138 @@ export default function MatchesPage() {
                       name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Additional Notes</FormLabel>
+                          <FormLabel>Notes (Optional)</FormLabel>
                           <FormControl>
                             <textarea 
-                              className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              placeholder="Enter any additional information about the match"
-                              {...field}
-                            ></textarea>
+                              placeholder="Add any notes about this match" 
+                              {...field} 
+                              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                      {isEditing ? "Update Match" : "Schedule Match"}
-                    </Button>
+
+                    <div className="flex justify-end gap-2 pt-3">
+                      <Button type="submit" className="bg-primary hover:bg-primary/90">
+                        {isEditing ? "Update Match" : "Create Match"}
+                      </Button>
+                    </div>
                   </form>
                 </Form>
               </DialogContent>
             </Dialog>
           </div>
 
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Match</DialogTitle>
-              </DialogHeader>
-              <div className="py-3">
-                <p className="mb-2">Are you sure you want to delete this match?</p>
-                {matchToDelete && (
-                  <div className="bg-gray-50 p-3 rounded-md flex justify-between items-center text-sm">
-                    <span>
-                      <strong>{matchToDelete.opponentName}</strong> 
-                      {' '}{format(new Date(matchToDelete.matchDate), "MMM d, yyyy")}
-                    </span>
-                    <Badge variant={matchToDelete.status === "completed" ? "default" : "outline"}>
-                      {matchToDelete.status}
-                    </Badge>
+          {selectedMatch ? (
+            <div className="mb-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => setSelectedMatch(null)} 
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Match List
+              </Button>
+              
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl">
+                        {selectedMatch.isHome ? (
+                          <>
+                            <span className="text-primary">Our Team</span> vs {selectedMatch.opponentName}
+                          </>
+                        ) : (
+                          <>
+                            {selectedMatch.opponentName} vs <span className="text-primary">Our Team</span>
+                          </>
+                        )}
+                      </CardTitle>
+                      <CardDescription>
+                        <div className="mt-1 mb-2">
+                          {format(new Date(selectedMatch.matchDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                        </div>
+                        <Badge>
+                          {selectedMatch.status.charAt(0).toUpperCase() + selectedMatch.status.slice(1)}
+                        </Badge>
+                        <Badge variant="outline" className="ml-2">
+                          {selectedMatch.isHome ? "Home" : "Away"}
+                        </Badge>
+                        <div className="mt-2">
+                          <span className="text-muted-foreground">Location:</span> {selectedMatch.location}
+                        </div>
+                      </CardDescription>
+                    </div>
+                    
+                    {selectedMatch.status === 'completed' && (
+                      <div className="text-3xl font-bold">
+                        {selectedMatch.goalsScored}-{selectedMatch.goalsConceded}
+                      </div>
+                    )}
                   </div>
-                )}
-                <p className="text-gray-500 mt-2 text-sm">This action cannot be undone.</p>
-              </div>
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={handleDeleteMatch}>
-                  Delete Match
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+                </CardHeader>
+                
+                <CardContent>
+                  {/* Notes */}
+                  {selectedMatch.notes && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium mb-2">Match Notes</h3>
+                      <div className="p-4 bg-gray-50 rounded-md">
+                        {selectedMatch.notes}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Match Details Component */}
+                  {selectedTeam && selectedMatch.status === 'completed' && (
+                    <MatchDetails 
+                      match={selectedMatch} 
+                      teamId={selectedTeam.id} 
+                      onUpdate={() => refetchMatchesData()}
+                    />
+                  )}
+                </CardContent>
+                
+                <CardFooter className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditMatch(selectedMatch)}
+                  >
+                    <ClipboardEdit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => confirmDelete(selectedMatch)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          ) : (
+            <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="upcoming" className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  Upcoming Matches
+                </TabsTrigger>
+                <TabsTrigger value="past" className="flex items-center gap-1">
+                  <Trophy className="h-4 w-4" />
+                  Past Matches
+                </TabsTrigger>
+              </TabsList>
 
-          <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="upcoming" className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                Upcoming Matches
-              </TabsTrigger>
-              <TabsTrigger value="past" className="flex items-center gap-1">
-                <Trophy className="h-4 w-4" />
-                Past Matches
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="upcoming" className="mt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <TabsContent value="upcoming">
                 {upcomingMatches.length === 0 ? (
-                  <Card className="col-span-full">
+                  <Card>
                     <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
                       <Calendar className="h-12 w-12 text-gray-300 mb-2" />
                       <p className="text-lg text-gray-500">No upcoming matches scheduled</p>
@@ -569,357 +637,262 @@ export default function MatchesPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  upcomingMatches.map(match => {
-                    const matchDate = new Date(match.matchDate);
-                    const isToday = new Date().toDateString() === matchDate.toDateString();
-                    const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Upcoming Matches</CardTitle>
+                      <CardDescription>Scheduled matches for your team</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Opponent</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {upcomingMatches.map(match => {
+                            const matchDate = new Date(match.matchDate);
+                            const isToday = new Date().toDateString() === matchDate.toDateString();
+                            const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
 
-                    return (
-                      <Card key={match.id} className={`overflow-hidden border-t-4 ${
-                        match.status === "cancelled" ? "border-t-gray-400" : "border-t-primary"
-                      }`}>
-                        <CardHeader className="pb-2 relative">
-                          {/* Status Badge */}
-                          <Badge 
-                            className="absolute right-4 top-4" 
-                            variant={
-                              match.status === "cancelled" 
-                                ? "outline" 
-                                : isToday 
-                                  ? "destructive" 
-                                  : "default"
-                            }
-                          >
-                            {match.status === "cancelled" 
-                              ? "Cancelled" 
-                              : isToday 
-                                ? "Today" 
-                                : daysDifference <= 3 
-                                  ? "Soon" 
-                                  : "Scheduled"
-                            }
-                          </Badge>
-
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2 mb-1">
-                              {match.isHome ? 
-                                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50">
-                                  <Home className="h-3 w-3" />
-                                  Home
-                                </Badge> : 
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                  <Share2 className="h-3 w-3" />
-                                  Away
-                                </Badge>
-                              }
-                              <CardDescription className="text-xs">
-                                {format(matchDate, "EEEE, MMM d, yyyy")}
-                              </CardDescription>
-                            </div>
-                            <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
-                          </div>
-                        </CardHeader>
-
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="flex items-center space-x-4 text-sm">
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1 text-gray-500" />
-                                <span>{format(matchDate, "h:mm a")}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <MapPin className="h-4 w-4 mr-1 text-gray-500" />
-                                <span>{match.location}</span>
-                              </div>
-                            </div>
-
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="relative">
-                                    <img 
-                                      src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                                      alt={selectedTeam?.name}
-                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                                    />
-                                    {match.isHome && 
-                                      <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                                        H
-                                      </div>
+                            return (
+                              <TableRow 
+                                key={match.id}
+                                className="cursor-pointer hover:bg-muted/50"
+                                onClick={() => setSelectedMatch(match)}
+                              >
+                                <TableCell className="font-medium">
+                                  {match.isHome ? (
+                                    <>
+                                      vs <span className="font-semibold">{match.opponentName}</span>
+                                      <Badge variant="outline" className="ml-2">Home</Badge>
+                                    </>
+                                  ) : (
+                                    <>
+                                      @ <span className="font-semibold">{match.opponentName}</span>
+                                      <Badge variant="outline" className="ml-2">Away</Badge>
+                                    </>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(match.matchDate), "EEE, MMM d, yyyy")}
+                                  <div className="text-xs text-muted-foreground">
+                                    {format(new Date(match.matchDate), "h:mm a")}
+                                  </div>
+                                </TableCell>
+                                <TableCell>{match.location}</TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={
+                                      match.status === "cancelled" 
+                                        ? "outline" 
+                                        : match.status === "scheduled" 
+                                          ? "default" 
+                                          : "secondary"
                                     }
-                                  </div>
-                                  <div className="ml-3">
-                                    <p className="font-medium">{selectedTeam?.name}</p>
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                    <span className="text-lg font-bold">VS</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center">
-                                  <div className="mr-3 text-right">
-                                    <p className="font-medium">{match.opponentName}</p>
-                                  </div>
-                                  <div className="relative">
-                                    <img 
-                                      src={match.opponentLogo || "https://ui-avatars.com/api/?name=" + match.opponentName.charAt(0) + "&background=f44336&color=fff"} 
-                                      alt={match.opponentName}
-                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                                    />
-                                    {!match.isHome && 
-                                      <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                                        H
-                                      </div>
-                                    }
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {match.notes && (
-                              <div className="text-sm p-3 bg-amber-50 rounded-md">
-                                <p className="font-medium mb-1 flex items-center">
-                                  <span className="bg-amber-200 rounded-full p-1 mr-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                  </span>
-                                  Notes
-                                </p>
-                                <p className="text-gray-700 pl-7">{match.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-
-                        <CardFooter className="flex gap-2 border-t bg-gray-50 px-6 py-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1 gap-1"
-                            onClick={() => handleEditMatch(match)}
-                          >
-                            <ClipboardEdit className="h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1 gap-1 bg-primary hover:bg-primary/90"
-                            onClick={() => confirmDelete(match)}
-                          >
-                            <Trash className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    );
-                  })
+                                  >
+                                    {match.status === "cancelled" && "Cancelled"}
+                                    {match.status === "scheduled" && (
+                                      isToday ? "Today" : `In ${daysDifference} days`
+                                    )}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditMatch(match);
+                                    }}
+                                  >
+                                    <ClipboardEdit className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      confirmDelete(match);
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                 )}
-              </div>
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="past" className="mt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <TabsContent value="past">
                 {pastMatches.length === 0 ? (
-                  <Card className="col-span-full">
+                  <Card>
                     <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
                       <Trophy className="h-12 w-12 text-gray-300 mb-2" />
-                      <p className="text-lg text-gray-500">No past matches recorded</p>
-                      <Button 
-                        variant="link" 
-                        onClick={() => setDialogOpen(true)}
-                        className="text-primary mt-2"
-                      >
-                        Add a past match
-                      </Button>
+                      <p className="text-lg text-gray-500">No past matches available</p>
                     </CardContent>
                   </Card>
                 ) : (
-                  pastMatches.map(match => {
-                    const matchDate = new Date(match.matchDate);
-                    const goalsScored = match.goalsScored || 0;
-                    const goalsConceded = match.goalsConceded || 0;
-                    const matchResult = goalsScored > goalsConceded
-                      ? "win"
-                      : goalsScored < goalsConceded
-                        ? "loss"
-                        : "draw";
-
-                    const resultColors = {
-                      win: "border-t-green-500 bg-green-50",
-                      loss: "border-t-red-500 bg-red-50",
-                      draw: "border-t-yellow-500 bg-yellow-50",
-                    };
-
-                    return (
-                      <Card 
-                        key={match.id} 
-                        className={`overflow-hidden border-t-4 ${
-                          matchResult ? resultColors[matchResult] : "border-t-gray-300"
-                        }`}
-                      >
-                        <CardHeader className="pb-2 relative">
-                          {/* Result Badge */}
-                          {matchResult && (
-                            <Badge 
-                              className="absolute right-4 top-4" 
-                              variant={
-                                matchResult === "win" 
-                                  ? "default" 
-                                  : matchResult === "loss" 
-                                    ? "destructive" 
-                                    : "outline"
-                              }
-                            >
-                              {matchResult.toUpperCase()}
-                            </Badge>
-                          )}
-
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2 mb-1">
-                              {match.isHome ? 
-                                <Badge variant="outline" className="flex items-center gap-1 bg-blue-50">
-                                  <Home className="h-3 w-3" />
-                                  Home
-                                </Badge> : 
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                  <Share2 className="h-3 w-3" />
-                                  Away
-                                </Badge>
-                              }
-                              <CardDescription className="text-xs">
-                                {format(matchDate, "EEEE, MMM d, yyyy")}
-                              </CardDescription>
-                            </div>
-                            <CardTitle>{match.isHome ? "vs " : "@ "}{match.opponentName}</CardTitle>
-                          </div>
-                        </CardHeader>
-
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div className="bg-white p-4 rounded-lg border">
-                              <p className="text-xs text-center text-gray-500 mb-2">Full Time Result</p>
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  <div className="relative">
-                                    <img 
-                                      src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                                      alt={selectedTeam?.name}
-                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                                    />
-                                  </div>
-                                  <div className="ml-3">
-                                    <p className="font-medium">{selectedTeam?.name}</p>
-                                    <p className={`text-3xl font-bold ${matchResult === "win" ? "text-green-600" : ""}`}>
-                                      {match.goalsScored || 0}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="text-center">
-                                  <div className="bg-gray-100 text-gray-500 text-xs font-medium px-2 py-1 rounded">
-                                    FT
-                                  </div>
-                                </div>
-                                <div className="flex items-center">
-                                  <div className="mr-3 text-right">
-                                    <p className="font-medium">{match.opponentName}</p>
-                                    <p className={`text-3xl font-bold ${matchResult === "loss" ? "text-red-600" : ""}`}>
-                                      {match.goalsConceded || 0}
-                                    </p>
-                                  </div>
-                                  <div className="relative">
-                                    <img 
-                                      src={match.opponentLogo || "https://ui-avatars.com/api/?name=" + match.opponentName.charAt(0) + "&background=f44336&color=fff"} 
-                                      alt={match.opponentName}
-                                      className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center space-x-4 text-sm">
-                              <div className="flex items-center">
-                                <MapPin className="h-4 w-4 mr-1 text-gray-500" />
-                                <span>{match.location}</span>
-                              </div>
-                            </div>
-
-                            {match.notes && (
-                              <div className="text-sm p-3 bg-gray-50 rounded-md">
-                                <p className="font-medium mb-1 flex items-center">
-                                  <span className="bg-gray-200 rounded-full p-1 mr-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                  </span>
-                                  Match Notes
-                                </p>
-                                <p className="text-gray-700 pl-7">{match.notes}</p>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-
-                        {match.status === "completed" && (
-                          <MatchDetails match={match} teamId={selectedTeam?.id || 0} onUpdate={refetchMatchesData} />
-                        )}
-
-                        <CardFooter className="flex gap-2 border-t px-6 py-3 bg-gray-50">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1 gap-1"
-                            onClick={() => handleEditMatch(match)}
-                          >
-                            <ClipboardEdit className="h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="destructive"
-                            size="sm" 
-                            className="flex-1 gap-1"
-                            onClick={() => confirmDelete(match)}
-                          >
-                            <Trash className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    );
-                  })
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Past Matches</CardTitle>
+                      <CardDescription>Completed and cancelled matches</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Opponent</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Result</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {pastMatches.map(match => {
+                            const result = match.status === "completed" 
+                              ? match.goalsScored > match.goalsConceded 
+                                ? "win" 
+                                : match.goalsScored < match.goalsConceded 
+                                  ? "loss" 
+                                  : "draw"
+                              : null;
+                            
+                            return (
+                              <TableRow 
+                                key={match.id} 
+                                className="cursor-pointer hover:bg-muted/50"
+                                onClick={() => setSelectedMatch(match)}
+                              >
+                                <TableCell className="font-medium">
+                                  {match.isHome ? (
+                                    <>
+                                      vs <span className="font-semibold">{match.opponentName}</span>
+                                      <Badge variant="outline" className="ml-2">Home</Badge>
+                                    </>
+                                  ) : (
+                                    <>
+                                      @ <span className="font-semibold">{match.opponentName}</span>
+                                      <Badge variant="outline" className="ml-2">Away</Badge>
+                                    </>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(match.matchDate), "EEE, MMM d, yyyy")}
+                                </TableCell>
+                                <TableCell>
+                                  {match.status === "completed" ? (
+                                    <div className="flex items-center">
+                                      <Badge 
+                                        variant={
+                                          result === "win" 
+                                            ? "default" 
+                                            : result === "loss" 
+                                              ? "destructive" 
+                                              : "outline"
+                                        }
+                                        className="mr-2"
+                                      >
+                                        {result === "win" && "Win"}
+                                        {result === "loss" && "Loss"}
+                                        {result === "draw" && "Draw"}
+                                      </Badge>
+                                      <span className="font-semibold">
+                                        {match.goalsScored}-{match.goalsConceded}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <Badge variant="outline">N/A</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge 
+                                    variant={match.status === "cancelled" ? "outline" : "secondary"}
+                                  >
+                                    {match.status.charAt(0).toUpperCase() + match.status.slice(1)}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEditMatch(match);
+                                    }}
+                                  >
+                                    <ClipboardEdit className="h-4 w-4" />
+                                    <span className="sr-only">Edit</span>
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      confirmDelete(match);
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="ml-2 text-primary hover:text-primary/80"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedMatch(match);
+                                    }}
+                                  >
+                                    <ArrowRight className="h-4 w-4" />
+                                    <span className="sr-only">View</span>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                 )}
+              </TabsContent>
+            </Tabs>
+          )}
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Match</DialogTitle>
+              </DialogHeader>
+              <DialogDescription>
+                Are you sure you want to delete this match? This action cannot be undone.
+              </DialogDescription>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteMatch}>
+                  Delete Match
+                </Button>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Match</DialogTitle>
-            </DialogHeader>
-            <div className="py-3">
-              <p>Are you sure you want to delete this match?</p>
-              <p className="text-sm text-gray-500 mt-1">
-                {matchToDelete && `vs ${matchToDelete.opponentName}, ${format(new Date(matchToDelete.matchDate), "MMMM d, yyyy")}`}
-              </p>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteMatch}>
-                Delete
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <div className="pb-16">
-          <MobileNavigation />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
