@@ -1010,7 +1010,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 }}
                               >
                                 <div
-                                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg ${
+                                  className={`w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg ${
                                     player
                                       ? "scale-100"
                                       : "scale-90 opacity-70"
@@ -1026,20 +1026,19 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 >
                                   {player ? (
                                     <div className="flex flex-col items-center">
-                                      <span className="font-bold text-sm">
+                                      <span className="font-bold text-xs">
                                         {player.jerseyNumber || "?"}
                                       </span>
                                     </div>
                                   ) : (
-                                    <div className="opacity-50 text-sm">?</div>
+                                    <div className="opacity-50 text-xs">?</div>
                                   )}
                                 </div>
                                 
-                                {/* Player tooltip */}
+                                {/* Player name below icon (instead of tooltip) */}
                                 {player && (
-                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[80px] truncate">
                                     {player.fullName}
-                                    {player.position && ` (${player.position})`}
                                   </div>
                                 )}
                               </div>
@@ -1073,18 +1072,95 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {/* Starting Lineup List */}
                 <h4 className="font-medium text-sm mb-2">Starting Players</h4>
                 {lineup.players && lineup.players.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                    {lineup.players.map((player) => (
-                      <div key={player.id} className="flex items-center p-2 bg-white border rounded-md">
-                        <div className="flex-1 ml-2">
-                          <div className="font-medium">{player.fullName}</div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            {player.position && <span className="mr-2">{player.position}</span>}
-                            {player.jerseyNumber && <span>#{player.jerseyNumber}</span>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="mb-6">
+                    <ul className="divide-y">
+                      {lineup.players.map((player) => {
+                        // Find stats for this player
+                        const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
+                        const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
+                        const playerCards = cards?.filter(c => c.playerId === player.id) || [];
+                        const yellowCards = playerCards.filter(c => c.type === "yellow");
+                        const redCards = playerCards.filter(c => c.type === "red");
+                        const playerSubstitutions = substitutions?.filter(s => 
+                          s.playerInId === player.id || s.playerOutId === player.id
+                        ) || [];
+                        
+                        return (
+                          <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
+                            <div className="flex-1">
+                              <div className="flex items-center">
+                                <div className="font-medium">{player.fullName}</div>
+                                {player.jerseyNumber && (
+                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                )}
+                                {player.position && (
+                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-2 items-center">
+                              {/* Show goals as soccer ball icons */}
+                              {playerGoals.length > 0 && (
+                                <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
+                                  <span className="text-xs font-semibold mr-1">{playerGoals.length}</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                                    <path d="M12 7v4l3 3" />
+                                  </svg>
+                                </div>
+                              )}
+                              
+                              {/* Show assists */}
+                              {playerAssists.length > 0 && (
+                                <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
+                                  <span className="text-xs font-semibold mr-1">{playerAssists.length}</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M4 12h16" />
+                                    <path d="M16 6l4 6-4 6" />
+                                  </svg>
+                                </div>
+                              )}
+                              
+                              {/* Show yellow cards */}
+                              {yellowCards.length > 0 && (
+                                <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
+                                  <span className="text-xs font-semibold mr-1">{yellowCards.length}</span>
+                                  <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
+                                </div>
+                              )}
+                              
+                              {/* Show red cards */}
+                              {redCards.length > 0 && (
+                                <div className="flex items-center" title="Red card">
+                                  <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
+                                </div>
+                              )}
+                              
+                              {/* Show substitutions */}
+                              {playerSubstitutions.some(s => s.playerOutId === player.id) && (
+                                <div className="flex items-center" title="Substituted out">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="7 11 12 6 17 11" />
+                                    <polyline points="7 17 12 12 17 17" />
+                                  </svg>
+                                </div>
+                              )}
+                              
+                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
+                                <div className="flex items-center" title="Substituted in">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="7 13 12 18 17 13" />
+                                    <polyline points="7 6 12 11 17 6" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </div>
                 ) : (
                   <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
@@ -1094,19 +1170,42 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
                   <>
                     <h4 className="font-medium text-sm mb-2">Bench Players</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {lineup.benchPlayers.map((player) => (
-                        <div key={player.id} className="flex items-center p-2 bg-gray-50 border rounded-md">
-                          <div className="flex-1 ml-2">
-                            <div className="font-medium">{player.fullName}</div>
-                            <div className="text-sm text-gray-500 flex items-center">
-                              {player.position && <span className="mr-2">{player.position}</span>}
-                              {player.jerseyNumber && <span>#{player.jerseyNumber}</span>}
+                    <ul className="divide-y">
+                      {lineup.benchPlayers.map((player) => {
+                        // Find stats for bench players
+                        const playerSubstitutions = substitutions?.filter(s => 
+                          s.playerInId === player.id || s.playerOutId === player.id
+                        ) || [];
+                        
+                        return (
+                          <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
+                            <div className="flex-1">
+                              <div className="flex items-center">
+                                <div className="font-medium">{player.fullName}</div>
+                                {player.jerseyNumber && (
+                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                )}
+                                {player.position && (
+                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                            
+                            <div className="flex space-x-2 items-center">
+                              {/* Show substitutions for bench players */}
+                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
+                                <div className="flex items-center" title="Substituted in">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="7 13 12 18 17 13" />
+                                    <polyline points="7 6 12 11 17 6" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   </>
                 )}
               </div>
