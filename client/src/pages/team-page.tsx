@@ -930,7 +930,7 @@ export default function TeamPage() {
                           </div>
                         ))}
                       {teamMembers?.filter(
-                        (member) =>
+                        (member)=>
                           member.role === "player" &&
                           !Object.values(lineup).some(
                             (p) => p?.id === member.id,
