@@ -145,12 +145,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       
       // Populate positions with players
       if (lineup.players.length > 0 && lineup.formation) {
-        const positions = getPositionsByFormation(lineup.formation);
+        const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
+        const positions = getPositionsByFormation(formationStr);
         
-        // Map players to positions
-        lineup.players.forEach((player, index) => {
-          if (index < positions.length) {
-            const position = positions[index];
+        // Map players to positions by matching their index to the position index
+        positions.forEach((position, posIndex) => {
+          // Find the player at this position index
+          const player = lineup.players[posIndex];
+          if (player) {
             const teamMember = teamMembers?.find(m => m.userId === player.id);
             
             if (teamMember) {
@@ -1048,7 +1050,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             // Find the team member that corresponds to this position
                             const positionPlayer = lineup.players.find((player, idx) => {
                               // The order matters here - we want to match players in the same order they appear in positions
-                              const positionIndex = getPositionsByFormation(lineup.formation).findIndex(p => p.id === position.id);
+                              const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
+                              const positionIndex = getPositionsByFormation(formationStr).findIndex(p => p.id === position.id);
                               return idx === positionIndex;
                             });
                             return (
