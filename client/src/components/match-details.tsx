@@ -1083,13 +1083,21 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
                           {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position) => {
-                            // Find the team member that corresponds to this position
-                            const positionPlayer = lineup.players.find((player, idx) => {
-                              // The order matters here - we want to match players in the same order they appear in positions
-                              const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
-                              const positionIndex = getPositionsByFormation(formationStr).findIndex(p => p.id === position.id);
-                              return idx === positionIndex;
-                            });
+                            // Find the player for this position using positionMapping when available
+                            let positionPlayer = null;
+                            
+                            if (lineup.positionMapping && lineup.positionMapping[position.id]) {
+                              // Use position mapping to find the player ID for this position
+                              const playerId = lineup.positionMapping[position.id];
+                              positionPlayer = lineup.players.find(player => player.id === playerId);
+                            } else {
+                              // Fallback to legacy index-based mapping for backwards compatibility
+                              positionPlayer = lineup.players.find((player, idx) => {
+                                const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
+                                const positionIndex = getPositionsByFormation(formationStr).findIndex(p => p.id === position.id);
+                                return idx === positionIndex;
+                              });
+                            }
                             return (
                               <div
                                 key={position.id}
