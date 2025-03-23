@@ -666,14 +666,19 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     // Get unique player IDs from the position mapping
     const playerIds = Array.from(new Set(Object.values(positionMapping)));
     
+    // Get bench player IDs (maintaining any that were already set in the form)
+    const benchPlayerIds = Array.isArray(data.benchPlayerIds) ? data.benchPlayerIds : [];
+    
     // Create the complete data object
     const dataWithPositions = {
       ...data,
       playerIds,
+      benchPlayerIds,
       positionMapping
     };
     
     console.log("Saving lineup with position mapping:", positionMapping);
+    console.log("Bench players:", benchPlayerIds);
     saveLineup.mutate(dataWithPositions);
   };
 
