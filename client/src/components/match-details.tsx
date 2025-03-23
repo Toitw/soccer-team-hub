@@ -148,24 +148,45 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
         const positions = getPositionsByFormation(formationStr);
         
-        // Map players to positions by matching their index to the position index
-        positions.forEach((position, posIndex) => {
-          // Find the player at this position index
-          const player = lineup.players[posIndex];
-          if (player) {
-            const teamMember = teamMembers?.find(m => m.userId === player.id);
-            
-            if (teamMember) {
-              setLineupPositions(prev => ({
-                ...prev,
-                [position.id]: {
-                  ...teamMember,
-                  user: player
-                }
-              }));
+        // Use positionMapping if available, otherwise fall back to index-based matching
+        if (lineup.positionMapping) {
+          // For each mapped position, find the corresponding player and add to lineup positions
+          Object.entries(lineup.positionMapping).forEach(([positionId, playerId]) => {
+            if (typeof playerId === 'number') {
+              const player = lineup.players.find(p => p.id === playerId);
+              const teamMember = teamMembers?.find(m => m.userId === playerId);
+              
+              if (player && teamMember) {
+                setLineupPositions(prev => ({
+                  ...prev,
+                  [positionId]: {
+                    ...teamMember,
+                    user: player
+                  }
+                }));
+              }
             }
-          }
-        });
+          });
+        } else {
+          // Fallback to legacy index-based mapping for backwards compatibility
+          positions.forEach((position, posIndex) => {
+            // Find the player at this position index
+            const player = lineup.players[posIndex];
+            if (player) {
+              const teamMember = teamMembers?.find(m => m.userId === player.id);
+              
+              if (teamMember) {
+                setLineupPositions(prev => ({
+                  ...prev,
+                  [position.id]: {
+                    ...teamMember,
+                    user: player
+                  }
+                }));
+              }
+            }
+          });
+        }
       }
     } else {
       // Reset form for new lineup
