@@ -69,6 +69,7 @@ export default function MatchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [showMobileNav, setShowMobileNav] = useState(true);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -894,6 +895,8 @@ export default function MatchesPage() {
             </DialogContent>
           </Dialog>
         </div>
+        {/* Mobile Navigation */}
+        {showMobileNav && <MobileNavigation />}
       </div>
     </div>
   );
