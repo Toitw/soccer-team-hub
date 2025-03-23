@@ -881,7 +881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Lineup not found" });
       }
 
-      // Get player details for each player in the lineup
+      // Get player details for each player in the starting lineup
       const playersDetails = await Promise.all(
         lineup.playerIds.map(async (playerId) => {
           const user = await storage.getUser(playerId);
@@ -891,12 +891,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return userWithoutPassword;
         })
       );
+      
+      // Get player details for bench players if they exist
+      let benchPlayersDetails: any[] = [];
+      if (lineup.benchPlayerIds && lineup.benchPlayerIds.length > 0) {
+        benchPlayersDetails = await Promise.all(
+          lineup.benchPlayerIds.map(async (playerId) => {
+            const user = await storage.getUser(playerId);
+            if (!user) return null;
+
+            const { password, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+          })
+        );
+      }
 
       res.json({
         ...lineup,
-        players: playersDetails.filter(Boolean)
+        players: playersDetails.filter(Boolean),
+        benchPlayers: benchPlayersDetails.filter(Boolean)
       });
     } catch (error) {
+      console.error("Error fetching lineup:", error);
       res.status(500).json({ error: "Failed to fetch match lineup" });
     }
   });
@@ -907,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
-      const { playerIds, formation, positionMapping } = req.body;
+      const { playerIds, benchPlayerIds, formation, positionMapping } = req.body;
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -926,6 +942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingLineup) {
         const updatedLineup = await storage.updateMatchLineup(existingLineup.id, {
           playerIds,
+          benchPlayerIds,
           formation,
           positionMapping
         });
@@ -937,12 +954,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         matchId,
         teamId,
         playerIds,
+        benchPlayerIds,
         formation,
         positionMapping
       });
 
       res.status(201).json(lineup);
     } catch (error) {
+      console.error("Error creating/updating lineup:", error);
       res.status(500).json({ error: "Failed to create match lineup" });
     }
   });
