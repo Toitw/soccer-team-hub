@@ -26,19 +26,6 @@
     "opponentLogo": null
   },
   {
-    "opponentName": "Victoria",
-    "matchDate": "2025-03-19T14:53:00.000Z",
-    "location": "Perlora",
-    "isHome": false,
-    "notes": "test",
-    "status": "completed",
-    "goalsScored": 1,
-    "goalsConceded": 2,
-    "teamId": 1,
-    "id": 3,
-    "opponentLogo": null
-  },
-  {
     "opponentName": "Candás",
     "matchDate": "2025-03-17T13:53:00.000Z",
     "location": "MAta",
@@ -49,6 +36,19 @@
     "goalsConceded": 3,
     "teamId": 1,
     "id": 4,
+    "opponentLogo": null
+  },
+  {
+    "opponentName": "Victoria",
+    "matchDate": "2025-03-11T16:03:00.000Z",
+    "location": "Perlora",
+    "isHome": false,
+    "notes": "Perdimos",
+    "status": "completed",
+    "goalsScored": 1,
+    "goalsConceded": 2,
+    "teamId": 1,
+    "id": 5,
     "opponentLogo": null
   }
 ]
