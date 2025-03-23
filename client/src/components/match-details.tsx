@@ -1170,145 +1170,190 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   </div>
                 </div>
                 
-                {/* Starting Lineup List */}
-                <h4 className="font-medium text-sm mb-2">Starting Players</h4>
-                {lineup.players && lineup.players.length > 0 ? (
-                  <div className="mb-6">
-                    <ul className="divide-y">
-                      {lineup.players.map((player) => {
-                        // Find stats for this player
-                        const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
-                        const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
-                        const playerCards = cards?.filter(c => c.playerId === player.id) || [];
-                        const yellowCards = playerCards.filter(c => c.type === "yellow");
-                        const redCards = playerCards.filter(c => c.type === "red");
-                        const playerSubstitutions = substitutions?.filter(s => 
-                          s.playerInId === player.id || s.playerOutId === player.id
-                        ) || [];
-                        
-                        return (
-                          <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <div className="font-medium">{player.fullName}</div>
-                                {player.jerseyNumber && (
-                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                {/* Match Statistics: Starting and Bench Players with Stats */}
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-sm mb-2 border-b pb-1">Starting Players</h4>
+                    {lineup.players && lineup.players.length > 0 ? (
+                      <ul className="divide-y">
+                        {lineup.players.map((player) => {
+                          // Find stats for this player
+                          const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
+                          const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
+                          const playerCards = cards?.filter(c => c.playerId === player.id) || [];
+                          const yellowCards = playerCards.filter(c => c.type === "yellow");
+                          const redCards = playerCards.filter(c => c.type === "red");
+                          const playerSubstitutions = substitutions?.filter(s => 
+                            s.playerInId === player.id || s.playerOutId === player.id
+                          ) || [];
+                          
+                          return (
+                            <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <div className="font-medium">{player.fullName}</div>
+                                  {player.jerseyNumber && (
+                                    <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                  )}
+                                  {player.position && (
+                                    <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-2 items-center">
+                                {/* Show goals as soccer ball icons */}
+                                {playerGoals.length > 0 && (
+                                  <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{playerGoals.length}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                                      <path d="M12 7v4l3 3" />
+                                    </svg>
+                                  </div>
                                 )}
-                                {player.position && (
-                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                
+                                {/* Show assists */}
+                                {playerAssists.length > 0 && (
+                                  <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{playerAssists.length}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M4 12h16" />
+                                      <path d="M16 6l4 6-4 6" />
+                                    </svg>
+                                  </div>
+                                )}
+                                
+                                {/* Show yellow cards */}
+                                {yellowCards.length > 0 && (
+                                  <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{yellowCards.length}</span>
+                                    <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
+                                  </div>
+                                )}
+                                
+                                {/* Show red cards */}
+                                {redCards.length > 0 && (
+                                  <div className="flex items-center" title="Red card">
+                                    <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
+                                  </div>
+                                )}
+                                
+                                {/* Show substitutions */}
+                                {playerSubstitutions.some(s => s.playerOutId === player.id) && (
+                                  <div className="flex items-center" title="Substituted out">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="7 11 12 6 17 11" />
+                                      <polyline points="7 17 12 12 17 17" />
+                                    </svg>
+                                  </div>
+                                )}
+                                
+                                {playerSubstitutions.some(s => s.playerInId === player.id) && (
+                                  <div className="flex items-center" title="Substituted in">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="7 13 12 18 17 13" />
+                                      <polyline points="7 6 12 11 17 6" />
+                                    </svg>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            
-                            <div className="flex space-x-2 items-center">
-                              {/* Show goals as soccer ball icons */}
-                              {playerGoals.length > 0 && (
-                                <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{playerGoals.length}</span>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
-                                    <path d="M12 7v4l3 3" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {/* Show assists */}
-                              {playerAssists.length > 0 && (
-                                <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{playerAssists.length}</span>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M4 12h16" />
-                                    <path d="M16 6l4 6-4 6" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {/* Show yellow cards */}
-                              {yellowCards.length > 0 && (
-                                <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
-                                  <span className="text-xs font-semibold mr-1">{yellowCards.length}</span>
-                                  <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
-                                </div>
-                              )}
-                              
-                              {/* Show red cards */}
-                              {redCards.length > 0 && (
-                                <div className="flex items-center" title="Red card">
-                                  <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
-                                </div>
-                              )}
-                              
-                              {/* Show substitutions */}
-                              {playerSubstitutions.some(s => s.playerOutId === player.id) && (
-                                <div className="flex items-center" title="Substituted out">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 11 12 6 17 11" />
-                                    <polyline points="7 17 12 12 17 17" />
-                                  </svg>
-                                </div>
-                              )}
-                              
-                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
-                                <div className="flex items-center" title="Substituted in">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 13 12 18 17 13" />
-                                    <polyline points="7 6 12 11 17 6" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
-                )}
-                
-                {/* Bench Players List */}
-                {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
-                  <>
-                    <h4 className="font-medium text-sm mb-2">Bench Players</h4>
-                    <ul className="divide-y">
-                      {lineup.benchPlayers.map((player) => {
-                        // Find stats for bench players
-                        const playerSubstitutions = substitutions?.filter(s => 
-                          s.playerInId === player.id || s.playerOutId === player.id
-                        ) || [];
-                        
-                        return (
-                          <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <div className="font-medium">{player.fullName}</div>
-                                {player.jerseyNumber && (
-                                  <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                  
+                  {/* Bench Players with Stats */}
+                  {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2 border-b pb-1">Bench Players</h4>
+                      <ul className="divide-y">
+                        {lineup.benchPlayers.map((player) => {
+                          // Find stats for bench players
+                          const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
+                          const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
+                          const playerCards = cards?.filter(c => c.playerId === player.id) || [];
+                          const yellowCards = playerCards.filter(c => c.type === "yellow");
+                          const redCards = playerCards.filter(c => c.type === "red");
+                          const playerSubstitutions = substitutions?.filter(s => 
+                            s.playerInId === player.id || s.playerOutId === player.id
+                          ) || [];
+                          
+                          return (
+                            <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <div className="font-medium">{player.fullName}</div>
+                                  {player.jerseyNumber && (
+                                    <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                  )}
+                                  {player.position && (
+                                    <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-2 items-center">
+                                {/* Show goals for bench players (might score after substitution) */}
+                                {playerGoals.length > 0 && (
+                                  <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{playerGoals.length}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                                      <path d="M12 7v4l3 3" />
+                                    </svg>
+                                  </div>
                                 )}
-                                {player.position && (
-                                  <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                
+                                {/* Show assists */}
+                                {playerAssists.length > 0 && (
+                                  <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{playerAssists.length}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M4 12h16" />
+                                      <path d="M16 6l4 6-4 6" />
+                                    </svg>
+                                  </div>
+                                )}
+                                
+                                {/* Show yellow cards */}
+                                {yellowCards.length > 0 && (
+                                  <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
+                                    <span className="text-xs font-semibold mr-1">{yellowCards.length}</span>
+                                    <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
+                                  </div>
+                                )}
+                                
+                                {/* Show red cards */}
+                                {redCards.length > 0 && (
+                                  <div className="flex items-center" title="Red card">
+                                    <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
+                                  </div>
+                                )}
+                                
+                                {/* Show substitutions */}
+                                {playerSubstitutions.some(s => s.playerInId === player.id) && (
+                                  <div className="flex items-center" title="Substituted in">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="7 13 12 18 17 13" />
+                                      <polyline points="7 6 12 11 17 6" />
+                                    </svg>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            
-                            <div className="flex space-x-2 items-center">
-                              {/* Show substitutions for bench players */}
-                              {playerSubstitutions.some(s => s.playerInId === player.id) && (
-                                <div className="flex items-center" title="Substituted in">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="7 13 12 18 17 13" />
-                                    <polyline points="7 6 12 11 17 6" />
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
