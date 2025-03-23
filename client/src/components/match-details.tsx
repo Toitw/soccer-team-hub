@@ -134,29 +134,38 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   
   // Function to handle opening the lineup dialog and initialize form with existing data
   const handleOpenLineupDialog = () => {
+    // Always start with clean positions
+    setLineupPositions({});
+    
     if (lineup) {
-      // Reset positions state
-      setLineupPositions({});
-      
       // Initialize form with existing lineup data
       lineupForm.setValue('formation', lineup.formation || '4-4-2');
-      lineupForm.setValue('playerIds', lineup.players.map(player => player.id));
-      lineupForm.setValue('benchPlayerIds', lineup.benchPlayers?.map(player => player.id) || []);
       
-      // Populate positions with players
-      if (lineup.players.length > 0 && lineup.formation) {
+      // Set player IDs and bench player IDs from existing lineup
+      const existingPlayerIds = lineup.players.map(player => player.id);
+      lineupForm.setValue('playerIds', existingPlayerIds);
+      
+      const existingBenchPlayerIds = lineup.benchPlayers?.map(player => player.id) || [];
+      lineupForm.setValue('benchPlayerIds', existingBenchPlayerIds);
+      
+      // Populate positions with players based on position mapping
+      if (lineup.formation) {
         const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
-        const positions = getPositionsByFormation(formationStr);
         
-        // Use positionMapping if available, otherwise fall back to index-based matching
-        if (lineup.positionMapping) {
-          // For each mapped position, find the corresponding player and add to lineup positions
-          Object.entries(lineup.positionMapping).forEach(([positionId, playerId]) => {
+        // If we have a position mapping, use it
+        if (lineup.positionMapping && typeof lineup.positionMapping === 'object') {
+          // Safely type the position mapping as a Record<string, number>
+          const typedPositionMapping = lineup.positionMapping as Record<string, number>;
+          
+          // For each position that has a player assigned
+          Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
             if (typeof playerId === 'number') {
+              // Find the player and team member
               const player = lineup.players.find(p => p.id === playerId);
               const teamMember = teamMembers?.find(m => m.userId === playerId);
               
               if (player && teamMember) {
+                // Set this position with the player
                 setLineupPositions(prev => ({
                   ...prev,
                   [positionId]: {
@@ -167,25 +176,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               }
             }
           });
-        } else {
-          // Fallback to legacy index-based mapping for backwards compatibility
-          positions.forEach((position, posIndex) => {
-            // Find the player at this position index
-            const player = lineup.players[posIndex];
-            if (player) {
-              const teamMember = teamMembers?.find(m => m.userId === player.id);
-              
-              if (teamMember) {
-                setLineupPositions(prev => ({
-                  ...prev,
-                  [position.id]: {
-                    ...teamMember,
-                    user: player
-                  }
-                }));
-              }
-            }
-          });
+        } 
+        // If no position mapping exists or as a fallback, clear positions
+        else {
+          console.log("No position mapping found, starting fresh");
+          // We won't try to guess positions - better to start fresh than to be wrong
         }
       }
     } else {
@@ -655,22 +650,30 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   });
 
   // Form handlers
+  // Convert all lineup positions to playerIds and position mapping
   const handleLineupSubmit = (data: z.infer<typeof lineupSchema>) => {
-    // Create positionMapping from lineupPositions
+    // Create a clean position mapping
     const positionMapping: Record<string, number> = {};
     
+    // Only include valid player assignments in the mapping
+    // This ensures no position has multiple players and no player is in multiple positions
     Object.entries(lineupPositions).forEach(([positionId, playerInfo]) => {
-      if (playerInfo) {
+      if (playerInfo && playerInfo.userId) {
         positionMapping[positionId] = playerInfo.userId;
       }
     });
     
-    // Add positionMapping to the data
+    // Get unique player IDs from the position mapping
+    const playerIds = Array.from(new Set(Object.values(positionMapping)));
+    
+    // Create the complete data object
     const dataWithPositions = {
       ...data,
+      playerIds,
       positionMapping
     };
     
+    console.log("Saving lineup with position mapping:", positionMapping);
     saveLineup.mutate(dataWithPositions);
   };
 
@@ -1086,17 +1089,17 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             // Find the player for this position using positionMapping when available
                             let positionPlayer = null;
                             
-                            if (lineup.positionMapping && lineup.positionMapping[position.id]) {
-                              // Use position mapping to find the player ID for this position
-                              const playerId = lineup.positionMapping[position.id];
-                              positionPlayer = lineup.players.find(player => player.id === playerId);
-                            } else {
-                              // Fallback to legacy index-based mapping for backwards compatibility
-                              positionPlayer = lineup.players.find((player, idx) => {
-                                const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
-                                const positionIndex = getPositionsByFormation(formationStr).findIndex(p => p.id === position.id);
-                                return idx === positionIndex;
-                              });
+                            if (lineup.positionMapping && typeof lineup.positionMapping === 'object') {
+                              // Type safety for the position mapping
+                              const typedPositionMapping = lineup.positionMapping as Record<string, number>;
+                              
+                              // Get the player ID for this position
+                              const playerId = typedPositionMapping[position.id];
+                              
+                              if (playerId) {
+                                // Find the player with this ID
+                                positionPlayer = lineup.players.find(player => player.id === playerId);
+                              }
                             }
                             return (
                               <div
