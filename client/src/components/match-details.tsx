@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
@@ -147,61 +147,23 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       if (lineup.players.length > 0 && lineup.formation) {
         const positions = getPositionsByFormation(lineup.formation);
         
-        // Create a new positions object to avoid race conditions with multiple setLineupPositions calls
-        const newPositions: {[key: string]: TeamMemberWithUser | null} = {};
-        
-        // Map players to positions based on their position property if available
+        // Map players to positions
         lineup.players.forEach((player, index) => {
           if (index < positions.length) {
+            const position = positions[index];
             const teamMember = teamMembers?.find(m => m.userId === player.id);
             
             if (teamMember) {
-              const playerWithUser = {
-                ...teamMember,
-                user: player
-              };
-              
-              // Try to match players to appropriate positions based on their position property
-              const playerPosition = player.position?.toLowerCase() || '';
-              
-              // Find an appropriate position based on the player's role
-              let assignedPosition = positions[index].id;
-              
-              // If player is a goalkeeper, assign to GK position
-              if (playerPosition.includes('goalkeeper') || playerPosition.includes('gk')) {
-                assignedPosition = 'gk';
-              } 
-              // If player is a defender, assign to a DEF position that isn't already filled
-              else if (playerPosition.includes('defender') || playerPosition.includes('def')) {
-                const defPosition = positions.find(p => 
-                  p.id.startsWith('def') && !Object.keys(newPositions).includes(p.id)
-                );
-                if (defPosition) assignedPosition = defPosition.id;
-              }
-              // If player is a midfielder, assign to a MID position that isn't already filled 
-              else if (playerPosition.includes('midfielder') || playerPosition.includes('mid')) {
-                const midPosition = positions.find(p => 
-                  p.id.startsWith('mid') && !Object.keys(newPositions).includes(p.id)
-                );
-                if (midPosition) assignedPosition = midPosition.id;
-              }
-              // If player is a forward, assign to a FWD position that isn't already filled
-              else if (playerPosition.includes('forward') || playerPosition.includes('fwd') || 
-                      playerPosition.includes('striker') || playerPosition.includes('wing')) {
-                const fwdPosition = positions.find(p => 
-                  p.id.startsWith('fwd') && !Object.keys(newPositions).includes(p.id)
-                );
-                if (fwdPosition) assignedPosition = fwdPosition.id;
-              }
-              
-              // Assign the player to the position
-              newPositions[assignedPosition] = playerWithUser;
+              setLineupPositions(prev => ({
+                ...prev,
+                [position.id]: {
+                  ...teamMember,
+                  user: player
+                }
+              }));
             }
           }
         });
-        
-        // Update the positions state with our new mapping
-        setLineupPositions(newPositions);
       }
     } else {
       // Reset form for new lineup
@@ -440,13 +402,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     queryKey: [`/api/teams/${teamId}/matches/${match.id}/cards`],
     enabled: match.status === "completed"
   });
-  
-  // Effect to initialize bench players from lineup data
-  useEffect(() => {
-    if (lineup && lineup.benchPlayers && lineup.benchPlayers.length > 0) {
-      setBenchPlayers(lineup.benchPlayers.map(player => player.id));
-    }
-  }, [lineup]);
 
   // Mutations
   const saveLineup = useMutation({
@@ -751,7 +706,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Lineup Tab */}
           <TabsContent value="lineup" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Match Lineup</h3>
+              <h3 className="text-lg font-medium">Starting Lineup</h3>
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
@@ -861,25 +816,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                   )}
                                                 </div>
                                                 
-                                                {/* Player tooltip with remove option */}
+                                                {/* Player tooltip */}
                                                 {player && (
-                                                  <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap flex flex-col items-center">
-                                                    <div className="bg-black text-white text-xs rounded p-1 pointer-events-none mb-1">
-                                                      {player.user.fullName}
-                                                      {player.user.position && ` (${player.user.position})`}
-                                                    </div>
-                                                    <button 
-                                                      className="bg-red-600 hover:bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        // Remove this player from position
-                                                        const newPositions = {...lineupPositions};
-                                                        delete newPositions[position.id];
-                                                        setLineupPositions(newPositions);
-                                                      }}
-                                                    >
-                                                      ✕
-                                                    </button>
+                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
+                                                    {player.user.fullName}
+                                                    {player.user.position && ` (${player.user.position})`}
                                                   </div>
                                                 )}
                                               </div>
@@ -1091,94 +1032,85 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {/* Field Visualization */}
                 <div className="mb-6">
                   <h4 className="font-medium text-sm mb-2">Field Positions</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2">
-                    <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full max-w-[400px] aspect-[4/3] mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                      <div className="absolute top-0 left-0 w-full h-full">
-                        <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                          {/* Soccer field markings */}
-                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                          <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                          
-                          {/* Player positions */}
-                          <div className="absolute top-0 left-0 w-full h-full">
-                            {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position, index) => {
-                              const player = index < lineup.players.length ? lineup.players[index] : null;
-                              return (
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full">
+                      <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
+                        {/* Soccer field markings */}
+                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        
+                        {/* Player positions */}
+                        <div className="absolute top-0 left-0 w-full h-full">
+                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position, index) => {
+                            const player = index < lineup.players.length ? lineup.players[index] : null;
+                            return (
+                              <div
+                                key={position.id}
+                                className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
+                                style={{
+                                  top: `${position.top}%`,
+                                  left: `${position.left}%`,
+                                }}
+                              >
                                 <div
-                                  key={position.id}
-                                  className="absolute transform -translate-x-1/2 -translate-y-1/2 group"
-                                  style={{
-                                    top: `${position.top}%`,
-                                    left: `${position.left}%`,
-                                  }}
+                                  className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg ${
+                                    player
+                                      ? "scale-100"
+                                      : "scale-90 opacity-70"
+                                  } ${
+                                    position.label === "GK"
+                                      ? "bg-blue-500"
+                                      : position.label === "DEF"
+                                        ? "bg-red-500"
+                                        : position.label === "MID"
+                                          ? "bg-green-500"
+                                          : "bg-yellow-500"
+                                  }`}
                                 >
-                                  <div
-                                    className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg ${
-                                      player
-                                        ? "scale-100"
-                                        : "scale-90 opacity-70"
-                                    } ${
-                                      position.label === "GK"
-                                        ? "bg-blue-500"
-                                        : position.label === "DEF"
-                                          ? "bg-red-500"
-                                          : position.label === "MID"
-                                            ? "bg-green-500"
-                                            : "bg-yellow-500"
-                                    }`}
-                                  >
-                                    {player ? (
-                                      <div className="flex flex-col items-center">
-                                        <span className="font-bold text-[10px]">
-                                          {player.jerseyNumber || "?"}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="opacity-50 text-[10px]">?</div>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Player name below icon (instead of tooltip) */}
-                                  {player && (
-                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[8px] rounded px-1 py-0.5 whitespace-nowrap max-w-[60px] truncate">
-                                      {player.fullName}
+                                  {player ? (
+                                    <div className="flex flex-col items-center">
+                                      <span className="font-bold text-xs">
+                                        {player.jerseyNumber || "?"}
+                                      </span>
                                     </div>
+                                  ) : (
+                                    <div className="opacity-50 text-xs">?</div>
                                   )}
                                 </div>
-                              );
-                            })}
-                          </div>
+                                
+                                {/* Player name below icon (instead of tooltip) */}
+                                {player && (
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[80px] truncate">
+                                    {player.fullName}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
+                  </div>
                   
-                    <div className="flex flex-col justify-center mt-4 md:mt-0">
-                      <div className="text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <span className="font-medium">Formation:</span> {lineup.formation}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
-                            <span>Goalkeeper</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
-                            <span>Defenders</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
-                            <span>Midfielders</span>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
-                            <span>Forwards</span>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
+                      <span>GK</span>
+                    </div>
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"></span>
+                      <span>DEF</span>
+                    </div>
+                    <div className="flex items-center mr-3 mb-1">
+                      <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"></span>
+                      <span>MID</span>
+                    </div>
+                    <div className="flex items-center mb-1">
+                      <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-1"></span>
+                      <span>FWD</span>
                     </div>
                   </div>
                 </div>

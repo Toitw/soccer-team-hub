@@ -1,9 +1,9 @@
 [
   {
     "matchId": 2,
-    "playerId": 53,
-    "type": "red",
-    "minute": 9,
+    "playerId": 52,
+    "type": "yellow",
+    "minute": 6,
     "reason": null,
     "id": 1
   }

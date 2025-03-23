@@ -69,7 +69,6 @@ export default function MatchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [showMobileNav, setShowMobileNav] = useState(true);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -561,7 +560,7 @@ export default function MatchesPage() {
                     
                     {selectedMatch.status === 'completed' && (
                       <div className="text-3xl font-bold">
-                        {selectedMatch.goalsScored ?? 0}-{selectedMatch.goalsConceded ?? 0}
+                        {selectedMatch.goalsScored}-{selectedMatch.goalsConceded}
                       </div>
                     )}
                   </div>
@@ -765,9 +764,9 @@ export default function MatchesPage() {
                         <TableBody>
                           {pastMatches.map(match => {
                             const result = match.status === "completed" 
-                              ? (match.goalsScored ?? 0) > (match.goalsConceded ?? 0)
+                              ? match.goalsScored > match.goalsConceded 
                                 ? "win" 
-                                : (match.goalsScored ?? 0) < (match.goalsConceded ?? 0)
+                                : match.goalsScored < match.goalsConceded 
                                   ? "loss" 
                                   : "draw"
                               : null;
@@ -812,7 +811,7 @@ export default function MatchesPage() {
                                         {result === "draw" && "Draw"}
                                       </Badge>
                                       <span className="font-semibold">
-                                        {match.goalsScored ?? 0}-{match.goalsConceded ?? 0}
+                                        {match.goalsScored}-{match.goalsConceded}
                                       </span>
                                     </div>
                                   ) : (
@@ -895,8 +894,6 @@ export default function MatchesPage() {
             </DialogContent>
           </Dialog>
         </div>
-        {/* Mobile Navigation */}
-        {showMobileNav && <MobileNavigation />}
       </div>
     </div>
   );
