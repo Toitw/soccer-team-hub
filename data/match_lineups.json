@@ -4,12 +4,14 @@
     "teamId": 1,
     "playerIds": [
       63,
-      62,
-      61,
-      51
+      56,
+      60
     ],
     "formation": "4-4-2",
+    "positionMapping": {
+      "fwd-2": 60
+    },
     "id": 1,
-    "createdAt": "2025-03-23T21:32:49.933Z"
+    "createdAt": "2025-03-23T21:39:14.262Z"
   }
 ]
