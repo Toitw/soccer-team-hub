@@ -1044,8 +1044,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
-                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position, index) => {
-                            const player = index < lineup.players.length ? lineup.players[index] : null;
+                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position) => {
+                            // Find the team member that corresponds to this position
+                            const positionPlayer = lineup.players.find((player, idx) => {
+                              // The order matters here - we want to match players in the same order they appear in positions
+                              const positionIndex = getPositionsByFormation(lineup.formation).findIndex(p => p.id === position.id);
+                              return idx === positionIndex;
+                            });
                             return (
                               <div
                                 key={position.id}
@@ -1057,7 +1062,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <div
                                   className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg ${
-                                    player
+                                    positionPlayer
                                       ? "scale-100"
                                       : "scale-90 opacity-70"
                                   } ${
@@ -1070,10 +1075,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           : "bg-yellow-500"
                                   }`}
                                 >
-                                  {player ? (
+                                  {positionPlayer ? (
                                     <div className="flex flex-col items-center">
                                       <span className="font-bold text-xs">
-                                        {player.jerseyNumber || "?"}
+                                        {positionPlayer.jerseyNumber || "?"}
                                       </span>
                                     </div>
                                   ) : (
@@ -1082,9 +1087,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 </div>
                                 
                                 {/* Player name below icon (instead of tooltip) */}
-                                {player && (
+                                {positionPlayer && (
                                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[80px] truncate">
-                                    {player.fullName}
+                                    {positionPlayer.fullName}
                                   </div>
                                 )}
                               </div>
