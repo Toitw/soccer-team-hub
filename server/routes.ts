@@ -907,7 +907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
-      const { playerIds, formation } = req.body;
+      const { playerIds, formation, positionMapping } = req.body;
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -926,7 +926,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingLineup) {
         const updatedLineup = await storage.updateMatchLineup(existingLineup.id, {
           playerIds,
-          formation
+          formation,
+          positionMapping
         });
         return res.json(updatedLineup);
       }
@@ -936,7 +937,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         matchId,
         teamId,
         playerIds,
-        formation
+        formation,
+        positionMapping
       });
 
       res.status(201).json(lineup);

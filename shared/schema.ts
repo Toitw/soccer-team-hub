@@ -193,6 +193,7 @@ export const matchLineups = pgTable("match_lineups", {
   teamId: integer("team_id").notNull(),
   playerIds: integer("player_ids").array().notNull(), // Array of player IDs in the lineup
   formation: text("formation"), // e.g., "4-4-2", "4-3-3"
+  positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -201,6 +202,7 @@ export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
   teamId: true,
   playerIds: true,
   formation: true,
+  positionMapping: true,
 });
 
 // MatchSubstitutions table for player changes

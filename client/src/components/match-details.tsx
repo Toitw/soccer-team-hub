@@ -635,7 +635,22 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Form handlers
   const handleLineupSubmit = (data: z.infer<typeof lineupSchema>) => {
-    saveLineup.mutate(data);
+    // Create positionMapping from lineupPositions
+    const positionMapping: Record<string, number> = {};
+    
+    Object.entries(lineupPositions).forEach(([positionId, playerInfo]) => {
+      if (playerInfo) {
+        positionMapping[positionId] = playerInfo.userId;
+      }
+    });
+    
+    // Add positionMapping to the data
+    const dataWithPositions = {
+      ...data,
+      positionMapping
+    };
+    
+    saveLineup.mutate(dataWithPositions);
   };
 
   const handleSubstitutionSubmit = (data: z.infer<typeof substitutionSchema>) => {
