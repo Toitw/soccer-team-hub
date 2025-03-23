@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
@@ -147,23 +147,61 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       if (lineup.players.length > 0 && lineup.formation) {
         const positions = getPositionsByFormation(lineup.formation);
         
-        // Map players to positions
+        // Create a new positions object to avoid race conditions with multiple setLineupPositions calls
+        const newPositions: {[key: string]: TeamMemberWithUser | null} = {};
+        
+        // Map players to positions based on their position property if available
         lineup.players.forEach((player, index) => {
           if (index < positions.length) {
-            const position = positions[index];
             const teamMember = teamMembers?.find(m => m.userId === player.id);
             
             if (teamMember) {
-              setLineupPositions(prev => ({
-                ...prev,
-                [position.id]: {
-                  ...teamMember,
-                  user: player
-                }
-              }));
+              const playerWithUser = {
+                ...teamMember,
+                user: player
+              };
+              
+              // Try to match players to appropriate positions based on their position property
+              const playerPosition = player.position?.toLowerCase() || '';
+              
+              // Find an appropriate position based on the player's role
+              let assignedPosition = positions[index].id;
+              
+              // If player is a goalkeeper, assign to GK position
+              if (playerPosition.includes('goalkeeper') || playerPosition.includes('gk')) {
+                assignedPosition = 'gk';
+              } 
+              // If player is a defender, assign to a DEF position that isn't already filled
+              else if (playerPosition.includes('defender') || playerPosition.includes('def')) {
+                const defPosition = positions.find(p => 
+                  p.id.startsWith('def') && !Object.keys(newPositions).includes(p.id)
+                );
+                if (defPosition) assignedPosition = defPosition.id;
+              }
+              // If player is a midfielder, assign to a MID position that isn't already filled 
+              else if (playerPosition.includes('midfielder') || playerPosition.includes('mid')) {
+                const midPosition = positions.find(p => 
+                  p.id.startsWith('mid') && !Object.keys(newPositions).includes(p.id)
+                );
+                if (midPosition) assignedPosition = midPosition.id;
+              }
+              // If player is a forward, assign to a FWD position that isn't already filled
+              else if (playerPosition.includes('forward') || playerPosition.includes('fwd') || 
+                      playerPosition.includes('striker') || playerPosition.includes('wing')) {
+                const fwdPosition = positions.find(p => 
+                  p.id.startsWith('fwd') && !Object.keys(newPositions).includes(p.id)
+                );
+                if (fwdPosition) assignedPosition = fwdPosition.id;
+              }
+              
+              // Assign the player to the position
+              newPositions[assignedPosition] = playerWithUser;
             }
           }
         });
+        
+        // Update the positions state with our new mapping
+        setLineupPositions(newPositions);
       }
     } else {
       // Reset form for new lineup
@@ -402,6 +440,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     queryKey: [`/api/teams/${teamId}/matches/${match.id}/cards`],
     enabled: match.status === "completed"
   });
+  
+  // Effect to initialize bench players from lineup data
+  useEffect(() => {
+    if (lineup && lineup.benchPlayers && lineup.benchPlayers.length > 0) {
+      setBenchPlayers(lineup.benchPlayers.map(player => player.id));
+    }
+  }, [lineup]);
 
   // Mutations
   const saveLineup = useMutation({
