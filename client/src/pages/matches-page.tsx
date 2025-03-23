@@ -895,6 +895,9 @@ export default function MatchesPage() {
           </Dialog>
         </div>
       </div>
+      <div className="pb-16">
+        <MobileNavigation />
+      </div>
     </div>
   );
 }
