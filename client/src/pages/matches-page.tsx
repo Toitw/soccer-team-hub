@@ -561,7 +561,7 @@ export default function MatchesPage() {
                     
                     {selectedMatch.status === 'completed' && (
                       <div className="text-3xl font-bold">
-                        {selectedMatch.goalsScored}-{selectedMatch.goalsConceded}
+                        {selectedMatch.goalsScored ?? 0}-{selectedMatch.goalsConceded ?? 0}
                       </div>
                     )}
                   </div>
@@ -765,9 +765,9 @@ export default function MatchesPage() {
                         <TableBody>
                           {pastMatches.map(match => {
                             const result = match.status === "completed" 
-                              ? match.goalsScored > match.goalsConceded 
+                              ? (match.goalsScored ?? 0) > (match.goalsConceded ?? 0)
                                 ? "win" 
-                                : match.goalsScored < match.goalsConceded 
+                                : (match.goalsScored ?? 0) < (match.goalsConceded ?? 0)
                                   ? "loss" 
                                   : "draw"
                               : null;
@@ -812,7 +812,7 @@ export default function MatchesPage() {
                                         {result === "draw" && "Draw"}
                                       </Badge>
                                       <span className="font-semibold">
-                                        {match.goalsScored}-{match.goalsConceded}
+                                        {match.goalsScored ?? 0}-{match.goalsConceded ?? 0}
                                       </span>
                                     </div>
                                   ) : (

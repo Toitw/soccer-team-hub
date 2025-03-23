@@ -816,11 +816,25 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                   )}
                                                 </div>
                                                 
-                                                {/* Player tooltip */}
+                                                {/* Player tooltip with remove option */}
                                                 {player && (
-                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
-                                                    {player.user.fullName}
-                                                    {player.user.position && ` (${player.user.position})`}
+                                                  <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap flex flex-col items-center">
+                                                    <div className="bg-black text-white text-xs rounded p-1 pointer-events-none mb-1">
+                                                      {player.user.fullName}
+                                                      {player.user.position && ` (${player.user.position})`}
+                                                    </div>
+                                                    <button 
+                                                      className="bg-red-600 hover:bg-red-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Remove this player from position
+                                                        const newPositions = {...lineupPositions};
+                                                        delete newPositions[position.id];
+                                                        setLineupPositions(newPositions);
+                                                      }}
+                                                    >
+                                                      ✕
+                                                    </button>
                                                   </div>
                                                 )}
                                               </div>
