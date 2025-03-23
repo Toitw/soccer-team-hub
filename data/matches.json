@@ -50,5 +50,18 @@
     "teamId": 1,
     "id": 4,
     "opponentLogo": null
+  },
+  {
+    "opponentName": "Candas",
+    "matchDate": "2025-03-28T16:39:00.000Z",
+    "location": "Cnadas",
+    "isHome": true,
+    "notes": null,
+    "status": "scheduled",
+    "goalsScored": null,
+    "goalsConceded": null,
+    "teamId": 1,
+    "id": 5,
+    "opponentLogo": null
   }
 ]

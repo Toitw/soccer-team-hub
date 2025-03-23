@@ -6,35 +6,50 @@ import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
 import MatchDetails from "@/components/match-details";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
   CardTitle,
-  CardFooter
+  CardFooter,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { 
-  Loader2, 
-  PlusCircle, 
-  Calendar, 
-  Trophy, 
-  ClipboardEdit, 
-  MapPin, 
-  Clock, 
-  Home, 
+import {
+  Loader2,
+  PlusCircle,
+  Calendar,
+  Trophy,
+  ClipboardEdit,
+  MapPin,
+  Clock,
+  Home,
   ChevronRight,
   Check,
   X,
   Share2,
   Trash,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +57,14 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isPast, isFuture } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
 // Define form schema for creating a match
@@ -80,10 +102,10 @@ export default function MatchesPage() {
   // Use React Query client for manual invalidation
   const queryClient = useQueryClient();
 
-  const { 
-    data: matches, 
+  const {
+    data: matches,
     isLoading: matchesLoading,
-    refetch: refetchMatches 
+    refetch: refetchMatches,
   } = useQuery<Match[]>({
     queryKey: ["matches", selectedTeam?.id],
     enabled: !!selectedTeam,
@@ -91,20 +113,22 @@ export default function MatchesPage() {
       if (!selectedTeam) return [];
       console.log(`Fetching matches for team ${selectedTeam.id}`);
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
-      if (!response.ok) throw new Error('Failed to fetch matches');
+      if (!response.ok) throw new Error("Failed to fetch matches");
       const matchesData = await response.json();
       console.log("Fetched matches:", matchesData);
       return matchesData;
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 0 // Consider data stale immediately
+    staleTime: 0, // Consider data stale immediately
   });
 
   // We need to make sure refetchMatches properly invalidates the cache
   const refetchMatchesData = async () => {
     console.log("Manually invalidating matches cache");
-    await queryClient.invalidateQueries({ queryKey: ["matches", selectedTeam?.id] });
+    await queryClient.invalidateQueries({
+      queryKey: ["matches", selectedTeam?.id],
+    });
     return refetchMatches();
   };
 
@@ -139,9 +163,12 @@ export default function MatchesPage() {
     if (!matchToDelete || !selectedTeam) return;
 
     try {
-      const response = await fetch(`/api/teams/${selectedTeam.id}/matches/${matchToDelete.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/teams/${selectedTeam.id}/matches/${matchToDelete.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete match");
@@ -227,13 +254,16 @@ export default function MatchesPage() {
 
       // If editing an existing match
       if (isEditing && editingMatch) {
-        response = await fetch(`/api/teams/${selectedTeam.id}/matches/${editingMatch.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
+        response = await fetch(
+          `/api/teams/${selectedTeam.id}/matches/${editingMatch.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formattedData),
           },
-          body: JSON.stringify(formattedData),
-        });
+        );
         successMessage = "Match updated successfully";
       } else {
         // Creating a new match
@@ -248,7 +278,9 @@ export default function MatchesPage() {
       }
 
       if (!response.ok) {
-        throw new Error(isEditing ? "Failed to update match" : "Failed to create match");
+        throw new Error(
+          isEditing ? "Failed to update match" : "Failed to create match",
+        );
       }
 
       // Get the result
@@ -270,10 +302,15 @@ export default function MatchesPage() {
         description: successMessage,
       });
     } catch (error) {
-      console.error(isEditing ? "Error updating match:" : "Error creating match:", error);
+      console.error(
+        isEditing ? "Error updating match:" : "Error creating match:",
+        error,
+      );
       toast({
         title: "Error",
-        description: isEditing ? "Failed to update match" : "Failed to create match",
+        description: isEditing
+          ? "Failed to update match"
+          : "Failed to create match",
         variant: "destructive",
       });
     }
@@ -292,24 +329,26 @@ export default function MatchesPage() {
   // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
 
-  const upcomingMatches = Array.isArray(matches) ? 
-    matches.filter(match => {
-      // Consider a match as upcoming if:
-      // 1. It's scheduled (regardless of date)
-      // 2. OR it's not completed/cancelled and the date is in the future
-      if (match.status === "completed" || match.status === "cancelled") {
-        return false; // Completed or cancelled matches always go to past tab
-      }
-      return true; // All scheduled matches go to upcoming tab
-    }) : [];
+  const upcomingMatches = Array.isArray(matches)
+    ? matches.filter((match) => {
+        // Consider a match as upcoming if:
+        // 1. It's scheduled (regardless of date)
+        // 2. OR it's not completed/cancelled and the date is in the future
+        if (match.status === "completed" || match.status === "cancelled") {
+          return false; // Completed or cancelled matches always go to past tab
+        }
+        return true; // All scheduled matches go to upcoming tab
+      })
+    : [];
 
-  const pastMatches = Array.isArray(matches) ?
-    matches.filter(match => {
-      // Consider a match as past if:
-      // 1. It's completed (regardless of date)
-      // 2. OR it's cancelled (regardless of date)
-      return match.status === "completed" || match.status === "cancelled";
-    }) : [];
+  const pastMatches = Array.isArray(matches)
+    ? matches.filter((match) => {
+        // Consider a match as past if:
+        // 1. It's completed (regardless of date)
+        // 2. OR it's cancelled (regardless of date)
+        return match.status === "completed" || match.status === "cancelled";
+      })
+    : [];
 
   console.log("Upcoming matches:", upcomingMatches);
   console.log("Past matches:", pastMatches);
@@ -324,13 +363,17 @@ export default function MatchesPage() {
         <div className="px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-primary">Match Management</h1>
-              <p className="text-gray-500">Track fixtures, results, and match statistics</p>
+              <h1 className="text-2xl font-bold text-primary">
+                Match Management
+              </h1>
+              <p className="text-gray-500">
+                Track fixtures, results, and match statistics
+              </p>
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
               <DialogTrigger asChild>
-                <Button 
+                <Button
                   onClick={() => {
                     // Reset form to default values before opening dialog for new match
                     if (isEditing) {
@@ -356,10 +399,15 @@ export default function MatchesPage() {
               </DialogTrigger>
               <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>{isEditing ? "Edit Match" : "Create New Match"}</DialogTitle>
+                  <DialogTitle>
+                    {isEditing ? "Edit Match" : "Create New Match"}
+                  </DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-3"
+                  >
                     <FormField
                       control={form.control}
                       name="opponentName"
@@ -367,7 +415,10 @@ export default function MatchesPage() {
                         <FormItem>
                           <FormLabel>Opponent Team</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter opponent team name" {...field} />
+                            <Input
+                              placeholder="Enter opponent team name"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -393,7 +444,10 @@ export default function MatchesPage() {
                         <FormItem>
                           <FormLabel>Location</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter match location" {...field} />
+                            <Input
+                              placeholder="Enter match location"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -406,9 +460,11 @@ export default function MatchesPage() {
                         <FormItem>
                           <FormLabel>Match Type</FormLabel>
                           <FormControl>
-                            <select 
+                            <select
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              onChange={(e) => field.onChange(e.target.value === "home")}
+                              onChange={(e) =>
+                                field.onChange(e.target.value === "home")
+                              }
                               value={field.value ? "home" : "away"}
                             >
                               <option value="home">Home Match</option>
@@ -426,7 +482,7 @@ export default function MatchesPage() {
                         <FormItem>
                           <FormLabel>Match Status</FormLabel>
                           <FormControl>
-                            <select 
+                            <select
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                               onChange={(e) => field.onChange(e.target.value)}
                               value={field.value}
@@ -450,13 +506,22 @@ export default function MatchesPage() {
                             <FormItem>
                               <FormLabel>Goals Scored</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
+                                <Input
+                                  type="number"
                                   min="0"
-                                  placeholder="0" 
-                                  {...field} 
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                  value={field.value === null || field.value === undefined ? "" : field.value}
+                                  placeholder="0"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseInt(e.target.value) || 0,
+                                    )
+                                  }
+                                  value={
+                                    field.value === null ||
+                                    field.value === undefined
+                                      ? ""
+                                      : field.value
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -471,13 +536,22 @@ export default function MatchesPage() {
                             <FormItem>
                               <FormLabel>Goals Conceded</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
+                                <Input
+                                  type="number"
                                   min="0"
-                                  placeholder="0" 
-                                  {...field} 
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                  value={field.value === null || field.value === undefined ? "" : field.value}
+                                  placeholder="0"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(
+                                      parseInt(e.target.value) || 0,
+                                    )
+                                  }
+                                  value={
+                                    field.value === null ||
+                                    field.value === undefined
+                                      ? ""
+                                      : field.value
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -494,9 +568,9 @@ export default function MatchesPage() {
                         <FormItem>
                           <FormLabel>Notes (Optional)</FormLabel>
                           <FormControl>
-                            <textarea 
-                              placeholder="Add any notes about this match" 
-                              {...field} 
+                            <textarea
+                              placeholder="Add any notes about this match"
+                              {...field}
                               className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             />
                           </FormControl>
@@ -506,7 +580,10 @@ export default function MatchesPage() {
                     />
 
                     <div className="flex justify-end gap-2 pt-3">
-                      <Button type="submit" className="bg-primary hover:bg-primary/90">
+                      <Button
+                        type="submit"
+                        className="bg-primary hover:bg-primary/90"
+                      >
                         {isEditing ? "Update Match" : "Create Match"}
                       </Button>
                     </div>
@@ -518,15 +595,15 @@ export default function MatchesPage() {
 
           {selectedMatch ? (
             <div className="mb-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => setSelectedMatch(null)} 
+              <Button
+                variant="ghost"
+                onClick={() => setSelectedMatch(null)}
                 className="mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Match List
               </Button>
-              
+
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -534,38 +611,48 @@ export default function MatchesPage() {
                       <CardTitle className="text-xl">
                         {selectedMatch.isHome ? (
                           <>
-                            <span className="text-primary">Our Team</span> vs {selectedMatch.opponentName}
+                            <span className="text-primary">Our Team</span> vs{" "}
+                            {selectedMatch.opponentName}
                           </>
                         ) : (
                           <>
-                            {selectedMatch.opponentName} vs <span className="text-primary">Our Team</span>
+                            {selectedMatch.opponentName} vs{" "}
+                            <span className="text-primary">Our Team</span>
                           </>
                         )}
                       </CardTitle>
                       <CardDescription>
                         <div className="mt-1 mb-2">
-                          {format(new Date(selectedMatch.matchDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+                          {format(
+                            new Date(selectedMatch.matchDate),
+                            "EEEE, MMMM d, yyyy 'at' h:mm a",
+                          )}
                         </div>
                         <Badge>
-                          {selectedMatch.status.charAt(0).toUpperCase() + selectedMatch.status.slice(1)}
+                          {selectedMatch.status.charAt(0).toUpperCase() +
+                            selectedMatch.status.slice(1)}
                         </Badge>
                         <Badge variant="outline" className="ml-2">
                           {selectedMatch.isHome ? "Home" : "Away"}
                         </Badge>
                         <div className="mt-2">
-                          <span className="text-muted-foreground">Location:</span> {selectedMatch.location}
+                          <span className="text-muted-foreground">
+                            Location:
+                          </span>{" "}
+                          {selectedMatch.location}
                         </div>
                       </CardDescription>
                     </div>
-                    
-                    {selectedMatch.status === 'completed' && (
+
+                    {selectedMatch.status === "completed" && (
                       <div className="text-3xl font-bold">
-                        {selectedMatch.goalsScored}-{selectedMatch.goalsConceded}
+                        {selectedMatch.goalsScored}-
+                        {selectedMatch.goalsConceded}
                       </div>
                     )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   {/* Notes */}
                   {selectedMatch.notes && (
@@ -576,28 +663,28 @@ export default function MatchesPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Match Details Component */}
-                  {selectedTeam && selectedMatch.status === 'completed' && (
-                    <MatchDetails 
-                      match={selectedMatch} 
-                      teamId={selectedTeam.id} 
+                  {selectedTeam && selectedMatch.status === "completed" && (
+                    <MatchDetails
+                      match={selectedMatch}
+                      teamId={selectedTeam.id}
                       onUpdate={() => refetchMatchesData()}
                     />
                   )}
                 </CardContent>
-                
+
                 <CardFooter className="flex justify-end gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleEditMatch(selectedMatch)}
                   >
                     <ClipboardEdit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => confirmDelete(selectedMatch)}
                     className="text-red-500 hover:text-red-700"
@@ -609,9 +696,16 @@ export default function MatchesPage() {
               </Card>
             </div>
           ) : (
-            <Tabs defaultValue="upcoming" value={activeTab} onValueChange={setActiveTab}>
+            <Tabs
+              defaultValue="upcoming"
+              value={activeTab}
+              onValueChange={setActiveTab}
+            >
               <TabsList className="mb-6">
-                <TabsTrigger value="upcoming" className="flex items-center gap-1">
+                <TabsTrigger
+                  value="upcoming"
+                  className="flex items-center gap-1"
+                >
                   <Calendar className="h-4 w-4" />
                   Upcoming Matches
                 </TabsTrigger>
@@ -626,9 +720,11 @@ export default function MatchesPage() {
                   <Card>
                     <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
                       <Calendar className="h-12 w-12 text-gray-300 mb-2" />
-                      <p className="text-lg text-gray-500">No upcoming matches scheduled</p>
-                      <Button 
-                        variant="link" 
+                      <p className="text-lg text-gray-500">
+                        No upcoming matches scheduled
+                      </p>
+                      <Button
+                        variant="link"
                         onClick={() => setDialogOpen(true)}
                         className="text-primary mt-2"
                       >
@@ -640,7 +736,9 @@ export default function MatchesPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Upcoming Matches</CardTitle>
-                      <CardDescription>Scheduled matches for your team</CardDescription>
+                      <CardDescription>
+                        Scheduled matches for your team
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Table>
@@ -650,17 +748,21 @@ export default function MatchesPage() {
                             <TableHead>Date</TableHead>
                             <TableHead>Location</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {upcomingMatches.map(match => {
+                          {upcomingMatches.map((match) => {
                             const matchDate = new Date(match.matchDate);
-                            const isToday = new Date().toDateString() === matchDate.toDateString();
-                            const daysDifference = Math.ceil((matchDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                            const isToday =
+                              new Date().toDateString() ===
+                              matchDate.toDateString();
+                            const daysDifference = Math.ceil(
+                              (matchDate.getTime() - new Date().getTime()) /
+                                (1000 * 3600 * 24),
+                            );
 
                             return (
-                              <TableRow 
+                              <TableRow
                                 key={match.id}
                                 className="cursor-pointer hover:bg-muted/50"
                                 onClick={() => setSelectedMatch(match)}
@@ -668,63 +770,56 @@ export default function MatchesPage() {
                                 <TableCell className="font-medium">
                                   {match.isHome ? (
                                     <>
-                                      vs <span className="font-semibold">{match.opponentName}</span>
-                                      <Badge variant="outline" className="ml-2">Home</Badge>
+                                      vs{" "}
+                                      <span className="font-semibold">
+                                        {match.opponentName}
+                                      </span>
+                                      <Badge variant="outline" className="ml-2">
+                                        Home
+                                      </Badge>
                                     </>
                                   ) : (
                                     <>
-                                      @ <span className="font-semibold">{match.opponentName}</span>
-                                      <Badge variant="outline" className="ml-2">Away</Badge>
+                                      @{" "}
+                                      <span className="font-semibold">
+                                        {match.opponentName}
+                                      </span>
+                                      <Badge variant="outline" className="ml-2">
+                                        Away
+                                      </Badge>
                                     </>
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  {format(new Date(match.matchDate), "EEE, MMM d, yyyy")}
+                                  {format(
+                                    new Date(match.matchDate),
+                                    "EEE, MMM d, yyyy",
+                                  )}
                                   <div className="text-xs text-muted-foreground">
-                                    {format(new Date(match.matchDate), "h:mm a")}
+                                    {format(
+                                      new Date(match.matchDate),
+                                      "h:mm a",
+                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell>{match.location}</TableCell>
                                 <TableCell>
-                                  <Badge 
+                                  <Badge
                                     variant={
-                                      match.status === "cancelled" 
-                                        ? "outline" 
-                                        : match.status === "scheduled" 
-                                          ? "default" 
+                                      match.status === "cancelled"
+                                        ? "outline"
+                                        : match.status === "scheduled"
+                                          ? "default"
                                           : "secondary"
                                     }
                                   >
-                                    {match.status === "cancelled" && "Cancelled"}
-                                    {match.status === "scheduled" && (
-                                      isToday ? "Today" : `In ${daysDifference} days`
-                                    )}
+                                    {match.status === "cancelled" &&
+                                      "Cancelled"}
+                                    {match.status === "scheduled" &&
+                                      (isToday
+                                        ? "Today"
+                                        : `In ${daysDifference} days`)}
                                   </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditMatch(match);
-                                    }}
-                                  >
-                                    <ClipboardEdit className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      confirmDelete(match);
-                                    }}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                  </Button>
                                 </TableCell>
                               </TableRow>
                             );
@@ -741,14 +836,18 @@ export default function MatchesPage() {
                   <Card>
                     <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
                       <Trophy className="h-12 w-12 text-gray-300 mb-2" />
-                      <p className="text-lg text-gray-500">No past matches available</p>
+                      <p className="text-lg text-gray-500">
+                        No past matches available
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (
                   <Card>
                     <CardHeader>
                       <CardTitle>Past Matches</CardTitle>
-                      <CardDescription>Completed and cancelled matches</CardDescription>
+                      <CardDescription>
+                        Completed and cancelled matches
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Table>
@@ -758,50 +857,63 @@ export default function MatchesPage() {
                             <TableHead>Date</TableHead>
                             <TableHead>Result</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {pastMatches.map(match => {
-                            const result = match.status === "completed" 
-                              ? match.goalsScored > match.goalsConceded 
-                                ? "win" 
-                                : match.goalsScored < match.goalsConceded 
-                                  ? "loss" 
-                                  : "draw"
-                              : null;
-                            
+                          {pastMatches.map((match) => {
+                            const result =
+                              match.status === "completed"
+                                ? match.goalsScored > match.goalsConceded
+                                  ? "win"
+                                  : match.goalsScored < match.goalsConceded
+                                    ? "loss"
+                                    : "draw"
+                                : null;
+
                             return (
-                              <TableRow 
-                                key={match.id} 
+                              <TableRow
+                                key={match.id}
                                 className="cursor-pointer hover:bg-muted/50"
                                 onClick={() => setSelectedMatch(match)}
                               >
                                 <TableCell className="font-medium">
                                   {match.isHome ? (
                                     <>
-                                      vs <span className="font-semibold">{match.opponentName}</span>
-                                      <Badge variant="outline" className="ml-2">Home</Badge>
+                                      vs{" "}
+                                      <span className="font-semibold">
+                                        {match.opponentName}
+                                      </span>
+                                      <Badge variant="outline" className="ml-2">
+                                        Home
+                                      </Badge>
                                     </>
                                   ) : (
                                     <>
-                                      @ <span className="font-semibold">{match.opponentName}</span>
-                                      <Badge variant="outline" className="ml-2">Away</Badge>
+                                      @{" "}
+                                      <span className="font-semibold">
+                                        {match.opponentName}
+                                      </span>
+                                      <Badge variant="outline" className="ml-2">
+                                        Away
+                                      </Badge>
                                     </>
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  {format(new Date(match.matchDate), "EEE, MMM d, yyyy")}
+                                  {format(
+                                    new Date(match.matchDate),
+                                    "EEE, MMM d, yyyy",
+                                  )}
                                 </TableCell>
                                 <TableCell>
                                   {match.status === "completed" ? (
                                     <div className="flex items-center">
-                                      <Badge 
+                                      <Badge
                                         variant={
-                                          result === "win" 
-                                            ? "default" 
-                                            : result === "loss" 
-                                              ? "destructive" 
+                                          result === "win"
+                                            ? "default"
+                                            : result === "loss"
+                                              ? "destructive"
                                               : "outline"
                                         }
                                         className="mr-2"
@@ -811,7 +923,9 @@ export default function MatchesPage() {
                                         {result === "draw" && "Draw"}
                                       </Badge>
                                       <span className="font-semibold">
-                                        {match.goalsScored}-{match.goalsConceded}
+                                        {match.isHome
+                                          ? `${match.goalsScored}-${match.goalsConceded}`
+                                          : `${match.goalsConceded}-${match.goalsScored}`}
                                       </span>
                                     </div>
                                   ) : (
@@ -819,48 +933,16 @@ export default function MatchesPage() {
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  <Badge 
-                                    variant={match.status === "cancelled" ? "outline" : "secondary"}
+                                  <Badge
+                                    variant={
+                                      match.status === "cancelled"
+                                        ? "outline"
+                                        : "secondary"
+                                    }
                                   >
-                                    {match.status.charAt(0).toUpperCase() + match.status.slice(1)}
+                                    {match.status.charAt(0).toUpperCase() +
+                                      match.status.slice(1)}
                                   </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleEditMatch(match);
-                                    }}
-                                  >
-                                    <ClipboardEdit className="h-4 w-4" />
-                                    <span className="sr-only">Edit</span>
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      confirmDelete(match);
-                                    }}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                    <span className="sr-only">Delete</span>
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="ml-2 text-primary hover:text-primary/80"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedMatch(match);
-                                    }}
-                                  >
-                                    <ArrowRight className="h-4 w-4" />
-                                    <span className="sr-only">View</span>
-                                  </Button>
                                 </TableCell>
                               </TableRow>
                             );
@@ -881,10 +963,14 @@ export default function MatchesPage() {
                 <DialogTitle>Delete Match</DialogTitle>
               </DialogHeader>
               <DialogDescription>
-                Are you sure you want to delete this match? This action cannot be undone.
+                Are you sure you want to delete this match? This action cannot
+                be undone.
               </DialogDescription>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDeleteMatch}>
@@ -894,6 +980,9 @@ export default function MatchesPage() {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
+      <div className="pb-16">
+        <MobileNavigation />
       </div>
     </div>
   );
