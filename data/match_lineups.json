@@ -6,12 +6,15 @@
       63,
       49
     ],
+    "benchPlayerIds": [
+      50
+    ],
     "formation": "4-4-2",
     "positionMapping": {
       "fwd-2": 63,
       "gk": 49
     },
     "id": 1,
-    "createdAt": "2025-03-23T21:51:27.599Z"
+    "createdAt": "2025-03-23T22:07:58.854Z"
   }
 ]
