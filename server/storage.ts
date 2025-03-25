@@ -409,6 +409,156 @@ export class MemStorage implements IStorage {
         }
       }
       
+      // Load match lineups data if the file exists
+      if (fs.existsSync(MATCH_LINEUPS_FILE)) {
+        const matchLineupsData = JSON.parse(fs.readFileSync(MATCH_LINEUPS_FILE, 'utf8'));
+        
+        if (matchLineupsData && matchLineupsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matchLineups.clear();
+          let maxId = 0;
+          
+          // Process each match lineup
+          for (const lineup of matchLineupsData) {
+            // Handle Date conversion (createdAt is stored as a string in the file)
+            if (lineup.createdAt) {
+              lineup.createdAt = new Date(lineup.createdAt);
+            }
+            
+            // Add to map
+            this.matchLineups.set(lineup.id, lineup as MatchLineup);
+            
+            // Track maximum ID
+            if (lineup.id > maxId) {
+              maxId = lineup.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchLineupCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchLineupsData.length} match lineups from storage`);
+        }
+      }
+      
+      // Load match substitutions data if the file exists
+      if (fs.existsSync(MATCH_SUBSTITUTIONS_FILE)) {
+        const matchSubstitutionsData = JSON.parse(fs.readFileSync(MATCH_SUBSTITUTIONS_FILE, 'utf8'));
+        
+        if (matchSubstitutionsData && matchSubstitutionsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matchSubstitutions.clear();
+          let maxId = 0;
+          
+          // Process each match substitution
+          for (const substitution of matchSubstitutionsData) {
+            // Add to map
+            this.matchSubstitutions.set(substitution.id, substitution as MatchSubstitution);
+            
+            // Track maximum ID
+            if (substitution.id > maxId) {
+              maxId = substitution.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchSubstitutionCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchSubstitutionsData.length} match substitutions from storage`);
+        }
+      }
+      
+      // Load match goals data if the file exists
+      if (fs.existsSync(MATCH_GOALS_FILE)) {
+        const matchGoalsData = JSON.parse(fs.readFileSync(MATCH_GOALS_FILE, 'utf8'));
+        
+        if (matchGoalsData && matchGoalsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matchGoals.clear();
+          let maxId = 0;
+          
+          // Process each match goal
+          for (const goal of matchGoalsData) {
+            // Add to map
+            this.matchGoals.set(goal.id, goal as MatchGoal);
+            
+            // Track maximum ID
+            if (goal.id > maxId) {
+              maxId = goal.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchGoalCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchGoalsData.length} match goals from storage`);
+        }
+      }
+      
+      // Load match cards data if the file exists
+      if (fs.existsSync(MATCH_CARDS_FILE)) {
+        const matchCardsData = JSON.parse(fs.readFileSync(MATCH_CARDS_FILE, 'utf8'));
+        
+        if (matchCardsData && matchCardsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matchCards.clear();
+          let maxId = 0;
+          
+          // Process each match card
+          for (const card of matchCardsData) {
+            // Add to map
+            this.matchCards.set(card.id, card as MatchCard);
+            
+            // Track maximum ID
+            if (card.id > maxId) {
+              maxId = card.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchCardCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchCardsData.length} match cards from storage`);
+        }
+      }
+      
+      // Load match photos data if the file exists
+      if (fs.existsSync(MATCH_PHOTOS_FILE)) {
+        const matchPhotosData = JSON.parse(fs.readFileSync(MATCH_PHOTOS_FILE, 'utf8'));
+        
+        if (matchPhotosData && matchPhotosData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.matchPhotos.clear();
+          let maxId = 0;
+          
+          // Process each match photo
+          for (const photo of matchPhotosData) {
+            // Add to map
+            this.matchPhotos.set(photo.id, photo as MatchPhoto);
+            
+            // Track maximum ID
+            if (photo.id > maxId) {
+              maxId = photo.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.matchPhotoCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${matchPhotosData.length} match photos from storage`);
+        }
+      }
+      
       return hasData;
     } catch (error) {
       console.error("Error loading persisted data:", error);
