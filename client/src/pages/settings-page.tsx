@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Team, TeamMember } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
@@ -31,7 +31,7 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, UserPlus, Mail } from "lucide-react";
+import { Loader2, UserPlus, Mail, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
@@ -39,6 +39,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Define form schema for inviting members
 const inviteSchema = z.object({
@@ -51,11 +52,65 @@ type InviteFormData = z.infer<typeof inviteSchema>;
 export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("members");
+  const [isGeneratingJoinCode, setIsGeneratingJoinCode] = useState(false);
+  const [joinCodeVisible, setJoinCodeVisible] = useState(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
+  
+  // Regenerate join code mutation
+  const regenerateJoinCodeMutation = useMutation({
+    mutationFn: async (teamId: number) => {
+      return apiRequest(`/api/teams/${teamId}/regenerate-join-code`, 'POST');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      toast({
+        title: "Join code regenerated",
+        description: "New join code has been generated successfully",
+      });
+      setIsGeneratingJoinCode(false);
+    },
+    onError: (error) => {
+      console.error("Failed to regenerate join code:", error);
+      toast({
+        title: "Error",
+        description: "Failed to regenerate join code. Please try again.",
+        variant: "destructive",
+      });
+      setIsGeneratingJoinCode(false);
+    }
+  });
+  
+  const handleRegenerateJoinCode = () => {
+    if (!selectedTeam) return;
+    
+    setIsGeneratingJoinCode(true);
+    regenerateJoinCodeMutation.mutate(selectedTeam.id);
+  };
+  
+  const copyJoinCodeToClipboard = () => {
+    if (!selectedTeam?.joinCode) return;
+    
+    navigator.clipboard.writeText(selectedTeam.joinCode)
+      .then(() => {
+        toast({
+          title: "Copied to clipboard",
+          description: "Team join code has been copied to clipboard",
+        });
+      })
+      .catch(err => {
+        console.error("Failed to copy join code:", err);
+        toast({
+          title: "Error",
+          description: "Failed to copy join code to clipboard",
+          variant: "destructive",
+        });
+      });
+  };
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
@@ -326,6 +381,62 @@ export default function SettingsPage() {
                           className="w-16 h-16 rounded-full object-cover border-2 border-primary"
                         />
                         <Button variant="outline">Change Logo</Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 pt-4 border-t">
+                      <label className="text-sm font-medium flex items-center justify-between">
+                        <span>Team Join Code</span>
+                        <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">Admin Only</Badge>
+                      </label>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              type={joinCodeVisible ? "text" : "password"} 
+                              value={selectedTeam?.joinCode || ''} 
+                              disabled={true}
+                              className="pr-10"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full aspect-square"
+                              onClick={() => setJoinCodeVisible(!joinCodeVisible)}
+                            >
+                              {joinCodeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={copyJoinCodeToClipboard} 
+                            title="Copy join code"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={handleRegenerateJoinCode} 
+                            disabled={isGeneratingJoinCode}
+                          >
+                            {isGeneratingJoinCode ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Generate New
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Share this code with people who want to join your team. They can enter it during registration.
+                        </p>
                       </div>
                     </div>
 
