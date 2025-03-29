@@ -222,6 +222,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch team" });
     }
   });
+  
+  // Regenerate team join code
+  app.post("/api/teams/:id/regenerate-join-code", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Get the team
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Check if user is admin of this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      if (teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can regenerate join codes" });
+      }
+      
+      // Generate new join code
+      const newJoinCode = generateJoinCode();
+      
+      // Update the team with new join code
+      const updatedTeam = await storage.updateTeam(teamId, {
+        joinCode: newJoinCode
+      });
+      
+      res.json({ joinCode: newJoinCode });
+    } catch (error) {
+      console.error("Error regenerating join code:", error);
+      res.status(500).json({ error: "Failed to regenerate join code" });
+    }
+  });
 
   // Team Members routes
   // Get specific team member by userId

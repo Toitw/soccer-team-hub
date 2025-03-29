@@ -64,7 +64,7 @@ export default function SettingsPage() {
   // Regenerate join code mutation
   const regenerateJoinCodeMutation = useMutation({
     mutationFn: async (teamId: number) => {
-      return apiRequest(`/api/teams/${teamId}/regenerate-join-code`, 'POST');
+      return apiRequest('POST', `/api/teams/${teamId}/regenerate-join-code`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
