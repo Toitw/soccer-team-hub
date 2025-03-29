@@ -469,6 +469,7 @@
   },
   {
     "username": "coach1",
+    "password": "8ac51a581e7c73abe213c6bf5c8f68a514a95ed2ff1c4dd563611cca4aaac99747146d8b6710b67a032fad160634ecbfcd23847e2c3bbe5479d27598c4763e8c.80bd1cb6f4701ca288a1639cb9d76d97",
     "fullName": "Team Coach",
     "role": "coach",
     "email": "coach@teamkick.com",
@@ -480,6 +481,7 @@
   },
   {
     "username": "player1",
+    "password": "264907ce18112a4884bb93065e1bc10a6f8f7ac8983adb8e34ea166d21abad86024dafaf41842c7adea3b620af8c309a2b2e8a599fd6f56e214e28758d86347f.0f680188740f11babc6ada5857242c2b",
     "fullName": "Team Player",
     "role": "player",
     "email": "player@teamkick.com",
