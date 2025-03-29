@@ -92,10 +92,28 @@ export function setupAuth(app: Express) {
         return res.status(400).send("Username already exists");
       }
 
+      // Create the user
       const user = await storage.createUser({
         ...req.body,
         password: await hashPassword(req.body.password),
       });
+
+      // Check if a team join code was provided
+      const joinCode = req.body.joinCode;
+      if (joinCode) {
+        // Look up the team by join code
+        const team = await storage.getTeamByJoinCode(joinCode);
+        if (team) {
+          // Add the user as a member of the team
+          await storage.createTeamMember({
+            teamId: team.id,
+            userId: user.id,
+            role: "player"  // New users join as regular players
+          });
+          
+          console.log(`User ${user.username} joined team ${team.name} using join code`);
+        }
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);
@@ -105,6 +123,7 @@ export function setupAuth(app: Express) {
         res.status(201).json(userWithoutPassword);
       });
     } catch (error) {
+      console.error("Error during registration:", error);
       next(error);
     }
   });
@@ -173,6 +192,44 @@ export function setupAuth(app: Express) {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user data" });
+    }
+  });
+  
+  // Endpoint to validate a team join code without requiring authentication
+  app.get("/api/validate-join-code/:code", async (req, res) => {
+    try {
+      const joinCode = req.params.code;
+      
+      // If no join code provided
+      if (!joinCode) {
+        return res.status(400).json({ valid: false, message: "No join code provided" });
+      }
+      
+      // Look up the team by join code
+      const team = await storage.getTeamByJoinCode(joinCode);
+      
+      if (team) {
+        // Return basic team info without sensitive details
+        return res.json({ 
+          valid: true, 
+          team: {
+            id: team.id,
+            name: team.name,
+            logo: team.logo
+          }
+        });
+      } else {
+        return res.json({ 
+          valid: false, 
+          message: "Invalid join code"
+        });
+      }
+    } catch (error) {
+      console.error("Error validating join code:", error);
+      res.status(500).json({ 
+        valid: false, 
+        message: "Error validating join code"
+      });
     }
   });
 }
