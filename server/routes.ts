@@ -223,6 +223,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update team settings
+  app.patch("/api/teams/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Get the team
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Check if user is admin of this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      if (teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can update team settings" });
+      }
+      
+      // Get update data from request body
+      const { name, division, seasonYear, logo } = req.body;
+      
+      // Update the team
+      const updatedTeam = await storage.updateTeam(teamId, {
+        name,
+        division,
+        seasonYear,
+        logo
+      });
+      
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error("Error updating team:", error);
+      res.status(500).json({ error: "Failed to update team" });
+    }
+  });
+
   // Regenerate team join code
   app.post("/api/teams/:id/regenerate-join-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

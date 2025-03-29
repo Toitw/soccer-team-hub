@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Team, TeamMember } from "@shared/schema";
 import Header from "@/components/header";
@@ -28,10 +28,11 @@ import {
   DialogFooter, 
   DialogHeader, 
   DialogTitle,
-  DialogTrigger 
+  DialogTrigger,
+  DialogClose
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, UserPlus, Mail, Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Loader2, UserPlus, Mail, Copy, Eye, EyeOff, RefreshCw, X, AlertTriangle, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
@@ -47,7 +48,16 @@ const inviteSchema = z.object({
   role: z.enum(["admin", "coach", "player"]),
 });
 
+// Define form schema for team settings
+const teamSettingsSchema = z.object({
+  name: z.string().min(1, "Team name is required"),
+  division: z.string().optional(),
+  seasonYear: z.string().optional(),
+  logo: z.string().optional(),
+});
+
 type InviteFormData = z.infer<typeof inviteSchema>;
+type TeamSettingsFormData = z.infer<typeof teamSettingsSchema>;
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -56,6 +66,9 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("members");
   const [isGeneratingJoinCode, setIsGeneratingJoinCode] = useState(false);
   const [joinCodeVisible, setJoinCodeVisible] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<(TeamMember & { user: any }) | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [teamSettingsChanged, setTeamSettingsChanged] = useState(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -122,6 +135,91 @@ export default function SettingsPage() {
 
   const isLoading = teamsLoading || membersLoading;
 
+  // Team settings form
+  const teamSettingsForm = useForm<TeamSettingsFormData>({
+    resolver: zodResolver(teamSettingsSchema),
+    defaultValues: {
+      name: selectedTeam?.name || "",
+      division: selectedTeam?.division || "",
+      seasonYear: selectedTeam?.seasonYear || "",
+      logo: selectedTeam?.logo || "",
+    }
+  });
+  
+  // Update teamSettingsForm values when selectedTeam changes
+  useEffect(() => {
+    if (selectedTeam) {
+      teamSettingsForm.reset({
+        name: selectedTeam.name,
+        division: selectedTeam.division || "",
+        seasonYear: selectedTeam.seasonYear || "",
+        logo: selectedTeam.logo || "",
+      });
+    }
+  }, [selectedTeam, teamSettingsForm]);
+  
+  // Mutation for updating team settings
+  const updateTeamMutation = useMutation({
+    mutationFn: async (data: TeamSettingsFormData) => {
+      if (!selectedTeam) throw new Error("No team selected");
+      return apiRequest("PATCH", `/api/teams/${selectedTeam.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      toast({
+        title: "Team updated",
+        description: "Team settings have been updated successfully.",
+      });
+      setTeamSettingsChanged(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating team",
+        description: error.message || "There was an error updating the team settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for deleting team members
+  const deleteTeamMemberMutation = useMutation({
+    mutationFn: async (memberId: number) => {
+      if (!selectedTeam) throw new Error("No team selected");
+      return apiRequest("DELETE", `/api/teams/${selectedTeam.id}/members/${memberId}`, {});
+    },
+    onSuccess: () => {
+      setIsDeleteDialogOpen(false);
+      setMemberToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      toast({
+        title: "Member removed",
+        description: "Team member has been removed successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error removing member",
+        description: error.message || "There was an error removing the team member.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleDeleteMember = (member: TeamMember & { user: any }) => {
+    setMemberToDelete(member);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const confirmDeleteMember = () => {
+    if (memberToDelete) {
+      deleteTeamMemberMutation.mutate(memberToDelete.id);
+    }
+  };
+  
+  const handleTeamSettingsSubmit = (data: TeamSettingsFormData) => {
+    updateTeamMutation.mutate(data);
+  };
+  
   const form = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
@@ -249,6 +347,7 @@ export default function SettingsPage() {
                           <TableHead>Name</TableHead>
                           <TableHead>Position</TableHead>
                           <TableHead>Contact</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -266,6 +365,19 @@ export default function SettingsPage() {
                               <Badge variant="outline">Administrator</Badge>
                             </TableCell>
                             <TableCell>{member.user.email}</TableCell>
+                            <TableCell className="text-right">
+                              {/* Don't show delete button for current user */}
+                              {member.user.id !== user?.id && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleDeleteMember(member)}
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -286,6 +398,7 @@ export default function SettingsPage() {
                           <TableHead>Name</TableHead>
                           <TableHead>Position</TableHead>
                           <TableHead>Contact</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -303,6 +416,16 @@ export default function SettingsPage() {
                               <Badge variant="outline" className="bg-[#4CAF50]/10 text-[#4CAF50] hover:bg-[#4CAF50]/20">Coach</Badge>
                             </TableCell>
                             <TableCell>{member.user.email}</TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteMember(member)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -324,6 +447,7 @@ export default function SettingsPage() {
                           <TableHead>Position</TableHead>
                           <TableHead>Jersey #</TableHead>
                           <TableHead>Contact</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -340,6 +464,16 @@ export default function SettingsPage() {
                             <TableCell>{member.user.position || "Not set"}</TableCell>
                             <TableCell>{member.user.jerseyNumber || "-"}</TableCell>
                             <TableCell>{member.user.email}</TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteMember(member)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -356,92 +490,154 @@ export default function SettingsPage() {
                   <CardDescription>Manage your team's information and preferences</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Team Name</label>
-                      <Input defaultValue={selectedTeam?.name || ''} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Division</label>
-                      <Input defaultValue={selectedTeam?.division || ''} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Season Year</label>
-                      <Input defaultValue={selectedTeam?.seasonYear || ''} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Team Logo</label>
-                      <div className="flex items-center gap-4">
-                        <img 
-                          src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                          alt="Team Logo" 
-                          className="w-16 h-16 rounded-full object-cover border-2 border-primary"
-                        />
-                        <Button variant="outline">Change Logo</Button>
-                      </div>
-                    </div>
+                  <Form {...teamSettingsForm}>
+                    <form onSubmit={teamSettingsForm.handleSubmit(handleTeamSettingsSubmit)} className="space-y-4">
+                      <FormField
+                        control={teamSettingsForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Team Name</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setTeamSettingsChanged(true);
+                                }} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={teamSettingsForm.control}
+                        name="division"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Division</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setTeamSettingsChanged(true);
+                                }} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={teamSettingsForm.control}
+                        name="seasonYear"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Season Year</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setTeamSettingsChanged(true);
+                                }} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     
-                    <div className="space-y-2 pt-4 border-t">
-                      <label className="text-sm font-medium flex items-center justify-between">
-                        <span>Team Join Code</span>
-                        <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">Admin Only</Badge>
-                      </label>
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="relative flex-1">
-                            <Input 
-                              type={joinCodeVisible ? "text" : "password"} 
-                              value={selectedTeam?.joinCode || ''} 
-                              disabled={true}
-                              className="pr-10"
-                            />
-                            <Button
+                        <label className="text-sm font-medium">Team Logo</label>
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
+                            alt="Team Logo" 
+                            className="w-16 h-16 rounded-full object-cover border-2 border-primary"
+                          />
+                          <Button variant="outline" type="button">Change Logo</Button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2 pt-4 border-t">
+                        <label className="text-sm font-medium flex items-center justify-between">
+                          <span>Team Join Code</span>
+                          <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">Admin Only</Badge>
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <Input 
+                                type={joinCodeVisible ? "text" : "password"} 
+                                value={selectedTeam?.joinCode || ''} 
+                                disabled={true}
+                                className="pr-10"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0 h-full aspect-square"
+                                onClick={() => setJoinCodeVisible(!joinCodeVisible)}
+                              >
+                                {joinCodeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              onClick={copyJoinCodeToClipboard}
                               type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-0 top-0 h-full aspect-square"
-                              onClick={() => setJoinCodeVisible(!joinCodeVisible)}
+                              title="Copy join code"
                             >
-                              {joinCodeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={handleRegenerateJoinCode} 
+                              disabled={isGeneratingJoinCode}
+                              type="button"
+                            >
+                              {isGeneratingJoinCode ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Generate New
+                                </>
+                              )}
                             </Button>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={copyJoinCodeToClipboard} 
-                            title="Copy join code"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={handleRegenerateJoinCode} 
-                            disabled={isGeneratingJoinCode}
-                          >
-                            {isGeneratingJoinCode ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Generating...
-                              </>
-                            ) : (
-                              <>
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Generate New
-                              </>
-                            )}
-                          </Button>
+                          <p className="text-xs text-gray-500">
+                            Share this code with people who want to join your team. They can enter it during registration.
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          Share this code with people who want to join your team. They can enter it during registration.
-                        </p>
                       </div>
-                    </div>
 
-                    <Button className="mt-6 bg-primary hover:bg-primary/90">Save Changes</Button>
-                  </form>
+                      <Button 
+                        type="submit" 
+                        className="mt-6 bg-primary hover:bg-primary/90"
+                        disabled={!teamSettingsChanged || updateTeamMutation.isPending}
+                      >
+                        {updateTeamMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -452,6 +648,48 @@ export default function SettingsPage() {
           <MobileNavigation />
         </div>
       </div>
+      
+      {/* Delete Member Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-500">
+              <AlertTriangle className="h-5 w-5" />
+              Remove Team Member
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove <strong>{memberToDelete?.user.fullName}</strong> from the team?
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteMember}
+              disabled={deleteTeamMemberMutation.isPending}
+              className="gap-1"
+            >
+              {deleteTeamMemberMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Remove Member
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
