@@ -91,6 +91,9 @@ export default function MatchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  
+  // Check if user can manage matches (admin or coach)
+  const canManage = user?.role === "admin" || user?.role === "coach";
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -331,7 +334,7 @@ export default function MatchesPage() {
 
   // Function to check and update match status based on date
   const checkAndUpdateMatchStatus = async () => {
-    if (!Array.isArray(matches) || !selectedTeam) return;
+    if (!Array.isArray(matches) || !selectedTeam || !canManage) return;
     
     const currentDate = new Date();
     const updatedMatches = [];
@@ -375,8 +378,11 @@ export default function MatchesPage() {
   
   // Run the check on component mount and when matches change
   useEffect(() => {
-    checkAndUpdateMatchStatus();
-  }, [matches, selectedTeam]);
+    // Only run auto-update if user has management permissions
+    if (canManage) {
+      checkAndUpdateMatchStatus();
+    }
+  }, [matches, selectedTeam, canManage]);
 
   const upcomingMatches = Array.isArray(matches)
     ? matches.filter((match) => {
@@ -437,31 +443,33 @@ export default function MatchesPage() {
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() => {
-                    // Reset form to default values before opening dialog for new match
-                    if (isEditing) {
-                      setIsEditing(false);
-                      setEditingMatch(null);
-                      form.reset({
-                        opponentName: "",
-                        matchDate: new Date().toISOString().slice(0, 16),
-                        location: "",
-                        isHome: true,
-                        notes: "",
-                        status: "scheduled",
-                        goalsScored: null,
-                        goalsConceded: null,
-                      });
-                    }
-                  }}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Match
-                </Button>
-              </DialogTrigger>
+              {canManage && (
+                <DialogTrigger asChild>
+                  <Button
+                    onClick={() => {
+                      // Reset form to default values before opening dialog for new match
+                      if (isEditing) {
+                        setIsEditing(false);
+                        setEditingMatch(null);
+                        form.reset({
+                          opponentName: "",
+                          matchDate: new Date().toISOString().slice(0, 16),
+                          location: "",
+                          isHome: true,
+                          notes: "",
+                          status: "scheduled",
+                          goalsScored: null,
+                          goalsConceded: null,
+                        });
+                      }
+                    }}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add Match
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
@@ -742,23 +750,27 @@ export default function MatchesPage() {
                 </CardContent>
 
                 <CardFooter className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditMatch(selectedMatch)}
-                  >
-                    <ClipboardEdit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => confirmDelete(selectedMatch)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
+                  {canManage && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditMatch(selectedMatch)}
+                      >
+                        <ClipboardEdit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => confirmDelete(selectedMatch)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
                 </CardFooter>
               </Card>
             </div>
@@ -790,13 +802,15 @@ export default function MatchesPage() {
                       <p className="text-lg text-gray-500">
                         No upcoming matches scheduled
                       </p>
-                      <Button
-                        variant="link"
-                        onClick={() => setDialogOpen(true)}
-                        className="text-primary mt-2"
-                      >
-                        Schedule your first match
-                      </Button>
+                      {canManage && (
+                        <Button
+                          variant="link"
+                          onClick={() => setDialogOpen(true)}
+                          className="text-primary mt-2"
+                        >
+                          Schedule your first match
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ) : (
