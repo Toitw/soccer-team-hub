@@ -69,6 +69,8 @@ export default function SettingsPage() {
   const [memberToDelete, setMemberToDelete] = useState<(TeamMember & { user: any }) | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [teamSettingsChanged, setTeamSettingsChanged] = useState(false);
+  const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -560,9 +562,87 @@ export default function SettingsPage() {
                             alt="Team Logo" 
                             className="w-16 h-16 rounded-full object-cover border-2 border-primary"
                           />
-                          <Button variant="outline" type="button">Change Logo</Button>
+                          <Button 
+                            variant="outline" 
+                            type="button" 
+                            onClick={() => {
+                              setLogoUrl(selectedTeam?.logo || "");
+                              setIsLogoDialogOpen(true);
+                            }}
+                          >
+                            Change Logo
+                          </Button>
                         </div>
                       </div>
+                      
+                      {/* Logo Dialog */}
+                      <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Change Team Logo</DialogTitle>
+                            <DialogDescription>
+                              Enter the URL of your new team logo image.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-2">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Logo URL</label>
+                              <Input 
+                                placeholder="https://example.com/logo.png" 
+                                value={logoUrl}
+                                onChange={(e) => setLogoUrl(e.target.value)}
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                Use an image URL from a public source. PNG or JPG format works best.
+                              </p>
+                            </div>
+                            
+                            {logoUrl && (
+                              <div className="mt-4 flex justify-center">
+                                <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
+                                  <img 
+                                    src={logoUrl} 
+                                    alt="New Logo Preview" 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Error&background=FF5252&color=fff";
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsLogoDialogOpen(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                if (logoUrl) {
+                                  teamSettingsForm.setValue("logo", logoUrl);
+                                  setTeamSettingsChanged(true);
+                                  setIsLogoDialogOpen(false);
+                                  
+                                  // If this is the only change, you can also submit immediately
+                                  if (!teamSettingsChanged) {
+                                    const formValues = teamSettingsForm.getValues();
+                                    updateTeamMutation.mutate({
+                                      ...formValues,
+                                      logo: logoUrl
+                                    });
+                                  }
+                                }
+                              }}
+                              disabled={!logoUrl}
+                            >
+                              Update Logo
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                       
                       <div className="space-y-2 pt-4 border-t">
                         <label className="text-sm font-medium flex items-center justify-between">
