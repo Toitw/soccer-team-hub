@@ -130,5 +130,11 @@
     "userId": 64,
     "role": "coach",
     "id": 32
+  },
+  {
+    "teamId": 1,
+    "userId": 65,
+    "role": "player",
+    "id": 33
   }
 ]
