@@ -223,6 +223,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Upload team logo (base64)
+  app.post("/api/teams/:id/logo", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Get the team
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      // Check if user is admin of this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      if (teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can update team logo" });
+      }
+      
+      // Get base64 data from request body
+      const { imageData } = req.body;
+      
+      if (!imageData) {
+        return res.status(400).json({ error: "No image data provided" });
+      }
+      
+      // Update the team with the new logo (base64 data)
+      const updatedTeam = await storage.updateTeam(teamId, {
+        logo: imageData
+      });
+      
+      res.json({ success: true, logo: imageData });
+    } catch (error) {
+      console.error("Error uploading team logo:", error);
+      res.status(500).json({ error: "Failed to upload team logo" });
+    }
+  });
+
   // Update team settings
   app.patch("/api/teams/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
