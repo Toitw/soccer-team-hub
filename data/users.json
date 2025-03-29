@@ -490,5 +490,18 @@
     "position": "Forward",
     "jerseyNumber": 9,
     "phoneNumber": null
+  },
+  {
+    "username": "juroga10",
+    "password": "afca5ff7a5e454c6f6b4d31ff5dbfb9fc4bfe4963633a48ae67632787b45bfde49d5dfe45ec63c2a4a9ec968b3e46179edd7101e0b2b698ad603bd8b0cd06870.606f2ab405f58e7a66a5ea8753d87148",
+    "fullName": "Juan Rodríguez",
+    "role": "player",
+    "email": "juanjrgast@gmail.com",
+    "joinCode": "RVLJXE",
+    "id": 66,
+    "profilePicture": null,
+    "position": null,
+    "jerseyNumber": null,
+    "phoneNumber": null
   }
 ]

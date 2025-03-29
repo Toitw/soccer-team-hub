@@ -136,5 +136,12 @@
     "userId": 65,
     "role": "player",
     "id": 37
+  },
+  {
+    "teamId": 1,
+    "userId": 66,
+    "role": "player",
+    "id": 38,
+    "joinedAt": "2025-03-29T13:51:35.743Z"
   }
 ]
