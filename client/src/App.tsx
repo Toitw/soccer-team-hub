@@ -23,7 +23,7 @@ function Router() {
       <ProtectedRoute path="/matches" component={MatchesPage} />
       <ProtectedRoute path="/training" component={TrainingPage} />
       <ProtectedRoute path="/announcements" component={AnnouncementsPage} />
-      <ProtectedRoute path="/settings" component={SettingsPage} />
+      <ProtectedRoute path="/settings" component={SettingsPage} requiredRole="admin" />
       <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
       <Route component={NotFound} />
     </Switch>

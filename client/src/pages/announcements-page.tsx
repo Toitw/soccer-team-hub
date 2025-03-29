@@ -269,6 +269,7 @@ export default function AnnouncementsPage() {
   const isLoading = teamsLoading || announcementsLoading;
 
   // Check if user is admin or coach (allowed to create/delete announcements)
+  // Players are only allowed to view announcements
   const canManageAnnouncements = () => {
     if (!selectedTeam || !user || !teamMember) {
       console.log('Cannot manage announcements - missing data:', { 
@@ -280,9 +281,10 @@ export default function AnnouncementsPage() {
       return false;
     }
 
-    const canManage = teamMember.role === "admin" || teamMember.role === "coach";
+    // Only admin and coach can manage announcements, players cannot
+    const canManage = user.role === "admin" || user.role === "coach";
     console.log('User permission check:', { 
-      teamMemberRole: teamMember.role,
+      userRole: user.role,
       canManage,
       userId: user.id, 
       teamId: selectedTeam.id 
