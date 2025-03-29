@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Team, Match } from "@shared/schema";
 import Header from "@/components/header";
@@ -329,24 +329,89 @@ export default function MatchesPage() {
   // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
 
+  // Function to check and update match status based on date
+  const checkAndUpdateMatchStatus = async () => {
+    if (!Array.isArray(matches) || !selectedTeam) return;
+    
+    const currentDate = new Date();
+    const updatedMatches = [];
+    
+    for (const match of matches) {
+      if (match.status === "scheduled") {
+        const matchDate = new Date(match.matchDate);
+        
+        // If match date has passed, update its status to completed
+        if (matchDate < currentDate) {
+          console.log(`Match ${match.id} date has passed, updating status to completed`);
+          
+          try {
+            const response = await fetch(
+              `/api/teams/${selectedTeam.id}/matches/${match.id}`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ status: "completed" }),
+              }
+            );
+            
+            if (response.ok) {
+              updatedMatches.push(match.id);
+            }
+          } catch (error) {
+            console.error(`Error updating match ${match.id} status:`, error);
+          }
+        }
+      }
+    }
+    
+    // If any matches were updated, refetch the data
+    if (updatedMatches.length > 0) {
+      console.log(`Updated ${updatedMatches.length} matches, refetching data`);
+      await refetchMatchesData();
+    }
+  };
+  
+  // Run the check on component mount and when matches change
+  useEffect(() => {
+    checkAndUpdateMatchStatus();
+  }, [matches, selectedTeam]);
+
   const upcomingMatches = Array.isArray(matches)
     ? matches.filter((match) => {
         // Consider a match as upcoming if:
-        // 1. It's scheduled (regardless of date)
-        // 2. OR it's not completed/cancelled and the date is in the future
+        // 1. It's scheduled AND the date is in the future
         if (match.status === "completed" || match.status === "cancelled") {
           return false; // Completed or cancelled matches always go to past tab
         }
-        return true; // All scheduled matches go to upcoming tab
+        
+        // Check if match date has passed
+        const matchDate = new Date(match.matchDate);
+        const currentDate = new Date();
+        
+        if (match.status === "scheduled" && matchDate < currentDate) {
+          return false; // Don't show scheduled matches with past dates in upcoming tab
+        }
+        
+        return true; // All other scheduled matches go to upcoming tab
       })
     : [];
 
   const pastMatches = Array.isArray(matches)
     ? matches.filter((match) => {
         // Consider a match as past if:
-        // 1. It's completed (regardless of date)
-        // 2. OR it's cancelled (regardless of date)
-        return match.status === "completed" || match.status === "cancelled";
+        // 1. It's completed or cancelled (regardless of date)
+        // 2. OR it's scheduled but the date has passed
+        if (match.status === "completed" || match.status === "cancelled") {
+          return true;
+        }
+        
+        // Check if match date has passed but status is still scheduled
+        const matchDate = new Date(match.matchDate);
+        const currentDate = new Date();
+        
+        return match.status === "scheduled" && matchDate < currentDate;
       })
     : [];
 
@@ -644,7 +709,9 @@ export default function MatchesPage() {
                       </CardDescription>
                     </div>
 
-                    {selectedMatch.status === "completed" && (
+                    {selectedMatch.status === "completed" && 
+                     selectedMatch.goalsScored !== null && 
+                     selectedMatch.goalsConceded !== null && (
                       <div className="text-3xl font-bold">
                         {selectedMatch.goalsScored}-
                         {selectedMatch.goalsConceded}
@@ -862,7 +929,9 @@ export default function MatchesPage() {
                         <TableBody>
                           {pastMatches.map((match) => {
                             const result =
-                              match.status === "completed"
+                              match.status === "completed" && 
+                                match.goalsScored !== null && 
+                                match.goalsConceded !== null
                                 ? match.goalsScored > match.goalsConceded
                                   ? "win"
                                   : match.goalsScored < match.goalsConceded
@@ -923,9 +992,11 @@ export default function MatchesPage() {
                                         {result === "draw" && "Draw"}
                                       </Badge>
                                       <span className="font-semibold">
-                                        {match.isHome
-                                          ? `${match.goalsScored}-${match.goalsConceded}`
-                                          : `${match.goalsConceded}-${match.goalsScored}`}
+                                        {match.goalsScored !== null && match.goalsConceded !== null && (
+                                          match.isHome
+                                            ? `${match.goalsScored}-${match.goalsConceded}`
+                                            : `${match.goalsConceded}-${match.goalsScored}`
+                                        )}
                                       </span>
                                     </div>
                                   ) : (
