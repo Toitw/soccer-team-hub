@@ -124,5 +124,11 @@
     "role": "player",
     "id": 31,
     "joinedAt": "2025-03-22T09:59:00.003Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 64,
+    "role": "coach",
+    "id": 32
   }
 ]
