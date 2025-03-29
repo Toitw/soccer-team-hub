@@ -466,5 +466,15 @@
     "id": 63,
     "email": null,
     "phoneNumber": null
+  },
+  {
+    "username": "coach1",
+    "password": "18ec43fdddb0417e1a119b36d3176935b6f53f8ef9307325053cb716272f08e38f8949db3d253e61384a2364f3fd02f8e201e2b52902fd08c397e5771d1afc2d.c08f25358de4cc8ff1626a5a35462020",
+    "fullName": "Team Coach",
+    "role": "coach",
+    "email": "coach@teamkick.com",
+    "id": 64,
+    "profilePicture": null,
+    "position": null
   }
 ]
