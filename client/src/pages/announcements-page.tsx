@@ -53,7 +53,11 @@ const announcementSchema = z.object({
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
 
-export default function AnnouncementsPage() {
+interface PageProps {
+  readOnly?: boolean;
+}
+
+export default function AnnouncementsPage(props: PageProps = {}) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -281,14 +285,24 @@ export default function AnnouncementsPage() {
       return false;
     }
 
-    // Only admin and coach can manage announcements, players cannot
+    // Strict role-based permission check:
+    // 1. Administrators: Full access to create/edit/delete announcements
+    // 2. Coaches: Can create/edit/delete announcements
+    // 3. Players: No management permissions, read-only access
     const canManage = user.role === "admin" || user.role === "coach";
+    
     console.log('User permission check:', { 
       userRole: user.role,
       canManage,
       userId: user.id, 
       teamId: selectedTeam.id 
     });
+
+    // If readOnly prop is passed from ProtectedRoute, enforce read-only mode
+    if (props.readOnly === true) {
+      console.log('Component is in read-only mode');
+      return false;
+    }
 
     return canManage;
   };

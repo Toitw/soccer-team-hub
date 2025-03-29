@@ -18,13 +18,35 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      
+      {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
+      
+      {/* Team management - accessible to all but players are read-only */}
       <ProtectedRoute path="/team" component={TeamPage} />
+      
+      {/* Match-related pages - accessible to all but players are read-only */}
       <ProtectedRoute path="/matches" component={MatchesPage} />
-      <ProtectedRoute path="/training" component={TrainingPage} />
-      <ProtectedRoute path="/announcements" component={AnnouncementsPage} />
-      <ProtectedRoute path="/settings" component={SettingsPage} requiredRole="admin" />
       <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
+      
+      {/* Training page - accessible to all but players are read-only */}
+      <ProtectedRoute path="/training" component={TrainingPage} />
+      
+      {/* Announcements - accessible to all but players are read-only */}
+      <ProtectedRoute 
+        path="/announcements" 
+        component={AnnouncementsPage} 
+      />
+      
+      {/* Settings - restricted to admin only */}
+      <ProtectedRoute 
+        path="/settings" 
+        component={SettingsPage} 
+        requiredRole="admin" 
+        allowedRoles={["admin"]} 
+      />
+      
+      {/* 404 Page */}
       <Route component={NotFound} />
     </Switch>
   );
