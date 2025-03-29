@@ -59,6 +59,7 @@ export interface IStorage {
   getTeam(id: number): Promise<Team | undefined>;
   getTeams(): Promise<Team[]>;
   getTeamsByUserId(userId: number): Promise<Team[]>;
+  getTeamByJoinCode(joinCode: string): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
   updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined>;
   
@@ -771,6 +772,13 @@ export class MemStorage implements IStorage {
       (team) => teamIds.includes(team.id)
     );
   }
+  
+  async getTeamByJoinCode(joinCode: string): Promise<Team | undefined> {
+    // Return the team with the specified join code, if any
+    return Array.from(this.teams.values()).find(
+      (team) => team.joinCode === joinCode
+    );
+  }
 
   async createTeam(insertTeam: InsertTeam): Promise<Team> {
     const id = this.teamCurrentId++;
@@ -781,7 +789,8 @@ export class MemStorage implements IStorage {
       id,
       logo: insertTeam.logo || null,
       division: insertTeam.division || null,
-      seasonYear: insertTeam.seasonYear || null
+      seasonYear: insertTeam.seasonYear || null,
+      joinCode: insertTeam.joinCode || null
     };
     
     this.teams.set(id, team);

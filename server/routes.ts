@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage, hashPasswordInStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
+import { randomBytes } from "crypto";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -28,6 +29,22 @@ async function createMockData() {
   return { mockUsers, mockTeam };
 }
 
+// Function to generate a unique, readable join code
+function generateJoinCode(): string {
+  // Generate a 6-character alphanumeric code (excluding similar looking characters)
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding 0, 1, I, O
+  const codeLength = 6;
+  let joinCode = '';
+  
+  // Generate random characters
+  const randomBytesBuffer = randomBytes(codeLength);
+  for (let i = 0; i < codeLength; i++) {
+    joinCode += characters[randomBytesBuffer[i] % characters.length];
+  }
+  
+  return joinCode;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -51,6 +68,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Generate a join code for the team
+      const joinCode = generateJoinCode();
+      
       // Create a basic empty team specifically for this user
       const team = await storage.createTeam({
         name: "My Team",
@@ -58,6 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         division: "League Division",
         seasonYear: new Date().getFullYear().toString(),
         createdById: req.user.id,
+        joinCode,
       });
 
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
@@ -98,9 +119,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
+      // Generate a join code for the team
+      const joinCode = generateJoinCode();
+      
       const team = await storage.createTeam({
         ...req.body,
         createdById: req.user.id,
+        joinCode,
       });
 
       // Always add the current user as the admin of the team they create
@@ -113,6 +138,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(team);
     } catch (error) {
       res.status(500).json({ error: "Failed to create team" });
+    }
+  });
+  
+  // Generate a new join code for a team
+  app.post("/api/teams/:id/join-code", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user has admin role for this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Not authorized to generate join code for this team" });
+      }
+      
+      // Generate a new unique join code
+      const joinCode = generateJoinCode();
+      
+      // Update the team with the new join code
+      const updatedTeam = await storage.updateTeam(teamId, { joinCode });
+      if (!updatedTeam) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+      
+      res.json({ 
+        message: "Join code generated successfully", 
+        joinCode: updatedTeam.joinCode 
+      });
+    } catch (error) {
+      console.error("Error generating join code:", error);
+      res.status(500).json({ error: "Failed to generate join code" });
+    }
+  });
+
+  // Validate a team join code (public route, no authentication required)
+  app.get("/api/validate-join-code/:code", async (req, res) => {
+    try {
+      const joinCode = req.params.code;
+      
+      // Get the team with this join code, if any
+      const team = await storage.getTeamByJoinCode(joinCode);
+      
+      if (team) {
+        // Return minimal team info to avoid exposing sensitive team details
+        return res.json({ 
+          valid: true, 
+          team: { 
+            id: team.id, 
+            name: team.name,
+            logo: team.logo
+          } 
+        });
+      } else {
+        return res.json({ valid: false });
+      }
+    } catch (error) {
+      console.error("Error validating join code:", error);
+      res.status(500).json({ error: "Failed to validate join code" });
     }
   });
 
@@ -314,8 +398,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Client-side will handle displaying base64 images correctly
           // No need to save to disk since we'll store the base64 string directly
         } else if (!profilePicture.startsWith('http')) {
-          // If not a URL and not base64, use a default avatar
-          profilePicture = `https://i.pravatar.cc/150?u=${mockUserId}`;
+          // If not a URL and not base64, use a default avatar with a random ID
+          const randomId = Math.floor(Math.random() * 10000);
+          profilePicture = `https://i.pravatar.cc/150?u=${randomId}`;
         }
       }
 

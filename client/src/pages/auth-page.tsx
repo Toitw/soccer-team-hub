@@ -2,8 +2,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Redirect } from "wouter";
+import React from "react";
 import { insertUserSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ const registerSchema = insertUserSchema.pick({
 }).extend({
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  joinCode: z.string().optional(), // Optional join code for joining a team during registration
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"]
@@ -208,6 +210,8 @@ function LoginForm() {
 
 function RegisterForm() {
   const { registerMutation } = useAuth();
+  const [joinCodeStatus, setJoinCodeStatus] = useState<{ valid: boolean; teamName?: string } | null>(null);
+  const [isCheckingJoinCode, setIsCheckingJoinCode] = useState(false);
   
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -218,8 +222,52 @@ function RegisterForm() {
       fullName: "",
       role: "player",
       email: "",
+      joinCode: "",
     },
   });
+
+  // Function to validate join code with debounce
+  const validateJoinCode = async (code: string) => {
+    // Don't validate empty codes
+    if (!code || code.trim() === "") {
+      setJoinCodeStatus(null);
+      return;
+    }
+    
+    setIsCheckingJoinCode(true);
+    try {
+      const response = await fetch(`/api/validate-join-code/${code}`);
+      const data = await response.json();
+      
+      setJoinCodeStatus({
+        valid: data.valid,
+        teamName: data.team?.name
+      });
+    } catch (error) {
+      console.error("Error validating join code:", error);
+      setJoinCodeStatus({ valid: false });
+    } finally {
+      setIsCheckingJoinCode(false);
+    }
+  };
+  
+  // Watch for join code changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "joinCode") {
+        const joinCode = value.joinCode as string;
+        if (joinCode && joinCode.length >= 4) {
+          // Add debounce to prevent too many requests as user types
+          const timer = setTimeout(() => validateJoinCode(joinCode), 500);
+          return () => clearTimeout(timer);
+        } else {
+          setJoinCodeStatus(null);
+        }
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const onSubmit = (data: RegisterFormData) => {
     const { confirmPassword, ...registerData } = data;
@@ -317,6 +365,49 @@ function RegisterForm() {
                     <Input type="password" placeholder="Confirm your password" {...field} />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="joinCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Team Join Code (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter team join code if you have one" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                  {isCheckingJoinCode && (
+                    <div className="flex items-center mt-1">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <p className="text-sm text-muted-foreground">Checking join code...</p>
+                    </div>
+                  )}
+                  {joinCodeStatus && !isCheckingJoinCode && (
+                    <div className={`flex items-center mt-1 ${joinCodeStatus.valid ? "text-green-600" : "text-red-600"}`}>
+                      {joinCodeStatus.valid ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <p className="text-sm">Valid join code for team "{joinCodeStatus.teamName}"</p>
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <p className="text-sm">Invalid join code</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {!joinCodeStatus && !isCheckingJoinCode && (
+                    <p className="text-sm text-muted-foreground">
+                      Have a team join code? Enter it to join a team during registration.
+                    </p>
+                  )}
                 </FormItem>
               )}
             />
