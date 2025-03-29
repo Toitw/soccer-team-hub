@@ -71,6 +71,8 @@ export default function SettingsPage() {
   const [teamSettingsChanged, setTeamSettingsChanged] = useState(false);
   const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -157,6 +159,9 @@ export default function SettingsPage() {
         seasonYear: selectedTeam.seasonYear || "",
         logo: selectedTeam.logo || "",
       });
+      
+      // Update logoUrl for preview
+      setLogoUrl(selectedTeam.logo || "");
     }
   }, [selectedTeam, teamSettingsForm]);
   
@@ -216,6 +221,57 @@ export default function SettingsPage() {
     if (memberToDelete) {
       deleteTeamMemberMutation.mutate(memberToDelete.id);
     }
+  };
+  
+  // Upload logo mutation
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (imageData: string) => {
+      if (!selectedTeam) throw new Error("No team selected");
+      return apiRequest("POST", `/api/teams/${selectedTeam.id}/logo`, { imageData });
+    },
+    onSuccess: (data) => {
+      // Update team logo in the form and invalidate queries
+      teamSettingsForm.setValue("logo", data.logo);
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      toast({
+        title: "Logo updated",
+        description: "Your team logo has been updated successfully.",
+      });
+      setIsUploadingLogo(false);
+      setIsLogoDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating logo",
+        description: error.message || "There was an error updating the team logo.",
+        variant: "destructive",
+      });
+      setIsUploadingLogo(false);
+    },
+  });
+  
+  // Handle file selection and conversion to base64
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setLogoFile(file);
+    
+    // Convert the file to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64String = e.target?.result as string;
+      setLogoUrl(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Handle logo upload
+  const handleLogoUpload = () => {
+    if (!logoUrl) return;
+    
+    setIsUploadingLogo(true);
+    uploadLogoMutation.mutate(logoUrl);
   };
   
   const handleTeamSettingsSubmit = (data: TeamSettingsFormData) => {
@@ -581,19 +637,22 @@ export default function SettingsPage() {
                           <DialogHeader>
                             <DialogTitle>Change Team Logo</DialogTitle>
                             <DialogDescription>
-                              Enter the URL of your new team logo image.
+                              Upload a new logo image for your team.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-2">
                             <div className="space-y-2">
-                              <label className="text-sm font-medium">Logo URL</label>
-                              <Input 
-                                placeholder="https://example.com/logo.png" 
-                                value={logoUrl}
-                                onChange={(e) => setLogoUrl(e.target.value)}
-                              />
+                              <label className="text-sm font-medium">Select Image</label>
+                              <div className="flex items-center gap-2">
+                                <Input 
+                                  type="file" 
+                                  accept="image/*" 
+                                  onChange={handleFileChange}
+                                  className="flex-1"
+                                />
+                              </div>
                               <p className="text-xs text-muted-foreground">
-                                Use an image URL from a public source. PNG or JPG format works best.
+                                Select an image file from your computer (PNG, JPG, GIF).
                               </p>
                             </div>
                             
@@ -615,30 +674,25 @@ export default function SettingsPage() {
                           <DialogFooter>
                             <Button
                               variant="outline"
-                              onClick={() => setIsLogoDialogOpen(false)}
+                              onClick={() => {
+                                setIsLogoDialogOpen(false);
+                                setLogoFile(null);
+                              }}
                             >
                               Cancel
                             </Button>
                             <Button
-                              onClick={() => {
-                                if (logoUrl) {
-                                  teamSettingsForm.setValue("logo", logoUrl);
-                                  setTeamSettingsChanged(true);
-                                  setIsLogoDialogOpen(false);
-                                  
-                                  // If this is the only change, you can also submit immediately
-                                  if (!teamSettingsChanged) {
-                                    const formValues = teamSettingsForm.getValues();
-                                    updateTeamMutation.mutate({
-                                      ...formValues,
-                                      logo: logoUrl
-                                    });
-                                  }
-                                }
-                              }}
-                              disabled={!logoUrl}
+                              onClick={handleLogoUpload}
+                              disabled={!logoUrl || isUploadingLogo}
                             >
-                              Update Logo
+                              {isUploadingLogo ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                'Upload Logo'
+                              )}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
