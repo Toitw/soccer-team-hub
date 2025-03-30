@@ -152,6 +152,13 @@ export interface IStorage {
   bulkCreateLeagueClassifications(classifications: InsertLeagueClassification[]): Promise<LeagueClassification[]>;
   deleteAllTeamClassifications(teamId: number): Promise<boolean>;
   
+  // Aliases for classification methods that match our API endpoints
+  getTeamClassifications(teamId: number): Promise<LeagueClassification[]>;
+  findClassificationById(id: number): Promise<LeagueClassification | undefined>;
+  createClassification(teamId: number, classification: Partial<InsertLeagueClassification>): Promise<LeagueClassification>;
+  updateClassification(id: number, classificationData: Partial<LeagueClassification>): Promise<LeagueClassification | undefined>;
+  deleteClassification(id: number): Promise<boolean>;
+  
   // Session store for authentication
   sessionStore: SessionStoreType;
 }
@@ -1548,6 +1555,42 @@ export class MemStorage implements IStorage {
     const updatedInvitation: Invitation = { ...invitation, ...invitationData };
     this.invitations.set(id, updatedInvitation);
     return updatedInvitation;
+  }
+
+  // Aliases for classification methods that match our API endpoints
+  async getTeamClassifications(teamId: number): Promise<LeagueClassification[]> {
+    return this.getLeagueClassifications(teamId);
+  }
+
+  async findClassificationById(id: number): Promise<LeagueClassification | undefined> {
+    return this.getLeagueClassification(id);
+  }
+
+  async createClassification(teamId: number, classification: Partial<InsertLeagueClassification>): Promise<LeagueClassification> {
+    const fullClassification: InsertLeagueClassification = {
+      teamId,
+      position: classification.position || null,
+      points: classification.points || 0,
+      externalTeamName: classification.externalTeamName || "",
+      gamesPlayed: classification.gamesPlayed || 0,
+      gamesWon: classification.gamesWon || 0,
+      gamesDrawn: classification.gamesDrawn || 0,
+      gamesLost: classification.gamesLost || 0,
+      goalsFor: classification.goalsFor || 0,
+      goalsAgainst: classification.goalsAgainst || 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    return this.createLeagueClassification(fullClassification);
+  }
+
+  async updateClassification(id: number, classificationData: Partial<LeagueClassification>): Promise<LeagueClassification | undefined> {
+    return this.updateLeagueClassification(id, classificationData);
+  }
+
+  async deleteClassification(id: number): Promise<boolean> {
+    return this.deleteLeagueClassification(id);
   }
 }
 
