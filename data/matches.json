@@ -66,13 +66,13 @@
   },
   {
     "opponentName": "Naviera",
-    "matchDate": "2025-03-29T14:39:00.000Z",
+    "matchDate": "2025-03-29T13:39:00.000Z",
     "location": "Candas",
     "isHome": true,
     "notes": "",
-    "status": "scheduled",
-    "goalsScored": null,
-    "goalsConceded": null,
+    "status": "completed",
+    "goalsScored": 3,
+    "goalsConceded": 2,
     "teamId": 1,
     "id": 6,
     "opponentLogo": null
