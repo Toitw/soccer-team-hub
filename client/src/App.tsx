@@ -6,7 +6,7 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import TeamPage from "@/pages/team-page";
-import MatchesPage from "@/pages/matches-page";
+import MatchesPage from "@/pages/matches-page-fixed";
 import TrainingPage from "@/pages/training-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";

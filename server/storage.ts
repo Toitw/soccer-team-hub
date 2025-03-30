@@ -12,7 +12,8 @@ import {
   matchSubstitutions, type MatchSubstitution, type InsertMatchSubstitution,
   matchGoals, type MatchGoal, type InsertMatchGoal,
   matchCards, type MatchCard, type InsertMatchCard,
-  matchPhotos, type MatchPhoto, type InsertMatchPhoto
+  matchPhotos, type MatchPhoto, type InsertMatchPhoto,
+  leagueClassification, type LeagueClassification, type InsertLeagueClassification
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
@@ -35,6 +36,7 @@ const MATCH_SUBSTITUTIONS_FILE = path.join(DATA_DIR, 'match_substitutions.json')
 const MATCH_GOALS_FILE = path.join(DATA_DIR, 'match_goals.json');
 const MATCH_CARDS_FILE = path.join(DATA_DIR, 'match_cards.json');
 const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match_photos.json');
+const LEAGUE_CLASSIFICATION_FILE = path.join(DATA_DIR, 'league_classification.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -141,6 +143,15 @@ export interface IStorage {
   updateMatchPhoto(id: number, photoData: Partial<MatchPhoto>): Promise<MatchPhoto | undefined>;
   deleteMatchPhoto(id: number): Promise<boolean>;
   
+  // League Classification methods
+  getLeagueClassifications(teamId: number): Promise<LeagueClassification[]>;
+  getLeagueClassification(id: number): Promise<LeagueClassification | undefined>;
+  createLeagueClassification(classification: InsertLeagueClassification): Promise<LeagueClassification>;
+  updateLeagueClassification(id: number, classificationData: Partial<LeagueClassification>): Promise<LeagueClassification | undefined>;
+  deleteLeagueClassification(id: number): Promise<boolean>;
+  bulkCreateLeagueClassifications(classifications: InsertLeagueClassification[]): Promise<LeagueClassification[]>;
+  deleteAllTeamClassifications(teamId: number): Promise<boolean>;
+  
   // Session store for authentication
   sessionStore: SessionStoreType;
 }
@@ -160,6 +171,7 @@ export class MemStorage implements IStorage {
   private matchGoals: Map<number, MatchGoal>;
   private matchCards: Map<number, MatchCard>;
   private matchPhotos: Map<number, MatchPhoto>;
+  private leagueClassifications: Map<number, LeagueClassification>;
   
   sessionStore: SessionStoreType;
   
@@ -177,6 +189,7 @@ export class MemStorage implements IStorage {
   private matchGoalCurrentId: number;
   private matchCardCurrentId: number;
   private matchPhotoCurrentId: number;
+  private leagueClassificationCurrentId: number;
 
   constructor() {
     // Ensure the data directory exists
@@ -199,6 +212,7 @@ export class MemStorage implements IStorage {
     this.matchGoals = new Map();
     this.matchCards = new Map();
     this.matchPhotos = new Map();
+    this.leagueClassifications = new Map();
     
     this.userCurrentId = 1;
     this.teamCurrentId = 1;
@@ -214,6 +228,7 @@ export class MemStorage implements IStorage {
     this.matchGoalCurrentId = 1;
     this.matchCardCurrentId = 1;
     this.matchPhotoCurrentId = 1;
+    this.leagueClassificationCurrentId = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -560,6 +575,43 @@ export class MemStorage implements IStorage {
         }
       }
       
+      // Load league classification data if the file exists
+      if (fs.existsSync(LEAGUE_CLASSIFICATION_FILE)) {
+        const leagueClassificationsData = JSON.parse(fs.readFileSync(LEAGUE_CLASSIFICATION_FILE, 'utf8'));
+        
+        if (leagueClassificationsData && leagueClassificationsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.leagueClassifications.clear();
+          let maxId = 0;
+          
+          // Process each league classification entry
+          for (const classification of leagueClassificationsData) {
+            // Handle Date conversion (createdAt and updatedAt are stored as strings in the file)
+            if (classification.createdAt) {
+              classification.createdAt = new Date(classification.createdAt);
+            }
+            if (classification.updatedAt) {
+              classification.updatedAt = new Date(classification.updatedAt);
+            }
+            
+            // Add to map
+            this.leagueClassifications.set(classification.id, classification as LeagueClassification);
+            
+            // Track maximum ID
+            if (classification.id > maxId) {
+              maxId = classification.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.leagueClassificationCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${leagueClassificationsData.length} league classification entries from storage`);
+        }
+      }
+      
       return hasData;
     } catch (error) {
       console.error("Error loading persisted data:", error);
@@ -676,6 +728,20 @@ export class MemStorage implements IStorage {
       console.log(`Saved ${matchPhotosArray.length} match photos to storage`);
     } catch (error) {
       console.error("Error saving match photos data:", error);
+    }
+  }
+  
+  // Helper method to save league classification data to file
+  private saveLeagueClassificationsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const leagueClassificationsArray = Array.from(this.leagueClassifications.values());
+      
+      // Write to file
+      fs.writeFileSync(LEAGUE_CLASSIFICATION_FILE, JSON.stringify(leagueClassificationsArray, null, 2));
+      console.log(`Saved ${leagueClassificationsArray.length} league classification entries to storage`);
+    } catch (error) {
+      console.error("Error saving league classification data:", error);
     }
   }
   
@@ -1172,6 +1238,98 @@ export class MemStorage implements IStorage {
     }
     
     return result;
+  }
+  
+  // League Classification methods
+  async getLeagueClassifications(teamId: number): Promise<LeagueClassification[]> {
+    return Array.from(this.leagueClassifications.values())
+      .filter(classification => classification.teamId === teamId)
+      .sort((a, b) => (a.position || 999) - (b.position || 999)); // Sort by position if available
+  }
+  
+  async getLeagueClassification(id: number): Promise<LeagueClassification | undefined> {
+    return this.leagueClassifications.get(id);
+  }
+  
+  async createLeagueClassification(classification: InsertLeagueClassification): Promise<LeagueClassification> {
+    const id = this.leagueClassificationCurrentId++;
+    const now = new Date();
+    
+    const leagueClassification: LeagueClassification = {
+      ...classification,
+      id,
+      position: classification.position || null,
+      gamesPlayed: classification.gamesPlayed || 0,
+      gamesWon: classification.gamesWon || 0,
+      gamesDrawn: classification.gamesDrawn || 0,
+      gamesLost: classification.gamesLost || 0,
+      goalsFor: classification.goalsFor || 0,
+      goalsAgainst: classification.goalsAgainst || 0,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.leagueClassifications.set(id, leagueClassification);
+    
+    // Save league classifications to file
+    this.saveLeagueClassificationsData();
+    
+    return leagueClassification;
+  }
+  
+  async updateLeagueClassification(id: number, classificationData: Partial<LeagueClassification>): Promise<LeagueClassification | undefined> {
+    const classification = this.leagueClassifications.get(id);
+    if (!classification) return undefined;
+    
+    const updatedClassification: LeagueClassification = { 
+      ...classification, 
+      ...classificationData,
+      updatedAt: new Date() // Always update the updatedAt timestamp
+    };
+    
+    this.leagueClassifications.set(id, updatedClassification);
+    
+    // Save league classifications to file
+    this.saveLeagueClassificationsData();
+    
+    return updatedClassification;
+  }
+  
+  async deleteLeagueClassification(id: number): Promise<boolean> {
+    const result = this.leagueClassifications.delete(id);
+    
+    // Save league classifications to file if deleted
+    if (result) {
+      this.saveLeagueClassificationsData();
+    }
+    
+    return result;
+  }
+  
+  async bulkCreateLeagueClassifications(classifications: InsertLeagueClassification[]): Promise<LeagueClassification[]> {
+    const createdClassifications: LeagueClassification[] = [];
+    
+    for (const classification of classifications) {
+      const created = await this.createLeagueClassification(classification);
+      createdClassifications.push(created);
+    }
+    
+    return createdClassifications;
+  }
+  
+  async deleteAllTeamClassifications(teamId: number): Promise<boolean> {
+    // Find all classifications for this team
+    const teamClassifications = await this.getLeagueClassifications(teamId);
+    
+    // Delete each one
+    let deletedCount = 0;
+    for (const classification of teamClassifications) {
+      const deleted = await this.deleteLeagueClassification(classification.id);
+      if (deleted) deletedCount++;
+    }
+    
+    // Return true if we deleted anything
+    return deletedCount > 0;
   }
 
   // Event methods

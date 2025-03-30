@@ -1820,5 +1820,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // League Classification routes
+  // Get all league classifications for a team
+  app.get('/api/teams/:teamId/classification', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const teamId = parseInt(req.params.teamId);
+    
+    try {
+      // Check if user is a member of this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to view this team's classification" });
+      }
+      
+      const classifications = await storage.getLeagueClassifications(teamId);
+      res.json(classifications);
+    } catch (error) {
+      console.error("Error fetching classifications:", error);
+      res.status(500).json({ error: "Failed to fetch league classifications" });
+    }
+  });
+  
+  // Add a new league classification entry
+  app.post('/api/teams/:teamId/classification', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const teamId = parseInt(req.params.teamId);
+    
+    try {
+      // Check if user has admin or coach role for this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to add classification for this team" });
+      }
+      
+      const classification = await storage.createLeagueClassification({
+        ...req.body,
+        teamId
+      });
+      
+      res.status(201).json(classification);
+    } catch (error) {
+      console.error("Error creating classification:", error);
+      res.status(500).json({ error: "Failed to create league classification entry" });
+    }
+  });
+  
+  // Update a league classification entry
+  app.put('/api/classification/:id', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const classificationId = parseInt(req.params.id);
+    
+    try {
+      // Get the classification to check team ownership
+      const classification = await storage.getLeagueClassification(classificationId);
+      if (!classification) {
+        return res.status(404).json({ error: "Classification entry not found" });
+      }
+      
+      // Check if user has admin or coach role for this team
+      const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update classification for this team" });
+      }
+      
+      const updatedClassification = await storage.updateLeagueClassification(classificationId, req.body);
+      
+      res.json(updatedClassification);
+    } catch (error) {
+      console.error("Error updating classification:", error);
+      res.status(500).json({ error: "Failed to update league classification entry" });
+    }
+  });
+  
+  // Delete a league classification entry
+  app.delete('/api/classification/:id', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const classificationId = parseInt(req.params.id);
+    
+    try {
+      // Get the classification to check team ownership
+      const classification = await storage.getLeagueClassification(classificationId);
+      if (!classification) {
+        return res.status(404).json({ error: "Classification entry not found" });
+      }
+      
+      // Check if user has admin or coach role for this team
+      const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete classification for this team" });
+      }
+      
+      const deleted = await storage.deleteLeagueClassification(classificationId);
+      
+      if (deleted) {
+        res.json({ message: "Classification entry deleted successfully" });
+      } else {
+        res.status(404).json({ error: "Classification entry not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting classification:", error);
+      res.status(500).json({ error: "Failed to delete league classification entry" });
+    }
+  });
+  
+  // Delete all classification entries for a team
+  app.delete('/api/teams/:teamId/classification', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const teamId = parseInt(req.params.teamId);
+    
+    try {
+      // Check if user has admin or coach role for this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete classifications for this team" });
+      }
+      
+      const deleted = await storage.deleteAllTeamClassifications(teamId);
+      
+      if (deleted) {
+        res.json({ message: "All classification entries deleted successfully" });
+      } else {
+        res.json({ message: "No classification entries to delete" });
+      }
+    } catch (error) {
+      console.error("Error deleting classifications:", error);
+      res.status(500).json({ error: "Failed to delete league classification entries" });
+    }
+  });
+  
+  // Bulk create league classification entries from CSV
+  app.post('/api/teams/:teamId/classification/bulk', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const teamId = parseInt(req.params.teamId);
+    
+    try {
+      // Check if user has admin or coach role for this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to add classifications for this team" });
+      }
+      
+      const { classifications } = req.body;
+      
+      if (!Array.isArray(classifications) || classifications.length === 0) {
+        return res.status(400).json({ error: "Invalid or empty classifications data" });
+      }
+      
+      // Add teamId to each classification
+      const classificationsWithTeamId = classifications.map(c => ({
+        ...c,
+        teamId
+      }));
+      
+      const createdClassifications = await storage.bulkCreateLeagueClassifications(classificationsWithTeamId);
+      
+      res.status(201).json({
+        message: `Created ${createdClassifications.length} classification entries`,
+        classifications: createdClassifications
+      });
+    } catch (error) {
+      console.error("Error creating bulk classifications:", error);
+      res.status(500).json({ error: "Failed to create league classification entries" });
+    }
+  });
+
   return httpServer;
 }

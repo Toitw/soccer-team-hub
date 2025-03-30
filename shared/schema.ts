@@ -326,3 +326,36 @@ export type InsertMatchCard = z.infer<typeof insertMatchCardSchema>;
 
 export type MatchPhoto = typeof matchPhotos.$inferSelect;
 export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
+
+// League Classification table
+export const leagueClassification = pgTable("league_classification", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull(), // Reference to the team this classification belongs to
+  externalTeamName: text("external_team_name").notNull(), // Name of the external team in the league
+  points: integer("points").notNull().default(0),
+  position: integer("position"),
+  gamesPlayed: integer("games_played").default(0),
+  gamesWon: integer("games_won").default(0),
+  gamesDrawn: integer("games_drawn").default(0),
+  gamesLost: integer("games_lost").default(0),
+  goalsFor: integer("goals_for").default(0),
+  goalsAgainst: integer("goals_against").default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
+  teamId: true,
+  externalTeamName: true,
+  points: true,
+  position: true,
+  gamesPlayed: true,
+  gamesWon: true,
+  gamesDrawn: true,
+  gamesLost: true,
+  goalsFor: true,
+  goalsAgainst: true,
+});
+
+export type LeagueClassification = typeof leagueClassification.$inferSelect;
+export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
