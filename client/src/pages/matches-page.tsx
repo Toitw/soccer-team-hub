@@ -122,7 +122,8 @@ export default function MatchesPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   
   // Define forms here to maintain hook order
-  const form = useForm<MatchFormData>({
+  // Match form
+  const matchForm = useForm<MatchFormData>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
       opponentName: "",
@@ -587,20 +588,7 @@ export default function MatchesPage() {
     setDeleteDialogOpen(true);
   };
 
-  const form = useForm<MatchFormData>({
-    resolver: zodResolver(matchSchema),
-    defaultValues: {
-      opponentName: "",
-      matchDate: new Date().toISOString().slice(0, 16),
-      location: "",
-      isHome: true,
-      notes: "",
-      status: "scheduled",
-      matchType: "friendly",
-      goalsScored: null,
-      goalsConceded: null,
-    },
-  });
+  // We're using matchForm defined at the top of the component
 
   // Handle dialog close - we need to clear form and reset editing state
   const handleDialogChange = (open: boolean) => {
