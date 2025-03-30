@@ -1293,16 +1293,26 @@ export default function TeamPage() {
                 name="profilePicture"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Profile Picture URL</FormLabel>
+                    <FormLabel>Profile Picture</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://example.com/picture.jpg"
-                        {...field}
-                        value={field.value || ""}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Convert file to base64
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              field.onChange(reader.result);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormDescription>
-                      Enter a URL for the profile picture
+                      Upload a new profile picture (leave empty to keep current)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
