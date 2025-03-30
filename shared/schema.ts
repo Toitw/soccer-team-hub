@@ -75,6 +75,7 @@ export const matches = pgTable("matches", {
   goalsScored: integer("goals_scored"),
   goalsConceded: integer("goals_conceded"),
   status: text("status", { enum: ["scheduled", "completed", "cancelled"] }).notNull().default("scheduled"),
+  matchType: text("match_type", { enum: ["league", "copa", "friendly"] }).notNull().default("friendly"),
   notes: text("notes"),
 });
 
@@ -88,6 +89,7 @@ export const insertMatchSchema = createInsertSchema(matches).pick({
   goalsScored: true,
   goalsConceded: true,
   status: true,
+  matchType: true,
   notes: true,
 });
 

@@ -75,6 +75,7 @@ const matchSchema = z.object({
   isHome: z.boolean().default(true),
   notes: z.string().optional(),
   status: z.enum(["scheduled", "completed", "cancelled"]).default("scheduled"),
+  matchType: z.enum(["league", "copa", "friendly"]).default("friendly"),
   goalsScored: z.number().int().optional().nullable(),
   goalsConceded: z.number().int().optional().nullable(),
 });
@@ -154,6 +155,7 @@ export default function MatchesPage() {
       isHome: match.isHome,
       notes: match.notes || "",
       status: match.status || "scheduled",
+      matchType: match.matchType || "friendly",
       goalsScored: match.goalsScored || null,
       goalsConceded: match.goalsConceded || null,
     });
@@ -210,6 +212,7 @@ export default function MatchesPage() {
       isHome: true,
       notes: "",
       status: "scheduled",
+      matchType: "friendly",
       goalsScored: null,
       goalsConceded: null,
     },
@@ -230,6 +233,7 @@ export default function MatchesPage() {
           isHome: true,
           notes: "",
           status: "scheduled",
+          matchType: "friendly",
           goalsScored: null,
           goalsConceded: null,
         });
@@ -458,6 +462,7 @@ export default function MatchesPage() {
                           isHome: true,
                           notes: "",
                           status: "scheduled",
+                          matchType: "friendly",
                           goalsScored: null,
                           goalsConceded: null,
                         });
@@ -548,6 +553,28 @@ export default function MatchesPage() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="matchType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Competition Type</FormLabel>
+                          <FormControl>
+                            <select
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              onChange={(e) => field.onChange(e.target.value)}
+                              value={field.value}
+                            >
+                              <option value="league">League</option>
+                              <option value="copa">Copa</option>
+                              <option value="friendly">Friendly</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
                     <FormField
                       control={form.control}
                       name="status"
@@ -708,6 +735,19 @@ export default function MatchesPage() {
                         <Badge variant="outline" className="ml-2">
                           {selectedMatch.isHome ? "Home" : "Away"}
                         </Badge>
+                        <Badge 
+                          variant="secondary" 
+                          className="ml-2"
+                          style={{
+                            backgroundColor: selectedMatch.matchType === 'league' ? '#4caf50' : 
+                                           selectedMatch.matchType === 'copa' ? '#2196f3' : '#ff9800',
+                            color: 'white'
+                          }}
+                        >
+                          {selectedMatch.matchType ? 
+                            selectedMatch.matchType.charAt(0).toUpperCase() + selectedMatch.matchType.slice(1) : 
+                            'Friendly'}
+                        </Badge>
                         <div className="mt-2">
                           <span className="text-muted-foreground">
                             Location:
@@ -828,6 +868,7 @@ export default function MatchesPage() {
                             <TableHead>Opponent</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Location</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Status</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -886,6 +927,20 @@ export default function MatchesPage() {
                                 <TableCell>{match.location}</TableCell>
                                 <TableCell>
                                   <Badge
+                                    variant="secondary"
+                                    style={{
+                                      backgroundColor: match.matchType === 'league' ? '#4caf50' : 
+                                                      match.matchType === 'copa' ? '#2196f3' : '#ff9800',
+                                      color: 'white'
+                                    }}
+                                  >
+                                    {match.matchType ? 
+                                      match.matchType.charAt(0).toUpperCase() + match.matchType.slice(1) : 
+                                      'Friendly'}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge
                                     variant={
                                       match.status === "cancelled"
                                         ? "outline"
@@ -937,6 +992,7 @@ export default function MatchesPage() {
                             <TableHead>Opponent</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Result</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead>Status</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -1016,6 +1072,20 @@ export default function MatchesPage() {
                                   ) : (
                                     <Badge variant="outline">N/A</Badge>
                                   )}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge
+                                    variant="secondary"
+                                    style={{
+                                      backgroundColor: match.matchType === 'league' ? '#4caf50' : 
+                                                      match.matchType === 'copa' ? '#2196f3' : '#ff9800',
+                                      color: 'white'
+                                    }}
+                                  >
+                                    {match.matchType ? 
+                                      match.matchType.charAt(0).toUpperCase() + match.matchType.slice(1) : 
+                                      'Friendly'}
+                                  </Badge>
                                 </TableCell>
                                 <TableCell>
                                   <Badge
