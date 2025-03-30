@@ -14,7 +14,7 @@
   },
   {
     "opponentName": "Pomares",
-    "matchDate": "2025-03-20T14:53:00.000Z",
+    "matchDate": "2025-03-20T12:53:00.000Z",
     "location": "Candás",
     "isHome": true,
     "notes": "test",
@@ -23,7 +23,8 @@
     "goalsConceded": 0,
     "teamId": 1,
     "id": 2,
-    "opponentLogo": null
+    "opponentLogo": null,
+    "matchType": "league"
   },
   {
     "opponentName": "Victoria",
@@ -40,7 +41,7 @@
   },
   {
     "opponentName": "Candás",
-    "matchDate": "2025-03-17T13:53:00.000Z",
+    "matchDate": "2025-03-17T12:53:00.000Z",
     "location": "MAta",
     "isHome": true,
     "notes": "yep",
@@ -49,7 +50,8 @@
     "goalsConceded": 3,
     "teamId": 1,
     "id": 4,
-    "opponentLogo": null
+    "opponentLogo": null,
+    "matchType": "league"
   },
   {
     "opponentName": "Candas",
