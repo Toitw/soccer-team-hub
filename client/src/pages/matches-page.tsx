@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Team, Match } from "@shared/schema";
+import { Team, Match, LeagueClassification } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -32,6 +32,10 @@ import {
   Trash,
   ArrowRight,
   ArrowLeft,
+  ListOrdered,
+  PlusSquare,
+  FileText,
+  Upload,
 } from "lucide-react";
 import {
   Dialog,
@@ -82,6 +86,21 @@ const matchSchema = z.object({
 
 type MatchFormData = z.infer<typeof matchSchema>;
 
+// Define form schema for creating a classification entry
+const classificationSchema = z.object({
+  externalTeamName: z.string().min(1, "Team name is required"),
+  points: z.number().int().min(0, "Points must be a positive number"),
+  position: z.number().int().min(1, "Position must be a positive number").optional().nullable(),
+  gamesPlayed: z.number().int().min(0).optional().nullable(),
+  gamesWon: z.number().int().min(0).optional().nullable(),
+  gamesDrawn: z.number().int().min(0).optional().nullable(),
+  gamesLost: z.number().int().min(0).optional().nullable(),
+  goalsFor: z.number().int().min(0).optional().nullable(),
+  goalsAgainst: z.number().int().min(0).optional().nullable(),
+});
+
+type ClassificationFormData = z.infer<typeof classificationSchema>;
+
 export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -92,6 +111,47 @@ export default function MatchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  
+  // Classification states
+  const [classificationDialogOpen, setClassificationDialogOpen] = useState(false);
+  const [editingClassification, setEditingClassification] = useState<LeagueClassification | null>(null);
+  const [isEditingClassification, setIsEditingClassification] = useState(false);
+  const [deleteClassificationDialogOpen, setDeleteClassificationDialogOpen] = useState(false);
+  const [classificationToDelete, setClassificationToDelete] = useState<LeagueClassification | null>(null);
+  const [csvUploadDialogOpen, setCsvUploadDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  
+  // Define forms here to maintain hook order
+  const form = useForm<MatchFormData>({
+    resolver: zodResolver(matchSchema),
+    defaultValues: {
+      opponentName: "",
+      matchDate: new Date().toISOString().slice(0, 16),
+      location: "",
+      isHome: true,
+      notes: "",
+      status: "scheduled",
+      matchType: "friendly",
+      goalsScored: null,
+      goalsConceded: null,
+    },
+  });
+  
+  // Classification form
+  const classificationForm = useForm<ClassificationFormData>({
+    resolver: zodResolver(classificationSchema),
+    defaultValues: {
+      externalTeamName: "",
+      points: 0,
+      position: null,
+      gamesPlayed: null,
+      gamesWon: null,
+      gamesDrawn: null,
+      gamesLost: null,
+      goalsFor: null,
+      goalsAgainst: null,
+    },
+  });
   
   // Check if user can manage matches (admin or coach)
   const canManage = user?.role === "admin" || user?.role === "coach";
@@ -136,7 +196,331 @@ export default function MatchesPage() {
     return refetchMatches();
   };
 
-  const isLoading = teamsLoading || matchesLoading;
+  // Query for league classification data
+  const {
+    data: classifications,
+    isLoading: classificationsLoading,
+    refetch: refetchClassifications,
+  } = useQuery<LeagueClassification[]>({
+    queryKey: ["classifications", selectedTeam?.id],
+    enabled: !!selectedTeam,
+    queryFn: async () => {
+      if (!selectedTeam) return [];
+      console.log(`Fetching classifications for team ${selectedTeam.id}`);
+      const response = await fetch(`/api/teams/${selectedTeam.id}/classification`);
+      if (!response.ok) throw new Error("Failed to fetch classifications");
+      const classificationsData = await response.json();
+      console.log("Fetched classifications:", classificationsData);
+      return classificationsData;
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Consider data stale immediately
+  });
+
+  // We need to make sure refetchClassifications properly invalidates the cache
+  const refetchClassificationsData = async () => {
+    console.log("Manually invalidating classifications cache");
+    await queryClient.invalidateQueries({
+      queryKey: ["classifications", selectedTeam?.id],
+    });
+    return refetchClassifications();
+  };
+
+  // Handle dialog close for classification form
+  const handleClassificationDialogChange = (open: boolean) => {
+    if (!open) {
+      // Reset the form and editing state when dialog is closed
+      setTimeout(() => {
+        setIsEditingClassification(false);
+        setEditingClassification(null);
+        classificationForm.reset({
+          externalTeamName: "",
+          points: 0,
+          position: null,
+          gamesPlayed: null,
+          gamesWon: null,
+          gamesDrawn: null,
+          gamesLost: null,
+          goalsFor: null,
+          goalsAgainst: null,
+        });
+      }, 100);
+    }
+    setClassificationDialogOpen(open);
+  };
+
+  // Handle editing a classification entry
+  const handleEditClassification = (classification: LeagueClassification) => {
+    setEditingClassification(classification);
+    setIsEditingClassification(true);
+
+    // Reset the form with the classification data
+    classificationForm.reset({
+      externalTeamName: classification.externalTeamName,
+      points: classification.points,
+      position: classification.position,
+      gamesPlayed: classification.gamesPlayed,
+      gamesWon: classification.gamesWon,
+      gamesDrawn: classification.gamesDrawn,
+      gamesLost: classification.gamesLost,
+      goalsFor: classification.goalsFor,
+      goalsAgainst: classification.goalsAgainst,
+    });
+
+    setClassificationDialogOpen(true);
+  };
+
+  // Handle classification form submission
+  const onClassificationSubmit = async (data: ClassificationFormData) => {
+    try {
+      if (!selectedTeam) {
+        throw new Error("No team selected");
+      }
+
+      console.log("Submitting classification data:", data);
+
+      let response;
+      let successMessage;
+
+      // If editing an existing classification
+      if (isEditingClassification && editingClassification) {
+        response = await fetch(
+          `/api/classification/${editingClassification.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          },
+        );
+        successMessage = "Classification updated successfully";
+      } else {
+        // Creating a new classification
+        response = await fetch(`/api/teams/${selectedTeam.id}/classification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        successMessage = "Classification created successfully";
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          isEditingClassification 
+          ? "Failed to update classification" 
+          : "Failed to create classification",
+        );
+      }
+
+      // Get the result
+      const result = await response.json();
+      console.log(
+        isEditingClassification 
+        ? "Updated classification:" 
+        : "Created classification:", 
+        result
+      );
+
+      // Reset editing state
+      setIsEditingClassification(false);
+      setEditingClassification(null);
+      setClassificationDialogOpen(false);
+      classificationForm.reset();
+
+      // Force refetch with a different query key to trigger refresh
+      await refetchClassificationsData();
+      console.log("Classifications refetched");
+
+      toast({
+        title: isEditingClassification ? "Classification updated" : "Classification created",
+        description: successMessage,
+      });
+    } catch (error) {
+      console.error(
+        isEditingClassification 
+        ? "Error updating classification:" 
+        : "Error creating classification:",
+        error,
+      );
+      toast({
+        title: "Error",
+        description: isEditingClassification
+          ? "Failed to update classification"
+          : "Failed to create classification",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle deleting a classification
+  const handleDeleteClassification = async () => {
+    if (!classificationToDelete) return;
+
+    try {
+      const response = await fetch(
+        `/api/classification/${classificationToDelete.id}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete classification");
+      }
+
+      await refetchClassificationsData();
+      setDeleteClassificationDialogOpen(false);
+      setClassificationToDelete(null);
+
+      toast({
+        title: "Classification deleted",
+        description: "The classification entry has been deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting classification:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete classification",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle CSV file upload
+  const handleCsvUpload = async () => {
+    if (!csvFile || !selectedTeam) {
+      toast({
+        title: "Error",
+        description: "Please select a CSV file first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Read the CSV file
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        try {
+          const csvData = e.target?.result;
+          if (!csvData) {
+            throw new Error("Failed to read CSV file");
+          }
+
+          // Parse CSV (simple parsing for team,points format)
+          const lines = (csvData as string).split("\n");
+          const classifications = [];
+          
+          // Skip header line if exists
+          const startIndex = lines[0].toLowerCase().includes("team") ? 1 : 0;
+          
+          for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            
+            const parts = line.split(",");
+            if (parts.length < 2) continue;
+            
+            const externalTeamName = parts[0].trim();
+            const points = parseInt(parts[1].trim(), 10);
+            
+            if (!externalTeamName || isNaN(points)) continue;
+            
+            // Create classification object
+            const classification = {
+              externalTeamName,
+              points,
+              position: i - startIndex + 1,
+              gamesPlayed: parts.length > 2 ? parseInt(parts[2].trim(), 10) || null : null,
+              gamesWon: parts.length > 3 ? parseInt(parts[3].trim(), 10) || null : null,
+              gamesDrawn: parts.length > 4 ? parseInt(parts[4].trim(), 10) || null : null,
+              gamesLost: parts.length > 5 ? parseInt(parts[5].trim(), 10) || null : null,
+              goalsFor: parts.length > 6 ? parseInt(parts[6].trim(), 10) || null : null,
+              goalsAgainst: parts.length > 7 ? parseInt(parts[7].trim(), 10) || null : null,
+            };
+            
+            classifications.push(classification);
+          }
+          
+          // Send the parsed data to the API
+          const response = await fetch(`/api/teams/${selectedTeam.id}/classification/bulk`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ classifications }),
+          });
+          
+          if (!response.ok) {
+            throw new Error("Failed to upload classification data");
+          }
+          
+          const result = await response.json();
+          console.log("Uploaded classifications:", result);
+          
+          // Reset state
+          setCsvUploadDialogOpen(false);
+          setCsvFile(null);
+          
+          // Refetch classifications
+          await refetchClassificationsData();
+          
+          toast({
+            title: "CSV data uploaded",
+            description: `Successfully created ${result.classifications.length} classification entries`,
+          });
+        } catch (error) {
+          console.error("Error processing CSV:", error);
+          toast({
+            title: "Error",
+            description: "Failed to process CSV file",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      reader.readAsText(csvFile);
+    } catch (error) {
+      console.error("Error uploading CSV:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload CSV file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Open delete confirmation dialog for classification
+  const confirmDeleteClassification = (classification: LeagueClassification) => {
+    setClassificationToDelete(classification);
+    setDeleteClassificationDialogOpen(true);
+  };
+
+  // Create a downloadable sample CSV template
+  const generateSampleCsv = () => {
+    const header = "Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst";
+    const rows = [
+      "Team A,21,10,7,0,3,22,12",
+      "Team B,18,10,6,0,4,20,15",
+      "Team C,15,10,5,0,5,17,18"
+    ];
+    const csvContent = [header, ...rows].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.setAttribute("href", url);
+    a.setAttribute("download", "classification_template.csv");
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const isLoading = teamsLoading || matchesLoading || classificationsLoading;
 
   // Handle editing a match
   const handleEditMatch = (match: Match) => {
