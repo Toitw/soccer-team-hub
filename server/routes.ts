@@ -1972,6 +1972,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid or empty classifications data" });
       }
       
+      // First, delete all existing classifications for this team
+      const existingClassifications = await storage.getTeamClassifications(teamId);
+      for (const classification of existingClassifications) {
+        await storage.deleteLeagueClassification(classification.id);
+      }
+      
       // Add teamId to each classification
       const classificationsWithTeamId = classifications.map(c => ({
         ...c,
