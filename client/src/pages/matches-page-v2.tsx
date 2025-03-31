@@ -1618,7 +1618,7 @@ export default function MatchesPage() {
 
           {/* CSV Upload Dialog */}
           <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
-            <DialogContent className="max-w-[95%] w-full sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-w-[90vw] overflow-hidden">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
@@ -1645,14 +1645,12 @@ export default function MatchesPage() {
                 
                 <div className="rounded-md bg-muted p-3">
                   <div className="text-sm font-medium">Example CSV Format:</div>
-                  <div className="max-w-full overflow-x-auto">
-                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre">
-Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
-Team A,21,10,7,0,3,22,12
-Team B,18,10,6,0,4,20,15
-Team C,15,10,5,0,5,17,18
-                    </pre>
-                  </div>
+                  <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto w-full break-words">
+                    Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
+                    Team A,21,10,7,0,3,22,12<br />
+                    Team B,18,10,6,0,4,20,15<br />
+                    Team C,15,10,5,0,5,17,18
+                  </pre>
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
