@@ -439,7 +439,14 @@ export default function MatchesPage() {
             const parts = line.split(",");
             if (parts.length < 2) continue;
             
-            const externalTeamName = parts[0].trim();
+            // Remove quotation marks from team name if present
+            let externalTeamName = parts[0].trim();
+            if (externalTeamName.startsWith('"') && externalTeamName.endsWith('"')) {
+              externalTeamName = externalTeamName.substring(1, externalTeamName.length - 1);
+            } else if (externalTeamName.startsWith('"')) {
+              externalTeamName = externalTeamName.substring(1);
+            }
+            
             const points = parseInt(parts[1].trim(), 10);
             
             if (!externalTeamName || isNaN(points)) continue;
@@ -924,9 +931,9 @@ export default function MatchesPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <Header title="Matches" />
-        <main className="flex-1 p-4 md:p-6 space-y-4">
+        <main className="flex-1 p-4 md:p-6 space-y-4 pt-20 md:pt-24">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Matches</h1>
             {canManage && (
@@ -1615,7 +1622,7 @@ export default function MatchesPage() {
 
           {/* CSV Upload Dialog */}
           <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] overflow-hidden">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
@@ -1642,12 +1649,14 @@ export default function MatchesPage() {
                 
                 <div className="rounded-md bg-muted p-3">
                   <div className="text-sm font-medium">Example CSV Format:</div>
-                  <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto">
-                    Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
-                    Team A,21,10,7,0,3,22,12<br />
-                    Team B,18,10,6,0,4,20,15<br />
-                    Team C,15,10,5,0,5,17,18
-                  </pre>
+                  <div className="max-h-28 overflow-y-auto">
+                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto break-all px-2">
+                      Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
+                      Team A,21,10,7,0,3,22,12<br />
+                      Team B,18,10,6,0,4,20,15<br />
+                      Team C,15,10,5,0,5,17,18
+                    </pre>
+                  </div>
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
