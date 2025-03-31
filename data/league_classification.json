@@ -1,0 +1,47 @@
+[
+  {
+    "externalTeamName": "\"Huracan",
+    "points": 21,
+    "position": 1,
+    "gamesPlayed": 10,
+    "gamesWon": 7,
+    "gamesDrawn": 0,
+    "gamesLost": 3,
+    "goalsFor": 22,
+    "goalsAgainst": 12,
+    "teamId": 1,
+    "id": 7,
+    "createdAt": "2025-03-31T18:34:00.010Z",
+    "updatedAt": "2025-03-31T18:34:00.010Z"
+  },
+  {
+    "externalTeamName": "\"Naviera",
+    "points": 18,
+    "position": 2,
+    "gamesPlayed": 10,
+    "gamesWon": 6,
+    "gamesDrawn": 0,
+    "gamesLost": 4,
+    "goalsFor": 20,
+    "goalsAgainst": 15,
+    "teamId": 1,
+    "id": 8,
+    "createdAt": "2025-03-31T18:34:00.011Z",
+    "updatedAt": "2025-03-31T18:34:00.011Z"
+  },
+  {
+    "externalTeamName": "\"Pomares",
+    "points": 15,
+    "position": 3,
+    "gamesPlayed": 10,
+    "gamesWon": 5,
+    "gamesDrawn": 0,
+    "gamesLost": 5,
+    "goalsFor": 17,
+    "goalsAgainst": 18,
+    "teamId": 1,
+    "id": 9,
+    "createdAt": "2025-03-31T18:34:00.011Z",
+    "updatedAt": "2025-03-31T18:34:00.011Z"
+  }
+]
