@@ -439,10 +439,7 @@ export default function MatchesPage() {
             const parts = line.split(",");
             if (parts.length < 2) continue;
             
-            // Remove any quotes from the team name
-            let externalTeamName = parts[0].trim();
-            externalTeamName = externalTeamName.replace(/^["']|["']$/g, ''); // Remove leading/trailing quotes
-            
+            const externalTeamName = parts[0].trim();
             const points = parseInt(parts[1].trim(), 10);
             
             if (!externalTeamName || isNaN(points)) continue;
@@ -1618,7 +1615,7 @@ export default function MatchesPage() {
 
           {/* CSV Upload Dialog */}
           <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] max-w-[90vw] overflow-hidden">
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
@@ -1626,7 +1623,7 @@ export default function MatchesPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="grid w-full items-center gap-1.5">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
                   <Label htmlFor="csv-file">CSV File</Label>
                   <Input
                     id="csv-file"
@@ -1645,7 +1642,7 @@ export default function MatchesPage() {
                 
                 <div className="rounded-md bg-muted p-3">
                   <div className="text-sm font-medium">Example CSV Format:</div>
-                  <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto w-full break-words">
+                  <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto">
                     Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
                     Team A,21,10,7,0,3,22,12<br />
                     Team B,18,10,6,0,4,20,15<br />
