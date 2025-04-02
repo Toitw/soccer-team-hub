@@ -145,7 +145,7 @@ export default function MatchesPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
   // Define forms
-  const matchForm = useForm<MatchFormData>({
+  const form = useForm<MatchFormData>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
       opponentName: "",
@@ -491,7 +491,7 @@ export default function MatchesPage() {
     setIsEditing(true);
     const matchDate = new Date(match.matchDate);
     const formattedDate = matchDate.toISOString().slice(0, 16);
-    matchForm.reset({
+    form.reset({
       opponentName: match.opponentName,
       matchDate: formattedDate,
       location: match.location,
@@ -542,11 +542,12 @@ export default function MatchesPage() {
   // Handle match dialog close
   const handleDialogChange = (open: boolean) => {
     if (!open) {
+      // Reset the form and editing state when dialog is closed
       setTimeout(() => {
         if (!isEditing) return;
         setIsEditing(false);
         setEditingMatch(null);
-        matchForm.reset({
+        form.reset({
           opponentName: "",
           matchDate: new Date().toISOString().slice(0, 16),
           location: "",
@@ -564,13 +565,22 @@ export default function MatchesPage() {
 
   const onSubmit = async (data: MatchFormData) => {
     try {
+      // Log submission data for debugging
+      console.log("Form submission:", {
+        isEditing,
+        editingMatchId: editingMatch?.id,
+        formData: data
+      });
+      
       if (!selectedTeam) throw new Error("No team selected");
       const formattedData = {
         ...data,
         matchDate: new Date(data.matchDate).toISOString(),
       };
+      
       let response, successMessage;
       if (isEditing && editingMatch) {
+        console.log("Updating match:", editingMatch.id);
         response = await fetch(
           `/api/teams/${selectedTeam.id}/matches/${editingMatch.id}`,
           {
@@ -581,6 +591,7 @@ export default function MatchesPage() {
         );
         successMessage = "Match updated successfully";
       } else {
+        console.log("Creating new match");
         response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -588,22 +599,32 @@ export default function MatchesPage() {
         });
         successMessage = "Match created successfully";
       }
-      if (!response.ok)
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API error:", errorText);
         throw new Error(
           isEditing ? "Failed to update match" : "Failed to create match",
         );
-      await response.json();
+      }
+      
+      const result = await response.json();
+      console.log("API response:", result);
+      
       setIsEditing(false);
       setEditingMatch(null);
       setDialogOpen(false);
-      matchForm.reset();
+      form.reset();
+      
+      console.log("Refreshing matches data");
       await refetchMatchesData();
+      
       toast({
         title: isEditing ? "Match updated" : "Match created",
         description: successMessage,
       });
     } catch (error) {
-      console.error(error);
+      console.error("Error in onSubmit:", error);
       toast({
         title: "Error",
         description: isEditing
@@ -1060,13 +1081,13 @@ export default function MatchesPage() {
                     : "Enter match details below to create a new match."}
                 </DialogDescription>
               </DialogHeader>
-              <Form {...matchForm}>
+              <Form {...form}>
                 <form
-                  onSubmit={matchForm.handleSubmit(onSubmit)}
+                  onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-4"
                 >
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="opponentName"
                     render={({ field }) => (
                       <FormItem>
@@ -1079,7 +1100,7 @@ export default function MatchesPage() {
                     )}
                   />
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="matchDate"
                     render={({ field }) => (
                       <FormItem>
@@ -1092,7 +1113,7 @@ export default function MatchesPage() {
                     )}
                   />
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="matchType"
                     render={({ field }) => (
                       <FormItem>
@@ -1117,7 +1138,7 @@ export default function MatchesPage() {
                     )}
                   />
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="location"
                     render={({ field }) => (
                       <FormItem>
@@ -1133,7 +1154,7 @@ export default function MatchesPage() {
                     )}
                   />
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="isHome"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
@@ -1152,7 +1173,7 @@ export default function MatchesPage() {
                     )}
                   />
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="status"
                     render={({ field }) => (
                       <FormItem>
@@ -1176,10 +1197,10 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-                  {matchForm.watch("status") === "completed" && (
+                  {form.watch("status") === "completed" && (
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
-                        control={matchForm.control}
+                        control={form.control}
                         name="goalsScored"
                         render={({ field }) => (
                           <FormItem>
@@ -1202,7 +1223,7 @@ export default function MatchesPage() {
                         )}
                       />
                       <FormField
-                        control={matchForm.control}
+                        control={form.control}
                         name="goalsConceded"
                         render={({ field }) => (
                           <FormItem>
@@ -1227,7 +1248,7 @@ export default function MatchesPage() {
                     </div>
                   )}
                   <FormField
-                    control={matchForm.control}
+                    control={form.control}
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
