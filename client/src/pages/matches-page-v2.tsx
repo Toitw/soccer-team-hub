@@ -31,6 +31,7 @@ import {
   PlusSquare,
   FileText,
   Upload,
+  Info as InfoIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -83,6 +84,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+
 
 // Define form schema for creating a match
 const matchSchema = z.object({
@@ -933,7 +936,7 @@ export default function MatchesPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header title="Matches" />
-        <main className="flex-1 p-4 md:p-6 space-y-4 pt-20 md:pt-24">
+        <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 pt-6 md:mt-16 md:pt-8">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Matches</h1>
             {canManage && (
@@ -1622,7 +1625,7 @@ export default function MatchesPage() {
 
           {/* CSV Upload Dialog */}
           <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
-            <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] overflow-hidden">
+            <DialogContent className="w-full max-w-[95vw] sm:max-w-[550px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
@@ -1630,7 +1633,7 @@ export default function MatchesPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="grid w-full max-w-sm items-center gap-1.5">
+                <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="csv-file">CSV File</Label>
                   <Input
                     id="csv-file"
@@ -1642,15 +1645,15 @@ export default function MatchesPage() {
                       }
                     }}
                   />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                     Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
                   </p>
                 </div>
                 
                 <div className="rounded-md bg-muted p-3">
                   <div className="text-sm font-medium">Example CSV Format:</div>
-                  <div className="max-h-28 overflow-y-auto">
-                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto break-all px-2">
+                  <div className="max-h-32 overflow-y-auto custom-scrollbar">
+                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto px-2">
                       Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
                       Team A,21,10,7,0,3,22,12<br />
                       Team B,18,10,6,0,4,20,15<br />
@@ -1659,14 +1662,29 @@ export default function MatchesPage() {
                   </div>
                 </div>
                 
-                <p className="text-sm text-muted-foreground">
-                  Need a template?{" "}
-                  <Button variant="link" className="p-0 h-auto" onClick={generateSampleCsv}>
+                <div className="text-sm text-muted-foreground flex items-center">
+                  <span>Need a template?</span>
+                  <Button variant="link" className="p-0 h-auto ml-1" onClick={generateSampleCsv}>
                     Download sample CSV
                   </Button>
-                </p>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start">
+                    <InfoIcon className="h-4 w-4 mr-2 text-blue-500 dark:text-blue-400 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm mb-1">Note</p>
+                      <p className="text-blue-700 dark:text-blue-300">
+                        Uploading a new CSV will replace all existing classification data.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="mt-4 sm:mt-6">
+                <Button type="button" variant="outline" onClick={() => setCsvUploadDialogOpen(false)} className="mr-2">
+                  Cancel
+                </Button>
                 <Button type="button" onClick={handleCsvUpload}>
                   Upload and Process
                 </Button>
