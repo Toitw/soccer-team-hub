@@ -1070,7 +1070,7 @@ export default function MatchesPage() {
 
           {/* Match creation/editing dialog */}
           <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>
                   {isEditing ? "Edit Match" : "Add New Match"}
@@ -1278,7 +1278,7 @@ export default function MatchesPage() {
             open={classificationDialogOpen}
             onOpenChange={handleClassificationDialogChange}
           >
-            <DialogContent className="w-full max-w-full sm:max-w-[500px] px-4">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] px-4">
               <DialogHeader>
                 <DialogTitle>
                   {isEditingClassification
@@ -1523,7 +1523,7 @@ export default function MatchesPage() {
             open={csvUploadDialogOpen}
             onOpenChange={setCsvUploadDialogOpen}
           >
-            <DialogContent className="w-full max-w-[90vw] sm:max-w-[500px] md:max-w-[550px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
@@ -1663,7 +1663,7 @@ export default function MatchesPage() {
               if (!open) setSelectedMatch(null);
             }}
           >
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[600px]">
               {selectedMatch && selectedTeam && (
                 <MatchDetails
                   match={selectedMatch}
