@@ -878,7 +878,12 @@ export default function MatchesPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
-                    <CardTitle>League Classification</CardTitle>
+                    <div>
+                      <CardTitle>League Classification</CardTitle>
+                      <CardDescription>
+                        Current standings in the league
+                      </CardDescription>
+                    </div>
                     {canManage && (
                       <div className="flex space-x-2">
                         <Button
@@ -898,9 +903,6 @@ export default function MatchesPage() {
                       </div>
                     )}
                   </div>
-                  <CardDescription>
-                    Current standings in the league
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                   {classifications && classifications.length > 0 ? (
