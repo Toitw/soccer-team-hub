@@ -569,15 +569,15 @@ export default function MatchesPage() {
       console.log("Form submission:", {
         isEditing,
         editingMatchId: editingMatch?.id,
-        formData: data
+        formData: data,
       });
-      
+
       if (!selectedTeam) throw new Error("No team selected");
       const formattedData = {
         ...data,
         matchDate: new Date(data.matchDate).toISOString(),
       };
-      
+
       let response, successMessage;
       if (isEditing && editingMatch) {
         console.log("Updating match:", editingMatch.id);
@@ -599,7 +599,7 @@ export default function MatchesPage() {
         });
         successMessage = "Match created successfully";
       }
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("API error:", errorText);
@@ -607,18 +607,18 @@ export default function MatchesPage() {
           isEditing ? "Failed to update match" : "Failed to create match",
         );
       }
-      
+
       const result = await response.json();
       console.log("API response:", result);
-      
+
       setIsEditing(false);
       setEditingMatch(null);
       setDialogOpen(false);
       form.reset();
-      
+
       console.log("Refreshing matches data");
       await refetchMatchesData();
-      
+
       toast({
         title: isEditing ? "Match updated" : "Match created",
         description: successMessage,
@@ -699,7 +699,8 @@ export default function MatchesPage() {
 
   const getMatchTypeBadge = (matchType?: string) => {
     if (!matchType) return null;
-    let variant: "default" | "destructive" | "outline" | "secondary" = "default";
+    let variant: "default" | "destructive" | "outline" | "secondary" =
+      "default";
     if (matchType === "league") variant = "default";
     else if (matchType === "copa") variant = "destructive";
     else if (matchType === "friendly") variant = "outline";
@@ -715,7 +716,11 @@ export default function MatchesPage() {
     const isPastMatch = isPast(matchDate) || match.status === "completed";
     const hasScores =
       match.goalsScored !== null && match.goalsConceded !== null;
-    const getResultBadgeVariant = (): "default" | "destructive" | "outline" | "secondary" => {
+    const getResultBadgeVariant = ():
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary" => {
       if (!hasScores) return "secondary";
       if (match.goalsScored! > match.goalsConceded!) return "secondary";
       if (match.goalsScored! < match.goalsConceded!) return "destructive";
@@ -912,7 +917,7 @@ export default function MatchesPage() {
                           size="sm"
                           onClick={() => setClassificationDialogOpen(true)}
                         >
-                          <PlusSquare className="h-4 w-4 mr-1" /> Add Entry
+                          <PlusSquare className="h-4 w-4 mr-1" /> Ad Entry
                         </Button>
                         <Button
                           variant="outline"
@@ -1535,8 +1540,13 @@ export default function MatchesPage() {
                 <div className="flex items-start">
                   <InfoIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Warning: This will replace existing data</p>
-                    <p className="text-sm">Uploading this file will replace all existing classification data for this team.</p>
+                    <p className="font-medium">
+                      Warning: This will replace existing data
+                    </p>
+                    <p className="text-sm">
+                      Uploading this file will replace all existing
+                      classification data for this team.
+                    </p>
                   </div>
                 </div>
               </div>
