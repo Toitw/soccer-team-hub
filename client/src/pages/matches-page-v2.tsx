@@ -833,7 +833,7 @@ export default function MatchesPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-x-hidden">
         <Header title="Matches" />
-        <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 md:mt-20 pt-4 md:pt-8 pb-16">
+        <main className="flex-1 p-4 md:p-6 space-y-4 pt-4 pb-16">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Matches</h1>
             {canManage && (
