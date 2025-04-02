@@ -1491,43 +1491,45 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {substitutions && substitutions.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Player In</TableHead>
-                    <TableHead>Player Out</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {substitutions.map((sub) => (
-                    <TableRow key={sub.id}>
-                      <TableCell className="font-medium">{sub.minute}'</TableCell>
-                      <TableCell>
-                        {sub.playerIn.fullName}
-                        {sub.playerIn.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerIn.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        {sub.playerOut.fullName}
-                        {sub.playerOut.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerOut.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>{sub.reason || "-"}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteSubstitution.mutate(sub.id)}
-                          disabled={deleteSubstitution.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Min</TableHead>
+                      <TableHead>Player In</TableHead>
+                      <TableHead>Player Out</TableHead>
+                      <TableHead className="hidden sm:table-cell">Reason</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {substitutions.map((sub) => (
+                      <TableRow key={sub.id}>
+                        <TableCell className="font-medium">{sub.minute}'</TableCell>
+                        <TableCell className="max-w-[100px] truncate">
+                          {sub.playerIn.fullName}
+                          {sub.playerIn.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerIn.jerseyNumber}</span>}
+                        </TableCell>
+                        <TableCell className="max-w-[100px] truncate">
+                          {sub.playerOut.fullName}
+                          {sub.playerOut.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerOut.jerseyNumber}</span>}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">{sub.reason || "-"}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteSubstitution.mutate(sub.id)}
+                            disabled={deleteSubstitution.isPending}
+                          >
+                            <Trash className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
                 <p className="text-gray-500">No substitutions recorded for this match.</p>
@@ -1684,53 +1686,55 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {goals && goals.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Scorer</TableHead>
-                    <TableHead>Assist</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {goals.map((goal) => (
-                    <TableRow key={goal.id}>
-                      <TableCell className="font-medium">{goal.minute}'</TableCell>
-                      <TableCell>
-                        {goal.scorer.fullName}
-                        {goal.scorer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.scorer.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        {goal.assistPlayer ? (
-                          <>
-                            {goal.assistPlayer.fullName}
-                            {goal.assistPlayer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.assistPlayer.jerseyNumber}</span>}
-                          </>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {goal.type === "regular" ? "Regular" : 
-                         goal.type === "penalty" ? "Penalty" : 
-                         goal.type === "free_kick" ? "Free Kick" : 
-                         goal.type === "own_goal" ? "Own Goal" : 
-                         "Unknown"}
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteGoal.mutate(goal.id)}
-                          disabled={deleteGoal.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Min</TableHead>
+                      <TableHead>Scorer</TableHead>
+                      <TableHead className="hidden sm:table-cell">Assist</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {goals.map((goal) => (
+                      <TableRow key={goal.id}>
+                        <TableCell className="font-medium">{goal.minute}'</TableCell>
+                        <TableCell className="max-w-[100px] truncate">
+                          {goal.scorer.fullName}
+                          {goal.scorer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.scorer.jerseyNumber}</span>}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {goal.assistPlayer ? (
+                            <>
+                              {goal.assistPlayer.fullName}
+                              {goal.assistPlayer.jerseyNumber && <span className="text-gray-500 ml-1">#{goal.assistPlayer.jerseyNumber}</span>}
+                            </>
+                          ) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {goal.type === "regular" ? "Regular" : 
+                           goal.type === "penalty" ? "PK" : 
+                           goal.type === "free_kick" ? "FK" : 
+                           goal.type === "own_goal" ? "OG" : 
+                           "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteGoal.mutate(goal.id)}
+                            disabled={deleteGoal.isPending}
+                          >
+                            <Trash className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
                 <p className="text-gray-500">No goals recorded for this match.</p>
@@ -1859,44 +1863,46 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             </div>
             
             {cards && cards.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Min</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cards.map((card) => (
-                    <TableRow key={card.id}>
-                      <TableCell className="font-medium">{card.minute}'</TableCell>
-                      <TableCell>
-                        {card.player.fullName}
-                        {card.player.jerseyNumber && <span className="text-gray-500 ml-1">#{card.player.jerseyNumber}</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={card.type === "yellow" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
-                          {card.type === "yellow" ? "Yellow" : "Red"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{card.reason || "-"}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteCard.mutate(card.id)}
-                          disabled={deleteCard.isPending}
-                        >
-                          <Trash className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </TableCell>
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Min</TableHead>
+                      <TableHead>Player</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="hidden sm:table-cell">Reason</TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {cards.map((card) => (
+                      <TableRow key={card.id}>
+                        <TableCell className="font-medium">{card.minute}'</TableCell>
+                        <TableCell className="max-w-[100px] truncate">
+                          {card.player.fullName}
+                          {card.player.jerseyNumber && <span className="text-gray-500 ml-1">#{card.player.jerseyNumber}</span>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={card.type === "yellow" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
+                            {card.type === "yellow" ? "Yellow" : "Red"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">{card.reason || "-"}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteCard.mutate(card.id)}
+                            disabled={deleteCard.isPending}
+                          >
+                            <Trash className="h-4 w-4 text-gray-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
                 <p className="text-gray-500">No cards recorded for this match.</p>
