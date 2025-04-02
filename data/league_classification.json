@@ -1,0 +1,47 @@
+[
+  {
+    "externalTeamName": "Team A",
+    "points": 21,
+    "position": 1,
+    "gamesPlayed": 10,
+    "gamesWon": 7,
+    "gamesDrawn": 0,
+    "gamesLost": 3,
+    "goalsFor": 22,
+    "goalsAgainst": 12,
+    "teamId": 1,
+    "id": 1,
+    "createdAt": "2025-04-02T20:31:41.540Z",
+    "updatedAt": "2025-04-02T20:31:41.540Z"
+  },
+  {
+    "externalTeamName": "Team B",
+    "points": 18,
+    "position": 2,
+    "gamesPlayed": 10,
+    "gamesWon": 6,
+    "gamesDrawn": 0,
+    "gamesLost": 4,
+    "goalsFor": 20,
+    "goalsAgainst": 15,
+    "teamId": 1,
+    "id": 2,
+    "createdAt": "2025-04-02T20:31:41.540Z",
+    "updatedAt": "2025-04-02T20:31:41.540Z"
+  },
+  {
+    "externalTeamName": "Team C",
+    "points": 15,
+    "position": 3,
+    "gamesPlayed": 10,
+    "gamesWon": 5,
+    "gamesDrawn": 0,
+    "gamesLost": 5,
+    "goalsFor": 17,
+    "goalsAgainst": 18,
+    "teamId": 1,
+    "id": 3,
+    "createdAt": "2025-04-02T20:31:41.541Z",
+    "updatedAt": "2025-04-02T20:31:41.541Z"
+  }
+]
