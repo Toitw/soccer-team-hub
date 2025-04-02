@@ -75,7 +75,7 @@ export default function DashboardPage() {
     <div className="flex h-screen bg-background">
       <Sidebar />
 
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 ml-0 md:ml-64 z-30">
         <Header title="Dashboard" />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-20"> {/* Changed padding-bottom */}

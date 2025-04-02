@@ -320,7 +320,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
     <div className="flex h-screen bg-background">
       <Sidebar />
 
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 ml-0 md:ml-64 z-30">
         <Header title="Announcements" />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24"> {/* Added more bottom padding for mobile nav */}

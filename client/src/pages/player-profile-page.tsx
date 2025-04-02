@@ -81,7 +81,7 @@ export default function PlayerProfilePage() {
     <div className="flex h-screen bg-background">
       <Sidebar />
 
-      <div className="flex-1 ml-0 md:ml-64">
+      <div className="flex-1 ml-0 md:ml-64 z-30">
         <Header title="Player Profile" />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6">
