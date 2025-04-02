@@ -78,19 +78,5 @@
     "teamId": 1,
     "id": 6,
     "opponentLogo": null
-  },
-  {
-    "opponentName": "Probando",
-    "matchDate": "2025-04-01T15:10:00.000Z",
-    "location": "Podes",
-    "isHome": false,
-    "notes": "hola",
-    "status": "completed",
-    "matchType": "league",
-    "goalsScored": 2,
-    "goalsConceded": 1,
-    "teamId": 1,
-    "id": 7,
-    "opponentLogo": null
   }
 ]
