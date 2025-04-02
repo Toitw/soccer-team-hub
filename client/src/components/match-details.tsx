@@ -739,7 +739,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               Lineup
             </TabsTrigger>
             <TabsTrigger value="substitutions">
-              Substitutions
+              Subs
             </TabsTrigger>
             <TabsTrigger value="goals">
               Goals
@@ -811,7 +811,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
                               {/* Soccer Field */}
                               <div className="lg:col-span-3">
-                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-80 sm:aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:h-[500px] mx-auto rounded-md flex items-center justify-center overflow-hidden">
                                   <div className="absolute top-0 left-0 w-full h-full">
                                     <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                                       {/* Soccer field markings */}
@@ -864,9 +864,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 
                                                 {/* Player tooltip */}
                                                 {player && (
-                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap">
+                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 pointer-events-none group-hover:opacity-100 whitespace-nowrap shadow-lg">
                                                     {player.user.fullName}
-                                                    {player.user.position && ` (${player.user.position})`}
+                                                    {player.user.position && <div className="text-[10px] text-center text-gray-300">{player.user.position}</div>}
                                                   </div>
                                                 )}
                                               </div>
@@ -1078,7 +1078,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {/* Field Visualization */}
                 <div className="mb-6">
                   <h4 className="font-medium text-sm mb-2">Field Positions</h4>
-                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] h-[350px] mx-auto rounded-md flex items-center justify-center overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                         {/* Soccer field markings */}
@@ -1143,8 +1143,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 
                                 {/* Player name below icon (instead of tooltip) */}
                                 {positionPlayer && (
-                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/70 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[80px] truncate">
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/80 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[100px] truncate shadow-lg">
                                     {positionPlayer.fullName}
+                                    {positionPlayer.position && <div className="text-center text-gray-300 text-[8px]">{positionPlayer.position}</div>}
                                   </div>
                                 )}
                               </div>
@@ -1371,7 +1372,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Substitutions Tab */}
           <TabsContent value="substitutions" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Substitutions</h3>
+              <h3 className="text-lg font-medium">Subs</h3>
               <Dialog open={substitutionDialogOpen} onOpenChange={setSubstitutionDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
