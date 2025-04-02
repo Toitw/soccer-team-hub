@@ -323,10 +323,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
       <div className="flex-1 ml-0 md:ml-64 z-30">
         <Header title="Announcements" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24"> {/* Added more bottom padding for mobile nav */}
-          <div className="flex justify-between items-center mb-6">
+        <div className="px-3 sm:px-6 lg:px-8 py-6 pb-24 max-w-full overflow-x-hidden"> {/* Added max-width and overflow control */}
+          <div className="flex flex-wrap justify-between items-center mb-6 gap-y-2">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold">Team Announcements</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">Team Announcements</h1>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -347,9 +347,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
             {canManageAnnouncements() && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    New Announcement
+                  <Button size="sm" className="sm:text-base">
+                    <PlusIcon className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="whitespace-nowrap">New Announcement</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -430,7 +430,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
               )}
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-4 max-w-full">
               {announcements?.map((announcement) => {
                 let borderColor = "border-secondary";
 
@@ -444,12 +444,12 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                 }
 
                 return (
-                  <Card key={announcement.id} className={`border-l-4 ${borderColor}`}>
+                  <Card key={announcement.id} className={`border-l-4 ${borderColor} max-w-full overflow-hidden`}>
                     <CardHeader>
                       <div className="flex justify-between items-start">
-                        <CardTitle>{announcement.title}</CardTitle>
+                        <CardTitle className="break-words mr-2">{announcement.title}</CardTitle>
                         {canManageAnnouncements() && (
-                          <div className="flex">
+                          <div className="flex shrink-0">
                             <Button 
                               variant="ghost" 
                               size="icon"
@@ -494,15 +494,15 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="whitespace-pre-wrap">{announcement.content}</p>
+                      <p className="whitespace-pre-wrap break-words">{announcement.content}</p>
                     </CardContent>
-                    <CardFooter className="flex justify-between pt-2 text-xs text-muted-foreground">
-                      <span>
+                    <CardFooter className="flex flex-wrap justify-between pt-2 text-xs text-muted-foreground gap-y-1">
+                      <span className="break-words">
                         {announcement.createdAt
                           ? format(new Date(announcement.createdAt), "MMMM d, yyyy")
                           : "Date not available"}
                       </span>
-                      <span>
+                      <span className="break-words">
                         Posted by: {announcement.creator?.fullName || `User ${announcement.createdById}`}
                       </span>
                     </CardFooter>
