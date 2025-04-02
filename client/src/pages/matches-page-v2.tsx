@@ -910,7 +910,31 @@ export default function MatchesPage() {
                         Current standings in the league
                       </CardDescription>
                     </div>
-                    
+                    {canManage && (
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setClassificationDialogOpen(true)}
+                        >
+                          <PlusSquare className="h-4 w-4 mr-1" /> Add Entry
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCsvUploadDialogOpen(true)}
+                        >
+                          <Upload className="h-4 w-4 mr-1" /> Upload CSV
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateSampleCsv}
+                        >
+                          <FileText className="h-4 w-4 mr-1" /> Sample CSV
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
