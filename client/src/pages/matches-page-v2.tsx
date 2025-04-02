@@ -895,13 +895,6 @@ export default function MatchesPage() {
                         >
                           <Upload className="h-4 w-4 mr-1" /> Upload CSV
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={generateSampleCsv}
-                        >
-                          <FileText className="h-4 w-4 mr-1" /> Sample CSV
-                        </Button>
                       </div>
                     )}
                   </div>
