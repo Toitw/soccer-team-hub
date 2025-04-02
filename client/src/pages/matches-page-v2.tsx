@@ -85,8 +85,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-
-
 // Define form schema for creating a match
 const matchSchema = z.object({
   opponentName: z.string().min(1, "Opponent name is required"),
@@ -106,7 +104,12 @@ type MatchFormData = z.infer<typeof matchSchema>;
 const classificationSchema = z.object({
   externalTeamName: z.string().min(1, "Team name is required"),
   points: z.number().int().min(0, "Points must be a positive number"),
-  position: z.number().int().min(1, "Position must be a positive number").optional().nullable(),
+  position: z
+    .number()
+    .int()
+    .min(1, "Position must be a positive number")
+    .optional()
+    .nullable(),
   gamesPlayed: z.number().int().min(0).optional().nullable(),
   gamesWon: z.number().int().min(0).optional().nullable(),
   gamesDrawn: z.number().int().min(0).optional().nullable(),
@@ -127,17 +130,21 @@ export default function MatchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [matchToDelete, setMatchToDelete] = useState<Match | null>(null);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  
+
   // Classification states
-  const [classificationDialogOpen, setClassificationDialogOpen] = useState(false);
-  const [editingClassification, setEditingClassification] = useState<LeagueClassification | null>(null);
+  const [classificationDialogOpen, setClassificationDialogOpen] =
+    useState(false);
+  const [editingClassification, setEditingClassification] =
+    useState<LeagueClassification | null>(null);
   const [isEditingClassification, setIsEditingClassification] = useState(false);
-  const [deleteClassificationDialogOpen, setDeleteClassificationDialogOpen] = useState(false);
-  const [classificationToDelete, setClassificationToDelete] = useState<LeagueClassification | null>(null);
+  const [deleteClassificationDialogOpen, setDeleteClassificationDialogOpen] =
+    useState(false);
+  const [classificationToDelete, setClassificationToDelete] =
+    useState<LeagueClassification | null>(null);
   const [csvUploadDialogOpen, setCsvUploadDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  
-  // Define forms here to maintain hook order
+
+  // Define forms
   const matchForm = useForm<MatchFormData>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
@@ -152,8 +159,7 @@ export default function MatchesPage() {
       goalsConceded: null,
     },
   });
-  
-  // Classification form
+
   const classificationForm = useForm<ClassificationFormData>({
     resolver: zodResolver(classificationSchema),
     defaultValues: {
@@ -168,7 +174,7 @@ export default function MatchesPage() {
       goalsAgainst: null,
     },
   });
-  
+
   // Check if user can manage matches (admin or coach)
   const canManage = user?.role === "admin" || user?.role === "coach";
 
@@ -179,7 +185,7 @@ export default function MatchesPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  // Use React Query client for manual invalidation
+  // React Query client
   const queryClient = useQueryClient();
 
   const {
@@ -191,28 +197,22 @@ export default function MatchesPage() {
     enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
-      console.log(`Fetching matches for team ${selectedTeam.id}`);
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
       if (!response.ok) throw new Error("Failed to fetch matches");
-      const matchesData = await response.json();
-      console.log("Fetched matches:", matchesData);
-      return matchesData;
+      return await response.json();
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 0, // Consider data stale immediately
+    staleTime: 0,
   });
 
-  // We need to make sure refetchMatches properly invalidates the cache
   const refetchMatchesData = async () => {
-    console.log("Manually invalidating matches cache");
     await queryClient.invalidateQueries({
       queryKey: ["matches", selectedTeam?.id],
     });
     return refetchMatches();
   };
 
-  // Query for league classification data
   const {
     data: classifications,
     isLoading: classificationsLoading,
@@ -222,31 +222,27 @@ export default function MatchesPage() {
     enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
-      console.log(`Fetching classifications for team ${selectedTeam.id}`);
-      const response = await fetch(`/api/teams/${selectedTeam.id}/classification`);
+      const response = await fetch(
+        `/api/teams/${selectedTeam.id}/classification`,
+      );
       if (!response.ok) throw new Error("Failed to fetch classifications");
-      const classificationsData = await response.json();
-      console.log("Fetched classifications:", classificationsData);
-      return classificationsData;
+      return await response.json();
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 0, // Consider data stale immediately
+    staleTime: 0,
   });
 
-  // We need to make sure refetchClassifications properly invalidates the cache
   const refetchClassificationsData = async () => {
-    console.log("Manually invalidating classifications cache");
     await queryClient.invalidateQueries({
       queryKey: ["classifications", selectedTeam?.id],
     });
     return refetchClassifications();
   };
 
-  // Handle dialog close for classification form
+  // Handle classification dialog close
   const handleClassificationDialogChange = (open: boolean) => {
     if (!open) {
-      // Reset the form and editing state when dialog is closed
       setTimeout(() => {
         setIsEditingClassification(false);
         setEditingClassification(null);
@@ -266,12 +262,10 @@ export default function MatchesPage() {
     setClassificationDialogOpen(open);
   };
 
-  // Handle editing a classification entry
+  // Edit classification entry
   const handleEditClassification = (classification: LeagueClassification) => {
     setEditingClassification(classification);
     setIsEditingClassification(true);
-
-    // Reset the form with the classification data
     classificationForm.reset({
       externalTeamName: classification.externalTeamName,
       points: classification.points,
@@ -283,85 +277,56 @@ export default function MatchesPage() {
       goalsFor: classification.goalsFor,
       goalsAgainst: classification.goalsAgainst,
     });
-
     setClassificationDialogOpen(true);
   };
 
-  // Handle classification form submission
+  // Classification form submission
   const onClassificationSubmit = async (data: ClassificationFormData) => {
     try {
-      if (!selectedTeam) {
-        throw new Error("No team selected");
-      }
+      if (!selectedTeam) throw new Error("No team selected");
 
-      console.log("Submitting classification data:", data);
-
-      let response;
-      let successMessage;
-
-      // If editing an existing classification
+      let response, successMessage;
       if (isEditingClassification && editingClassification) {
         response = await fetch(
           `/api/classification/${editingClassification.id}`,
           {
             method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           },
         );
         successMessage = "Classification updated successfully";
       } else {
-        // Creating a new classification
         response = await fetch(`/api/teams/${selectedTeam.id}/classification`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
         successMessage = "Classification created successfully";
       }
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(
-          isEditingClassification 
-          ? "Failed to update classification" 
-          : "Failed to create classification",
+          isEditingClassification
+            ? "Failed to update classification"
+            : "Failed to create classification",
         );
-      }
 
-      // Get the result
-      const result = await response.json();
-      console.log(
-        isEditingClassification 
-        ? "Updated classification:" 
-        : "Created classification:", 
-        result
-      );
-
-      // Reset editing state
+      await response.json();
       setIsEditingClassification(false);
       setEditingClassification(null);
       setClassificationDialogOpen(false);
       classificationForm.reset();
-
-      // Force refetch with a different query key to trigger refresh
       await refetchClassificationsData();
-      console.log("Classifications refetched");
 
       toast({
-        title: isEditingClassification ? "Classification updated" : "Classification created",
+        title: isEditingClassification
+          ? "Classification updated"
+          : "Classification created",
         description: successMessage,
       });
     } catch (error) {
-      console.error(
-        isEditingClassification 
-        ? "Error updating classification:" 
-        : "Error creating classification:",
-        error,
-      );
+      console.error(error);
       toast({
         title: "Error",
         description: isEditingClassification
@@ -372,32 +337,24 @@ export default function MatchesPage() {
     }
   };
 
-  // Handle deleting a classification
+  // Delete classification
   const handleDeleteClassification = async () => {
     if (!classificationToDelete) return;
-
     try {
       const response = await fetch(
         `/api/classification/${classificationToDelete.id}`,
-        {
-          method: "DELETE",
-        },
+        { method: "DELETE" },
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete classification");
-      }
-
+      if (!response.ok) throw new Error("Failed to delete classification");
       await refetchClassificationsData();
       setDeleteClassificationDialogOpen(false);
       setClassificationToDelete(null);
-
       toast({
         title: "Classification deleted",
         description: "The classification entry has been deleted successfully",
       });
     } catch (error) {
-      console.error("Error deleting classification:", error);
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to delete classification",
@@ -406,7 +363,7 @@ export default function MatchesPage() {
     }
   };
 
-  // Handle CSV file upload
+  // CSV file upload handler
   const handleCsvUpload = async () => {
     if (!csvFile || !selectedTeam) {
       toast({
@@ -416,89 +373,73 @@ export default function MatchesPage() {
       });
       return;
     }
-
     try {
-      // Read the CSV file
       const reader = new FileReader();
-      
       reader.onload = async (e) => {
         try {
           const csvData = e.target?.result;
-          if (!csvData) {
-            throw new Error("Failed to read CSV file");
-          }
-
-          // Parse CSV (simple parsing for team,points format)
+          if (!csvData) throw new Error("Failed to read CSV file");
           const lines = (csvData as string).split("\n");
-          const classifications = [];
-          
-          // Skip header line if exists
+          const classificationsArr = [];
           const startIndex = lines[0].toLowerCase().includes("team") ? 1 : 0;
-          
           for (let i = startIndex; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
-            
             const parts = line.split(",");
             if (parts.length < 2) continue;
-            
-            // Remove quotation marks from team name if present
             let externalTeamName = parts[0].trim();
-            if (externalTeamName.startsWith('"') && externalTeamName.endsWith('"')) {
-              externalTeamName = externalTeamName.substring(1, externalTeamName.length - 1);
+            if (
+              externalTeamName.startsWith('"') &&
+              externalTeamName.endsWith('"')
+            ) {
+              externalTeamName = externalTeamName.substring(
+                1,
+                externalTeamName.length - 1,
+              );
             } else if (externalTeamName.startsWith('"')) {
               externalTeamName = externalTeamName.substring(1);
             }
-            
             const points = parseInt(parts[1].trim(), 10);
-            
             if (!externalTeamName || isNaN(points)) continue;
-            
-            // Create classification object
             const classification = {
               externalTeamName,
               points,
               position: i - startIndex + 1,
-              gamesPlayed: parts.length > 2 ? parseInt(parts[2].trim(), 10) || null : null,
-              gamesWon: parts.length > 3 ? parseInt(parts[3].trim(), 10) || null : null,
-              gamesDrawn: parts.length > 4 ? parseInt(parts[4].trim(), 10) || null : null,
-              gamesLost: parts.length > 5 ? parseInt(parts[5].trim(), 10) || null : null,
-              goalsFor: parts.length > 6 ? parseInt(parts[6].trim(), 10) || null : null,
-              goalsAgainst: parts.length > 7 ? parseInt(parts[7].trim(), 10) || null : null,
+              gamesPlayed:
+                parts.length > 2 ? parseInt(parts[2].trim(), 10) || null : null,
+              gamesWon:
+                parts.length > 3 ? parseInt(parts[3].trim(), 10) || null : null,
+              gamesDrawn:
+                parts.length > 4 ? parseInt(parts[4].trim(), 10) || null : null,
+              gamesLost:
+                parts.length > 5 ? parseInt(parts[5].trim(), 10) || null : null,
+              goalsFor:
+                parts.length > 6 ? parseInt(parts[6].trim(), 10) || null : null,
+              goalsAgainst:
+                parts.length > 7 ? parseInt(parts[7].trim(), 10) || null : null,
             };
-            
-            classifications.push(classification);
+            classificationsArr.push(classification);
           }
-          
-          // Send the parsed data to the API
-          const response = await fetch(`/api/teams/${selectedTeam.id}/classification/bulk`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
+          const response = await fetch(
+            `/api/teams/${selectedTeam.id}/classification/bulk`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ classifications: classificationsArr }),
             },
-            body: JSON.stringify({ classifications }),
-          });
-          
-          if (!response.ok) {
+          );
+          if (!response.ok)
             throw new Error("Failed to upload classification data");
-          }
-          
           const result = await response.json();
-          console.log("Uploaded classifications:", result);
-          
-          // Reset state
           setCsvUploadDialogOpen(false);
           setCsvFile(null);
-          
-          // Refetch classifications
           await refetchClassificationsData();
-          
           toast({
             title: "CSV data uploaded",
             description: `Successfully created ${result.classifications.length} classification entries`,
           });
         } catch (error) {
-          console.error("Error processing CSV:", error);
+          console.error(error);
           toast({
             title: "Error",
             description: "Failed to process CSV file",
@@ -506,10 +447,9 @@ export default function MatchesPage() {
           });
         }
       };
-      
       reader.readAsText(csvFile);
     } catch (error) {
-      console.error("Error uploading CSV:", error);
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to upload CSV file",
@@ -518,22 +458,24 @@ export default function MatchesPage() {
     }
   };
 
-  // Open delete confirmation dialog for classification
-  const confirmDeleteClassification = (classification: LeagueClassification) => {
+  // Open delete confirmation for classification
+  const confirmDeleteClassification = (
+    classification: LeagueClassification,
+  ) => {
     setClassificationToDelete(classification);
     setDeleteClassificationDialogOpen(true);
   };
 
-  // Create a downloadable sample CSV template
+  // Generate sample CSV template
   const generateSampleCsv = () => {
-    const header = "Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst";
+    const header =
+      "Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst";
     const rows = [
       "Team A,21,10,7,0,3,22,12",
       "Team B,18,10,6,0,4,20,15",
-      "Team C,15,10,5,0,5,17,18"
+      "Team C,15,10,5,0,5,17,18",
     ];
     const csvContent = [header, ...rows].join("\n");
-    
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -547,12 +489,8 @@ export default function MatchesPage() {
   const handleEditMatch = (match: Match) => {
     setEditingMatch(match);
     setIsEditing(true);
-
-    // Convert date to format expected by datetime-local input
     const matchDate = new Date(match.matchDate);
     const formattedDate = matchDate.toISOString().slice(0, 16);
-
-    // Reset the form with the match data
     matchForm.reset({
       opponentName: match.opponentName,
       matchDate: formattedDate,
@@ -564,14 +502,12 @@ export default function MatchesPage() {
       goalsScored: match.goalsScored || null,
       goalsConceded: match.goalsConceded || null,
     });
-
     setDialogOpen(true);
   };
 
-  // Handle deleting a match
+  // Delete match handler
   const handleDeleteMatch = async () => {
     if (!matchToDelete || !selectedTeam) return;
-
     try {
       const response = await fetch(
         `/api/teams/${selectedTeam.id}/matches/${matchToDelete.id}`,
@@ -579,21 +515,16 @@ export default function MatchesPage() {
           method: "DELETE",
         },
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to delete match");
-      }
-
+      if (!response.ok) throw new Error("Failed to delete match");
       await refetchMatchesData();
       setDeleteDialogOpen(false);
       setMatchToDelete(null);
-
       toast({
         title: "Match deleted",
         description: "The match has been deleted successfully",
       });
     } catch (error) {
-      console.error("Error deleting match:", error);
+      console.error(error);
       toast({
         title: "Error",
         description: "Failed to delete match",
@@ -602,16 +533,15 @@ export default function MatchesPage() {
     }
   };
 
-  // Open delete confirmation dialog
+  // Open delete confirmation for match
   const confirmDelete = (match: Match) => {
     setMatchToDelete(match);
     setDeleteDialogOpen(true);
   };
 
-  // Handle dialog close - we need to clear form and reset editing state
+  // Handle match dialog close
   const handleDialogChange = (open: boolean) => {
     if (!open) {
-      // Reset the form and editing state when dialog is closed
       setTimeout(() => {
         if (!isEditing) return;
         setIsEditing(false);
@@ -634,75 +564,46 @@ export default function MatchesPage() {
 
   const onSubmit = async (data: MatchFormData) => {
     try {
-      if (!selectedTeam) {
-        throw new Error("No team selected");
-      }
-
-      // Format match date properly
+      if (!selectedTeam) throw new Error("No team selected");
       const formattedData = {
         ...data,
         matchDate: new Date(data.matchDate).toISOString(),
       };
-
-      console.log("Submitting match data:", formattedData);
-
-      let response;
-      let successMessage;
-
-      // If editing an existing match
+      let response, successMessage;
       if (isEditing && editingMatch) {
         response = await fetch(
           `/api/teams/${selectedTeam.id}/matches/${editingMatch.id}`,
           {
             method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formattedData),
           },
         );
         successMessage = "Match updated successfully";
       } else {
-        // Creating a new match
         response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedData),
         });
         successMessage = "Match created successfully";
       }
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(
           isEditing ? "Failed to update match" : "Failed to create match",
         );
-      }
-
-      // Get the result
-      const result = await response.json();
-      console.log(isEditing ? "Updated match:" : "Created match:", result);
-
-      // Reset editing state
+      await response.json();
       setIsEditing(false);
       setEditingMatch(null);
       setDialogOpen(false);
       matchForm.reset();
-
-      // Force refetch with a different query key to trigger refresh
       await refetchMatchesData();
-      console.log("Matches refetched");
-
       toast({
         title: isEditing ? "Match updated" : "Match created",
         description: successMessage,
       });
     } catch (error) {
-      console.error(
-        isEditing ? "Error updating match:" : "Error creating match:",
-        error,
-      );
+      console.error(error);
       toast({
         title: "Error",
         description: isEditing
@@ -713,9 +614,8 @@ export default function MatchesPage() {
     }
   };
 
-  // Function to check and update match status based on date
+  // Check and update match status based on date
   const checkAndUpdateMatchStatus = async (match: Match) => {
-    // If the match is scheduled but the date has passed, update it to completed
     if (
       match.status === "scheduled" &&
       new Date(match.matchDate) < new Date() &&
@@ -726,28 +626,17 @@ export default function MatchesPage() {
           `/api/teams/${selectedTeam.id}/matches/${match.id}`,
           {
             method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...match,
-              status: "completed",
-            }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...match, status: "completed" }),
           },
         );
-
-        if (response.ok) {
-          console.log(`Updated match ${match.id} status to completed`);
-          // Trigger a refetch to get the updated data
-          await refetchMatchesData();
-        }
+        if (response.ok) await refetchMatchesData();
       } catch (error) {
-        console.error("Error updating match status:", error);
+        console.error(error);
       }
     }
   };
 
-  // Check and update match statuses
   useEffect(() => {
     if (matches && matches.length > 0) {
       matches.forEach((match) => {
@@ -757,7 +646,6 @@ export default function MatchesPage() {
   }, [matches, selectedTeam]);
 
   const isLoading = teamsLoading || matchesLoading || classificationsLoading;
-
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -766,12 +654,7 @@ export default function MatchesPage() {
     );
   }
 
-  console.log("All matches data:", matches);
-
-  // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
-
-  // Get upcoming matches (scheduled matches with future dates)
   const upcomingMatches = matches
     ?.filter(
       (match) =>
@@ -781,8 +664,6 @@ export default function MatchesPage() {
       (a, b) =>
         new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime(),
     );
-
-  // Get past matches (completed matches or scheduled matches with past dates)
   const pastMatches = matches
     ?.filter(
       (match) =>
@@ -795,15 +676,12 @@ export default function MatchesPage() {
         new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime(),
     );
 
-  // Format match type badge
   const getMatchTypeBadge = (matchType?: string) => {
     if (!matchType) return null;
-
     let variant: "default" | "destructive" | "outline" | "secondary" = "default";
     if (matchType === "league") variant = "default";
     else if (matchType === "copa") variant = "destructive";
     else if (matchType === "friendly") variant = "outline";
-
     return (
       <Badge variant={variant} className="ml-2 capitalize">
         {matchType}
@@ -811,21 +689,17 @@ export default function MatchesPage() {
     );
   };
 
-  // Function to render match card
   const renderMatchCard = (match: Match) => {
     const matchDate = new Date(match.matchDate);
     const isPastMatch = isPast(matchDate) || match.status === "completed";
-    const hasScores = match.goalsScored !== null && match.goalsConceded !== null;
-
-    // Get match result badge variant
-    const getResultBadgeVariant = () => {
+    const hasScores =
+      match.goalsScored !== null && match.goalsConceded !== null;
+    const getResultBadgeVariant = (): "default" | "destructive" | "outline" | "secondary" => {
       if (!hasScores) return "secondary";
-      if (match.goalsScored! > match.goalsConceded!) return "secondary"; // Win (using secondary instead of success)
-      if (match.goalsScored! < match.goalsConceded!) return "destructive"; // Loss
-      return "secondary"; // Draw
+      if (match.goalsScored! > match.goalsConceded!) return "secondary";
+      if (match.goalsScored! < match.goalsConceded!) return "destructive";
+      return "secondary";
     };
-
-    // Get match result text
     const getResultText = () => {
       if (!hasScores) return "No Score";
       if (match.goalsScored! > match.goalsConceded!) return "Win";
@@ -848,10 +722,7 @@ export default function MatchesPage() {
               {getMatchTypeBadge(match.matchType)}
             </div>
             {isPastMatch && match.status !== "cancelled" && hasScores && (
-              <Badge
-                variant={getResultBadgeVariant()}
-                className="ml-2"
-              >
+              <Badge variant={getResultBadgeVariant()} className="ml-2">
                 {getResultText()}
               </Badge>
             )}
@@ -893,12 +764,12 @@ export default function MatchesPage() {
               <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
               <span>{format(matchDate, "h:mm a")}</span>
             </div>
+            {match.notes && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {match.notes}
+              </div>
+            )}
           </div>
-          {match.notes && (
-            <div className="mt-2 text-sm text-muted-foreground">
-              {match.notes}
-            </div>
-          )}
         </CardContent>
         <CardFooter className="flex justify-between py-2 bg-muted/30">
           <Button
@@ -932,11 +803,11 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background overflow-x-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-x-hidden">
         <Header title="Matches" />
-        <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 pt-6 md:mt-16 md:pt-8">
+        <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 md:mt-20 pt-4 md:pt-8 pb-16">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Matches</h1>
             {canManage && (
@@ -958,9 +829,7 @@ export default function MatchesPage() {
               <TabsTrigger value="past">
                 <Trophy className="h-4 w-4 mr-2" /> Past Matches
               </TabsTrigger>
-              <TabsTrigger value="classification">
-                <ListOrdered className="h-4 w-4 mr-2" /> Classification
-              </TabsTrigger>
+              <TabsTrigger value="classification">Classification</TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming" className="space-y-4">
@@ -1040,100 +909,121 @@ export default function MatchesPage() {
                     Current standings in the league
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                   {classifications && classifications.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-12">#</TableHead>
-                            <TableHead>Team</TableHead>
-                            <TableHead className="text-center">Pts</TableHead>
-                            <TableHead className="text-center">P</TableHead>
-                            <TableHead className="text-center">W</TableHead>
-                            <TableHead className="text-center">D</TableHead>
-                            <TableHead className="text-center">L</TableHead>
-                            <TableHead className="text-center">GF</TableHead>
-                            <TableHead className="text-center">GA</TableHead>
-                            <TableHead className="text-center">GD</TableHead>
-                            {canManage && <TableHead>Actions</TableHead>}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {classifications
-                            .sort((a, b) => {
-                              // Sort by position if available, otherwise by points
-                              if (a.position !== null && b.position !== null) {
-                                return a.position - b.position;
-                              }
-                              return b.points - a.points;
-                            })
-                            .map((classification) => {
-                              // Calculate goal difference
-                              const goalsFor = classification.goalsFor || 0;
-                              const goalsAgainst = classification.goalsAgainst || 0;
-                              const goalDifference = goalsFor - goalsAgainst;
-                              
-                              return (
-                                <TableRow key={classification.id}>
-                                  <TableCell className="font-medium">
-                                    {classification.position || "-"}
+                    <Table className="w-full min-w-[700px] md:min-w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12 truncate">#</TableHead>
+                          <TableHead className="truncate">Team</TableHead>
+                          <TableHead className="text-center truncate">
+                            Pts
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            P
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            W
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            D
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            L
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            GF
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            GA
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            GD
+                          </TableHead>
+                          {canManage && (
+                            <TableHead className="truncate">Actions</TableHead>
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {classifications
+                          .sort((a, b) =>
+                            a.position !== null && b.position !== null
+                              ? a.position - b.position
+                              : b.points - a.points,
+                          )
+                          .map((classification) => {
+                            const goalsFor = classification.goalsFor || 0;
+                            const goalsAgainst =
+                              classification.goalsAgainst || 0;
+                            const goalDifference = goalsFor - goalsAgainst;
+                            return (
+                              <TableRow key={classification.id}>
+                                <TableCell className="font-medium truncate">
+                                  {classification.position || "-"}
+                                </TableCell>
+                                <TableCell className="truncate">
+                                  {classification.externalTeamName}
+                                </TableCell>
+                                <TableCell className="text-center font-bold truncate">
+                                  {classification.points}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesPlayed || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesWon || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesDrawn || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesLost || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.goalsFor || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.goalsAgainst || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {goalDifference > 0
+                                    ? `+${goalDifference}`
+                                    : goalDifference}
+                                </TableCell>
+                                {canManage && (
+                                  <TableCell className="truncate">
+                                    <div className="flex space-x-2 justify-center">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          handleEditClassification(
+                                            classification,
+                                          )
+                                        }
+                                      >
+                                        <ClipboardEdit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          confirmDeleteClassification(
+                                            classification,
+                                          )
+                                        }
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </div>
                                   </TableCell>
-                                  <TableCell>
-                                    {classification.externalTeamName}
-                                  </TableCell>
-                                  <TableCell className="text-center font-bold">
-                                    {classification.points}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.gamesPlayed || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.gamesWon || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.gamesDrawn || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.gamesLost || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.goalsFor || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {classification.goalsAgainst || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {goalDifference > 0 
-                                      ? `+${goalDifference}` 
-                                      : goalDifference}
-                                  </TableCell>
-                                  {canManage && (
-                                    <TableCell>
-                                      <div className="flex space-x-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleEditClassification(classification)}
-                                        >
-                                          <ClipboardEdit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => confirmDeleteClassification(classification)}
-                                        >
-                                          <Trash className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  )}
-                                </TableRow>
-                              );
-                            })}
-                        </TableBody>
-                      </Table>
-                    </div>
+                                )}
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
                   ) : (
                     <div className="text-center py-4">
                       <p className="text-muted-foreground">
@@ -1193,7 +1083,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={matchForm.control}
                     name="matchDate"
@@ -1207,7 +1096,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={matchForm.control}
                     name="matchType"
@@ -1233,7 +1121,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={matchForm.control}
                     name="location"
@@ -1241,13 +1128,15 @@ export default function MatchesPage() {
                       <FormItem>
                         <FormLabel>Location</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter match location" />
+                          <Input
+                            {...field}
+                            placeholder="Enter match location"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={matchForm.control}
                     name="isHome"
@@ -1267,7 +1156,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={matchForm.control}
                     name="status"
@@ -1293,7 +1181,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   {matchForm.watch("status") === "completed" && (
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
@@ -1306,9 +1193,7 @@ export default function MatchesPage() {
                               <Input
                                 type="number"
                                 {...field}
-                                value={
-                                  field.value !== null ? field.value : ""
-                                }
+                                value={field.value !== null ? field.value : ""}
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(
@@ -1321,7 +1206,6 @@ export default function MatchesPage() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={matchForm.control}
                         name="goalsConceded"
@@ -1332,9 +1216,7 @@ export default function MatchesPage() {
                               <Input
                                 type="number"
                                 {...field}
-                                value={
-                                  field.value !== null ? field.value : ""
-                                }
+                                value={field.value !== null ? field.value : ""}
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(
@@ -1349,7 +1231,6 @@ export default function MatchesPage() {
                       />
                     </div>
                   )}
-
                   <FormField
                     control={matchForm.control}
                     name="notes"
@@ -1366,7 +1247,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <DialogFooter>
                     <Button type="submit">
                       {isEditing ? "Save Changes" : "Add Match"}
@@ -1382,10 +1262,12 @@ export default function MatchesPage() {
             open={classificationDialogOpen}
             onOpenChange={handleClassificationDialogChange}
           >
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-full max-w-full sm:max-w-[500px] px-4">
               <DialogHeader>
                 <DialogTitle>
-                  {isEditingClassification ? "Edit Classification" : "Add Classification Entry"}
+                  {isEditingClassification
+                    ? "Edit Classification"
+                    : "Add Classification Entry"}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditingClassification
@@ -1395,7 +1277,9 @@ export default function MatchesPage() {
               </DialogHeader>
               <Form {...classificationForm}>
                 <form
-                  onSubmit={classificationForm.handleSubmit(onClassificationSubmit)}
+                  onSubmit={classificationForm.handleSubmit(
+                    onClassificationSubmit,
+                  )}
                   className="space-y-4"
                 >
                   <FormField
@@ -1411,7 +1295,6 @@ export default function MatchesPage() {
                       </FormItem>
                     )}
                   />
-
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={classificationForm.control}
@@ -1423,14 +1306,17 @@ export default function MatchesPage() {
                             <Input
                               type="number"
                               {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                              onChange={(e) =>
+                                field.onChange(
+                                  parseInt(e.target.value, 10) || 0,
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={classificationForm.control}
                       name="position"
@@ -1456,7 +1342,6 @@ export default function MatchesPage() {
                       )}
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={classificationForm.control}
@@ -1482,7 +1367,6 @@ export default function MatchesPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={classificationForm.control}
                       name="gamesWon"
@@ -1508,7 +1392,6 @@ export default function MatchesPage() {
                       )}
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={classificationForm.control}
@@ -1534,7 +1417,6 @@ export default function MatchesPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={classificationForm.control}
                       name="gamesLost"
@@ -1560,7 +1442,6 @@ export default function MatchesPage() {
                       )}
                     />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={classificationForm.control}
@@ -1586,7 +1467,6 @@ export default function MatchesPage() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={classificationForm.control}
                       name="goalsAgainst"
@@ -1612,7 +1492,6 @@ export default function MatchesPage() {
                       )}
                     />
                   </div>
-
                   <DialogFooter>
                     <Button type="submit">
                       {isEditingClassification ? "Save Changes" : "Add Entry"}
@@ -1624,14 +1503,27 @@ export default function MatchesPage() {
           </Dialog>
 
           {/* CSV Upload Dialog */}
-          <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
-            <DialogContent className="w-full max-w-[95vw] sm:max-w-[550px] md:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <Dialog
+            open={csvUploadDialogOpen}
+            onOpenChange={setCsvUploadDialogOpen}
+          >
+            <DialogContent className="w-full max-w-[90vw] sm:max-w-[500px] md:max-w-[550px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
               <DialogHeader>
                 <DialogTitle>Upload Classification Data</DialogTitle>
                 <DialogDescription>
-                  Upload a CSV file with team classification data. The file should have columns for team name and points.
+                  Upload a CSV file with team classification data. The file
+                  should have columns for team name and points.
                 </DialogDescription>
               </DialogHeader>
+              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 p-3 rounded-md my-3">
+                <div className="flex items-start">
+                  <InfoIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Warning: This will replace existing data</p>
+                    <p className="text-sm">Uploading this file will replace all existing classification data for this team.</p>
+                  </div>
+                </div>
+              </div>
               <div className="space-y-4">
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="csv-file">CSV File</Label>
@@ -1646,43 +1538,54 @@ export default function MatchesPage() {
                     }}
                   />
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                    Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
+                    Required format: "Team,Points" with optional columns for
+                    games played, won, drawn, lost, and goals.
                   </p>
                 </div>
-                
                 <div className="rounded-md bg-muted p-3">
                   <div className="text-sm font-medium">Example CSV Format:</div>
                   <div className="max-h-32 overflow-y-auto custom-scrollbar">
                     <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto px-2">
-                      Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
-                      Team A,21,10,7,0,3,22,12<br />
-                      Team B,18,10,6,0,4,20,15<br />
+                      Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
+                      <br />
+                      Team A,21,10,7,0,3,22,12
+                      <br />
+                      Team B,18,10,6,0,4,20,15
+                      <br />
                       Team C,15,10,5,0,5,17,18
                     </pre>
                   </div>
                 </div>
-                
                 <div className="text-sm text-muted-foreground flex items-center">
                   <span>Need a template?</span>
-                  <Button variant="link" className="p-0 h-auto ml-1" onClick={generateSampleCsv}>
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto ml-1"
+                    onClick={generateSampleCsv}
+                  >
                     Download sample CSV
                   </Button>
                 </div>
-
                 <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800">
                   <div className="flex items-start">
                     <InfoIcon className="h-4 w-4 mr-2 text-blue-500 dark:text-blue-400 mt-0.5" />
                     <div>
                       <p className="font-medium text-sm mb-1">Note</p>
                       <p className="text-blue-700 dark:text-blue-300">
-                        Uploading a new CSV will replace all existing classification data.
+                        Uploading a new CSV will replace all existing
+                        classification data.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
               <DialogFooter className="mt-4 sm:mt-6">
-                <Button type="button" variant="outline" onClick={() => setCsvUploadDialogOpen(false)} className="mr-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCsvUploadDialogOpen(false)}
+                  className="mr-2"
+                >
                   Cancel
                 </Button>
                 <Button type="button" onClick={handleCsvUpload}>
@@ -1693,7 +1596,10 @@ export default function MatchesPage() {
           </Dialog>
 
           {/* Match delete confirmation */}
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -1712,8 +1618,8 @@ export default function MatchesPage() {
           </AlertDialog>
 
           {/* Classification delete confirmation */}
-          <AlertDialog 
-            open={deleteClassificationDialogOpen} 
+          <AlertDialog
+            open={deleteClassificationDialogOpen}
             onOpenChange={setDeleteClassificationDialogOpen}
           >
             <AlertDialogContent>
@@ -1721,7 +1627,8 @@ export default function MatchesPage() {
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This will permanently delete the classification entry for{" "}
-                  {classificationToDelete?.externalTeamName}. This action cannot be undone.
+                  {classificationToDelete?.externalTeamName}. This action cannot
+                  be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -1741,7 +1648,13 @@ export default function MatchesPage() {
             }}
           >
             <DialogContent className="sm:max-w-[600px]">
-              {selectedMatch && selectedTeam && <MatchDetails match={selectedMatch} teamId={selectedTeam.id} onUpdate={refetchMatchesData} />}
+              {selectedMatch && selectedTeam && (
+                <MatchDetails
+                  match={selectedMatch}
+                  teamId={selectedTeam.id}
+                  onUpdate={refetchMatchesData}
+                />
+              )}
             </DialogContent>
           </Dialog>
         </main>
