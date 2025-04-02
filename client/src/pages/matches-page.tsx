@@ -26,12 +26,7 @@ import {
   Clock,
   Home,
   ChevronRight,
-  Check,
-  X,
-  Share2,
   Trash,
-  ArrowRight,
-  ArrowLeft,
   ListOrdered,
   PlusSquare,
   FileText,
@@ -59,7 +54,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { format, isPast, isFuture } from "date-fns";
+import { format, isPast } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -69,7 +64,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Define form schema for creating a match
 const matchSchema = z.object({
@@ -122,7 +135,6 @@ export default function MatchesPage() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   
   // Define forms here to maintain hook order
-  // Match form
   const matchForm = useForm<MatchFormData>({
     resolver: zodResolver(matchSchema),
     defaultValues: {
@@ -427,7 +439,14 @@ export default function MatchesPage() {
             const parts = line.split(",");
             if (parts.length < 2) continue;
             
-            const externalTeamName = parts[0].trim();
+            // Remove quotation marks from team name if present
+            let externalTeamName = parts[0].trim();
+            if (externalTeamName.startsWith('"') && externalTeamName.endsWith('"')) {
+              externalTeamName = externalTeamName.substring(1, externalTeamName.length - 1);
+            } else if (externalTeamName.startsWith('"')) {
+              externalTeamName = externalTeamName.substring(1);
+            }
+            
             const points = parseInt(parts[1].trim(), 10);
             
             if (!externalTeamName || isNaN(points)) continue;
@@ -521,8 +540,6 @@ export default function MatchesPage() {
     URL.revokeObjectURL(url);
   };
 
-  const isLoading = teamsLoading || matchesLoading || classificationsLoading;
-
   // Handle editing a match
   const handleEditMatch = (match: Match) => {
     setEditingMatch(match);
@@ -533,7 +550,7 @@ export default function MatchesPage() {
     const formattedDate = matchDate.toISOString().slice(0, 16);
 
     // Reset the form with the match data
-    form.reset({
+    matchForm.reset({
       opponentName: match.opponentName,
       matchDate: formattedDate,
       location: match.location,
@@ -588,8 +605,6 @@ export default function MatchesPage() {
     setDeleteDialogOpen(true);
   };
 
-  // We're using matchForm defined at the top of the component
-
   // Handle dialog close - we need to clear form and reset editing state
   const handleDialogChange = (open: boolean) => {
     if (!open) {
@@ -598,7 +613,7 @@ export default function MatchesPage() {
         if (!isEditing) return;
         setIsEditing(false);
         setEditingMatch(null);
-        form.reset({
+        matchForm.reset({
           opponentName: "",
           matchDate: new Date().toISOString().slice(0, 16),
           location: "",
@@ -670,7 +685,7 @@ export default function MatchesPage() {
       setIsEditing(false);
       setEditingMatch(null);
       setDialogOpen(false);
-      form.reset();
+      matchForm.reset();
 
       // Force refetch with a different query key to trigger refresh
       await refetchMatchesData();
@@ -695,6 +710,51 @@ export default function MatchesPage() {
     }
   };
 
+  // Function to check and update match status based on date
+  const checkAndUpdateMatchStatus = async (match: Match) => {
+    // If the match is scheduled but the date has passed, update it to completed
+    if (
+      match.status === "scheduled" &&
+      new Date(match.matchDate) < new Date() &&
+      selectedTeam
+    ) {
+      try {
+        const response = await fetch(
+          `/api/teams/${selectedTeam.id}/matches/${match.id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ...match,
+              status: "completed",
+            }),
+          },
+        );
+
+        if (response.ok) {
+          console.log(`Updated match ${match.id} status to completed`);
+          // Trigger a refetch to get the updated data
+          await refetchMatchesData();
+        }
+      } catch (error) {
+        console.error("Error updating match status:", error);
+      }
+    }
+  };
+
+  // Check and update match statuses
+  useEffect(() => {
+    if (matches && matches.length > 0) {
+      matches.forEach((match) => {
+        checkAndUpdateMatchStatus(match);
+      });
+    }
+  }, [matches, selectedTeam]);
+
+  const isLoading = teamsLoading || matchesLoading || classificationsLoading;
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -708,809 +768,967 @@ export default function MatchesPage() {
   // Safely handle matches array and properly categorize by status and date
   const currentDate = new Date();
 
-  // Function to check and update match status based on date
-  const checkAndUpdateMatchStatus = async () => {
-    if (!Array.isArray(matches) || !selectedTeam || !canManage) return;
-    
-    const currentDate = new Date();
-    const updatedMatches = [];
-    
-    for (const match of matches) {
-      if (match.status === "scheduled") {
-        const matchDate = new Date(match.matchDate);
-        
-        // If match date has passed, update its status to completed
-        if (matchDate < currentDate) {
-          console.log(`Match ${match.id} date has passed, updating status to completed`);
-          
-          try {
-            const response = await fetch(
-              `/api/teams/${selectedTeam.id}/matches/${match.id}`,
-              {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ status: "completed" }),
-              }
-            );
-            
-            if (response.ok) {
-              updatedMatches.push(match.id);
-            }
-          } catch (error) {
-            console.error(`Error updating match ${match.id} status:`, error);
-          }
-        }
-      }
-    }
-    
-    // If any matches were updated, refetch the data
-    if (updatedMatches.length > 0) {
-      console.log(`Updated ${updatedMatches.length} matches, refetching data`);
-      await refetchMatchesData();
-    }
+  // Get upcoming matches (scheduled matches with future dates)
+  const upcomingMatches = matches
+    ?.filter(
+      (match) =>
+        match.status === "scheduled" && new Date(match.matchDate) > currentDate,
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime(),
+    );
+
+  // Get past matches (completed matches or scheduled matches with past dates)
+  const pastMatches = matches
+    ?.filter(
+      (match) =>
+        match.status === "completed" ||
+        (match.status === "scheduled" &&
+          new Date(match.matchDate) < currentDate),
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime(),
+    );
+
+  // Format match type badge
+  const getMatchTypeBadge = (matchType?: string) => {
+    if (!matchType) return null;
+
+    let variant: "default" | "destructive" | "outline" | "secondary" = "default";
+    if (matchType === "league") variant = "default";
+    else if (matchType === "copa") variant = "destructive";
+    else if (matchType === "friendly") variant = "outline";
+
+    return (
+      <Badge variant={variant} className="ml-2 capitalize">
+        {matchType}
+      </Badge>
+    );
   };
-  
-  // Run the check on component mount and when matches change
-  useEffect(() => {
-    // Only run auto-update if user has management permissions
-    if (canManage) {
-      checkAndUpdateMatchStatus();
-    }
-  }, [matches, selectedTeam, canManage]);
 
-  const upcomingMatches = Array.isArray(matches)
-    ? matches.filter((match) => {
-        // Consider a match as upcoming if:
-        // 1. It's scheduled AND the date is in the future
-        if (match.status === "completed" || match.status === "cancelled") {
-          return false; // Completed or cancelled matches always go to past tab
-        }
-        
-        // Check if match date has passed
-        const matchDate = new Date(match.matchDate);
-        const currentDate = new Date();
-        
-        if (match.status === "scheduled" && matchDate < currentDate) {
-          return false; // Don't show scheduled matches with past dates in upcoming tab
-        }
-        
-        return true; // All other scheduled matches go to upcoming tab
-      })
-    : [];
+  // Function to render match card
+  const renderMatchCard = (match: Match) => {
+    const matchDate = new Date(match.matchDate);
+    const isPastMatch = isPast(matchDate) || match.status === "completed";
+    const hasScores = match.goalsScored !== null && match.goalsConceded !== null;
 
-  const pastMatches = Array.isArray(matches)
-    ? matches.filter((match) => {
-        // Consider a match as past if:
-        // 1. It's completed or cancelled (regardless of date)
-        // 2. OR it's scheduled but the date has passed
-        if (match.status === "completed" || match.status === "cancelled") {
-          return true;
-        }
-        
-        // Check if match date has passed but status is still scheduled
-        const matchDate = new Date(match.matchDate);
-        const currentDate = new Date();
-        
-        return match.status === "scheduled" && matchDate < currentDate;
-      })
-    : [];
+    // Get match result badge variant
+    const getResultBadgeVariant = () => {
+      if (!hasScores) return "secondary";
+      if (match.goalsScored! > match.goalsConceded!) return "secondary"; // Win (using secondary instead of success)
+      if (match.goalsScored! < match.goalsConceded!) return "destructive"; // Loss
+      return "secondary"; // Draw
+    };
 
-  console.log("Upcoming matches:", upcomingMatches);
-  console.log("Past matches:", pastMatches);
+    // Get match result text
+    const getResultText = () => {
+      if (!hasScores) return "No Score";
+      if (match.goalsScored! > match.goalsConceded!) return "Win";
+      if (match.goalsScored! < match.goalsConceded!) return "Loss";
+      return "Draw";
+    };
 
-  return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-
-      <div className="flex-1 ml-0 md:ml-64">
-        <Header title="Matches" />
-
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-primary">
-                Match Management
-              </h1>
-              <p className="text-gray-500">
-                Track fixtures, results, and match statistics
-              </p>
+    return (
+      <Card
+        key={match.id}
+        className="mb-4 overflow-hidden hover:shadow-md transition-shadow"
+      >
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
+              <span className="text-sm text-muted-foreground">
+                {format(matchDate, "EEEE, MMMM d, yyyy")}
+              </span>
+              {getMatchTypeBadge(match.matchType)}
             </div>
-
-            <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-              {canManage && (
-                <DialogTrigger asChild>
-                  <Button
-                    onClick={() => {
-                      // Reset form to default values before opening dialog for new match
-                      if (isEditing) {
-                        setIsEditing(false);
-                        setEditingMatch(null);
-                        form.reset({
-                          opponentName: "",
-                          matchDate: new Date().toISOString().slice(0, 16),
-                          location: "",
-                          isHome: true,
-                          notes: "",
-                          status: "scheduled",
-                          matchType: "friendly",
-                          goalsScored: null,
-                          goalsConceded: null,
-                        });
-                      }
-                    }}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Add Match
-                  </Button>
-                </DialogTrigger>
-              )}
-              <DialogContent className="max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {isEditing ? "Edit Match" : "Create New Match"}
-                  </DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-3"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="opponentName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Opponent Team</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter opponent team name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="matchDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Match Date & Time</FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Location</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Enter match location"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="isHome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Match Type</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              onChange={(e) =>
-                                field.onChange(e.target.value === "home")
-                              }
-                              value={field.value ? "home" : "away"}
-                            >
-                              <option value="home">Home Match</option>
-                              <option value="away">Away Match</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="matchType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Competition Type</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              onChange={(e) => field.onChange(e.target.value)}
-                              value={field.value}
-                            >
-                              <option value="league">League</option>
-                              <option value="copa">Copa</option>
-                              <option value="friendly">Friendly</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Match Status</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              onChange={(e) => field.onChange(e.target.value)}
-                              value={field.value}
-                            >
-                              <option value="scheduled">Scheduled</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {form.watch("status") === "completed" && (
-                      <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-md">
-                        <FormField
-                          control={form.control}
-                          name="goalsScored"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Goals Scored</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  placeholder="0"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      parseInt(e.target.value) || 0,
-                                    )
-                                  }
-                                  value={
-                                    field.value === null ||
-                                    field.value === undefined
-                                      ? ""
-                                      : field.value
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="goalsConceded"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Goals Conceded</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  placeholder="0"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      parseInt(e.target.value) || 0,
-                                    )
-                                  }
-                                  value={
-                                    field.value === null ||
-                                    field.value === undefined
-                                      ? ""
-                                      : field.value
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Notes (Optional)</FormLabel>
-                          <FormControl>
-                            <textarea
-                              placeholder="Add any notes about this match"
-                              {...field}
-                              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="flex justify-end gap-2 pt-3">
-                      <Button
-                        type="submit"
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        {isEditing ? "Update Match" : "Create Match"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+            {isPastMatch && match.status !== "cancelled" && hasScores && (
+              <Badge
+                variant={getResultBadgeVariant()}
+                className="ml-2"
+              >
+                {getResultText()}
+              </Badge>
+            )}
           </div>
-
-          {selectedMatch ? (
-            <div className="mb-4">
+          <div className="flex justify-between items-center mt-2">
+            <CardTitle className="text-xl flex items-center">
+              {match.isHome ? (
+                <>
+                  {selectedTeam?.name}{" "}
+                  <Home className="h-4 w-4 mx-1 text-emerald-500" />{" "}
+                  <span className="text-muted-foreground">vs</span>{" "}
+                  {match.opponentName}
+                </>
+              ) : (
+                <>
+                  {match.opponentName}{" "}
+                  <Home className="h-4 w-4 mx-1 text-emerald-500" />{" "}
+                  <span className="text-muted-foreground">vs</span>{" "}
+                  {selectedTeam?.name}
+                </>
+              )}
+            </CardTitle>
+            {match.status === "completed" && hasScores && (
+              <div className="text-2xl font-bold">
+                {match.isHome
+                  ? `${match.goalsScored} - ${match.goalsConceded}`
+                  : `${match.goalsConceded} - ${match.goalsScored}`}
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="flex flex-col space-y-1">
+            <div className="flex items-center text-sm">
+              <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
+              <span>{match.location}</span>
+            </div>
+            <div className="flex items-center text-sm">
+              <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+              <span>{format(matchDate, "h:mm a")}</span>
+            </div>
+          </div>
+          {match.notes && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {match.notes}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-between py-2 bg-muted/30">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedMatch(match)}
+          >
+            Details <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+          {canManage && (
+            <div className="flex space-x-2">
               <Button
                 variant="ghost"
-                onClick={() => setSelectedMatch(null)}
-                className="mb-4"
+                size="sm"
+                onClick={() => handleEditMatch(match)}
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Match List
+                <ClipboardEdit className="h-4 w-4 mr-1" /> Edit
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => confirmDelete(match)}
+              >
+                <Trash className="h-4 w-4 mr-1" /> Delete
+              </Button>
+            </div>
+          )}
+        </CardFooter>
+      </Card>
+    );
+  };
 
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header title="Matches" />
+        <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 pt-6 md:mt-16 md:pt-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Matches</h1>
+            {canManage && (
+              <Button onClick={() => setDialogOpen(true)}>
+                <PlusCircle className="h-4 w-4 mr-2" /> Add Match
+              </Button>
+            )}
+          </div>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4"
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upcoming">
+                <Calendar className="h-4 w-4 mr-2" /> Upcoming Matches
+              </TabsTrigger>
+              <TabsTrigger value="past">
+                <Trophy className="h-4 w-4 mr-2" /> Past Matches
+              </TabsTrigger>
+              <TabsTrigger value="classification">
+                <ListOrdered className="h-4 w-4 mr-2" /> Classification
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="upcoming" className="space-y-4">
+              {upcomingMatches && upcomingMatches.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {upcomingMatches.map((match) => renderMatchCard(match))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      No upcoming matches scheduled.
+                    </p>
+                    {canManage && (
+                      <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => setDialogOpen(true)}
+                      >
+                        <PlusCircle className="h-4 w-4 mr-2" /> Schedule a new
+                        match
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="past" className="space-y-4">
+              {pastMatches && pastMatches.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {pastMatches.map((match) => renderMatchCard(match))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      No past matches available.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="classification" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl">
-                        {selectedMatch.isHome ? (
-                          <>
-                            <span className="text-primary">Our Team</span> vs{" "}
-                            {selectedMatch.opponentName}
-                          </>
-                        ) : (
-                          <>
-                            {selectedMatch.opponentName} vs{" "}
-                            <span className="text-primary">Our Team</span>
-                          </>
-                        )}
-                      </CardTitle>
-                      <CardDescription>
-                        <div className="mt-1 mb-2">
-                          {format(
-                            new Date(selectedMatch.matchDate),
-                            "EEEE, MMMM d, yyyy 'at' h:mm a",
-                          )}
-                        </div>
-                        <Badge>
-                          {selectedMatch.status.charAt(0).toUpperCase() +
-                            selectedMatch.status.slice(1)}
-                        </Badge>
-                        <Badge variant="outline" className="ml-2">
-                          {selectedMatch.isHome ? "Home" : "Away"}
-                        </Badge>
-                        <Badge 
-                          variant="secondary" 
-                          className="ml-2"
-                          style={{
-                            backgroundColor: selectedMatch.matchType === 'league' ? '#4caf50' : 
-                                           selectedMatch.matchType === 'copa' ? '#2196f3' : '#ff9800',
-                            color: 'white'
-                          }}
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>League Classification</CardTitle>
+                    {canManage && (
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setClassificationDialogOpen(true)}
                         >
-                          {selectedMatch.matchType ? 
-                            selectedMatch.matchType.charAt(0).toUpperCase() + selectedMatch.matchType.slice(1) : 
-                            'Friendly'}
-                        </Badge>
-                        <div className="mt-2">
-                          <span className="text-muted-foreground">
-                            Location:
-                          </span>{" "}
-                          {selectedMatch.location}
-                        </div>
-                      </CardDescription>
-                    </div>
-
-                    {selectedMatch.status === "completed" && 
-                     selectedMatch.goalsScored !== null && 
-                     selectedMatch.goalsConceded !== null && (
-                      <div className="text-3xl font-bold">
-                        {selectedMatch.goalsScored}-
-                        {selectedMatch.goalsConceded}
+                          <PlusSquare className="h-4 w-4 mr-1" /> Add Entry
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCsvUploadDialogOpen(true)}
+                        >
+                          <Upload className="h-4 w-4 mr-1" /> Upload CSV
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateSampleCsv}
+                        >
+                          <FileText className="h-4 w-4 mr-1" /> Sample CSV
+                        </Button>
                       </div>
                     )}
                   </div>
+                  <CardDescription>
+                    Current standings in the league
+                  </CardDescription>
                 </CardHeader>
-
                 <CardContent>
-                  {/* Notes */}
-                  {selectedMatch.notes && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-medium mb-2">Match Notes</h3>
-                      <div className="p-4 bg-gray-50 rounded-md">
-                        {selectedMatch.notes}
-                      </div>
+                  {classifications && classifications.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">#</TableHead>
+                            <TableHead>Team</TableHead>
+                            <TableHead className="text-center">Pts</TableHead>
+                            <TableHead className="text-center">P</TableHead>
+                            <TableHead className="text-center">W</TableHead>
+                            <TableHead className="text-center">D</TableHead>
+                            <TableHead className="text-center">L</TableHead>
+                            <TableHead className="text-center">GF</TableHead>
+                            <TableHead className="text-center">GA</TableHead>
+                            <TableHead className="text-center">GD</TableHead>
+                            {canManage && <TableHead>Actions</TableHead>}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {classifications
+                            .sort((a, b) => {
+                              // Sort by position if available, otherwise by points
+                              if (a.position !== null && b.position !== null) {
+                                return a.position - b.position;
+                              }
+                              return b.points - a.points;
+                            })
+                            .map((classification) => {
+                              // Calculate goal difference
+                              const goalsFor = classification.goalsFor || 0;
+                              const goalsAgainst = classification.goalsAgainst || 0;
+                              const goalDifference = goalsFor - goalsAgainst;
+                              
+                              return (
+                                <TableRow key={classification.id}>
+                                  <TableCell className="font-medium">
+                                    {classification.position || "-"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {classification.externalTeamName}
+                                  </TableCell>
+                                  <TableCell className="text-center font-bold">
+                                    {classification.points}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.gamesPlayed || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.gamesWon || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.gamesDrawn || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.gamesLost || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.goalsFor || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {classification.goalsAgainst || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    {goalDifference > 0 
+                                      ? `+${goalDifference}` 
+                                      : goalDifference}
+                                  </TableCell>
+                                  {canManage && (
+                                    <TableCell>
+                                      <div className="flex space-x-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => handleEditClassification(classification)}
+                                        >
+                                          <ClipboardEdit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => confirmDeleteClassification(classification)}
+                                        >
+                                          <Trash className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  )}
+                                </TableRow>
+                              );
+                            })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">
+                        No classification data available.
+                      </p>
+                      {canManage && (
+                        <div className="flex flex-col space-y-2 mt-4 max-w-xs mx-auto">
+                          <Button
+                            variant="outline"
+                            onClick={() => setClassificationDialogOpen(true)}
+                          >
+                            <PlusSquare className="h-4 w-4 mr-2" /> Add manually
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                          >
+                            <Upload className="h-4 w-4 mr-2" /> Upload CSV
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* Match creation/editing dialog */}
+          <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {isEditing ? "Edit Match" : "Add New Match"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isEditing
+                    ? "Edit the match details below."
+                    : "Enter match details below to create a new match."}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...matchForm}>
+                <form
+                  onSubmit={matchForm.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={matchForm.control}
+                    name="opponentName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Opponent Team</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter opponent name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={matchForm.control}
+                    name="matchDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Date and Time</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="datetime-local" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={matchForm.control}
+                    name="matchType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select match type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="friendly">Friendly</SelectItem>
+                            <SelectItem value="league">League</SelectItem>
+                            <SelectItem value="copa">Copa</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={matchForm.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter match location" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={matchForm.control}
+                    name="isHome"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="h-4 w-4 rounded border-gray-300 text-primary"
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Home match
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={matchForm.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select match status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {matchForm.watch("status") === "completed" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={matchForm.control}
+                        name="goalsScored"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Goals Scored</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                {...field}
+                                value={
+                                  field.value !== null ? field.value : ""
+                                }
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={matchForm.control}
+                        name="goalsConceded"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Goals Conceded</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                {...field}
+                                value={
+                                  field.value !== null ? field.value : ""
+                                }
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   )}
 
-                  {/* Match Details Component */}
-                  {selectedTeam && selectedMatch.status === "completed" && (
-                    <MatchDetails
-                      match={selectedMatch}
-                      teamId={selectedTeam.id}
-                      onUpdate={() => refetchMatchesData()}
-                    />
-                  )}
-                </CardContent>
+                  <FormField
+                    control={matchForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Enter any additional notes"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <CardFooter className="flex justify-end gap-2">
-                  {canManage && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditMatch(selectedMatch)}
-                      >
-                        <ClipboardEdit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => confirmDelete(selectedMatch)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </>
-                  )}
-                </CardFooter>
-              </Card>
-            </div>
-          ) : (
-            <Tabs
-              defaultValue="upcoming"
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <TabsList className="mb-6">
-                <TabsTrigger
-                  value="upcoming"
-                  className="flex items-center gap-1"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Upcoming Matches
-                </TabsTrigger>
-                <TabsTrigger value="past" className="flex items-center gap-1">
-                  <Trophy className="h-4 w-4" />
-                  Past Matches
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="upcoming">
-                {upcomingMatches.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
-                      <Calendar className="h-12 w-12 text-gray-300 mb-2" />
-                      <p className="text-lg text-gray-500">
-                        No upcoming matches scheduled
-                      </p>
-                      {canManage && (
-                        <Button
-                          variant="link"
-                          onClick={() => setDialogOpen(true)}
-                          className="text-primary mt-2"
-                        >
-                          Schedule your first match
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Upcoming Matches</CardTitle>
-                      <CardDescription>
-                        Scheduled matches for your team
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Opponent</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {upcomingMatches.map((match) => {
-                            const matchDate = new Date(match.matchDate);
-                            const isToday =
-                              new Date().toDateString() ===
-                              matchDate.toDateString();
-                            const daysDifference = Math.ceil(
-                              (matchDate.getTime() - new Date().getTime()) /
-                                (1000 * 3600 * 24),
-                            );
-
-                            return (
-                              <TableRow
-                                key={match.id}
-                                className="cursor-pointer hover:bg-muted/50"
-                                onClick={() => setSelectedMatch(match)}
-                              >
-                                <TableCell className="font-medium">
-                                  {match.isHome ? (
-                                    <>
-                                      vs{" "}
-                                      <span className="font-semibold">
-                                        {match.opponentName}
-                                      </span>
-                                      <Badge variant="outline" className="ml-2">
-                                        Home
-                                      </Badge>
-                                    </>
-                                  ) : (
-                                    <>
-                                      @{" "}
-                                      <span className="font-semibold">
-                                        {match.opponentName}
-                                      </span>
-                                      <Badge variant="outline" className="ml-2">
-                                        Away
-                                      </Badge>
-                                    </>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {format(
-                                    new Date(match.matchDate),
-                                    "EEE, MMM d, yyyy",
-                                  )}
-                                  <div className="text-xs text-muted-foreground">
-                                    {format(
-                                      new Date(match.matchDate),
-                                      "h:mm a",
-                                    )}
-                                  </div>
-                                </TableCell>
-                                <TableCell>{match.location}</TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant="secondary"
-                                    style={{
-                                      backgroundColor: match.matchType === 'league' ? '#4caf50' : 
-                                                      match.matchType === 'copa' ? '#2196f3' : '#ff9800',
-                                      color: 'white'
-                                    }}
-                                  >
-                                    {match.matchType ? 
-                                      match.matchType.charAt(0).toUpperCase() + match.matchType.slice(1) : 
-                                      'Friendly'}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant={
-                                      match.status === "cancelled"
-                                        ? "outline"
-                                        : match.status === "scheduled"
-                                          ? "default"
-                                          : "secondary"
-                                    }
-                                  >
-                                    {match.status === "cancelled" &&
-                                      "Cancelled"}
-                                    {match.status === "scheduled" &&
-                                      (isToday
-                                        ? "Today"
-                                        : `In ${daysDifference} days`)}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="past">
-                {pastMatches.length === 0 ? (
-                  <Card>
-                    <CardContent className="pt-6 flex flex-col items-center justify-center h-40">
-                      <Trophy className="h-12 w-12 text-gray-300 mb-2" />
-                      <p className="text-lg text-gray-500">
-                        No past matches available
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Past Matches</CardTitle>
-                      <CardDescription>
-                        Completed and cancelled matches
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Opponent</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Result</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Status</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {pastMatches.map((match) => {
-                            const result =
-                              match.status === "completed" && 
-                                match.goalsScored !== null && 
-                                match.goalsConceded !== null
-                                ? match.goalsScored > match.goalsConceded
-                                  ? "win"
-                                  : match.goalsScored < match.goalsConceded
-                                    ? "loss"
-                                    : "draw"
-                                : null;
-
-                            return (
-                              <TableRow
-                                key={match.id}
-                                className="cursor-pointer hover:bg-muted/50"
-                                onClick={() => setSelectedMatch(match)}
-                              >
-                                <TableCell className="font-medium">
-                                  {match.isHome ? (
-                                    <>
-                                      vs{" "}
-                                      <span className="font-semibold">
-                                        {match.opponentName}
-                                      </span>
-                                      <Badge variant="outline" className="ml-2">
-                                        Home
-                                      </Badge>
-                                    </>
-                                  ) : (
-                                    <>
-                                      @{" "}
-                                      <span className="font-semibold">
-                                        {match.opponentName}
-                                      </span>
-                                      <Badge variant="outline" className="ml-2">
-                                        Away
-                                      </Badge>
-                                    </>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {format(
-                                    new Date(match.matchDate),
-                                    "EEE, MMM d, yyyy",
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {match.status === "completed" ? (
-                                    <div className="flex items-center">
-                                      <Badge
-                                        variant={
-                                          result === "win"
-                                            ? "default"
-                                            : result === "loss"
-                                              ? "destructive"
-                                              : "outline"
-                                        }
-                                        className="mr-2"
-                                      >
-                                        {result === "win" && "Win"}
-                                        {result === "loss" && "Loss"}
-                                        {result === "draw" && "Draw"}
-                                      </Badge>
-                                      <span className="font-semibold">
-                                        {match.goalsScored !== null && match.goalsConceded !== null && (
-                                          match.isHome
-                                            ? `${match.goalsScored}-${match.goalsConceded}`
-                                            : `${match.goalsConceded}-${match.goalsScored}`
-                                        )}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <Badge variant="outline">N/A</Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant="secondary"
-                                    style={{
-                                      backgroundColor: match.matchType === 'league' ? '#4caf50' : 
-                                                      match.matchType === 'copa' ? '#2196f3' : '#ff9800',
-                                      color: 'white'
-                                    }}
-                                  >
-                                    {match.matchType ? 
-                                      match.matchType.charAt(0).toUpperCase() + match.matchType.slice(1) : 
-                                      'Friendly'}
-                                  </Badge>
-                                </TableCell>
-                                <TableCell>
-                                  <Badge
-                                    variant={
-                                      match.status === "cancelled"
-                                        ? "outline"
-                                        : "secondary"
-                                    }
-                                  >
-                                    {match.status.charAt(0).toUpperCase() +
-                                      match.status.slice(1)}
-                                  </Badge>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Match</DialogTitle>
-              </DialogHeader>
-              <DialogDescription>
-                Are you sure you want to delete this match? This action cannot
-                be undone.
-              </DialogDescription>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={handleDeleteMatch}>
-                  Delete Match
-                </Button>
-              </div>
+                  <DialogFooter>
+                    <Button type="submit">
+                      {isEditing ? "Save Changes" : "Add Match"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
             </DialogContent>
           </Dialog>
-        </div>
+
+          {/* Classification creation/editing dialog */}
+          <Dialog
+            open={classificationDialogOpen}
+            onOpenChange={handleClassificationDialogChange}
+          >
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {isEditingClassification ? "Edit Classification" : "Add Classification Entry"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isEditingClassification
+                    ? "Edit the classification details below."
+                    : "Enter team details below to add to the classification table."}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...classificationForm}>
+                <form
+                  onSubmit={classificationForm.handleSubmit(onClassificationSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={classificationForm.control}
+                    name="externalTeamName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter team name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={classificationForm.control}
+                      name="points"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Points</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classificationForm.control}
+                      name="position"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Position</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={classificationForm.control}
+                      name="gamesPlayed"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Played</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classificationForm.control}
+                      name="gamesWon"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Won</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={classificationForm.control}
+                      name="gamesDrawn"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Drawn</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classificationForm.control}
+                      name="gamesLost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Games Lost</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={classificationForm.control}
+                      name="goalsFor"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Goals For</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={classificationForm.control}
+                      name="goalsAgainst"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Goals Against</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value !== null ? field.value : ""}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                field.onChange(
+                                  value === "" ? null : parseInt(value, 10),
+                                );
+                              }}
+                              placeholder="Optional"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <Button type="submit">
+                      {isEditingClassification ? "Save Changes" : "Add Entry"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          {/* CSV Upload Dialog */}
+          <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
+            <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>Upload Classification Data</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file with team classification data. The file should have columns for team name and points.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="csv-file">CSV File</Label>
+                  <Input
+                    id="csv-file"
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setCsvFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
+                  </p>
+                </div>
+                
+                <div className="rounded-md bg-muted p-3">
+                  <div className="text-sm font-medium">Example CSV Format:</div>
+                  <div className="max-h-28 overflow-y-auto">
+                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto break-all px-2">
+                      Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
+                      Team A,21,10,7,0,3,22,12<br />
+                      Team B,18,10,6,0,4,20,15<br />
+                      Team C,15,10,5,0,5,17,18
+                    </pre>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  Need a template?{" "}
+                  <Button variant="link" className="p-0 h-auto" onClick={generateSampleCsv}>
+                    Download sample CSV
+                  </Button>
+                </p>
+              </div>
+              <DialogFooter>
+                <Button type="button" onClick={handleCsvUpload}>
+                  Upload and Process
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Match delete confirmation */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete the match against{" "}
+                  {matchToDelete?.opponentName}. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteMatch}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Classification delete confirmation */}
+          <AlertDialog 
+            open={deleteClassificationDialogOpen} 
+            onOpenChange={setDeleteClassificationDialogOpen}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete the classification entry for{" "}
+                  {classificationToDelete?.externalTeamName}. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteClassification}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Match details dialog */}
+          <Dialog
+            open={!!selectedMatch}
+            onOpenChange={(open) => {
+              if (!open) setSelectedMatch(null);
+            }}
+          >
+            <DialogContent className="sm:max-w-[600px]">
+              {selectedMatch && selectedTeam && <MatchDetails match={selectedMatch} teamId={selectedTeam.id} onUpdate={refetchMatchesData} />}
+            </DialogContent>
+          </Dialog>
+        </main>
       </div>
-      <div className="pb-16">
-        <MobileNavigation />
-      </div>
+      <MobileNavigation />
     </div>
   );
 }
