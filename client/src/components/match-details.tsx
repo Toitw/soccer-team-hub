@@ -811,7 +811,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
                               {/* Soccer Field */}
                               <div className="lg:col-span-3">
-                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:h-[500px] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                                <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full mx-auto rounded-md flex items-center justify-center overflow-hidden" style={{ height: 'min(80vh, 500px)' }}>
                                   <div className="absolute top-0 left-0 w-full h-full">
                                     <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                                       {/* Soccer field markings */}
@@ -862,11 +862,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                   )}
                                                 </div>
                                                 
-                                                {/* Player tooltip */}
+                                                {/* Player tooltip - only showing name */}
                                                 {player && (
-                                                  <div className="opacity-0 bg-black text-white text-xs rounded p-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 pointer-events-none group-hover:opacity-100 whitespace-nowrap shadow-lg">
+                                                  <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap shadow-lg">
                                                     {player.user.fullName}
-                                                    {player.user.position && <div className="text-[10px] text-center text-gray-300">{player.user.position}</div>}
                                                   </div>
                                                 )}
                                               </div>
@@ -1078,7 +1077,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {/* Field Visualization */}
                 <div className="mb-6">
                   <h4 className="font-medium text-sm mb-2">Field Positions</h4>
-                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full aspect-[16/9] h-[350px] mx-auto rounded-md flex items-center justify-center overflow-hidden">
+                  <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full mx-auto rounded-md flex items-center justify-center overflow-hidden" style={{ height: 'min(80vw, 400px)', maxWidth: '100%' }}>
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                         {/* Soccer field markings */}
@@ -1141,11 +1140,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                   )}
                                 </div>
                                 
-                                {/* Player name below icon (instead of tooltip) */}
+                                {/* Player name below icon - only showing name */}
                                 {positionPlayer && (
                                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/80 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[100px] truncate shadow-lg">
                                     {positionPlayer.fullName}
-                                    {positionPlayer.position && <div className="text-center text-gray-300 text-[8px]">{positionPlayer.position}</div>}
                                   </div>
                                 )}
                               </div>
