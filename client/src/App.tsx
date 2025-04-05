@@ -7,7 +7,7 @@ import AuthPage from "@/pages/auth-page";
 import DashboardPage from "@/pages/dashboard-page";
 import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page-v2";
-import TrainingPage from "@/pages/training-page";
+import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";
 import SettingsPage from "@/pages/settings-page";
@@ -29,8 +29,8 @@ function Router() {
       <ProtectedRoute path="/matches" component={MatchesPage} />
       <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
       
-      {/* Training page - accessible to all but players are read-only */}
-      <ProtectedRoute path="/training" component={TrainingPage} />
+      {/* Events page - accessible to all but players are read-only */}
+      <ProtectedRoute path="/events" component={EventPage} />
       
       {/* Announcements - accessible to all but players are read-only */}
       <ProtectedRoute 

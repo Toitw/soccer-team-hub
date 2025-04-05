@@ -66,7 +66,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Upcoming Events</h2>
           <div
-            onClick={() => window.location.href = '/training'}
+            onClick={() => window.location.href = '/events'}
             className="text-sm text-primary cursor-pointer"
           >
             View All
