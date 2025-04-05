@@ -120,7 +120,15 @@ export default function EventPage() {
         `/api/teams/${selectedTeam.id}/events`,
         formattedData,
       );
-      return await response.json();
+      
+      // Check if response has content to parse
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await response.json();
+      }
+      
+      // If no JSON content, just return the response status
+      return { status: response.status };
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
