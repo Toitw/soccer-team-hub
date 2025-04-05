@@ -135,6 +135,7 @@ export default function TeamPage() {
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [showAddToLineupDialog, setShowAddToLineupDialog] =
     useState<boolean>(false);
+  const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -142,6 +143,34 @@ export default function TeamPage() {
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+  
+  // Fetch team lineup
+  const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
+  const { data: teamLineup, isLoading: teamLineupLoading } = useQuery({
+    queryKey: teamLineupQueryKey,
+    queryFn: async () => {
+      if (!selectedTeam?.id) return null;
+      try {
+        const response = await fetch(`/api/teams/${selectedTeam.id}/lineup`, {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          if (response.status === 404) {
+            // Lineup not found, this is okay
+            return null;
+          }
+          throw new Error(`Failed to fetch team lineup: ${response.statusText}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching team lineup:", error);
+        return null;
+      }
+    },
+    enabled: !!selectedTeam?.id,
+    retry: 1,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // Get team members
   const teamMembersQueryKey = ["/api/teams", selectedTeam?.id, "members"];
@@ -483,6 +512,93 @@ export default function TeamPage() {
       description: "Player has been removed from the lineup.",
     });
   };
+  
+  // Save lineup mutation
+  const saveLineupMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedTeam) throw new Error("No team selected");
+      
+      // Convert lineup object to arrays of player IDs for storage
+      const playerIds: number[] = [];
+      const benchPlayerIds: number[] = [];
+      
+      // Create a position mapping object from the lineup for storing position assignments
+      const positionMapping: { [key: string]: number } = {};
+      
+      // Process the lineup object to extract player IDs and position mappings
+      Object.entries(lineup).forEach(([positionId, member]) => {
+        if (member) {
+          playerIds.push(member.userId);
+          positionMapping[positionId] = member.userId;
+        }
+      });
+      
+      // Find players who are on the team but not in the starting lineup - they go to the bench
+      if (teamMembers) {
+        teamMembers.forEach(member => {
+          if (member.role === "player" && !playerIds.includes(member.userId) && !benchPlayerIds.includes(member.userId)) {
+            benchPlayerIds.push(member.userId);
+          }
+        });
+      }
+      
+      return apiRequest("POST", `/api/teams/${selectedTeam.id}/lineup`, {
+        formation: selectedFormation,
+        playerIds,
+        benchPlayerIds,
+        positionMapping
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Lineup saved",
+        description: "The team lineup has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: teamLineupQueryKey });
+      setIsSavingLineup(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving lineup",
+        description: error.message || "There was an error saving the lineup.",
+        variant: "destructive",
+      });
+      setIsSavingLineup(false);
+    }
+  });
+  
+  const handleSaveLineup = () => {
+    setIsSavingLineup(true);
+    saveLineupMutation.mutate();
+  };
+  
+  // Initialize lineup from server data when it's available
+  useEffect(() => {
+    if (teamLineup && teamMembers) {
+      // Set the formation from the saved data
+      if (teamLineup.formation) {
+        setSelectedFormation(teamLineup.formation);
+      }
+      
+      // Initialize an empty lineup object
+      const newLineup: {[key: string]: TeamMemberWithUser | null} = {};
+      
+      // Process the position mapping to place players in their positions
+      if (teamLineup.positionMapping) {
+        Object.entries(teamLineup.positionMapping).forEach(([positionId, userId]) => {
+          // Find the team member that matches this user ID
+          const member = teamMembers.find(m => m.userId === userId);
+          if (member) {
+            newLineup[positionId] = member;
+          } else {
+            newLineup[positionId] = null;
+          }
+        });
+      }
+      
+      setLineup(newLineup);
+    }
+  }, [teamLineup, teamMembers]);
 
   if (teamsLoading || teamMembersLoading) {
     return (
@@ -729,7 +845,15 @@ export default function TeamPage() {
                   </SelectContent>
                 </Select>
                 {isAdmin && (
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSaveLineup}
+                    disabled={isSavingLineup || saveLineupMutation.isPending}
+                  >
+                    {(isSavingLineup || saveLineupMutation.isPending) && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Save Lineup
                   </Button>
                 )}
