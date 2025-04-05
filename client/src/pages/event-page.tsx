@@ -121,14 +121,13 @@ export default function EventPage() {
         formattedData,
       );
       
-      // Check if response has content to parse
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      try {
+        // Try to parse the response as JSON
         return await response.json();
+      } catch (error) {
+        // If parsing fails, just return a success indicator
+        return { success: true };
       }
-      
-      // If no JSON content, just return the response status
-      return { status: response.status };
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
