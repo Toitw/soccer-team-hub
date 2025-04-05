@@ -835,6 +835,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update an event
+  app.patch("/api/teams/:teamId/events/:eventId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const eventId = parseInt(req.params.eventId);
+
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update events" });
+      }
+
+      // Check if event belongs to the team
+      const event = await storage.getEvent(eventId);
+      if (!event || event.teamId !== teamId) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const updatedEvent = await storage.updateEvent(eventId, req.body);
+      res.json(updatedEvent);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update event" });
+    }
+  });
+
+  // Delete an event
+  app.delete("/api/teams/:teamId/events/:eventId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const eventId = parseInt(req.params.eventId);
+
+      // Check if user has admin or coach role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to delete events" });
+      }
+
+      // Check if event belongs to the team
+      const event = await storage.getEvent(eventId);
+      if (!event || event.teamId !== teamId) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const success = await storage.deleteEvent(eventId);
+
+      if (success) {
+        res.status(200).json({ message: "Event deleted successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to delete event" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete event" });
+    }
+  });
+
+  // Get attendance for an event
+  app.get("/api/teams/:teamId/events/:eventId/attendance", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const eventId = parseInt(req.params.eventId);
+
+      // Check if user is a team member
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if event belongs to the team
+      const event = await storage.getEvent(eventId);
+      if (!event || event.teamId !== teamId) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const attendance = await storage.getAttendance(eventId);
+      
+      // Get count of confirmed attendees
+      const confirmedCount = attendance.filter(a => a.status === "confirmed").length;
+      
+      res.json({
+        total: attendance.length,
+        confirmed: confirmedCount,
+        attendees: attendance
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch attendance" });
+    }
+  });
+
+  // Create or update attendance status for an event
+  app.post("/api/teams/:teamId/events/:eventId/attendance", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const eventId = parseInt(req.params.eventId);
+      const { status } = req.body;
+
+      // Check if user is a team member
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      // Check if event belongs to the team
+      const event = await storage.getEvent(eventId);
+      if (!event || event.teamId !== teamId) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      // Get existing attendance or create new one
+      const attendances = await storage.getAttendance(eventId);
+      const existingAttendance = attendances.find(a => a.userId === req.user.id);
+
+      let attendance;
+      if (existingAttendance) {
+        // Update existing attendance
+        attendance = await storage.updateAttendance(existingAttendance.id, { status });
+      } else {
+        // Create new attendance
+        attendance = await storage.createAttendance({
+          eventId,
+          userId: req.user.id,
+          status
+        });
+      }
+
+      res.status(201).json(attendance);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update attendance" });
+    }
+  });
+
   // Announcements routes
   app.get("/api/teams/:id/announcements", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
