@@ -44,8 +44,20 @@ export default function DashboardPage() {
   });
 
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "events/upcoming"],
+    queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
+    queryFn: async () => {
+      if (!selectedTeam) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/events`);
+      if (!response.ok) throw new Error("Failed to fetch events");
+      // Use only the most recent events (next 3 upcoming events)
+      const allEvents = await response.json();
+      const now = new Date();
+      return allEvents
+        .filter((event: Event) => new Date(event.startTime) >= now)
+        .sort((a: Event, b: Event) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+        .slice(0, 3);
+    }
   });
 
   const { data: announcements, isLoading: announcementsLoading } = useQuery<
