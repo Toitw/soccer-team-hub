@@ -284,6 +284,22 @@ export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
   uploadedById: true,
 });
 
+// Team Lineups table for storing default team formations
+export const teamLineups = pgTable("team_lineups", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull().unique(), // One lineup per team
+  formation: text("formation").notNull(), // e.g., "4-4-2", "4-3-3"
+  positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertTeamLineupSchema = createInsertSchema(teamLineups).pick({
+  teamId: true,
+  formation: true,
+  positionMapping: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -314,6 +330,9 @@ export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
 
 export type MatchLineup = typeof matchLineups.$inferSelect;
 export type InsertMatchLineup = z.infer<typeof insertMatchLineupSchema>;
+
+export type TeamLineup = typeof teamLineups.$inferSelect;
+export type InsertTeamLineup = z.infer<typeof insertTeamLineupSchema>;
 
 export type MatchSubstitution = typeof matchSubstitutions.$inferSelect;
 export type InsertMatchSubstitution = z.infer<typeof insertMatchSubstitutionSchema>;

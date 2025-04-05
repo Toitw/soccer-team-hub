@@ -9,6 +9,7 @@ import {
   announcements, type Announcement, type InsertAnnouncement,
   invitations, type Invitation, type InsertInvitation,
   matchLineups, type MatchLineup, type InsertMatchLineup,
+  teamLineups, type TeamLineup, type InsertTeamLineup,
   matchSubstitutions, type MatchSubstitution, type InsertMatchSubstitution,
   matchGoals, type MatchGoal, type InsertMatchGoal,
   matchCards, type MatchCard, type InsertMatchCard,
@@ -32,6 +33,7 @@ const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
 const TEAMS_FILE = path.join(DATA_DIR, 'teams.json');
 const MATCH_LINEUPS_FILE = path.join(DATA_DIR, 'match_lineups.json');
+const TEAM_LINEUPS_FILE = path.join(DATA_DIR, 'team_lineups.json');
 const MATCH_SUBSTITUTIONS_FILE = path.join(DATA_DIR, 'match_substitutions.json');
 const MATCH_GOALS_FILE = path.join(DATA_DIR, 'match_goals.json');
 const MATCH_CARDS_FILE = path.join(DATA_DIR, 'match_cards.json');
@@ -118,6 +120,11 @@ export interface IStorage {
   createMatchLineup(lineup: InsertMatchLineup): Promise<MatchLineup>;
   updateMatchLineup(id: number, lineupData: Partial<MatchLineup>): Promise<MatchLineup | undefined>;
   
+  // Team Lineup methods
+  getTeamLineup(teamId: number): Promise<TeamLineup | undefined>;
+  createTeamLineup(lineup: InsertTeamLineup): Promise<TeamLineup>;
+  updateTeamLineup(id: number, lineupData: Partial<TeamLineup>): Promise<TeamLineup | undefined>;
+  
   // Match Substitution methods
   getMatchSubstitutions(matchId: number): Promise<MatchSubstitution[]>;
   createMatchSubstitution(substitution: InsertMatchSubstitution): Promise<MatchSubstitution>;
@@ -174,6 +181,7 @@ export class MemStorage implements IStorage {
   private announcements: Map<number, Announcement>;
   private invitations: Map<number, Invitation>;
   private matchLineups: Map<number, MatchLineup>;
+  private teamLineups: Map<number, TeamLineup>;
   private matchSubstitutions: Map<number, MatchSubstitution>;
   private matchGoals: Map<number, MatchGoal>;
   private matchCards: Map<number, MatchCard>;
@@ -192,6 +200,7 @@ export class MemStorage implements IStorage {
   private announcementCurrentId: number;
   private invitationCurrentId: number;
   private matchLineupCurrentId: number;
+  private teamLineupCurrentId: number;
   private matchSubstitutionCurrentId: number;
   private matchGoalCurrentId: number;
   private matchCardCurrentId: number;
@@ -215,6 +224,7 @@ export class MemStorage implements IStorage {
     this.announcements = new Map();
     this.invitations = new Map();
     this.matchLineups = new Map();
+    this.teamLineups = new Map();
     this.matchSubstitutions = new Map();
     this.matchGoals = new Map();
     this.matchCards = new Map();
@@ -231,6 +241,7 @@ export class MemStorage implements IStorage {
     this.announcementCurrentId = 1;
     this.invitationCurrentId = 1;
     this.matchLineupCurrentId = 1;
+    this.teamLineupCurrentId = 1;
     this.matchSubstitutionCurrentId = 1;
     this.matchGoalCurrentId = 1;
     this.matchCardCurrentId = 1;
@@ -466,6 +477,40 @@ export class MemStorage implements IStorage {
         }
       }
       
+      // Load team lineups data if the file exists
+      if (fs.existsSync(TEAM_LINEUPS_FILE)) {
+        const teamLineupsData = JSON.parse(fs.readFileSync(TEAM_LINEUPS_FILE, 'utf8'));
+        
+        if (teamLineupsData && teamLineupsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.teamLineups.clear();
+          let maxId = 0;
+          
+          // Process each team lineup
+          for (const lineup of teamLineupsData) {
+            // Handle Date conversion (createdAt is stored as a string in the file)
+            if (lineup.createdAt) {
+              lineup.createdAt = new Date(lineup.createdAt);
+            }
+            
+            // Add to map
+            this.teamLineups.set(lineup.id, lineup as TeamLineup);
+            
+            // Track maximum ID
+            if (lineup.id > maxId) {
+              maxId = lineup.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.teamLineupCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${teamLineupsData.length} team lineups from storage`);
+        }
+      }
+      
       // Load match substitutions data if the file exists
       if (fs.existsSync(MATCH_SUBSTITUTIONS_FILE)) {
         const matchSubstitutionsData = JSON.parse(fs.readFileSync(MATCH_SUBSTITUTIONS_FILE, 'utf8'));
@@ -679,6 +724,20 @@ export class MemStorage implements IStorage {
       console.log(`Saved ${matchLineupsArray.length} match lineups to storage`);
     } catch (error) {
       console.error("Error saving match lineups data:", error);
+    }
+  }
+  
+  // Helper method to save team lineups data to file
+  private saveTeamLineupsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const teamLineupsArray = Array.from(this.teamLineups.values());
+      
+      // Write to file
+      fs.writeFileSync(TEAM_LINEUPS_FILE, JSON.stringify(teamLineupsArray, null, 2));
+      console.log(`Saved ${teamLineupsArray.length} team lineups to storage`);
+    } catch (error) {
+      console.error("Error saving team lineups data:", error);
     }
   }
   
@@ -1010,6 +1069,20 @@ export class MemStorage implements IStorage {
     return result;
   }
   
+  // Helper method to save team lineups to file
+  private saveTeamLineupsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const teamLineupsArray = Array.from(this.teamLineups.values());
+      
+      // Write to file
+      fs.writeFileSync(TEAM_LINEUPS_FILE, JSON.stringify(teamLineupsArray, null, 2));
+      console.log(`Saved ${teamLineupsArray.length} team lineups to storage`);
+    } catch (error) {
+      console.error("Error saving team lineups data:", error);
+    }
+  }
+
   // Match Lineup methods
   async getMatchLineup(matchId: number): Promise<MatchLineup | undefined> {
     return Array.from(this.matchLineups.values()).find(
@@ -1044,6 +1117,51 @@ export class MemStorage implements IStorage {
     
     // Save match lineups to file
     this.saveMatchLineupsData();
+    
+    return updatedLineup;
+  }
+  
+  // Team Lineup methods
+  async getTeamLineup(teamId: number): Promise<TeamLineup | undefined> {
+    return Array.from(this.teamLineups.values()).find(
+      (lineup) => lineup.teamId === teamId
+    );
+  }
+
+  async createTeamLineup(lineup: InsertTeamLineup): Promise<TeamLineup> {
+    const id = this.teamLineupCurrentId++;
+    
+    const teamLineup: TeamLineup = { 
+      ...lineup, 
+      id,
+      formation: lineup.formation,
+      playerIds: lineup.playerIds || [],
+      benchPlayerIds: lineup.benchPlayerIds || null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.teamLineups.set(id, teamLineup);
+    
+    // Save team lineups to file
+    this.saveTeamLineupsData();
+    
+    return teamLineup;
+  }
+
+  async updateTeamLineup(id: number, lineupData: Partial<TeamLineup>): Promise<TeamLineup | undefined> {
+    const lineup = this.teamLineups.get(id);
+    if (!lineup) return undefined;
+    
+    const updatedLineup: TeamLineup = { 
+      ...lineup, 
+      ...lineupData,
+      updatedAt: new Date()
+    };
+    this.teamLineups.set(id, updatedLineup);
+    
+    // Save team lineups to file
+    this.saveTeamLineupsData();
     
     return updatedLineup;
   }
@@ -1591,6 +1709,50 @@ export class MemStorage implements IStorage {
 
   async deleteClassification(id: number): Promise<boolean> {
     return this.deleteLeagueClassification(id);
+  }
+  
+  // Team Lineup methods
+  async getTeamLineup(teamId: number): Promise<TeamLineup | undefined> {
+    return Array.from(this.teamLineups.values()).find(
+      (lineup) => lineup.teamId === teamId
+    );
+  }
+
+  async createTeamLineup(lineup: InsertTeamLineup): Promise<TeamLineup> {
+    const id = this.teamLineupCurrentId++;
+    
+    const teamLineup: TeamLineup = { 
+      ...lineup, 
+      id,
+      formation: lineup.formation,
+      positionMapping: lineup.positionMapping || {},
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.teamLineups.set(id, teamLineup);
+    
+    // Save team lineups to file
+    this.saveTeamLineupsData();
+    
+    return teamLineup;
+  }
+
+  async updateTeamLineup(id: number, lineupData: Partial<TeamLineup>): Promise<TeamLineup | undefined> {
+    const lineup = this.teamLineups.get(id);
+    if (!lineup) return undefined;
+    
+    const updatedLineup: TeamLineup = { 
+      ...lineup, 
+      ...lineupData,
+      updatedAt: new Date() 
+    };
+    this.teamLineups.set(id, updatedLineup);
+    
+    // Save team lineups to file
+    this.saveTeamLineupsData();
+    
+    return updatedLineup;
   }
 }
 

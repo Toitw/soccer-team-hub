@@ -1310,6 +1310,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Team Lineup routes
+  app.get("/api/teams/:teamId/lineup", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      const lineup = await storage.getTeamLineup(teamId);
+
+      if (!lineup) {
+        return res.status(404).json({ error: "Team lineup not found" });
+      }
+
+      res.json(lineup);
+    } catch (error) {
+      console.error("Error retrieving team lineup:", error);
+      res.status(500).json({ error: "Failed to retrieve team lineup" });
+    }
+  });
+
+  app.post("/api/teams/:teamId/lineup", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const { formation, positionMapping } = req.body;
+
+      // Check if user is admin or coach of this team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      if (teamMember.role !== "admin" && teamMember.role !== "coach") {
+        return res.status(403).json({ error: "Only admins and coaches can manage lineups" });
+      }
+
+      // Validate input
+      if (!formation) {
+        return res.status(400).json({ error: "Formation is required" });
+      }
+
+      // Check if a lineup already exists for this team
+      const existingLineup = await storage.getTeamLineup(teamId);
+
+      if (existingLineup) {
+        // Update existing lineup
+        const updatedLineup = await storage.updateTeamLineup(existingLineup.id, {
+          formation,
+          positionMapping
+        });
+        return res.json(updatedLineup);
+      }
+
+      // Create new lineup
+      const lineup = await storage.createTeamLineup({
+        teamId,
+        formation,
+        positionMapping
+      });
+
+      res.status(201).json(lineup);
+    } catch (error) {
+      console.error("Error creating/updating team lineup:", error);
+      res.status(500).json({ error: "Failed to create team lineup" });
+    }
+  });
+
   // Match Substitutions routes
   app.get("/api/teams/:teamId/matches/:matchId/substitutions", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
