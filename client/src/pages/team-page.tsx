@@ -891,23 +891,13 @@ export default function TeamPage() {
                             {isAdmin && (
                               <Button
                                 variant="ghost"
-                                size="icon"
-                                className="ml-2 hidden md:flex"
+                                size="sm"
+                                className="ml-2"
                                 onClick={() =>
                                   addPlayerToFirstAvailablePosition(member)
                                 }
                               >
                                 Add to Lineup
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="ml-2 md:hidden"
-                                onClick={() =>
-                                  addPlayerToFirstAvailablePosition(member)
-                                }
-                              >
-                                <Plus className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
