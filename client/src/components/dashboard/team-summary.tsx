@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Team } from "@shared/schema";
+import { Team, TeamMember } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Match } from "@shared/schema";
 import { Link } from "wouter";
@@ -14,21 +14,28 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
     queryKey: ["/api/teams", team?.id, "matches"],
     enabled: !!team,
   });
+  
+  // Get team members to show accurate player count
+  const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
+    queryKey: ["/api/teams", team?.id, "members"],
+    enabled: !!team,
+  });
 
   if (!team) return null;
 
-  const winCount = matches?.filter(m => 
-    m.status === "completed" && 
-    m.goalsScored !== undefined && 
-    m.goalsConceded !== undefined && 
-    m.goalsScored > m.goalsConceded
-  ).length || 0;
+  const winCount = matches?.filter(m => {
+    // Only count completed matches where our team scored more than the opponent
+    if (m.status !== "completed") return false;
+    if (m.goalsScored === null || m.goalsScored === undefined) return false;
+    if (m.goalsConceded === null || m.goalsConceded === undefined) return false;
+    return m.goalsScored > m.goalsConceded;
+  }).length || 0;
 
   const goalCount = matches?.reduce((total, match) => 
     total + (match.goalsScored || 0), 0
   ) || 0;
 
-  const playerCount = 18; // This would come from team members query in a real implementation
+  const playerCount = teamMembers?.length || 0;
   const matchCount = matches?.length || 0;
 
   return (

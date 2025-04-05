@@ -105,9 +105,6 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                       <p className="text-sm text-gray-500">{event.location}</p>
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="text-xs flex items-center">
-                          <Users className="h-3 w-3 mr-1 text-gray-400" /> 16 confirmed
-                        </span>
-                        <span className="text-xs flex items-center">
                           <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
                           {event.type === "match" ? 
                             ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? "Home" : "Away") 
@@ -122,9 +119,11 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
           </div>
         )}
         
-        <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
-          <PlusIcon className="h-4 w-4 mr-2" /> Add New Event
-        </Button>
+        <Link href="/events">
+          <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
+            <PlusIcon className="h-4 w-4 mr-2" /> Add New Event
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );
