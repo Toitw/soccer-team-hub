@@ -312,13 +312,12 @@ export default function EventPage() {
         throw new Error("Not authorized");
       }
 
-      const response = await apiRequest(
+      // apiRequest already returns the parsed JSON from the response
+      return await apiRequest(
         "POST",
         `/api/teams/${selectedTeam.id}/events/${eventId}/attendance`,
         { status }
       );
-      
-      return await response.json();
     },
     onSuccess: (_, variables) => {
       // After successful update, refresh the attendance data
