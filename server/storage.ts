@@ -39,6 +39,7 @@ const MATCH_GOALS_FILE = path.join(DATA_DIR, 'match_goals.json');
 const MATCH_CARDS_FILE = path.join(DATA_DIR, 'match_cards.json');
 const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match_photos.json');
 const LEAGUE_CLASSIFICATION_FILE = path.join(DATA_DIR, 'league_classification.json');
+const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 
 // Define SessionStore type explicitly
 type SessionStoreType = ReturnType<typeof createMemoryStore>;
@@ -409,6 +410,43 @@ export class MemStorage implements IStorage {
         }
       }
       
+      // Load events data if the file exists
+      if (fs.existsSync(EVENTS_FILE)) {
+        const eventsData = JSON.parse(fs.readFileSync(EVENTS_FILE, 'utf8'));
+        
+        if (eventsData && eventsData.length > 0) {
+          hasData = true;
+          
+          // Clear current map and populate from file
+          this.events.clear();
+          let maxId = 0;
+          
+          // Process each event
+          for (const event of eventsData) {
+            // Handle Date conversion (startTime and endTime are stored as strings in the file)
+            if (event.startTime) {
+              event.startTime = new Date(event.startTime);
+            }
+            if (event.endTime) {
+              event.endTime = new Date(event.endTime);
+            }
+            
+            // Add to map
+            this.events.set(event.id, event as Event);
+            
+            // Track maximum ID
+            if (event.id > maxId) {
+              maxId = event.id;
+            }
+          }
+          
+          // Update the current ID counter
+          this.eventCurrentId = maxId + 1;
+          
+          console.log(`Loaded ${eventsData.length} events from storage`);
+        }
+      }
+      
       // Load announcements data if the file exists
       if (fs.existsSync(ANNOUNCEMENTS_FILE)) {
         const announcementsData = JSON.parse(fs.readFileSync(ANNOUNCEMENTS_FILE, 'utf8'));
@@ -710,6 +748,20 @@ export class MemStorage implements IStorage {
       console.log(`Saved ${matchesArray.length} matches to storage`);
     } catch (error) {
       console.error("Error saving matches data:", error);
+    }
+  }
+  
+  // Helper method to save events data to file
+  private saveEventsData() {
+    try {
+      // Convert Map to Array for JSON serialization
+      const eventsArray = Array.from(this.events.values());
+      
+      // Write to file
+      fs.writeFileSync(EVENTS_FILE, JSON.stringify(eventsArray, null, 2));
+      console.log(`Saved ${eventsArray.length} events to storage`);
+    } catch (error) {
+      console.error("Error saving events data:", error);
     }
   }
   
@@ -1487,6 +1539,10 @@ export class MemStorage implements IStorage {
       description: insertEvent.description || null
     };
     this.events.set(id, event);
+    
+    // Save events data to file
+    this.saveEventsData();
+    
     return event;
   }
 
@@ -1496,11 +1552,22 @@ export class MemStorage implements IStorage {
     
     const updatedEvent: Event = { ...event, ...eventData };
     this.events.set(id, updatedEvent);
+    
+    // Save events data to file
+    this.saveEventsData();
+    
     return updatedEvent;
   }
 
   async deleteEvent(id: number): Promise<boolean> {
-    return this.events.delete(id);
+    const result = this.events.delete(id);
+    
+    // Save events data to file after deletion
+    if (result) {
+      this.saveEventsData();
+    }
+    
+    return result;
   }
 
   // Attendance methods
@@ -1608,14 +1675,14 @@ export class MemStorage implements IStorage {
   
   private saveAnnouncementsData() {
     try {
-      const announcementsData = Array.from(this.announcements.values());
-      fs.writeFileSync(
-        path.join(process.cwd(), 'data', 'announcements.json'),
-        JSON.stringify(announcementsData, null, 2)
-      );
-      console.log(`Saved ${announcementsData.length} announcements to storage`);
+      // Convert Map to Array for JSON serialization
+      const announcementsArray = Array.from(this.announcements.values());
+      
+      // Write to file
+      fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(announcementsArray, null, 2));
+      console.log(`Saved ${announcementsArray.length} announcements to storage`);
     } catch (error) {
-      console.error('Failed to save announcements data:', error);
+      console.error("Error saving announcements data:", error);
     }
   }
 
