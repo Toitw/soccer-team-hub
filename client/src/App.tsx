@@ -12,6 +12,7 @@ import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";
 import SettingsPage from "@/pages/settings-page";
 import { AuthProvider } from "./hooks/use-auth";
+import { LanguageProvider } from "./hooks/use-language";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -55,10 +56,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router />
-        <Toaster />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

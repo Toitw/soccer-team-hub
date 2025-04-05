@@ -1,13 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
 import { useMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { Team } from "@shared/schema";
+import LanguageSelector from "./language-selector";
 
 export default function Sidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { t } = useLanguage();
   const isMobile = useMobile();
 
   const { data: teams } = useQuery<Team[]>({
@@ -40,7 +43,7 @@ export default function Sidebar() {
             </div>
           </div>
           <Button variant="outline" className="mt-2 w-full py-1.5 px-3 text-sm bg-white/10 text-white border-white/20 hover:bg-white/20">
-            Switch Team
+            {t("common.switchTeam")}
           </Button>
         </div>
 
@@ -53,7 +56,7 @@ export default function Sidebar() {
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
               </svg>
-              <span>Dashboard</span>
+              <span>{t("navigation.dashboard")}</span>
             </div>
           </Link>
           <Link href="/team">
@@ -64,7 +67,7 @@ export default function Sidebar() {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
-              <span>Team</span>
+              <span>{t("navigation.team")}</span>
             </div>
           </Link>
           <Link href="/matches">
@@ -76,7 +79,7 @@ export default function Sidebar() {
                 <path d="M12 14v4"></path>
                 <path d="M18 14v4"></path>
               </svg>
-              <span>Matches</span>
+              <span>{t("navigation.matches")}</span>
             </div>
           </Link>
           <Link href="/events">
@@ -85,7 +88,7 @@ export default function Sidebar() {
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
                 <line x1="4" y1="22" x2="4" y2="15"></line>
               </svg>
-              <span>Events</span>
+              <span>{t("navigation.events")}</span>
             </div>
           </Link>
           <Link href="/statistics">
@@ -95,7 +98,7 @@ export default function Sidebar() {
                 <line x1="12" y1="20" x2="12" y2="4"></line>
                 <line x1="6" y1="20" x2="6" y2="14"></line>
               </svg>
-              <span>Statistics</span>
+              <span>{t("navigation.statistics")}</span>
             </div>
           </Link>
           <Link href="/announcements">
@@ -105,7 +108,7 @@ export default function Sidebar() {
                 <line x1="12" y1="9" x2="12" y2="13"></line>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
               </svg>
-              <span>Announcements</span>
+              <span>{t("navigation.announcements")}</span>
             </div>
           </Link>
           {/* Only admin users can access settings */}
@@ -116,7 +119,7 @@ export default function Sidebar() {
                   <circle cx="12" cy="12" r="3"></circle>
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1 1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                 </svg>
-                <span>Settings</span>
+                <span>{t("navigation.settings")}</span>
               </div>
             </Link>
           )}
@@ -129,9 +132,13 @@ export default function Sidebar() {
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
             </svg>
-            <span>Logout</span>
+            <span>{t("common.logout")}</span>
           </button>
         </nav>
+        
+        <div className="mt-6 mb-4">
+          <LanguageSelector variant="sidebar" />
+        </div>
       </div>
     </div>
   );
