@@ -24,23 +24,13 @@ export default function NextMatch({ teamId }: NextMatchProps) {
     : teams && teams.length > 0 ? teams[0] : null;
 
   const { data: matches, isLoading } = useQuery<Match[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "matches"],
+    queryKey: ["matches", selectedTeam?.id],
     enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
-      try {
-        const response = await fetch(`/api/teams/${selectedTeam.id}/matches`, {
-          credentials: "include",
-        });
-        if (!response.ok) {
-          console.error(`Failed to fetch matches: ${response.statusText}`);
-          return [];
-        }
-        return await response.json();
-      } catch (error) {
-        console.error("Error fetching team matches:", error);
-        return [];
-      }
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
+      if (!response.ok) throw new Error('Failed to fetch matches');
+      return response.json();
     }
   });
 
@@ -59,9 +49,9 @@ export default function NextMatch({ teamId }: NextMatchProps) {
   const nextMatch = getNextMatch();
   
   // Calculate days remaining until the match
-  const getDaysRemaining = (matchDate: string | Date) => {
+  const getDaysRemaining = (matchDate: string) => {
     const now = new Date();
-    const match = typeof matchDate === 'string' ? new Date(matchDate) : matchDate;
+    const match = new Date(matchDate);
     const diffTime = Math.abs(match.getTime() - now.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
