@@ -79,13 +79,13 @@ export default function Sidebar() {
               <span>Matches</span>
             </div>
           </Link>
-          <Link href="/training">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/training' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+          <Link href="/events">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/events' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
                 <line x1="4" y1="22" x2="4" y2="15"></line>
               </svg>
-              <span>Training</span>
+              <span>Events</span>
             </div>
           </Link>
           <Link href="/statistics">
