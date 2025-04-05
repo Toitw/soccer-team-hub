@@ -987,7 +987,9 @@ export default function EventPage() {
         </DialogContent>
       </Dialog>
 
-      <MobileNavigation />
+      <div className="pb-16">
+        <MobileNavigation />
+      </div>
     </div>
   );
 }
