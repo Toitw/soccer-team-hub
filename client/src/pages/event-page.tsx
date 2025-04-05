@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Team, Event } from "@shared/schema";
 import Header from "@/components/header";
@@ -22,6 +22,9 @@ import {
   XCircle,
   Clock,
   MapPin,
+  Edit,
+  Trash2,
+  Users,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -30,6 +33,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -46,6 +51,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+import { Badge } from "@/components/ui/badge";
 
 // Define form schema for creating an event
 const eventSchema = z.object({
@@ -59,6 +65,18 @@ const eventSchema = z.object({
 
 type EventFormData = z.infer<typeof eventSchema>;
 
+// Define a type for the attendance data
+type AttendanceData = {
+  total: number;
+  confirmed: number;
+  attendees: Array<{
+    id: number;
+    eventId: number;
+    userId: number;
+    status: 'confirmed' | 'declined' | 'pending';
+  }>;
+};
+
 export default function EventPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -70,6 +88,10 @@ export default function EventPage() {
     new Date(),
   );
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [attendanceMap, setAttendanceMap] = useState<Record<number, AttendanceData>>({});
   const [attendanceStatus, setAttendanceStatus] = useState<
     Record<number, "attending" | "notAttending" | null>
   >({});
@@ -150,6 +172,179 @@ export default function EventPage() {
     },
   });
 
+  // Define mutation for updating events
+  const updateEventMutation = useMutation({
+    mutationFn: async (data: EventFormData & { id: number }) => {
+      if (!selectedTeam) {
+        throw new Error("No team selected");
+      }
+
+      // Format dates properly for API
+      const { id, ...formData } = data;
+      const formattedData = {
+        ...formData,
+        startTime: new Date(formData.startTime).toISOString(),
+        endTime: new Date(formData.endTime).toISOString(),
+      };
+
+      const response = await apiRequest(
+        "PATCH",
+        `/api/teams/${selectedTeam.id}/events/${id}`,
+        formattedData,
+      );
+      
+      try {
+        // Try to parse the response as JSON
+        return await response.json();
+      } catch (error) {
+        // If parsing fails, just return a success indicator
+        return { success: true };
+      }
+    },
+    onSuccess: () => {
+      // Invalidate events query to trigger a refetch
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "events"],
+      });
+      setDialogOpen(false);
+      setIsEditMode(false);
+      setCurrentEvent(null);
+      toast({
+        title: "Event updated",
+        description: "Event has been updated successfully",
+      });
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update event: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Define mutation for deleting events
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: number) => {
+      if (!selectedTeam) {
+        throw new Error("No team selected");
+      }
+
+      const response = await apiRequest(
+        "DELETE",
+        `/api/teams/${selectedTeam.id}/events/${id}`,
+        {}
+      );
+      
+      try {
+        // Try to parse the response as JSON
+        return await response.json();
+      } catch (error) {
+        // If parsing fails, just return a success indicator
+        return { success: true };
+      }
+    },
+    onSuccess: () => {
+      // Invalidate events query to trigger a refetch
+      queryClient.invalidateQueries({
+        queryKey: ["/api/teams", selectedTeam?.id, "events"],
+      });
+      setDeleteDialogOpen(false);
+      setCurrentEvent(null);
+      toast({
+        title: "Event deleted",
+        description: "Event has been deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete event: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to fetch attendance data for an event
+  const fetchAttendance = async (teamId: number, eventId: number) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/events/${eventId}/attendance`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch attendance data');
+      }
+      const data: AttendanceData = await response.json();
+      
+      setAttendanceMap(prev => ({
+        ...prev,
+        [eventId]: data
+      }));
+      
+      // Set current user's attendance status
+      if (user) {
+        const userAttendance = data.attendees.find(a => a.userId === user.id);
+        if (userAttendance) {
+          setAttendanceStatus(prev => ({
+            ...prev,
+            [eventId]: userAttendance.status === 'confirmed' ? 'attending' : 
+                      userAttendance.status === 'declined' ? 'notAttending' : null
+          }));
+        }
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      return null;
+    }
+  };
+
+  // Mutation for updating attendance
+  const updateAttendanceMutation = useMutation({
+    mutationFn: async ({ 
+      eventId, 
+      status 
+    }: { 
+      eventId: number, 
+      status: 'confirmed' | 'declined' | 'pending' 
+    }) => {
+      if (!selectedTeam || !user) {
+        throw new Error("Not authorized");
+      }
+
+      const response = await apiRequest(
+        "POST",
+        `/api/teams/${selectedTeam.id}/events/${eventId}/attendance`,
+        { status }
+      );
+      
+      return await response.json();
+    },
+    onSuccess: (_, variables) => {
+      // After successful update, refresh the attendance data
+      if (selectedTeam) {
+        fetchAttendance(selectedTeam.id, variables.eventId);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update attendance: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Effect to load attendance data for events
+  useEffect(() => {
+    if (events && events.length > 0 && selectedTeam) {
+      // Fetch attendance for each event
+      events.forEach(event => {
+        fetchAttendance(selectedTeam.id, event.id);
+      });
+    }
+  }, [events, selectedTeam]);
+
   const isLoading = teamsLoading || eventsLoading;
 
   const form = useForm<EventFormData>({
@@ -166,8 +361,50 @@ export default function EventPage() {
     },
   });
 
+  // Handle opening the edit dialog
+  const handleEditEvent = (event: Event) => {
+    setIsEditMode(true);
+    setCurrentEvent(event);
+    
+    form.reset({
+      title: event.title,
+      startTime: new Date(event.startTime).toISOString().slice(0, 16),
+      endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : "",
+      location: event.location,
+      description: event.description || "",
+      type: event.type,
+    });
+    
+    setDialogOpen(true);
+  };
+
+  // Handle opening the delete confirmation dialog
+  const handleDeleteDialog = (event: Event) => {
+    setCurrentEvent(event);
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle form submission (create or update)
   const onSubmit = (data: EventFormData) => {
-    createEventMutation.mutate(data);
+    if (isEditMode && currentEvent) {
+      updateEventMutation.mutate({ ...data, id: currentEvent.id });
+    } else {
+      createEventMutation.mutate(data);
+    }
+  };
+
+  // Handle attendance status change
+  const handleAttendanceChange = (eventId: number, attending: boolean) => {
+    setAttendanceStatus(prev => ({
+      ...prev,
+      [eventId]: attending ? "attending" : "notAttending"
+    }));
+    
+    // Call API to update attendance
+    updateAttendanceMutation.mutate({ 
+      eventId, 
+      status: attending ? 'confirmed' : 'declined' 
+    });
   };
 
   if (isLoading) {
@@ -221,7 +458,7 @@ export default function EventPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create Event</DialogTitle>
+                  <DialogTitle>{isEditMode ? "Edit Event" : "Create Event"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form
@@ -308,15 +545,15 @@ export default function EventPage() {
                     <Button
                       type="submit"
                       className="w-full bg-primary hover:bg-primary/90"
-                      disabled={createEventMutation.isPending}
+                      disabled={createEventMutation.isPending || updateEventMutation.isPending}
                     >
-                      {createEventMutation.isPending ? (
+                      {createEventMutation.isPending || updateEventMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Scheduling...
+                          {isEditMode ? "Updating..." : "Scheduling..."}
                         </>
                       ) : (
-                        "Schedule Event"
+                        isEditMode ? "Update Event" : "Schedule Event"
                       )}
                     </Button>
                   </form>
@@ -413,14 +650,25 @@ export default function EventPage() {
                                     ? format(new Date(event.endTime), " h:mm a")
                                     : ""}
                                 </div>
-                                <div className="text-sm text-gray-500 flex items-center">
+                                <div className="text-sm text-gray-500 flex items-center mb-1">
                                   <MapPin className="h-4 w-4 mr-1" />
                                   {event.location}
                                 </div>
+                                {attendanceMap[event.id] && (
+                                  <div className="text-sm text-gray-600 flex items-center mt-2">
+                                    <Users className="h-4 w-4 mr-1" />
+                                    <Badge variant="secondary" className="mr-1">
+                                      {attendanceMap[event.id].confirmed} attending
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {attendanceMap[event.id].total} responses
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
-                              <div>
+                              <div className="flex flex-col items-end">
                                 <span
-                                  className={`inline-block px-2 py-1 text-xs rounded ${
+                                  className={`inline-block px-2 py-1 text-xs rounded mb-2 ${
                                     event.type === "training"
                                       ? "bg-primary/10 text-primary"
                                       : event.type === "match"
@@ -431,6 +679,32 @@ export default function EventPage() {
                                   {event.type.charAt(0).toUpperCase() +
                                     event.type.slice(1)}
                                 </span>
+                                
+                                {/* Admin controls */}
+                                {user && (selectedTeam?.createdById === user.id || user.role === 'admin' || user.role === 'coach') && (
+                                  <div className="flex space-x-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditEvent(event);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteDialog(event);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
@@ -443,17 +717,7 @@ export default function EventPage() {
                                     : "outline"
                                 }
                                 size="sm"
-                                onClick={() => {
-                                  setAttendanceStatus((prev) => ({
-                                    ...prev,
-                                    [event.id]: "attending",
-                                  }));
-                                  toast({
-                                    title: "Attendance updated",
-                                    description:
-                                      "You're marked as attending this event",
-                                  });
-                                }}
+                                onClick={() => handleAttendanceChange(event.id, true)}
                               >
                                 <CheckCircle
                                   className={`h-4 w-4 mr-1 ${
@@ -475,17 +739,7 @@ export default function EventPage() {
                                     : "outline"
                                 }
                                 size="sm"
-                                onClick={() => {
-                                  setAttendanceStatus((prev) => ({
-                                    ...prev,
-                                    [event.id]: "notAttending",
-                                  }));
-                                  toast({
-                                    title: "Attendance updated",
-                                    description:
-                                      "You're marked as not attending this event",
-                                  });
-                                }}
+                                onClick={() => handleAttendanceChange(event.id, false)}
                               >
                                 <XCircle
                                   className={`h-4 w-4 mr-1 ${
@@ -571,7 +825,7 @@ export default function EventPage() {
                                         )
                                       : ""}
                                   </div>
-                                  <div className="text-sm text-gray-500 flex items-center">
+                                  <div className="text-sm text-gray-500 flex items-center mb-1">
                                     <MapPin className="h-4 w-4 mr-1" />
                                     {event.location}
                                   </div>
@@ -580,10 +834,21 @@ export default function EventPage() {
                                       {event.description}
                                     </p>
                                   )}
+                                  {attendanceMap[event.id] && (
+                                    <div className="text-sm text-gray-600 flex items-center mt-2">
+                                      <Users className="h-4 w-4 mr-1" />
+                                      <Badge variant="secondary" className="mr-1">
+                                        {attendanceMap[event.id].confirmed} attending
+                                      </Badge>
+                                      <Badge variant="outline">
+                                        {attendanceMap[event.id].total} responses
+                                      </Badge>
+                                    </div>
+                                  )}
                                 </div>
-                                <div>
+                                <div className="flex flex-col items-end">
                                   <span
-                                    className={`inline-block px-2 py-1 text-xs rounded ${
+                                    className={`inline-block px-2 py-1 text-xs rounded mb-2 ${
                                       event.type === "training"
                                         ? "bg-primary/10 text-primary"
                                         : event.type === "match"
@@ -594,6 +859,32 @@ export default function EventPage() {
                                     {event.type.charAt(0).toUpperCase() +
                                       event.type.slice(1)}
                                   </span>
+                                  
+                                  {/* Admin controls */}
+                                  {user && (selectedTeam?.createdById === user.id || user.role === 'admin' || user.role === 'coach') && (
+                                    <div className="flex space-x-1">
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleEditEvent(event);
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteDialog(event);
+                                        }}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
@@ -606,17 +897,7 @@ export default function EventPage() {
                                       : "outline"
                                   }
                                   size="sm"
-                                  onClick={() => {
-                                    setAttendanceStatus((prev) => ({
-                                      ...prev,
-                                      [event.id]: "attending",
-                                    }));
-                                    toast({
-                                      title: "Attendance updated",
-                                      description:
-                                        "You're marked as attending this event",
-                                    });
-                                  }}
+                                  onClick={() => handleAttendanceChange(event.id, true)}
                                 >
                                   <CheckCircle
                                     className={`h-4 w-4 mr-1 ${
@@ -636,17 +917,7 @@ export default function EventPage() {
                                       : "outline"
                                   }
                                   size="sm"
-                                  onClick={() => {
-                                    setAttendanceStatus((prev) => ({
-                                      ...prev,
-                                      [event.id]: "notAttending",
-                                    }));
-                                    toast({
-                                      title: "Attendance updated",
-                                      description:
-                                        "You're marked as not attending this event",
-                                    });
-                                  }}
+                                  onClick={() => handleAttendanceChange(event.id, false)}
                                 >
                                   <XCircle
                                     className={`h-4 w-4 mr-1 ${
@@ -672,6 +943,50 @@ export default function EventPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this event? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {currentEvent && (
+              <div className="p-4 border rounded-md mb-4">
+                <h3 className="font-medium">{currentEvent.title}</h3>
+                <div className="text-sm text-gray-500 mt-1">
+                  {format(new Date(currentEvent.startTime), "EEEE, MMMM d, yyyy • h:mm a")}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => currentEvent && deleteEventMutation.mutate(currentEvent.id)}
+              disabled={deleteEventMutation.isPending}
+            >
+              {deleteEventMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Event"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <MobileNavigation />
     </div>
