@@ -434,7 +434,7 @@ export default function EventPage() {
       <div className="flex-1 ml-0 md:ml-64 z-30">
         <Header title="Events" />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold text-primary">
