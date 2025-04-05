@@ -897,7 +897,8 @@ export default function TeamPage() {
                                   addPlayerToFirstAvailablePosition(member)
                                 }
                               >
-                                Add to Lineup
+                                <span className="hidden sm:inline-block">Add to Lineup</span>
+                                <span className="sm:hidden">+</span>
                               </Button>
                             )}
                           </div>
