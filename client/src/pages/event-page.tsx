@@ -223,9 +223,6 @@ export default function EventPage() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create Event</DialogTitle>
-                  <DialogDescription>
-                    Fill out the form below to schedule a new team event.
-                  </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                   <form
