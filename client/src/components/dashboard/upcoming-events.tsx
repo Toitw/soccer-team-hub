@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Event } from "@shared/schema";
 import { Link } from "wouter";
-import { format } from "date-fns";
-import { PlusIcon, Users, MapPin } from "lucide-react";
+import { format, isFuture } from "date-fns";
+import { PlusIcon, MapPin } from "lucide-react";
 
 interface UpcomingEventsProps {
   events: Event[];
@@ -79,43 +79,51 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
           </div>
         ) : (
           <div className="space-y-4 mb-4">
-            {events.map(event => {
-              const dateObj = formatDate(new Date(event.startTime));
-              return (
-                <div 
-                  key={event.id} 
-                  className={`mb-4 border-l-4 ${getEventTypeColor(event.type)} bg-white rounded-r-lg shadow-sm overflow-hidden`}
-                >
-                  <div className="flex">
-                    <div className="w-16 sm:w-24 bg-accent/10 flex flex-col items-center justify-center p-2">
-                      <span className="text-sm font-medium text-gray-500">{dateObj.day}</span>
-                      <span className="text-xl font-bold text-primary">{dateObj.number}</span>
-                      <span className="text-xs text-gray-500">{dateObj.month}</span>
-                    </div>
-                    <div className="flex-1 p-3 pl-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.type || 'other')} mb-1`}>
-                            {event.type ? (event.type.charAt(0).toUpperCase() + event.type.slice(1)) : 'Event'}
-                          </span>
-                          <h3 className="font-medium">{event.title}</h3>
-                        </div>
-                        <span className="text-sm font-medium">{dateObj.time}</span>
+            {events
+              .filter(event => {
+                // Filter out events that have already happened
+                const eventDate = new Date(event.startTime);
+                return isFuture(eventDate);
+              })
+              .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+              .slice(0, 5) // Limit to 5 events
+              .map(event => {
+                const dateObj = formatDate(new Date(event.startTime));
+                return (
+                  <div 
+                    key={event.id} 
+                    className={`mb-4 border-l-4 ${getEventTypeColor(event.type)} bg-white rounded-r-lg shadow-sm overflow-hidden`}
+                  >
+                    <div className="flex">
+                      <div className="w-16 sm:w-24 bg-accent/10 flex flex-col items-center justify-center p-2">
+                        <span className="text-sm font-medium text-gray-500">{dateObj.day}</span>
+                        <span className="text-xl font-bold text-primary">{dateObj.number}</span>
+                        <span className="text-xs text-gray-500">{dateObj.month}</span>
                       </div>
-                      <p className="text-sm text-gray-500">{event.location}</p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-xs flex items-center">
-                          <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
-                          {event.type === "match" ? 
-                            ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? "Home" : "Away") 
-                            : (event.location || "Location not set")}
-                        </span>
+                      <div className="flex-1 p-3 pl-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.type || 'other')} mb-1`}>
+                              {event.type ? (event.type.charAt(0).toUpperCase() + event.type.slice(1)) : 'Event'}
+                            </span>
+                            <h3 className="font-medium">{event.title}</h3>
+                          </div>
+                          <span className="text-sm font-medium">{dateObj.time}</span>
+                        </div>
+                        <p className="text-sm text-gray-500">{event.location}</p>
+                        <div className="flex items-center mt-2 space-x-4">
+                          <span className="text-xs flex items-center">
+                            <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
+                            {event.type === "match" ? 
+                              ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? "Home" : "Away") 
+                              : (event.location || "Location not set")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
         

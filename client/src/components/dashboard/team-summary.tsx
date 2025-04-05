@@ -18,11 +18,34 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
   // Get team members to show accurate player count
   const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
     queryKey: ["/api/teams", team?.id, "members"],
+    queryFn: async () => {
+      if (!team) return [];
+      try {
+        const response = await fetch(`/api/teams/${team.id}/members`, {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch team members: ${response.statusText}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching team members:", error);
+        return [];
+      }
+    },
     enabled: !!team,
   });
 
   if (!team) return null;
 
+  // Only count players (exclude coaches and admins)
+  const playerCount = teamMembers?.filter(member => 
+    member.role === "player" || 
+    (member.user && member.user.position) // Count members with positions as players
+  ).length || 0;
+  
+  const matchCount = matches?.length || 0;
+  
   const winCount = matches?.filter(m => {
     // Only count completed matches where our team scored more than the opponent
     if (m.status !== "completed") return false;
@@ -34,9 +57,6 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
   const goalCount = matches?.reduce((total, match) => 
     total + (match.goalsScored || 0), 0
   ) || 0;
-
-  const playerCount = teamMembers?.length || 0;
-  const matchCount = matches?.length || 0;
 
   return (
     <Card>

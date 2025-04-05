@@ -78,5 +78,19 @@
     "teamId": 1,
     "id": 6,
     "opponentLogo": null
+  },
+  {
+    "opponentName": "Aboño",
+    "matchDate": "2025-04-06T07:48:00.000Z",
+    "location": "Aboño",
+    "isHome": false,
+    "notes": null,
+    "status": "scheduled",
+    "matchType": "friendly",
+    "goalsScored": null,
+    "goalsConceded": null,
+    "teamId": 1,
+    "id": 7,
+    "opponentLogo": null
   }
 ]
