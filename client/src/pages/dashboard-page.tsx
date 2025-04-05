@@ -1,4 +1,4 @@
-
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Team, Match, Event, Announcement } from "@shared/schema";
 import Header from "@/components/header";
@@ -20,8 +20,19 @@ export default function DashboardPage() {
     queryKey: ["/api/teams"],
   });
 
-  // No more automatic mock data creation
-  // Now we only use real data from the database
+  // Create mock data for demonstration if none exists
+  useEffect(() => {
+    if (teams && teams.length === 0) {
+      apiRequest("POST", "/api/mock-data")
+        .then(() => {
+          // Refetch teams after creating mock data
+          window.location.reload();
+        })
+        .catch(error => {
+          console.error("Failed to create mock data:", error);
+        });
+    }
+  }, [teams]);
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
@@ -33,19 +44,7 @@ export default function DashboardPage() {
   });
 
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "events"],
-    queryFn: async () => {
-      if (!selectedTeam) return [];
-      const response = await apiRequest("GET", `/api/teams/${selectedTeam.id}/events`);
-      if (response instanceof Response) return [];
-      
-      // Filter and sort to get upcoming events
-      const now = new Date();
-      return (response as Event[])
-        .filter(event => new Date(event.startTime) > now)
-        .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-        .slice(0, 5); // Limit to 5 events
-    },
+    queryKey: ["/api/teams", selectedTeam?.id, "events/upcoming"],
     enabled: !!selectedTeam,
   });
 
@@ -83,8 +82,7 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-6">
               <TeamSummary team={selectedTeam} />
               <UpcomingEvents events={upcomingEvents || []} />
-              <RecentMatches matches={recentMatches || []} teamId={selectedTeam?.id} />
-              <NextMatch teamId={selectedTeam?.id} />
+              <NextMatch teamId={selectedTeam?.id} /> {/* Use NextMatch with teamId */}
             </div>
 
             {/* Right Column */}

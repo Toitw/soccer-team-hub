@@ -1,24 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Match, Team } from "@shared/schema";
+import { Match } from "@shared/schema";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
 
 interface RecentMatchesProps {
   matches: Match[];
-  teamId?: number;
 }
 
-export default function RecentMatches({ matches, teamId }: RecentMatchesProps) {
-  const { data: teams } = useQuery<Team[]>({
-    queryKey: ["/api/teams"],
-  });
-
-  // Select the first team by default or find team by ID
-  const selectedTeam = teamId 
-    ? teams?.find(team => team.id === teamId) 
-    : teams && teams.length > 0 ? teams[0] : null;
+export default function RecentMatches({ matches }: RecentMatchesProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -46,11 +36,11 @@ export default function RecentMatches({ matches, teamId }: RecentMatchesProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <img 
-                      src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                      alt={selectedTeam?.name || "Team logo"} 
+                      src="https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff" 
+                      alt="Team logo" 
                       className="w-8 h-8 rounded-full object-cover" 
                     />
-                    <span className="font-medium">{selectedTeam?.name || "Our Team"}</span>
+                    <span className="font-medium">Manchester United</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-lg">{match.goalsScored || 0}</span>
@@ -80,11 +70,9 @@ export default function RecentMatches({ matches, teamId }: RecentMatchesProps) {
                     <span className="font-bold text-lg">{match.goalsConceded || 0}</span>
                   </div>
                 </div>
-                <Link href={`/matches/${match.id}`}>
-                  <Button variant="outline" className="w-full mt-3 py-1.5 text-sm text-primary border border-primary rounded-md hover:bg-primary/5">
-                    View Match Details
-                  </Button>
-                </Link>
+                <Button variant="outline" className="w-full mt-3 py-1.5 text-sm text-primary border border-primary rounded-md hover:bg-primary/5">
+                  View Match Details
+                </Button>
               </div>
             ))}
           </div>
