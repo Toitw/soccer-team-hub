@@ -1,0 +1,13 @@
+[
+  {
+    "title": "New event",
+    "startTime": "2025-04-10T08:56:00.000Z",
+    "endTime": "2025-04-10T10:26:00.000Z",
+    "location": "dfa",
+    "description": null,
+    "type": "training",
+    "teamId": 1,
+    "createdById": 33,
+    "id": 1
+  }
+]
