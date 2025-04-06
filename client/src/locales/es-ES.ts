@@ -231,12 +231,6 @@ export const esES = {
     areYouSure: "¿Estás seguro?",
     permanentlyDeleteMatch: "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",
     permanentlyDeleteClassification: "Esto eliminará permanentemente la entrada de clasificación para {{teamName}}. Esta acción no se puede deshacer.",
-    csvFile: "Archivo CSV",
-    requiredFormat: "Formato requerido: \"Equipo,Puntos\" con columnas opcionales para partidos jugados, ganados, empatados, perdidos y goles.",
-    exampleCsvFormat: "Ejemplo de Formato CSV:",
-    needTemplate: "¿Necesitas una plantilla?",
-    downloadSampleCsv: "Descargar CSV de muestra",
-    uploadAndProcess: "Subir y Procesar",
   },
   events: {
     upcomingEvents: "Próximos Eventos",
