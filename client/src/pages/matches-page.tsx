@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Team, Match, LeagueClassification } from "@shared/schema";
@@ -50,9 +49,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  useFormField,
 } from "@/components/ui/form";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,20 +85,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Define form schema for creating a match with localized error messages
-const createMatchSchema = (t: any) => z.object({
-  opponentName: z.string().min(1, t("matches.opponentNameRequired")),
-  matchDate: z.string().min(1, t("matches.matchDateRequired")),
-  location: z.string().min(1, t("matches.locationRequired")),
-  isHome: z.boolean().default(true),
-  notes: z.string().optional(),
-  status: z.enum(["scheduled", "completed", "cancelled"]).default("scheduled"),
-  matchType: z.enum(["league", "copa", "friendly"]).default("friendly"),
-  goalsScored: z.number().int().optional().nullable(),
-  goalsConceded: z.number().int().optional().nullable(),
-});
-
-// We need a non-function schema for TypeScript type inference
+// Define form schema for creating a match
 const matchSchema = z.object({
   opponentName: z.string().min(1, "Opponent name is required"),
   matchDate: z.string().min(1, "Match date is required"),
@@ -116,20 +100,7 @@ const matchSchema = z.object({
 
 type MatchFormData = z.infer<typeof matchSchema>;
 
-// Define form schema for creating a classification entry with localized error messages
-const createClassificationSchema = (t: any) => z.object({
-  externalTeamName: z.string().min(1, t("matches.teamName") + " " + t("validation.required").toLowerCase()),
-  points: z.number().int().min(0, t("matches.pointsPositive")),
-  position: z.number().int().min(1, t("matches.positionPositive")).optional().nullable(),
-  gamesPlayed: z.number().int().min(0).optional().nullable(),
-  gamesWon: z.number().int().min(0).optional().nullable(),
-  gamesDrawn: z.number().int().min(0).optional().nullable(),
-  gamesLost: z.number().int().min(0).optional().nullable(),
-  goalsFor: z.number().int().min(0).optional().nullable(),
-  goalsAgainst: z.number().int().min(0).optional().nullable(),
-});
-
-// We need a non-function schema for TypeScript type inference
+// Define form schema for creating a classification entry
 const classificationSchema = z.object({
   externalTeamName: z.string().min(1, "Team name is required"),
   points: z.number().int().min(0, "Points must be a positive number"),
@@ -143,24 +114,6 @@ const classificationSchema = z.object({
 });
 
 type ClassificationFormData = z.infer<typeof classificationSchema>;
-
-// Utility function to translate error messages based on context
-const getTranslatedErrorMessage = (errorMessage: string, t: any) => {
-  if (errorMessage === "Opponent name is required") {
-    return t("matches.opponentNameRequired");
-  } else if (errorMessage === "Match date is required") {
-    return t("matches.matchDateRequired");
-  } else if (errorMessage === "Location is required") {
-    return t("matches.locationRequired");
-  } else if (errorMessage === "Team name is required") {
-    return t("matches.teamName") + " " + t("validation.required").toLowerCase();
-  } else if (errorMessage === "Points must be a positive number") {
-    return t("matches.pointsPositive");
-  } else if (errorMessage === "Position must be a positive number") {
-    return t("matches.positionPositive");
-  }
-  return errorMessage;
-};
 
 export default function MatchesPage() {
   const { user } = useAuth();
@@ -185,7 +138,7 @@ export default function MatchesPage() {
   
   // Define forms here to maintain hook order
   const matchForm = useForm<MatchFormData>({
-    resolver: zodResolver(createMatchSchema(t)), // Using the translated schema
+    resolver: zodResolver(matchSchema),
     defaultValues: {
       opponentName: "",
       matchDate: new Date().toISOString().slice(0, 16),
@@ -201,7 +154,7 @@ export default function MatchesPage() {
   
   // Classification form
   const classificationForm = useForm<ClassificationFormData>({
-    resolver: zodResolver(createClassificationSchema(t)),
+    resolver: zodResolver(classificationSchema),
     defaultValues: {
       externalTeamName: "",
       points: 0,
@@ -1234,9 +1187,7 @@ export default function MatchesPage() {
                         <FormControl>
                           <Input {...field} placeholder={t("matches.enterOpponentName")} />
                         </FormControl>
-                        <FormMessage>
-                          
-                        </FormMessage>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -1250,9 +1201,7 @@ export default function MatchesPage() {
                         <FormControl>
                           <Input {...field} type="datetime-local" />
                         </FormControl>
-                        <FormMessage>
-                          
-                        </FormMessage>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
