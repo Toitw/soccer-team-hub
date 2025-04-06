@@ -754,7 +754,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Lineup Tab */}
           <TabsContent value="lineup" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Starting Lineup</h3>
+              <h3 className="text-lg font-medium">{t("matches.startingLineup")}</h3>
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
@@ -1057,11 +1057,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">{t("common.cancel")}</Button>
                         </DialogClose>
                         <Button type="submit" disabled={saveLineup.isPending}>
                           {saveLineup.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Save Lineup
+                          {t("matches.saveLineup")}
                         </Button>
                       </div>
                     </form>
@@ -1363,8 +1363,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No lineup has been set for this match.</p>
-                <p className="text-sm text-gray-400 mt-1">Add a lineup to track player positions.</p>
+                <p className="text-gray-500">{t("matches.noLineupSet")}</p>
+                <p className="text-sm text-gray-400 mt-1">{t("matches.addLineupHelp")}</p>
               </div>
             )}
           </TabsContent>
@@ -1372,12 +1372,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Substitutions Tab */}
           <TabsContent value="substitutions" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Subs</h3>
+              <h3 className="text-lg font-medium">{t("matches.subs")}</h3>
               <Dialog open={substitutionDialogOpen} onOpenChange={setSubstitutionDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Substitution
+                    {t("matches.addSubstitution")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1449,7 +1449,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 type="number" 
                                 min="1" 
                                 max="120"
-                                placeholder="When the substitution happened" 
+                                placeholder={t("matches.whenSubHappened")} 
                                 {...field}
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
@@ -1468,7 +1468,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <FormLabel>{t("matches.reasonOptional")}</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="e.g. Tactical, Injury, etc."
+                                placeholder={t("matches.reasonForSubExample")}
                                 {...field}
                               />
                             </FormControl>
@@ -1479,7 +1479,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">{t("common.cancel")}</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addSubstitution.isPending}>
                           {addSubstitution.isPending && <span className="mr-2 animate-spin">⟳</span>}
@@ -1497,10 +1497,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <Table className="w-full min-w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Min</TableHead>
-                      <TableHead>Player In</TableHead>
-                      <TableHead>Player Out</TableHead>
-                      <TableHead className="hidden sm:table-cell">Reason</TableHead>
+                      <TableHead className="w-16">{t("matches.min")}</TableHead>
+                      <TableHead>{t("matches.playerIn")}</TableHead>
+                      <TableHead>{t("matches.playerOut")}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t("matches.reason")}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1534,8 +1534,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No substitutions recorded for this match.</p>
-                <p className="text-sm text-gray-400 mt-1">Record player substitutions to track changes during the match.</p>
+                <p className="text-gray-500">{t("matches.noSubstitutionsRecorded")}</p>
+                <p className="text-sm text-gray-400 mt-1">{t("matches.recordSubstitutionsHelp")}</p>
               </div>
             )}
           </TabsContent>
@@ -1543,12 +1543,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Goals Tab */}
           <TabsContent value="goals" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Goals</h3>
+              <h3 className="text-lg font-medium">{t("matches.goals")}</h3>
               <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Goal
+                    {t("matches.addGoal")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1620,7 +1620,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 type="number" 
                                 min="1" 
                                 max="120"
-                                placeholder="When the goal was scored" 
+                                placeholder={t("matches.whenGoalScored")} 
                                 {...field}
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
@@ -1644,10 +1644,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(e.target.value as any)}
                               >
                                 <option value="">{t("matches.selectGoalType")}</option>
-                                <option value="regular">Regular</option>
-                                <option value="penalty">Penalty</option>
-                                <option value="free_kick">Free Kick</option>
-                                <option value="own_goal">Own Goal</option>
+                                <option value="regular">{t("matches.regularGoal")}</option>
+                                <option value="penalty">{t("matches.penaltyGoal")}</option>
+                                <option value="free_kick">{t("matches.freeKickGoal")}</option>
+                                <option value="own_goal">{t("matches.ownGoal")}</option>
                               </select>
                             </FormControl>
                             <FormMessage />
@@ -1663,7 +1663,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <FormLabel>{t("matches.descriptionOptional")}</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="Brief description of the goal"
+                                placeholder={t("matches.briefGoalDescription")}
                                 {...field}
                               />
                             </FormControl>
@@ -1674,7 +1674,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">{t("common.cancel")}</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addGoal.isPending}>
                           {addGoal.isPending && <span className="mr-2 animate-spin">⟳</span>}
@@ -1692,10 +1692,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <Table className="w-full min-w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Min</TableHead>
-                      <TableHead>Scorer</TableHead>
-                      <TableHead className="hidden sm:table-cell">Assist</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead className="w-16">{t("matches.min")}</TableHead>
+                      <TableHead>{t("matches.scorer")}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t("matches.assist")}</TableHead>
+                      <TableHead>{t("matches.type")}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1716,11 +1716,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           ) : "-"}
                         </TableCell>
                         <TableCell>
-                          {goal.type === "regular" ? "Regular" : 
-                           goal.type === "penalty" ? "PK" : 
-                           goal.type === "free_kick" ? "FK" : 
-                           goal.type === "own_goal" ? "OG" : 
-                           "Unknown"}
+                          {goal.type === "regular" ? t("matches.regularShort") : 
+                           goal.type === "penalty" ? t("matches.penaltyShort") : 
+                           goal.type === "free_kick" ? t("matches.freeKickShort") : 
+                           goal.type === "own_goal" ? t("matches.ownGoalShort") : 
+                           t("matches.unknown")}
                         </TableCell>
                         <TableCell>
                           <Button 
@@ -1739,8 +1739,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No goals recorded for this match.</p>
-                <p className="text-sm text-gray-400 mt-1">Add details of each goal scored by your team.</p>
+                <p className="text-gray-500">{t("matches.noGoalsRecorded")}</p>
+                <p className="text-sm text-gray-400 mt-1">{t("matches.recordGoalsHelp")}</p>
               </div>
             )}
           </TabsContent>
@@ -1748,12 +1748,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           {/* Cards Tab */}
           <TabsContent value="cards" className="py-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Cards</h3>
+              <h3 className="text-lg font-medium">{t("matches.cards")}</h3>
               <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Card
+                    {t("matches.addCard")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -1801,8 +1801,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(e.target.value as any)}
                               >
                                 <option value="">{t("matches.selectCardType")}</option>
-                                <option value="yellow">Yellow Card</option>
-                                <option value="red">Red Card</option>
+                                <option value="yellow">{t("matches.yellowCard")}</option>
+                                <option value="red">{t("matches.redCard")}</option>
                               </select>
                             </FormControl>
                             <FormMessage />
@@ -1821,7 +1821,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 type="number" 
                                 min="1" 
                                 max="120"
-                                placeholder="When the card was shown" 
+                                placeholder={t("matches.whenCardShown")} 
                                 {...field}
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
@@ -1840,7 +1840,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <FormLabel>{t("matches.reasonOptional")}</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="Reason for the card"
+                                placeholder={t("matches.reasonForCard")}
                                 {...field}
                               />
                             </FormControl>
@@ -1851,11 +1851,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">Cancel</Button>
+                          <Button type="button" variant="outline">{t("common.cancel")}</Button>
                         </DialogClose>
                         <Button type="submit" disabled={addCard.isPending}>
                           {addCard.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Card
+                          {t("matches.recordCard")}
                         </Button>
                       </div>
                     </form>
@@ -1869,10 +1869,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <Table className="w-full min-w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16">Min</TableHead>
-                      <TableHead>Player</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="hidden sm:table-cell">Reason</TableHead>
+                      <TableHead className="w-16">{t("matches.min")}</TableHead>
+                      <TableHead>{t("matches.player")}</TableHead>
+                      <TableHead>{t("matches.type")}</TableHead>
+                      <TableHead className="hidden sm:table-cell">{t("matches.reason")}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1886,7 +1886,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         </TableCell>
                         <TableCell>
                           <Badge className={card.type === "yellow" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
-                            {card.type === "yellow" ? "Yellow" : "Red"}
+                            {card.type === "yellow" ? t("matches.yellow") : t("matches.red")}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">{card.reason || "-"}</TableCell>
@@ -1907,8 +1907,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               </div>
             ) : (
               <div className="text-center p-6 border-dashed border-2 rounded-md">
-                <p className="text-gray-500">No cards recorded for this match.</p>
-                <p className="text-sm text-gray-400 mt-1">Record yellow and red cards received by your team.</p>
+                <p className="text-gray-500">{t("matches.noCardsRecorded")}</p>
+                <p className="text-sm text-gray-400 mt-1">{t("matches.recordCardsHelp")}</p>
               </div>
             )}
           </TabsContent>
