@@ -10,6 +10,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,6 +119,7 @@ interface SimplifiedMemberPayload {
 export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
   const [openEditMemberDialog, setOpenEditMemberDialog] = useState(false);
   const [openRemoveMemberDialog, setOpenRemoveMemberDialog] = useState(false);
@@ -618,7 +620,7 @@ export default function TeamPage() {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 ml-0 md:ml-64 overflow-y-auto z-30">
-        <Header title="Team" />
+        <Header title={t("team.title")} />
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16">
           <div className="mb-6 flex justify-between items-center">
             <div>
@@ -637,12 +639,12 @@ export default function TeamPage() {
                 <DialogTrigger asChild>
                   <Button>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Add Member
+                    {t("team.addMember")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
-                    <DialogTitle>Add Team Member</DialogTitle>
+                    <DialogTitle>{t("team.addTeamMember")}</DialogTitle>
                   </DialogHeader>
                   <Form {...form}>
                     <form
@@ -654,7 +656,7 @@ export default function TeamPage() {
                         name="fullName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Full Name</FormLabel>
+                            <FormLabel>{t("team.form.fullName")}</FormLabel>
                             <FormControl>
                               <Input placeholder="John Doe" {...field} />
                             </FormControl>
@@ -667,7 +669,7 @@ export default function TeamPage() {
                         name="role"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Role</FormLabel>
+                            <FormLabel>{t("team.form.role")}</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -691,7 +693,7 @@ export default function TeamPage() {
                         name="position"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Position (optional)</FormLabel>
+                            <FormLabel>{t("team.form.position")}</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -771,7 +773,7 @@ export default function TeamPage() {
                         name="jerseyNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Jersey Number (optional)</FormLabel>
+                            <FormLabel>{t("team.form.jerseyNumber")}</FormLabel>
                             <FormControl>
                               <Input type="number" {...field} />
                             </FormControl>
@@ -784,7 +786,7 @@ export default function TeamPage() {
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Profile Picture</FormLabel>
+                            <FormLabel>{t("team.form.profilePicture")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="file"
@@ -814,7 +816,7 @@ export default function TeamPage() {
                           {addTeamMemberMutation.isPending && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
-                          Add Team Member
+                          {t("team.addTeamMember")}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -827,7 +829,7 @@ export default function TeamPage() {
           {/* Team Lineup Card */}
           <Card className="mb-8">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-xl">Team Lineup</CardTitle>
+              <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
               <div className="flex items-center space-x-2">
                 <Select
                   defaultValue={selectedFormation}
@@ -854,7 +856,7 @@ export default function TeamPage() {
                     {(isSavingLineup || saveLineupMutation.isPending) && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Save Lineup
+                    {t("team.saveLineup")}
                   </Button>
                 )}
               </div>
@@ -968,7 +970,7 @@ export default function TeamPage() {
                 </div>
                 <div className="lg:col-span-2">
                   <div className="bg-muted/30 rounded-md p-4">
-                    <h3 className="text-lg font-semibold mb-3">Bench</h3>
+                    <h3 className="text-lg font-semibold mb-3">{t("team.bench")}</h3>
                     <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
                       {teamMembers
                         ?.filter(
@@ -1021,7 +1023,7 @@ export default function TeamPage() {
                                   addPlayerToFirstAvailablePosition(member)
                                 }
                               >
-                                <span className="hidden sm:inline-block">Add to Lineup</span>
+                                <span className="hidden sm:inline-block">{t("team.addToLineup")}</span>
                                 <span className="sm:hidden">+</span>
                               </Button>
                             )}
@@ -1133,7 +1135,7 @@ export default function TeamPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center">
                 <UserCircle className="mr-2 h-5 w-5 text-primary" />
-                Team Members
+                {t("team.teamMembers")}
               </CardTitle>
               <div className="flex items-center space-x-2">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -1180,12 +1182,12 @@ export default function TeamPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Position</TableHead>
-                    <TableHead>Jersey #</TableHead>
-                    <TableHead>Contact</TableHead>
-                    {isAdmin && <TableHead>Actions</TableHead>}
+                    <TableHead>{t("team.table.name")}</TableHead>
+                    <TableHead>{t("team.table.role")}</TableHead>
+                    <TableHead>{t("team.table.position")}</TableHead>
+                    <TableHead>{t("team.table.jerseyNumber")}</TableHead>
+                    <TableHead>{t("team.table.contact")}</TableHead>
+                    {isAdmin && <TableHead>{t("team.table.actions")}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
