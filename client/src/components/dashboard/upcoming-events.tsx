@@ -4,12 +4,14 @@ import { Event } from "@shared/schema";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { PlusIcon, Users, MapPin } from "lucide-react";
+import { useLanguage } from "@/hooks/use-language";
 
 interface UpcomingEventsProps {
   events: Event[];
 }
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
+  const { t } = useLanguage();
   const getEventTypeColor = (type: string) => {
     switch(type) {
       case "match":
@@ -64,18 +66,18 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
     <Card>
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Upcoming Events</h2>
+          <h2 className="text-lg font-semibold">{t("dashboard.upcomingEvents")}</h2>
           <div
             onClick={() => window.location.href = '/events'}
             className="text-sm text-primary cursor-pointer"
           >
-            View All
+            {t("common.viewAll")}
           </div>
         </div>
         
         {events.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p>No upcoming events scheduled</p>
+            <p>{t("dashboard.noUpcomingEvents")}</p>
           </div>
         ) : (
           <div className="space-y-4 mb-4">
@@ -107,8 +109,8 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                         <span className="text-xs flex items-center">
                           <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
                           {event.type === "match" ? 
-                            ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? "Home" : "Away") 
-                            : (event.location || "Location not set")}
+                            ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? t("common.home") : t("common.away")) 
+                            : (event.location || t("common.locationNotSet"))}
                         </span>
                       </div>
                     </div>
@@ -121,7 +123,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
         
         <Link href="/events">
           <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
-            <PlusIcon className="h-4 w-4 mr-2" /> Add New Event
+            <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.addNewEvent")}
           </Button>
         </Link>
       </CardContent>

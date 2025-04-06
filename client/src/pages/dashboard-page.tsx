@@ -10,11 +10,13 @@ import RecentMatches from "@/components/dashboard/recent-matches";
 import Announcements from "@/components/dashboard/announcements";
 import NextMatch from "@/components/dashboard/next-match";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -86,7 +88,7 @@ export default function DashboardPage() {
       <Sidebar />
 
       <div className="flex-1 ml-0 md:ml-64 z-30">
-        <Header title="Dashboard" />
+        <Header title={t("navigation.dashboard")} />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-20"> {/* Changed padding-bottom */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
