@@ -8,6 +8,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -59,6 +60,7 @@ interface PageProps {
 
 export default function AnnouncementsPage(props: PageProps = {}) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
@@ -159,14 +161,14 @@ export default function AnnouncementsPage(props: PageProps = {}) {
       form.reset();
       console.log('Announcement created successfully:', response);
       toast({
-        title: "Announcement created",
-        description: "Your announcement has been created successfully.",
+        title: t("announcements.createAnnouncement"),
+        description: t("announcements.createAnnouncementSuccess"),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create announcement",
+        title: t("common.error"),
+        description: error.message || t("announcements.failedToCreate"),
         variant: "destructive",
       });
     },
@@ -199,14 +201,14 @@ export default function AnnouncementsPage(props: PageProps = {}) {
       setCurrentAnnouncement(null);
       console.log('Announcement updated successfully:', response);
       toast({
-        title: "Announcement updated",
-        description: "Your announcement has been updated successfully.",
+        title: t("announcements.editAnnouncement"),
+        description: t("announcements.updateAnnouncementSuccess"),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update announcement",
+        title: t("common.error"),
+        description: error.message || t("announcements.failedToUpdate"),
         variant: "destructive",
       });
     },
@@ -235,14 +237,14 @@ export default function AnnouncementsPage(props: PageProps = {}) {
       
       console.log('Announcement deleted successfully:', response);
       toast({
-        title: "Announcement deleted",
-        description: "The announcement has been deleted successfully.",
+        title: t("announcements.deleteAnnouncement"),
+        description: t("announcements.deleteAnnouncementSuccess"),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete announcement",
+        title: t("common.error"),
+        description: error.message || t("announcements.failedToDelete"),
         variant: "destructive",
       });
     },
@@ -321,12 +323,12 @@ export default function AnnouncementsPage(props: PageProps = {}) {
       <Sidebar />
 
       <div className="flex-1 ml-0 md:ml-64 z-30">
-        <Header title="Announcements" />
+        <Header title={t("announcements.latestAnnouncements")} />
 
         <div className="px-3 sm:px-6 lg:px-8 py-6 pb-24 max-w-full overflow-x-hidden"> {/* Added max-width and overflow control */}
           <div className="flex flex-wrap justify-between items-center mb-6 gap-y-2">
             <div className="flex items-center">
-              <h1 className="text-xl sm:text-2xl font-bold">Team Announcements</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">{t("announcements.teamAnnouncements")}</h1>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -334,8 +336,8 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                   console.log('Current announcements:', announcements);
                   refetchAnnouncements();
                   toast({
-                    title: "Refreshed",
-                    description: "Announcements have been updated.",
+                    title: t("announcements.refreshed"),
+                    description: t("announcements.announcementsUpdated"),
                   });
                 }}
                 className="ml-2"
@@ -349,14 +351,14 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                 <DialogTrigger asChild>
                   <Button size="sm" className="sm:text-base">
                     <PlusIcon className="h-4 w-4 mr-1 sm:mr-2" />
-                    <span className="whitespace-nowrap">New Announcement</span>
+                    <span className="whitespace-nowrap">{t("announcements.newAnnouncement")}</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Create Announcement</DialogTitle>
+                    <DialogTitle>{t("announcements.createAnnouncement")}</DialogTitle>
                     <DialogDescription>
-                      Fill out the form below to create a new announcement.
+                      {t("announcements.createAnnouncementDescription")}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -367,9 +369,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Title</FormLabel>
+                            <FormLabel>{t("announcements.title")}</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter announcement title" {...field} />
+                              <Input placeholder={t("announcements.title")} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -381,10 +383,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                         name="content"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Content</FormLabel>
+                            <FormLabel>{t("announcements.content")}</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Enter announcement content"
+                                placeholder={t("announcements.content")}
                                 className="min-h-[120px]"
                                 {...field}
                               />
@@ -402,7 +404,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                           {createAnnouncementMutation.isPending && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
-                          Create Announcement
+                          {t("announcements.createAnnouncement")}
                         </Button>
                       </DialogFooter>
                     </form>
@@ -415,9 +417,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
           {announcements?.length === 0 ? (
             <div className="bg-muted/20 rounded-lg p-8 text-center">
               <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">No announcements yet</h3>
+              <h3 className="mt-4 text-lg font-medium">{t("announcements.noAnnouncements")}</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                When announcements are created, they will appear here.
+                {t("announcements.noAnnouncementsDescription")}
               </p>
               {canManageAnnouncements() && (
                 <Button
@@ -425,7 +427,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                   variant="outline"
                   onClick={() => setOpen(true)}
                 >
-                  Create your first announcement
+                  {t("announcements.createFirstAnnouncement")}
                 </Button>
               )}
             </div>
@@ -469,13 +471,13 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogTitle>{t("announcements.areYouSure")}</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete this announcement.
+                                    {t("announcements.deleteConfirmation")}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => deleteAnnouncementMutation.mutate(announcement.id)}
                                     className="bg-destructive text-destructive-foreground"
@@ -483,7 +485,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                                     {deleteAnnouncementMutation.isPending ? (
                                       <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
-                                      "Delete"
+                                      t("announcements.deleteAnnouncement")
                                     )}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
@@ -500,10 +502,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                       <span className="break-words">
                         {announcement.createdAt
                           ? format(new Date(announcement.createdAt), "MMMM d, yyyy")
-                          : "Date not available"}
+                          : t("common.notAvailable")}
                       </span>
                       <span className="break-words">
-                        Posted by: {announcement.creator?.fullName || `User ${announcement.createdById}`}
+                        {t("announcements.author")}: {announcement.creator?.fullName || `${t("common.user")} ${announcement.createdById}`}
                       </span>
                     </CardFooter>
                   </Card>
@@ -517,9 +519,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Announcement</DialogTitle>
+              <DialogTitle>{t("announcements.editAnnouncement")}</DialogTitle>
               <DialogDescription>
-                Update the announcement details below.
+                {t("announcements.editAnnouncementDescription")}
               </DialogDescription>
             </DialogHeader>
 
@@ -530,9 +532,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Title</FormLabel>
+                      <FormLabel>{t("announcements.title")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter announcement title" {...field} />
+                        <Input placeholder={t("announcements.title")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -544,10 +546,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Content</FormLabel>
+                      <FormLabel>{t("announcements.content")}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Enter announcement content"
+                          placeholder={t("announcements.content")}
                           className="min-h-[120px]"
                           {...field}
                         />
@@ -565,7 +567,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                     {updateAnnouncementMutation.isPending && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Update Announcement
+                    {t("announcements.editAnnouncement")}
                   </Button>
                 </DialogFooter>
               </form>
