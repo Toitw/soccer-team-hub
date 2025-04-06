@@ -10,7 +10,7 @@ import {
 import { Globe } from "lucide-react";
 
 interface LanguageSelectorProps {
-  variant?: "sidebar" | "mobile" | "dropdown";
+  variant?: "sidebar" | "mobile" | "dropdown" | "minimal";
 }
 
 export default function LanguageSelector({ variant = "dropdown" }: LanguageSelectorProps) {
@@ -64,6 +64,30 @@ export default function LanguageSelector({ variant = "dropdown" }: LanguageSelec
             {t("settings.english")}
           </Button>
         </div>
+      </div>
+    );
+  }
+  
+  // For a minimal version often used in mobile menus
+  if (variant === "minimal") {
+    return (
+      <div className="flex justify-center space-x-2">
+        <Button
+          size="sm"
+          variant={currentLanguage === "es" ? "default" : "outline"}
+          onClick={() => setLanguage("es")}
+          className="text-xs px-2"
+        >
+          ES
+        </Button>
+        <Button
+          size="sm"
+          variant={currentLanguage === "en" ? "default" : "outline"}
+          onClick={() => setLanguage("en")}
+          className="text-xs px-2"
+        >
+          EN
+        </Button>
       </div>
     );
   }
