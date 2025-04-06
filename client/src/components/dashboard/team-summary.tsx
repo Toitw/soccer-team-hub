@@ -4,12 +4,15 @@ import { Team, TeamMember } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Match } from "@shared/schema";
 import { Link } from "wouter";
+import { useLanguage } from "@/hooks/use-language";
 
 interface TeamSummaryProps {
   team: Team | null;
 }
 
 export default function TeamSummary({ team }: TeamSummaryProps) {
+  const { t } = useLanguage();
+  
   const { data: matches } = useQuery<Match[]>({
     queryKey: ["/api/teams", team?.id, "matches"],
     enabled: !!team,
@@ -42,27 +45,27 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
     <Card>
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Team Summary</h2>
+          <h2 className="text-lg font-semibold">{t("dashboard.teamSummary")}</h2>
           <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
-            Season {team.seasonYear || "2023/24"}
+            {t("dashboard.season")} {team.seasonYear || "2023/24"}
           </span>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">Players</p>
+            <p className="text-sm text-gray-500">{t("dashboard.players")}</p>
             <p className="text-xl font-semibold text-primary">{playerCount}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">Matches</p>
+            <p className="text-sm text-gray-500">{t("dashboard.matches")}</p>
             <p className="text-xl font-semibold text-primary">{matchCount}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">Wins</p>
+            <p className="text-sm text-gray-500">{t("dashboard.wins")}</p>
             <p className="text-xl font-semibold text-secondary">{winCount}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">Goals</p>
+            <p className="text-sm text-gray-500">{t("dashboard.goals")}</p>
             <p className="text-xl font-semibold text-accent">{goalCount}</p>
           </div>
         </div>
@@ -80,7 +83,7 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
           <div className="ml-auto">
             <Link href="/team">
               <Button className="text-sm bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90">
-                Team Details
+                {t("dashboard.teamDetails")}
               </Button>
             </Link>
           </div>
