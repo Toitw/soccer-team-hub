@@ -10,6 +10,7 @@ import {
   TeamMember,
   User
 } from "@shared/schema";
+import { useLanguage } from "@/hooks/use-language";
 import {
   Card,
   CardContent,
@@ -124,6 +125,7 @@ interface TeamMemberWithUser extends TeamMember {
 export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("lineup");
   
   // Dialogs state
@@ -736,16 +738,16 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="lineup">
-              Lineup
+              {t("matches.lineups")}
             </TabsTrigger>
             <TabsTrigger value="substitutions">
-              Subs
+              {t("matches.substitutions")}
             </TabsTrigger>
             <TabsTrigger value="goals">
-              Goals
+              {t("matches.goals")}
             </TabsTrigger>
             <TabsTrigger value="cards">
-              Cards
+              {t("matches.cards")}
             </TabsTrigger>
           </TabsList>
 
@@ -757,12 +759,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
                     {lineup ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                    {lineup ? "Edit Lineup" : "Add Lineup"}
+                    {lineup ? t("matches.editLineup") : t("matches.addLineup")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>{lineup ? "Edit Match Lineup" : "Add Match Lineup"}</DialogTitle>
+                    <DialogTitle>{lineup ? t("matches.editMatchLineup") : t("matches.addMatchLineup")}</DialogTitle>
                   </DialogHeader>
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">
@@ -773,7 +775,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="formation"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Formation</FormLabel>
+                            <FormLabel>{t("team.formation")}</FormLabel>
                             <FormControl>
                               <Select 
                                 onValueChange={(value) => {
@@ -805,7 +807,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="playerIds"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Team Lineup</FormLabel>
+                            <FormLabel>{t("team.teamLineup")}</FormLabel>
                             <FormMessage />
                             
                             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
@@ -1380,7 +1382,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Record Substitution</DialogTitle>
+                    <DialogTitle>{t("matches.recordSubstitution")}</DialogTitle>
                   </DialogHeader>
                   <Form {...substitutionForm}>
                     <form onSubmit={substitutionForm.handleSubmit(handleSubstitutionSubmit)} className="space-y-4">
@@ -1389,14 +1391,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="playerInId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Player In</FormLabel>
+                            <FormLabel>{t("matches.playerIn")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
-                                <option value="">Select player coming in</option>
+                                <option value="">{t("matches.selectPlayerIn")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId} value={member.userId}>
                                     {member.user.fullName} 
@@ -1415,14 +1417,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="playerOutId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Player Out</FormLabel>
+                            <FormLabel>{t("matches.playerOut")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
-                                <option value="">Select player going out</option>
+                                <option value="">{t("matches.selectPlayerOut")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId} value={member.userId}>
                                     {member.user.fullName}
@@ -1441,7 +1443,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="minute"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Minute</FormLabel>
+                            <FormLabel>{t("matches.minute")}</FormLabel>
                             <FormControl>
                               <Input 
                                 type="number" 
@@ -1463,7 +1465,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="reason"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Reason (Optional)</FormLabel>
+                            <FormLabel>{t("matches.reasonOptional")}</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="e.g. Tactical, Injury, etc."
@@ -1481,7 +1483,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         </DialogClose>
                         <Button type="submit" disabled={addSubstitution.isPending}>
                           {addSubstitution.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Substitution
+                          {t("matches.recordSubstitution")}
                         </Button>
                       </div>
                     </form>
@@ -1551,7 +1553,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Record Goal</DialogTitle>
+                    <DialogTitle>{t("matches.recordGoal")}</DialogTitle>
                   </DialogHeader>
                   <Form {...goalForm}>
                     <form onSubmit={goalForm.handleSubmit(handleGoalSubmit)} className="space-y-4">
@@ -1560,14 +1562,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="scorerId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Scorer</FormLabel>
+                            <FormLabel>{t("matches.scorer")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
-                                <option value="">Select goal scorer</option>
+                                <option value="">{t("matches.selectGoalScorer")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId} value={member.userId}>
                                     {member.user.fullName}
@@ -1586,14 +1588,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="assistId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Assist (Optional)</FormLabel>
+                            <FormLabel>{t("matches.assistOptional")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                               >
-                                <option value="">No assist / Not applicable</option>
+                                <option value="">{t("matches.noAssist")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId} value={member.userId}>
                                     {member.user.fullName}
@@ -1612,7 +1614,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="minute"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Minute</FormLabel>
+                            <FormLabel>{t("matches.minute")}</FormLabel>
                             <FormControl>
                               <Input 
                                 type="number" 
@@ -1634,14 +1636,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="type"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Goal Type</FormLabel>
+                            <FormLabel>{t("matches.goalType")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(e.target.value as any)}
                               >
-                                <option value="">Select goal type</option>
+                                <option value="">{t("matches.selectGoalType")}</option>
                                 <option value="regular">Regular</option>
                                 <option value="penalty">Penalty</option>
                                 <option value="free_kick">Free Kick</option>
@@ -1658,7 +1660,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormLabel>{t("matches.descriptionOptional")}</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Brief description of the goal"
@@ -1676,7 +1678,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         </DialogClose>
                         <Button type="submit" disabled={addGoal.isPending}>
                           {addGoal.isPending && <span className="mr-2 animate-spin">⟳</span>}
-                          Record Goal
+                          {t("matches.recordGoal")}
                         </Button>
                       </div>
                     </form>
@@ -1756,7 +1758,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Record Card</DialogTitle>
+                    <DialogTitle>{t("matches.recordCard")}</DialogTitle>
                   </DialogHeader>
                   <Form {...cardForm}>
                     <form onSubmit={cardForm.handleSubmit(handleCardSubmit)} className="space-y-4">
@@ -1765,14 +1767,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="playerId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Player</FormLabel>
+                            <FormLabel>{t("matches.player")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
-                                <option value="">Select player</option>
+                                <option value="">{t("matches.selectPlayer")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId} value={member.userId}>
                                     {member.user.fullName}
@@ -1791,14 +1793,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="type"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Card Type</FormLabel>
+                            <FormLabel>{t("matches.cardType")}</FormLabel>
                             <FormControl>
                               <select
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={field.value || ""}
                                 onChange={(e) => field.onChange(e.target.value as any)}
                               >
-                                <option value="">Select card type</option>
+                                <option value="">{t("matches.selectCardType")}</option>
                                 <option value="yellow">Yellow Card</option>
                                 <option value="red">Red Card</option>
                               </select>
@@ -1813,7 +1815,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="minute"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Minute</FormLabel>
+                            <FormLabel>{t("matches.minute")}</FormLabel>
                             <FormControl>
                               <Input 
                                 type="number" 
@@ -1835,7 +1837,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         name="reason"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Reason (Optional)</FormLabel>
+                            <FormLabel>{t("matches.reasonOptional")}</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Reason for the card"

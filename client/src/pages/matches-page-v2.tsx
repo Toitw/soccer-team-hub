@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import MatchDetails from "@/components/match-details";
 import {
   Card,
@@ -123,6 +124,7 @@ type ClassificationFormData = z.infer<typeof classificationSchema>;
 export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -850,12 +852,12 @@ export default function MatchesPage() {
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upcoming">
-                <Calendar className="h-4 w-4 mr-2" /> Upcoming Matches
+                <Calendar className="h-4 w-4 mr-2" /> {t("matches.upcomingMatches")}
               </TabsTrigger>
               <TabsTrigger value="past">
-                <Trophy className="h-4 w-4 mr-2" /> Past Matches
+                <Trophy className="h-4 w-4 mr-2" /> {t("matches.pastMatches")}
               </TabsTrigger>
-              <TabsTrigger value="classification">Classification</TabsTrigger>
+              <TabsTrigger value="classification">{t("matches.leagueClassification")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming" className="space-y-4">
@@ -867,7 +869,7 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      No upcoming matches scheduled.
+                      {t("matches.noMatches")}
                     </p>
                     {canManage && (
                       <Button
@@ -875,8 +877,7 @@ export default function MatchesPage() {
                         className="mt-4"
                         onClick={() => setDialogOpen(true)}
                       >
-                        <PlusCircle className="h-4 w-4 mr-2" /> Schedule a new
-                        match
+                        <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.addMatch")}
                       </Button>
                     )}
                   </CardContent>
@@ -893,7 +894,7 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      No past matches available.
+                      {t("matches.noMatches")}
                     </p>
                   </CardContent>
                 </Card>
@@ -1085,12 +1086,12 @@ export default function MatchesPage() {
             <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>
-                  {isEditing ? "Edit Match" : "Add New Match"}
+                  {isEditing ? t("matches.editMatch") : t("matches.addMatch")}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditing
-                    ? "Edit the match details below."
-                    : "Enter match details below to create a new match."}
+                    ? t("matches.editMatchDescription")
+                    : t("matches.addMatchDescription")}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -1277,7 +1278,7 @@ export default function MatchesPage() {
                   />
                   <DialogFooter>
                     <Button type="submit">
-                      {isEditing ? "Save Changes" : "Add Match"}
+                      {isEditing ? t("common.saveChanges") : t("matches.addMatch")}
                     </Button>
                   </DialogFooter>
                 </form>
