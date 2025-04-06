@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import MatchDetails from "@/components/match-details";
 import {
   Card,
@@ -117,6 +118,7 @@ type ClassificationFormData = z.infer<typeof classificationSchema>;
 export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("upcoming");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -932,13 +934,13 @@ export default function MatchesPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Header title="Matches" />
+        <Header title={t("navigation.matches")} />
         <main className="flex-1 p-4 md:p-6 space-y-4 mt-16 pt-6 md:mt-16 md:pt-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Matches</h1>
+            <h1 className="text-2xl font-bold">{t("navigation.matches")}</h1>
             {canManage && (
               <Button onClick={() => setDialogOpen(true)}>
-                <PlusCircle className="h-4 w-4 mr-2" /> Add Match
+                <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.addMatch")}
               </Button>
             )}
           </div>
@@ -950,13 +952,13 @@ export default function MatchesPage() {
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upcoming">
-                <Calendar className="h-4 w-4 mr-2" /> Upcoming Matches
+                <Calendar className="h-4 w-4 mr-2" /> {t("matches.upcomingMatches")}
               </TabsTrigger>
               <TabsTrigger value="past">
-                <Trophy className="h-4 w-4 mr-2" /> Past Matches
+                <Trophy className="h-4 w-4 mr-2" /> {t("matches.pastMatches")}
               </TabsTrigger>
               <TabsTrigger value="classification">
-                <ListOrdered className="h-4 w-4 mr-2" /> Classification
+                <ListOrdered className="h-4 w-4 mr-2" /> {t("matches.classification")}
               </TabsTrigger>
             </TabsList>
 
@@ -969,7 +971,7 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      No upcoming matches scheduled.
+                      {t("matches.noUpcomingMatches")}
                     </p>
                     {canManage && (
                       <Button
@@ -977,8 +979,7 @@ export default function MatchesPage() {
                         className="mt-4"
                         onClick={() => setDialogOpen(true)}
                       >
-                        <PlusCircle className="h-4 w-4 mr-2" /> Schedule a new
-                        match
+                        <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.scheduleNewMatch")}
                       </Button>
                     )}
                   </CardContent>
@@ -995,7 +996,7 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      No past matches available.
+                      {t("matches.noPastMatches")}
                     </p>
                   </CardContent>
                 </Card>
@@ -1006,7 +1007,7 @@ export default function MatchesPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
-                    <CardTitle>League Classification</CardTitle>
+                    <CardTitle>{t("matches.leagueClassification")}</CardTitle>
                     {canManage && (
                       <div className="flex space-x-2">
                         <Button
@@ -1014,27 +1015,27 @@ export default function MatchesPage() {
                           size="sm"
                           onClick={() => setClassificationDialogOpen(true)}
                         >
-                          <PlusSquare className="h-4 w-4 mr-1" /> Add Entry
+                          <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.addEntry")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCsvUploadDialogOpen(true)}
                         >
-                          <Upload className="h-4 w-4 mr-1" /> Upload CSV
+                          <Upload className="h-4 w-4 mr-1" /> {t("matches.uploadCSV")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={generateSampleCsv}
                         >
-                          <FileText className="h-4 w-4 mr-1" /> Sample CSV
+                          <FileText className="h-4 w-4 mr-1" /> {t("matches.sampleCSV")}
                         </Button>
                       </div>
                     )}
                   </div>
                   <CardDescription>
-                    Current standings in the league
+                    {t("matches.currentStandings")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1044,16 +1045,16 @@ export default function MatchesPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-12">#</TableHead>
-                            <TableHead>Team</TableHead>
-                            <TableHead className="text-center">Pts</TableHead>
-                            <TableHead className="text-center">P</TableHead>
-                            <TableHead className="text-center">W</TableHead>
-                            <TableHead className="text-center">D</TableHead>
-                            <TableHead className="text-center">L</TableHead>
-                            <TableHead className="text-center">GF</TableHead>
-                            <TableHead className="text-center">GA</TableHead>
-                            <TableHead className="text-center">GD</TableHead>
-                            {canManage && <TableHead>Actions</TableHead>}
+                            <TableHead>{t("matches.team")}</TableHead>
+                            <TableHead className="text-center">{t("matches.points")}</TableHead>
+                            <TableHead className="text-center">{t("matches.played")}</TableHead>
+                            <TableHead className="text-center">{t("matches.won")}</TableHead>
+                            <TableHead className="text-center">{t("matches.drawn")}</TableHead>
+                            <TableHead className="text-center">{t("matches.lost")}</TableHead>
+                            <TableHead className="text-center">{t("matches.goalsFor")}</TableHead>
+                            <TableHead className="text-center">{t("matches.goalsAgainst")}</TableHead>
+                            <TableHead className="text-center">{t("matches.goalDifference")}</TableHead>
+                            {canManage && <TableHead>{t("common.actions")}</TableHead>}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1134,7 +1135,7 @@ export default function MatchesPage() {
                   ) : (
                     <div className="text-center py-4">
                       <p className="text-muted-foreground">
-                        No classification data available.
+                        {t("matches.noClassificationData")}
                       </p>
                       {canManage && (
                         <div className="flex flex-col space-y-2 mt-4 max-w-xs mx-auto">
@@ -1142,13 +1143,13 @@ export default function MatchesPage() {
                             variant="outline"
                             onClick={() => setClassificationDialogOpen(true)}
                           >
-                            <PlusSquare className="h-4 w-4 mr-2" /> Add manually
+                            <PlusSquare className="h-4 w-4 mr-2" /> {t("matches.addManually")}
                           </Button>
                           <Button
                             variant="outline"
                             onClick={() => setCsvUploadDialogOpen(true)}
                           >
-                            <Upload className="h-4 w-4 mr-2" /> Upload CSV
+                            <Upload className="h-4 w-4 mr-2" /> {t("matches.uploadCSV")}
                           </Button>
                         </div>
                       )}
@@ -1164,12 +1165,12 @@ export default function MatchesPage() {
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>
-                  {isEditing ? "Edit Match" : "Add New Match"}
+                  {isEditing ? t("matches.editMatch") : t("matches.addNewMatch")}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditing
-                    ? "Edit the match details below."
-                    : "Enter match details below to create a new match."}
+                    ? t("matches.editMatchDescription")
+                    : t("matches.addMatchDescription")}
                 </DialogDescription>
               </DialogHeader>
               <Form {...matchForm}>
@@ -1182,9 +1183,9 @@ export default function MatchesPage() {
                     name="opponentName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Opponent Team</FormLabel>
+                        <FormLabel>{t("matches.opponentTeam")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter opponent name" />
+                          <Input {...field} placeholder={t("matches.enterOpponentName")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1196,7 +1197,7 @@ export default function MatchesPage() {
                     name="matchDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Match Date and Time</FormLabel>
+                        <FormLabel>{t("matches.matchDateAndTime")}</FormLabel>
                         <FormControl>
                           <Input {...field} type="datetime-local" />
                         </FormControl>
@@ -1210,7 +1211,7 @@ export default function MatchesPage() {
                     name="matchType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Match Type</FormLabel>
+                        <FormLabel>{t("matches.matchType")}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -1236,9 +1237,9 @@ export default function MatchesPage() {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel>{t("matches.location")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter match location" />
+                          <Input {...field} placeholder={t("matches.enterMatchLocation")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1259,7 +1260,7 @@ export default function MatchesPage() {
                           />
                         </FormControl>
                         <FormLabel className="font-normal">
-                          Home match
+                          {t("matches.homeMatch")}
                         </FormLabel>
                       </FormItem>
                     )}
@@ -1270,20 +1271,20 @@ export default function MatchesPage() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>{t("matches.status")}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select match status" />
+                              <SelectValue placeholder={t("matches.selectMatchStatus")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="scheduled">{t("matches.scheduled")}</SelectItem>
+                            <SelectItem value="completed">{t("matches.completed")}</SelectItem>
+                            <SelectItem value="cancelled">{t("matches.cancelled")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1298,7 +1299,7 @@ export default function MatchesPage() {
                         name="goalsScored"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Goals Scored</FormLabel>
+                            <FormLabel>{t("matches.goalsScored")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1324,7 +1325,7 @@ export default function MatchesPage() {
                         name="goalsConceded"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Goals Conceded</FormLabel>
+                            <FormLabel>{t("matches.goalsConceded")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1352,11 +1353,11 @@ export default function MatchesPage() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t("matches.notes")}</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="Enter any additional notes"
+                            placeholder={t("matches.enterAdditionalNotes")}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1366,7 +1367,7 @@ export default function MatchesPage() {
 
                   <DialogFooter>
                     <Button type="submit">
-                      {isEditing ? "Save Changes" : "Add Match"}
+                      {isEditing ? t("common.saveChanges") : t("matches.addMatch")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -1382,12 +1383,12 @@ export default function MatchesPage() {
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>
-                  {isEditingClassification ? "Edit Classification" : "Add Classification Entry"}
+                  {isEditingClassification ? t("matches.editClassification") : t("matches.addClassificationEntry")}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditingClassification
-                    ? "Edit the classification details below."
-                    : "Enter team details below to add to the classification table."}
+                    ? t("matches.editClassificationDetails")
+                    : t("matches.enterTeamDetailsClassification")}
                 </DialogDescription>
               </DialogHeader>
               <Form {...classificationForm}>
@@ -1400,9 +1401,9 @@ export default function MatchesPage() {
                     name="externalTeamName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Team Name</FormLabel>
+                        <FormLabel>{t("matches.teamName")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter team name" />
+                          <Input {...field} placeholder={t("matches.enterTeamName")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1415,7 +1416,7 @@ export default function MatchesPage() {
                       name="points"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Points</FormLabel>
+                          <FormLabel>{t("matches.points")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1433,7 +1434,7 @@ export default function MatchesPage() {
                       name="position"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Position</FormLabel>
+                          <FormLabel>{t("team.position")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1445,7 +1446,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1460,7 +1461,7 @@ export default function MatchesPage() {
                       name="gamesPlayed"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Played</FormLabel>
+                          <FormLabel>{t("matches.gamesPlayed")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1472,7 +1473,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1485,7 +1486,7 @@ export default function MatchesPage() {
                       name="gamesWon"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Won</FormLabel>
+                          <FormLabel>{t("matches.gamesWon")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1497,7 +1498,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1512,7 +1513,7 @@ export default function MatchesPage() {
                       name="gamesDrawn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Drawn</FormLabel>
+                          <FormLabel>{t("matches.gamesDrawn")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1524,7 +1525,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1537,7 +1538,7 @@ export default function MatchesPage() {
                       name="gamesLost"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Lost</FormLabel>
+                          <FormLabel>{t("matches.gamesLost")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1549,7 +1550,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1564,7 +1565,7 @@ export default function MatchesPage() {
                       name="goalsFor"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Goals For</FormLabel>
+                          <FormLabel>{t("matches.goalsFor")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1576,7 +1577,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1589,7 +1590,7 @@ export default function MatchesPage() {
                       name="goalsAgainst"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Goals Against</FormLabel>
+                          <FormLabel>{t("matches.goalsAgainst")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1601,7 +1602,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1612,7 +1613,7 @@ export default function MatchesPage() {
 
                   <DialogFooter>
                     <Button type="submit">
-                      {isEditingClassification ? "Save Changes" : "Add Entry"}
+                      {isEditingClassification ? t("common.saveChanges") : t("matches.addEntry")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -1624,14 +1625,14 @@ export default function MatchesPage() {
           <Dialog open={csvUploadDialogOpen} onOpenChange={setCsvUploadDialogOpen}>
             <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] overflow-hidden">
               <DialogHeader>
-                <DialogTitle>Upload Classification Data</DialogTitle>
+                <DialogTitle>{t("matches.uploadStandings")}</DialogTitle>
                 <DialogDescription>
-                  Upload a CSV file with team classification data. The file should have columns for team name and points.
+                  {t("matches.uploadCSVDescription")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="csv-file">CSV File</Label>
+                  <Label htmlFor="csv-file">{t("matches.csvFile")}</Label>
                   <Input
                     id="csv-file"
                     type="file"
@@ -1643,12 +1644,12 @@ export default function MatchesPage() {
                     }}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
+                    {t("matches.requiredFormat")}
                   </p>
                 </div>
                 
                 <div className="rounded-md bg-muted p-3">
-                  <div className="text-sm font-medium">Example CSV Format:</div>
+                  <div className="text-sm font-medium">{t("matches.exampleCsvFormat")}</div>
                   <div className="max-h-28 overflow-y-auto">
                     <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto break-all px-2">
                       Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst<br />
@@ -1660,15 +1661,15 @@ export default function MatchesPage() {
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Need a template?{" "}
+                  {t("matches.needTemplate")}{" "}
                   <Button variant="link" className="p-0 h-auto" onClick={generateSampleCsv}>
-                    Download sample CSV
+                    {t("matches.downloadSampleCsv")}
                   </Button>
                 </p>
               </div>
               <DialogFooter>
                 <Button type="button" onClick={handleCsvUpload}>
-                  Upload and Process
+                  {t("matches.uploadAndProcess")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1678,16 +1679,15 @@ export default function MatchesPage() {
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("matches.areYouSure")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the match against{" "}
-                  {matchToDelete?.opponentName}. This action cannot be undone.
+                  {t("matches.permanentlyDeleteMatch", { opponentName: matchToDelete?.opponentName || "" })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteMatch}>
-                  Delete
+                  {t("common.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -1700,16 +1700,15 @@ export default function MatchesPage() {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("matches.areYouSure")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the classification entry for{" "}
-                  {classificationToDelete?.externalTeamName}. This action cannot be undone.
+                  {t("matches.permanentlyDeleteClassification", { teamName: classificationToDelete?.externalTeamName || "" })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteClassification}>
-                  Delete
+                  {t("common.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
