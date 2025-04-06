@@ -16,6 +16,7 @@ export const enUS = {
     home: "Home",
     away: "Away",
     locationNotSet: "Location not set",
+    language: "Language",
   },
   validation: {
     required: "This field is required",
@@ -55,6 +56,7 @@ export const enUS = {
     validJoinCode: "Valid join code for team \"{{teamName}}\"",
     invalidJoinCode: "Invalid join code",
     joinCodeHelp: "Have a team join code? Enter it to join a team during registration.",
+    logout: "Logout",
   },
   landingPage: {
     heroTitle: "Manage Your Soccer Team Like a Pro",
@@ -87,6 +89,13 @@ export const enUS = {
     playerPosition: "Position (optional)",
     jerseyNumber: "Jersey Number (optional)",
     profilePicture: "Profile Picture",
+    form: {
+      fullName: "Full Name",
+      role: "Role",
+      position: "Position",
+      jerseyNumber: "Jersey Number (optional)",
+      profilePicture: "Profile Picture"
+    },
     teamLineup: "Team Lineup",
     formation: "Formation",
     saveLineup: "Save Lineup",
@@ -105,6 +114,7 @@ export const enUS = {
     addTeamMembersToStart: "Add team members to get started",
     editTeamMember: "Edit Team Member",
     removeTeamMember: "Remove Team Member",
+    removeConfirmation: "Are you sure you want to remove {{name}} from the team? This action cannot be undone.",
     remove: "Remove",
     teamMembers: "Team Members",
     table: {
@@ -186,6 +196,7 @@ export const enUS = {
     currentPassword: "Current Password",
     newPassword: "New Password",
     confirmNewPassword: "Confirm New Password",
+    profilePictureDescription: "Upload a new profile picture (leave empty to keep current)",
   },
   dashboard: {
     welcome: "Welcome, {{name}}",
