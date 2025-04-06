@@ -16,6 +16,7 @@ export const esES = {
     home: "Local",
     away: "Visitante",
     locationNotSet: "Ubicación no establecida",
+    language: "Idioma",
   },
   validation: {
     required: "Este campo es obligatorio",
@@ -55,6 +56,7 @@ export const esES = {
     validJoinCode: "Código de unión válido para el equipo \"{{teamName}}\"",
     invalidJoinCode: "Código de unión inválido",
     joinCodeHelp: "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
+    logout: "Cerrar sesión",
   },
   landingPage: {
     heroTitle: "Gestiona Tu Equipo de Fútbol Como un Profesional",
@@ -87,6 +89,13 @@ export const esES = {
     playerPosition: "Posición (opcional)",
     jerseyNumber: "Número de Camiseta (opcional)",
     profilePicture: "Foto de Perfil",
+    form: {
+      fullName: "Nombre Completo",
+      role: "Rol",
+      position: "Posición",
+      jerseyNumber: "Número de Camiseta (opcional)",
+      profilePicture: "Foto de Perfil"
+    },
     teamLineup: "Alineación del Equipo",
     formation: "Formación",
     saveLineup: "Guardar Alineación",
@@ -105,6 +114,7 @@ export const esES = {
     addTeamMembersToStart: "Añade miembros al equipo para comenzar",
     editTeamMember: "Editar Miembro del Equipo",
     removeTeamMember: "Eliminar Miembro del Equipo",
+    removeConfirmation: "¿Estás seguro de que quieres eliminar a {{name}} del equipo? Esta acción no se puede deshacer.",
     remove: "Eliminar",
     teamMembers: "Miembros del Equipo",
     table: {
@@ -186,6 +196,7 @@ export const esES = {
     currentPassword: "Contraseña Actual",
     newPassword: "Nueva Contraseña",
     confirmNewPassword: "Confirmar Nueva Contraseña",
+    profilePictureDescription: "Sube una nueva foto de perfil (déjalo vacío para mantener la actual)",
   },
   dashboard: {
     welcome: "Bienvenido, {{name}}",

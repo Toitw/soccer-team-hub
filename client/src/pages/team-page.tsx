@@ -1330,7 +1330,7 @@ export default function TeamPage() {
       <Dialog open={openEditMemberDialog} onOpenChange={setOpenEditMemberDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Team Member</DialogTitle>
+            <DialogTitle>{t("team.editTeamMember")}</DialogTitle>
             <DialogDescription>
               Update the information for {memberToEdit?.user.fullName}.
             </DialogDescription>
@@ -1345,7 +1345,7 @@ export default function TeamPage() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>{t("team.form.role")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -1356,8 +1356,8 @@ export default function TeamPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="coach">Coach</SelectItem>
-                        <SelectItem value="player">Player</SelectItem>
+                        <SelectItem value="coach">{t("auth.coach")}</SelectItem>
+                        <SelectItem value="player">{t("auth.player")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1369,7 +1369,7 @@ export default function TeamPage() {
                 name="position"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position</FormLabel>
+                    <FormLabel>{t("team.form.position")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value || "none"}
@@ -1380,11 +1380,11 @@ export default function TeamPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="Goalkeeper">Goalkeeper</SelectItem>
-                        <SelectItem value="Defender">Defender</SelectItem>
-                        <SelectItem value="Midfielder">Midfielder</SelectItem>
-                        <SelectItem value="Forward">Forward</SelectItem>
+                        <SelectItem value="none">{t("team.none")}</SelectItem>
+                        <SelectItem value="Goalkeeper">{t("team.goalkeeper")}</SelectItem>
+                        <SelectItem value="Defender">{t("team.defender")}</SelectItem>
+                        <SelectItem value="Midfielder">{t("team.midfielder")}</SelectItem>
+                        <SelectItem value="Forward">{t("team.forward")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1396,7 +1396,7 @@ export default function TeamPage() {
                 name="jerseyNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Jersey Number</FormLabel>
+                    <FormLabel>{t("team.form.jerseyNumber")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -1420,7 +1420,7 @@ export default function TeamPage() {
                 name="profilePicture"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Profile Picture</FormLabel>
+                    <FormLabel>{t("team.form.profilePicture")}</FormLabel>
                     <FormControl>
                       <Input
                         type="file"
@@ -1439,7 +1439,7 @@ export default function TeamPage() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Upload a new profile picture (leave empty to keep current)
+                      {t("settings.profilePictureDescription")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1453,7 +1453,7 @@ export default function TeamPage() {
                   {editTeamMemberMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  Save Changes
+                  {t("common.save")}
                 </Button>
               </DialogFooter>
             </form>
@@ -1465,10 +1465,9 @@ export default function TeamPage() {
       <Dialog open={openRemoveMemberDialog} onOpenChange={setOpenRemoveMemberDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Remove Team Member</DialogTitle>
+            <DialogTitle>{t("team.removeTeamMember")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove {memberToRemove?.user.fullName} from the team?
-              This action cannot be undone.
+              {memberToRemove?.user.fullName && t("team.removeConfirmation", {name: memberToRemove.user.fullName})}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
@@ -1476,7 +1475,7 @@ export default function TeamPage() {
               variant="outline"
               onClick={() => setOpenRemoveMemberDialog(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1486,7 +1485,7 @@ export default function TeamPage() {
               {removeMemberMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Remove
+              {t("team.remove")}
             </Button>
           </DialogFooter>
         </DialogContent>
