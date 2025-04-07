@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import {
   Card,
   CardContent,
@@ -80,6 +81,7 @@ type AttendanceData = {
 export default function EventPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // We control which tab is active:
   const [activeTab, setActiveTab] = useState<"calendar" | "list">("calendar");
@@ -432,16 +434,16 @@ export default function EventPage() {
       <Sidebar />
 
       <div className="flex-1 ml-0 md:ml-64 z-30">
-        <Header title="Events" />
+        <Header title={t("common.events")} />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-2xl font-bold text-primary">
-                Event Management
+                {t("events.eventManagement")}
               </h1>
               <p className="text-gray-500">
-                Schedule and manage team events
+                {t("events.scheduleAndManage")}
               </p>
             </div>
 
@@ -449,15 +451,15 @@ export default function EventPage() {
               <DialogTrigger asChild>
                 <Button
                   className="bg-primary hover:bg-primary/90"
-                  aria-label="New Event"
+                  aria-label={t("events.addEvent")}
                 >
                   <PlusCircle className="h-4 w-4 mr-2" />
-                  New Event
+                  {t("events.addEvent")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{isEditMode ? "Edit Event" : "Create Event"}</DialogTitle>
+                  <DialogTitle>{isEditMode ? t("events.editEvent") : t("events.createEvent")}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form
@@ -469,10 +471,10 @@ export default function EventPage() {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Title</FormLabel>
+                          <FormLabel>{t("events.title")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Enter event title"
+                              placeholder={t("events.enterTitle")}
                               {...field}
                             />
                           </FormControl>
@@ -486,7 +488,7 @@ export default function EventPage() {
                         name="startTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Start Time</FormLabel>
+                            <FormLabel>{t("events.time")}</FormLabel>
                             <FormControl>
                               <Input type="datetime-local" {...field} />
                             </FormControl>
@@ -499,7 +501,7 @@ export default function EventPage() {
                         name="endTime"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>End Time</FormLabel>
+                            <FormLabel>{t("events.time")}</FormLabel>
                             <FormControl>
                               <Input type="datetime-local" {...field} />
                             </FormControl>
@@ -513,10 +515,10 @@ export default function EventPage() {
                       name="location"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Location</FormLabel>
+                          <FormLabel>{t("events.location")}</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Enter event location"
+                              placeholder={t("events.enterLocation")}
                               {...field}
                             />
                           </FormControl>
@@ -529,11 +531,11 @@ export default function EventPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t("events.description")}</FormLabel>
                           <FormControl>
                             <textarea
                               className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              placeholder="Enter event description, goals, equipment needed, etc."
+                              placeholder={t("events.enterDescription")}
                               {...field}
                             ></textarea>
                           </FormControl>
@@ -549,10 +551,10 @@ export default function EventPage() {
                       {createEventMutation.isPending || updateEventMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {isEditMode ? "Updating..." : "Scheduling..."}
+                          {isEditMode ? t("common.loading") : t("common.loading")}
                         </>
                       ) : (
-                        isEditMode ? "Update Event" : "Schedule Event"
+                        isEditMode ? t("events.updateEvent") : t("events.scheduleEvent")
                       )}
                     </Button>
                   </form>
@@ -570,8 +572,8 @@ export default function EventPage() {
             onValueChange={(val) => setActiveTab(val as "calendar" | "list")}
           >
             <TabsList>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
-              <TabsTrigger value="list">List View</TabsTrigger>
+              <TabsTrigger value="calendar">{t("events.calendar")}</TabsTrigger>
+              <TabsTrigger value="list">{t("events.listView")}</TabsTrigger>
             </TabsList>
 
             {/* CALENDAR TAB CONTENT */}
@@ -607,7 +609,7 @@ export default function EventPage() {
                     <CardTitle>
                       {selectedDate
                         ? format(selectedDate, "EEEE, MMMM d, yyyy")
-                        : "Select a date"}
+                        : t("events.selectDate")}
                     </CardTitle>
                     <CardDescription>
                       {eventsForSelectedDate.length} event
