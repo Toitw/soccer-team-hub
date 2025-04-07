@@ -901,8 +901,8 @@ export default function MatchesPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="classification" className="space-y-4">
-              <Card>
+            <TabsContent value="classification" className="space-y-4 overflow-hidden">
+              <Card className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <div>
@@ -938,7 +938,7 @@ export default function MatchesPage() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="overflow-x-auto">
+                <CardContent className="overflow-x-auto -mx-6 sm:mx-0">
                   {classifications && classifications.length > 0 ? (
                     <Table className="w-full min-w-[700px] md:min-w-full">
                       <TableHeader>
