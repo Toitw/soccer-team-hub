@@ -313,6 +313,13 @@ export const enUS = {
     meeting: "Meeting",
     social: "Social Event",
     other: "Other",
+    types: {
+      training: "Training",
+      match: "Match",
+      meeting: "Meeting",
+      social: "Social Event",
+      other: "Other"
+    },
     noEvents: "No events scheduled",
   },
   announcements: {
