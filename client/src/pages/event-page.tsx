@@ -612,20 +612,19 @@ export default function EventPage() {
                         : t("events.selectDate")}
                     </CardTitle>
                     <CardDescription>
-                      {eventsForSelectedDate.length} event
-                      {eventsForSelectedDate.length !== 1 ? "s" : ""} scheduled
+                      {eventsForSelectedDate.length} {t("events.eventsScheduled")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     {eventsForSelectedDate.length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
-                        <p>No events scheduled for this date</p>
+                        <p>{t("events.noEventsForDate")}</p>
                         <Button
                           variant="link"
                           onClick={() => setDialogOpen(true)}
                           className="text-primary mt-2"
                         >
-                          Schedule an event
+                          {t("events.scheduleEvent")}
                         </Button>
                       </div>
                     ) : (
@@ -659,10 +658,10 @@ export default function EventPage() {
                                   <div className="text-sm text-gray-600 flex items-center mt-2">
                                     <Users className="h-4 w-4 mr-1" />
                                     <Badge variant="secondary" className="mr-1">
-                                      {attendanceMap[event.id].confirmed} attending
+                                      {attendanceMap[event.id].confirmed} {t("events.attending")}
                                     </Badge>
                                     <Badge variant="outline">
-                                      {attendanceMap[event.id].total} responses
+                                      {attendanceMap[event.id].total} {t("events.responses")}
                                     </Badge>
                                   </div>
                                 )}
@@ -729,8 +728,8 @@ export default function EventPage() {
                                   }`}
                                 />
                                 {attendanceStatus[event.id] === "attending"
-                                  ? "Attending"
-                                  : "Attend"}
+                                  ? t("events.attendingStatus")
+                                  : t("events.attend")}
                               </Button>
                               <Button
                                 variant={
@@ -751,8 +750,8 @@ export default function EventPage() {
                                   }`}
                                 />
                                 {attendanceStatus[event.id] === "notAttending"
-                                  ? "Not Attending"
-                                  : "Can't Attend"}
+                                  ? t("events.notAttendingStatus")
+                                  : t("events.cantAttend")}
                               </Button>
                             </div>
                           </div>
@@ -768,22 +767,21 @@ export default function EventPage() {
             <TabsContent value="list" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Events</CardTitle>
+                  <CardTitle>{t("common.events")}</CardTitle>
                   <CardDescription>
-                    {events?.length || 0} event
-                    {events?.length !== 1 ? "s" : ""} scheduled
+                    {events?.length || 0} {t("events.eventsScheduled")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {!events || events.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
-                      <p>No events scheduled</p>
+                      <p>{t("events.noEvents")}</p>
                       <Button
                         variant="link"
                         onClick={() => setDialogOpen(true)}
                         className="text-primary mt-2"
                       >
-                        Schedule your first event
+                        {t("events.scheduleFirstEvent")}
                       </Button>
                     </div>
                   ) : (
@@ -839,10 +837,10 @@ export default function EventPage() {
                                     <div className="text-sm text-gray-600 flex items-center mt-2">
                                       <Users className="h-4 w-4 mr-1" />
                                       <Badge variant="secondary" className="mr-1">
-                                        {attendanceMap[event.id].confirmed} attending
+                                        {attendanceMap[event.id].confirmed} {t("events.attending")}
                                       </Badge>
                                       <Badge variant="outline">
-                                        {attendanceMap[event.id].total} responses
+                                        {attendanceMap[event.id].total} {t("events.responses")}
                                       </Badge>
                                     </div>
                                   )}
@@ -908,8 +906,8 @@ export default function EventPage() {
                                     }`}
                                   />
                                   {attendanceStatus[event.id] === "attending"
-                                    ? "Attending"
-                                    : "Attend"}
+                                    ? t("events.attendingStatus")
+                                    : t("events.attend")}
                                 </Button>
                                 <Button
                                   variant={
@@ -929,8 +927,8 @@ export default function EventPage() {
                                     }`}
                                   />
                                   {attendanceStatus[event.id] === "notAttending"
-                                    ? "Not Attending"
-                                    : "Can't Attend"}
+                                    ? t("events.notAttendingStatus")
+                                    : t("events.cantAttend")}
                                 </Button>
                               </div>
                             </div>
@@ -949,9 +947,9 @@ export default function EventPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Event</DialogTitle>
+            <DialogTitle>{t("events.deleteEvent")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this event? This action cannot be undone.
+              {t("events.deleteEventConfirmation")}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
@@ -969,7 +967,7 @@ export default function EventPage() {
               variant="outline" 
               onClick={() => setDeleteDialogOpen(false)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button 
               variant="destructive" 
@@ -979,10 +977,10 @@ export default function EventPage() {
               {deleteEventMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t("events.deleting")}
                 </>
               ) : (
-                "Delete Event"
+                t("events.deleteEvent")
               )}
             </Button>
           </DialogFooter>
