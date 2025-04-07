@@ -51,6 +51,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
+import { es } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 
@@ -586,6 +587,7 @@ export default function EventPage() {
                       selected={selectedDate}
                       onSelect={setSelectedDate}
                       className="rounded-md border"
+                      locale={es}
                       modifiers={{
                         hasEvent:
                           events?.map((event) => new Date(event.startTime)) ||
@@ -608,7 +610,7 @@ export default function EventPage() {
                   <CardHeader>
                     <CardTitle>
                       {selectedDate
-                        ? format(selectedDate, "EEEE, MMMM d, yyyy")
+                        ? format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
                         : t("events.selectDate")}
                     </CardTitle>
                     <CardDescription>
@@ -643,11 +645,12 @@ export default function EventPage() {
                                   <Clock className="h-4 w-4 mr-1" />
                                   {format(
                                     new Date(event.startTime),
-                                    "h:mm a",
+                                    "H:mm",
+                                    { locale: es }
                                   )}{" "}
                                   -
                                   {event.endTime
-                                    ? format(new Date(event.endTime), " h:mm a")
+                                    ? format(new Date(event.endTime), " H:mm", { locale: es })
                                     : ""}
                                 </div>
                                 <div className="text-sm text-gray-500 flex items-center mb-1">
@@ -676,8 +679,7 @@ export default function EventPage() {
                                         : "bg-accent/10 text-accent"
                                   }`}
                                 >
-                                  {event.type.charAt(0).toUpperCase() +
-                                    event.type.slice(1)}
+                                  {t(`events.types.${event.type}`)}
                                 </span>
                                 
                                 {/* Admin controls */}
@@ -807,20 +809,23 @@ export default function EventPage() {
                                     <CalendarIcon className="h-4 w-4 mr-1" />
                                     {format(
                                       new Date(event.startTime),
-                                      "EEEE, MMMM d, yyyy",
+                                      "EEEE, d 'de' MMMM 'de' yyyy",
+                                      { locale: es }
                                     )}
                                   </div>
                                   <div className="text-sm text-gray-500 flex items-center mb-1">
                                     <Clock className="h-4 w-4 mr-1" />
                                     {format(
                                       new Date(event.startTime),
-                                      "h:mm a",
+                                      "H:mm",
+                                      { locale: es }
                                     )}{" "}
                                     -
                                     {event.endTime
                                       ? format(
                                           new Date(event.endTime),
-                                          " h:mm a",
+                                          " H:mm",
+                                          { locale: es }
                                         )
                                       : ""}
                                   </div>
@@ -855,8 +860,7 @@ export default function EventPage() {
                                           : "bg-accent/10 text-accent"
                                     }`}
                                   >
-                                    {event.type.charAt(0).toUpperCase() +
-                                      event.type.slice(1)}
+                                    {t(`events.types.${event.type}`)}
                                   </span>
                                   
                                   {/* Admin controls */}
@@ -957,7 +961,7 @@ export default function EventPage() {
               <div className="p-4 border rounded-md mb-4">
                 <h3 className="font-medium">{currentEvent.title}</h3>
                 <div className="text-sm text-gray-500 mt-1">
-                  {format(new Date(currentEvent.startTime), "EEEE, MMMM d, yyyy • h:mm a")}
+                  {format(new Date(currentEvent.startTime), "EEEE, d 'de' MMMM 'de' yyyy • H:mm", { locale: es })}
                 </div>
               </div>
             )}

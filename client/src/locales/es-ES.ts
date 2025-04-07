@@ -315,6 +315,13 @@ export const esES = {
     meeting: "Reunión",
     social: "Evento Social",
     other: "Otro",
+    types: {
+      training: "Entrenamiento",
+      match: "Partido",
+      meeting: "Reunión",
+      social: "Evento Social",
+      other: "Otro"
+    },
     noEvents: "No hay eventos programados",
     eventManagement: "Gestión de Eventos",
     scheduleAndManage: "Programa y gestiona eventos del equipo",
