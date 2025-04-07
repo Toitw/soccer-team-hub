@@ -80,20 +80,6 @@
     "opponentLogo": null
   },
   {
-    "opponentName": "Prueba",
-    "matchDate": "2025-04-06T07:59:00.000Z",
-    "location": "Aboño",
-    "isHome": false,
-    "notes": null,
-    "status": "completed",
-    "matchType": "friendly",
-    "goalsScored": null,
-    "goalsConceded": null,
-    "teamId": 1,
-    "id": 7,
-    "opponentLogo": null
-  },
-  {
     "opponentName": "NEwteam",
     "matchDate": "2025-04-08T16:35:00.000Z",
     "location": "Candas",
