@@ -146,8 +146,10 @@ export const esES = {
     noTeamMembersFound: "No se han encontrado miembros del equipo",
     selectRole: "Seleccionar rol",
     selectPosition: "Seleccionar posición",
-    tryAdjustingFilters: "Intenta ajustar tus filtros",
-    addTeamMembersToStart: "Añade miembros al equipo para comenzar",
+    filters: {
+      tryAdjusting: "Intenta ajustar tus filtros",
+      addToStart: "Añade miembros al equipo para comenzar"
+    },
     // Position translations
     centerBack: "Defensa Central",
     leftBack: "Lateral Izquierdo",
@@ -163,6 +165,12 @@ export const esES = {
     striker: "Delantero",
     leftWinger: "Extremo Izquierdo",
     rightWinger: "Extremo Derecho",
+    // Position abbreviations for the lineup field
+    gk: "POR",
+    def: "DEF",
+    mid: "MED",
+    fw: "DEL",
+    noTeamMembersForLineup: "No hay miembros del equipo disponibles para la alineación",
   },
   matches: {
     upcomingMatches: "Próximos Partidos",

@@ -912,7 +912,10 @@ export default function TeamPage() {
                                       </div>
                                     ) : (
                                       <div className="text-xs md:text-sm font-bold">
-                                        {position.label}
+                                        {position.label === "GK" ? t("team.gk") :
+                                         position.label === "DEF" ? t("team.def") :
+                                         position.label === "MID" ? t("team.mid") :
+                                         t("team.fw")}
                                       </div>
                                     )}
                                   </div>
@@ -946,7 +949,7 @@ export default function TeamPage() {
                     </div>
                     {(!teamMembers || teamMembers.length === 0) && (
                       <div className="relative z-10 text-white text-center p-4 bg-black bg-opacity-50 rounded">
-                        No team members available for lineup
+                        {t("team.noTeamMembersForLineup")}
                       </div>
                     )}
                   </div>
@@ -1203,9 +1206,9 @@ export default function TeamPage() {
                             {t("team.noTeamMembersFound")}
                           </div>
                           {searchQuery || roleFilter !== "all" ? (
-                            <p>{t("team.tryAdjustingFilters")}</p>
+                            <p>{t("team.filters.tryAdjusting")}</p>
                           ) : (
-                            <p>{t("team.addTeamMembersToStart")}</p>
+                            <p>{t("team.filters.addToStart")}</p>
                           )}
                         </div>
                       </TableCell>

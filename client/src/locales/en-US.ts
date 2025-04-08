@@ -146,8 +146,10 @@ export const enUS = {
     noTeamMembersFound: "No team members found",
     selectRole: "Select role",
     selectPosition: "Select position",
-    tryAdjustingFilters: "Try adjusting your filters",
-    addTeamMembersToStart: "Add team members to get started",
+    filters: {
+      tryAdjusting: "Try adjusting your filters",
+      addToStart: "Add team members to get started"
+    },
     // Position translations
     centerBack: "Center Back",
     leftBack: "Left Back",
@@ -163,6 +165,12 @@ export const enUS = {
     striker: "Striker",
     leftWinger: "Left Winger",
     rightWinger: "Right Winger",
+    // Position abbreviations for the lineup field
+    gk: "GK",
+    def: "DEF",
+    mid: "MID",
+    fw: "FW",
+    noTeamMembersForLineup: "No team members available for lineup",
   },
   matches: {
     upcomingMatches: "Upcoming Matches",
