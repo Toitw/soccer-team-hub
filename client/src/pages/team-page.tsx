@@ -713,52 +713,52 @@ export default function TeamPage() {
                                 <SelectGroup>
                                   <SelectLabel>{t("team.defenders")}</SelectLabel>
                                   <SelectItem value="Center Back">
-                                    Center Back
+                                    {t("team.centerBack")}
                                   </SelectItem>
                                   <SelectItem value="Left Back">
-                                    Left Back
+                                    {t("team.leftBack")}
                                   </SelectItem>
                                   <SelectItem value="Right Back">
-                                    Right Back
+                                    {t("team.rightBack")}
                                   </SelectItem>
                                   <SelectItem value="Wing Back">
-                                    Wing Back
+                                    {t("team.wingBack")}
                                   </SelectItem>
                                   <SelectItem value="Sweeper">
-                                    Sweeper
+                                    {t("team.sweeper")}
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>{t("team.midfielders")}</SelectLabel>
                                   <SelectItem value="Defensive Midfielder">
-                                    Defensive Midfielder
+                                    {t("team.defensiveMidfielder")}
                                   </SelectItem>
                                   <SelectItem value="Central Midfielder">
-                                    Central Midfielder
+                                    {t("team.centralMidfielder")}
                                   </SelectItem>
                                   <SelectItem value="Attacking Midfielder">
-                                    Attacking Midfielder
+                                    {t("team.attackingMidfielder")}
                                   </SelectItem>
                                   <SelectItem value="Left Midfielder">
-                                    Left Midfielder
+                                    {t("team.leftMidfielder")}
                                   </SelectItem>
                                   <SelectItem value="Right Midfielder">
-                                    Right Midfielder
+                                    {t("team.rightMidfielder")}
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
                                   <SelectLabel>{t("team.forwards")}</SelectLabel>
                                   <SelectItem value="Center Forward">
-                                    Center Forward
+                                    {t("team.centerForward")}
                                   </SelectItem>
                                   <SelectItem value="Striker">
-                                    Striker
+                                    {t("team.striker")}
                                   </SelectItem>
                                   <SelectItem value="Left Winger">
-                                    Left Winger
+                                    {t("team.leftWinger")}
                                   </SelectItem>
                                   <SelectItem value="Right Winger">
-                                    Right Winger
+                                    {t("team.rightWinger")}
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectItem value="none">{t("team.none")}</SelectItem>
