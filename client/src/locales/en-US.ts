@@ -331,6 +331,38 @@ export const enUS = {
     enterOpponentName: "Enter opponent name",
     addEntry: "Add Entry",
     enterMatchLocation: "Enter match location",
+    errors: {
+      error: "Error",
+      opponentRequired: "Opponent name is required",
+      dateRequired: "Match date is required",
+      locationRequired: "Location is required",
+      teamNameRequired: "Team name is required",
+      positivePoints: "Points must be a positive number",
+      positivePosition: "Position must be a positive number",
+      selectCsvFirst: "Please select a CSV file first",
+      noTeamSelected: "No team selected",
+      failedFetchMatches: "Failed to fetch matches",
+      failedFetchClassifications: "Failed to fetch classifications",
+      failedUpdateClassification: "Failed to update classification",
+      failedCreateClassification: "Failed to create classification",
+      failedDeleteClassification: "Failed to delete classification",
+      failedReadCsvFile: "Failed to read CSV file",
+      failedUploadClassificationData: "Failed to upload classification data",
+      failedProcessCsvFile: "Failed to process CSV file",
+      failedUploadCsvFile: "Failed to upload CSV file",
+      failedDeleteMatch: "Failed to delete match",
+      failedUpdateMatch: "Failed to update match",
+      failedCreateMatch: "Failed to create match"
+    },
+    success: {
+      classificationUpdated: "Classification updated successfully",
+      classificationCreated: "Classification created successfully",
+      classificationDeleted: "The classification entry has been deleted successfully",
+      entriesCreated: "Successfully created {count} classification entries",
+      matchDeleted: "The match has been deleted successfully",
+      matchUpdated: "Match updated successfully",
+      matchCreated: "Match created successfully"
+    }
   },
   events: {
     upcomingEvents: "Upcoming Events",

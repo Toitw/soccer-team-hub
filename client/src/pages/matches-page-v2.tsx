@@ -200,7 +200,7 @@ export default function MatchesPage() {
     queryFn: async () => {
       if (!selectedTeam) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
-      if (!response.ok) throw new Error("Failed to fetch matches");
+      if (!response.ok) throw new Error(t("matches.errors.failedFetchMatches"));
       return await response.json();
     },
     refetchOnMount: true,
@@ -227,7 +227,7 @@ export default function MatchesPage() {
       const response = await fetch(
         `/api/teams/${selectedTeam.id}/classification`,
       );
-      if (!response.ok) throw new Error("Failed to fetch classifications");
+      if (!response.ok) throw new Error(t("matches.errors.failedFetchClassifications"));
       return await response.json();
     },
     refetchOnMount: true,
@@ -285,7 +285,7 @@ export default function MatchesPage() {
   // Classification form submission
   const onClassificationSubmit = async (data: ClassificationFormData) => {
     try {
-      if (!selectedTeam) throw new Error("No team selected");
+      if (!selectedTeam) throw new Error(t("matches.errors.noTeamSelected"));
 
       let response, successMessage;
       if (isEditingClassification && editingClassification) {
@@ -297,14 +297,14 @@ export default function MatchesPage() {
             body: JSON.stringify(data),
           },
         );
-        successMessage = "Classification updated successfully";
+        successMessage = t("matches.success.classificationUpdated");
       } else {
         response = await fetch(`/api/teams/${selectedTeam.id}/classification`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
-        successMessage = "Classification created successfully";
+        successMessage = t("matches.success.classificationCreated");
       }
 
       if (!response.ok)
@@ -574,7 +574,7 @@ export default function MatchesPage() {
         formData: data,
       });
 
-      if (!selectedTeam) throw new Error("No team selected");
+      if (!selectedTeam) throw new Error(t("matches.errors.noTeamSelected"));
       const formattedData = {
         ...data,
         matchDate: new Date(data.matchDate).toISOString(),
