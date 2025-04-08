@@ -78,19 +78,5 @@
     "teamId": 1,
     "id": 6,
     "opponentLogo": null
-  },
-  {
-    "opponentName": "NEwteam",
-    "matchDate": "2025-04-08T16:35:00.000Z",
-    "location": "Candas",
-    "isHome": true,
-    "notes": null,
-    "status": "scheduled",
-    "matchType": "league",
-    "goalsScored": null,
-    "goalsConceded": null,
-    "teamId": 1,
-    "id": 8,
-    "opponentLogo": null
   }
 ]
