@@ -676,12 +676,12 @@ export default function TeamPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select role" />
+                                  <SelectValue placeholder={t("team.selectRole")} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="coach">Coach</SelectItem>
-                                <SelectItem value="player">Player</SelectItem>
+                                <SelectItem value="coach">{t("auth.coach")}</SelectItem>
+                                <SelectItem value="player">{t("auth.player")}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -700,18 +700,18 @@ export default function TeamPage() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select position" />
+                                  <SelectValue placeholder={t("team.selectPosition")} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 <SelectGroup>
-                                  <SelectLabel>Goalkeepers</SelectLabel>
+                                  <SelectLabel>{t("team.goalkeepers")}</SelectLabel>
                                   <SelectItem value="Goalkeeper">
-                                    Goalkeeper
+                                    {t("team.goalkeeper")}
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
-                                  <SelectLabel>Defenders</SelectLabel>
+                                  <SelectLabel>{t("team.defenders")}</SelectLabel>
                                   <SelectItem value="Center Back">
                                     Center Back
                                   </SelectItem>
@@ -729,7 +729,7 @@ export default function TeamPage() {
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
-                                  <SelectLabel>Midfielders</SelectLabel>
+                                  <SelectLabel>{t("team.midfielders")}</SelectLabel>
                                   <SelectItem value="Defensive Midfielder">
                                     Defensive Midfielder
                                   </SelectItem>
@@ -747,7 +747,7 @@ export default function TeamPage() {
                                   </SelectItem>
                                 </SelectGroup>
                                 <SelectGroup>
-                                  <SelectLabel>Forwards</SelectLabel>
+                                  <SelectLabel>{t("team.forwards")}</SelectLabel>
                                   <SelectItem value="Center Forward">
                                     Center Forward
                                   </SelectItem>
@@ -761,7 +761,7 @@ export default function TeamPage() {
                                     Right Winger
                                   </SelectItem>
                                 </SelectGroup>
-                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="none">{t("team.none")}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -953,18 +953,18 @@ export default function TeamPage() {
                   <div className="mt-4 text-sm text-muted-foreground hidden md:block">
                     <p className="flex items-center mb-2">
                       <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
-                      Goalkeeper
+                      {t("team.goalkeeper")}
                       <span className="inline-block w-3 h-3 bg-red-500 rounded-full ml-4 mr-2"></span>
-                      Defender
+                      {t("team.defender")}
                       <span className="inline-block w-3 h-3 bg-green-500 rounded-full ml-4 mr-2"></span>
-                      Midfielder
+                      {t("team.midfielder")}
                       <span className="inline-block w-3 h-3 bg-yellow-500 rounded-full ml-4 mr-2"></span>
-                      Forward
+                      {t("team.forward")}
                     </p>
                     <p className="text-xs text-gray-500">
                       {isAdmin
-                        ? "Click on a position to assign a player to it."
-                        : "Team lineup is set by the coach."}
+                        ? t("team.lineupPositionInstructions")
+                        : t("team.lineupSetByCoach")}
                     </p>
                   </div>
                 </div>
@@ -1037,7 +1037,7 @@ export default function TeamPage() {
                           ),
                       ).length === 0 && (
                         <div className="text-center py-8 text-muted-foreground">
-                          <p>All players are in the lineup</p>
+                          <p>{t("team.allPlayersInLineup")}</p>
                         </div>
                       )}
                     </div>
@@ -1050,16 +1050,16 @@ export default function TeamPage() {
               >
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Add Player to Lineup</DialogTitle>
+                    <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
                     <DialogDescription>
-                      Select a player to add to the selected position.
+                      {t("team.selectPlayerForPosition")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="max-h-80 overflow-y-auto py-4">
                     <div className="space-y-2">
                       <div className="mb-4">
                         <Input
-                          placeholder="Search players..."
+                          placeholder={t("team.searchPlayers")}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           value={searchQuery}
                           className="mb-2"
@@ -1114,7 +1114,7 @@ export default function TeamPage() {
                       {teamMembers?.filter((m) => m.role === "player")
                         .length === 0 && (
                         <div className="text-center p-4 text-gray-500">
-                          No players available. Add players to your team first.
+                          {t("team.noPlayersAvailable")}
                         </div>
                       )}
                     </div>
@@ -1124,7 +1124,7 @@ export default function TeamPage() {
                       variant="outline"
                       onClick={() => setShowAddToLineupDialog(false)}
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -1140,31 +1140,31 @@ export default function TeamPage() {
               <div className="flex items-center space-x-2">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Filter by role">
+                    <SelectValue placeholder={t("team.filterByRole")}>
                       <div className="flex items-center">
                         <Filter className="h-4 w-4 mr-2" />
                         {roleFilter === "all"
-                          ? "All Members"
+                          ? t("team.allMembers")
                           : roleFilter === "admin"
-                            ? "Admins"
+                            ? t("auth.admin") + "s"
                             : roleFilter === "coach"
-                              ? "Coaches"
-                              : "Players"}
+                              ? t("auth.coach") + "es"
+                              : t("auth.player") + "es"}
                       </div>
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Members</SelectItem>
-                    <SelectItem value="admin">Admins</SelectItem>
-                    <SelectItem value="coach">Coaches</SelectItem>
-                    <SelectItem value="player">Players</SelectItem>
+                    <SelectItem value="all">{t("team.allMembers")}</SelectItem>
+                    <SelectItem value="admin">{t("auth.admin") + "s"}</SelectItem>
+                    <SelectItem value="coach">{t("auth.coach") + "es"}</SelectItem>
+                    <SelectItem value="player">{t("auth.player") + "es"}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                   <Input
                     className="w-[200px] pl-9"
-                    placeholder="Search members..."
+                    placeholder={t("team.searchMembers")}
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -1200,12 +1200,12 @@ export default function TeamPage() {
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
                           <AlertCircle className="h-12 w-12 mb-2" />
                           <div className="text-lg font-medium">
-                            No team members found
+                            {t("team.noTeamMembersFound")}
                           </div>
                           {searchQuery || roleFilter !== "all" ? (
-                            <p>Try adjusting your filters</p>
+                            <p>{t("team.tryAdjustingFilters")}</p>
                           ) : (
-                            <p>Add team members to get started</p>
+                            <p>{t("team.addTeamMembersToStart")}</p>
                           )}
                         </div>
                       </TableCell>
@@ -1256,7 +1256,7 @@ export default function TeamPage() {
                             ) : (
                               <UserCircle className="h-3 w-3 mr-1" />
                             )}
-                            <span className="capitalize">{member.role}</span>
+                            <span className="capitalize">{t(`auth.${member.role}`)}</span>
                           </Badge>
                         </TableCell>
                         <TableCell>{member.user.position || "-"}</TableCell>
@@ -1299,7 +1299,7 @@ export default function TeamPage() {
                                   setOpenEditMemberDialog(true);
                                 }}
                               >
-                                Edit
+                                {t("common.edit")}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -1310,7 +1310,7 @@ export default function TeamPage() {
                                   setOpenRemoveMemberDialog(true);
                                 }}
                               >
-                                Remove
+                                {t("team.remove")}
                               </Button>
                             </div>
                           </TableCell>
@@ -1376,7 +1376,7 @@ export default function TeamPage() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select position" />
+                          <SelectValue placeholder={t("team.selectPosition")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
