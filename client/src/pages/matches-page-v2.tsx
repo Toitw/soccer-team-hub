@@ -837,10 +837,10 @@ export default function MatchesPage() {
         <Header title="Matches" />
         <main className="flex-1 p-4 md:p-6 space-y-4 pb-16">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Matches</h1>
+            <h1 className="text-2xl font-bold">{t("matches.matches")}</h1>
             {canManage && (
               <Button onClick={() => setDialogOpen(true)}>
-                <PlusCircle className="h-4 w-4 mr-2" /> Add Match
+                <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.addMatch")}
               </Button>
             )}
           </div>
@@ -906,9 +906,9 @@ export default function MatchesPage() {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <div>
-                      <CardTitle>League Classification</CardTitle>
+                      <CardTitle>{t("matches.classificationSection.title")}</CardTitle>
                       <CardDescription>
-                        Current standings in the league
+                        {t("matches.classificationSection.description")}
                       </CardDescription>
                     </div>
                     {canManage && (
@@ -918,21 +918,21 @@ export default function MatchesPage() {
                           size="sm"
                           onClick={() => setClassificationDialogOpen(true)}
                         >
-                          <PlusSquare className="h-4 w-4 mr-1" /> Add Entry
+                          <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.classificationSection.addEntry")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setCsvUploadDialogOpen(true)}
                         >
-                          <Upload className="h-4 w-4 mr-1" /> Upload CSV
+                          <Upload className="h-4 w-4 mr-1" /> {t("matches.classificationSection.uploadCsv")}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={generateSampleCsv}
                         >
-                          <FileText className="h-4 w-4 mr-1" /> Sample CSV
+                          <FileText className="h-4 w-4 mr-1" /> {t("matches.classificationSection.sampleCsv")}
                         </Button>
                       </div>
                     )}
@@ -943,34 +943,34 @@ export default function MatchesPage() {
                     <Table className="w-full min-w-[700px] md:min-w-full">
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-12 truncate">#</TableHead>
-                          <TableHead className="truncate">Team</TableHead>
+                          <TableHead className="w-12 truncate">{t("matches.classificationSection.position")}</TableHead>
+                          <TableHead className="truncate">{t("matches.classificationSection.team")}</TableHead>
                           <TableHead className="text-center truncate">
-                            Pts
+                            {t("matches.classificationSection.points")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            P
+                            {t("matches.classificationSection.played")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            W
+                            {t("matches.classificationSection.won")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            D
+                            {t("matches.classificationSection.drawn")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            L
+                            {t("matches.classificationSection.lost")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            GF
+                            {t("matches.classificationSection.goalsFor")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            GA
+                            {t("matches.classificationSection.goalsAgainst")}
                           </TableHead>
                           <TableHead className="text-center truncate">
-                            GD
+                            {t("matches.classificationSection.goalDifference")}
                           </TableHead>
                           {canManage && (
-                            <TableHead className="truncate">Actions</TableHead>
+                            <TableHead className="truncate">{t("matches.classificationSection.actions")}</TableHead>
                           )}
                         </TableRow>
                       </TableHeader>
@@ -1056,7 +1056,7 @@ export default function MatchesPage() {
                   ) : (
                     <div className="text-center py-4">
                       <p className="text-muted-foreground">
-                        No classification data available.
+                        {t("matches.noClassificationData")}
                       </p>
                       {canManage && (
                         <div className="flex flex-col space-y-2 mt-4 max-w-xs mx-auto">
@@ -1064,13 +1064,13 @@ export default function MatchesPage() {
                             variant="outline"
                             onClick={() => setClassificationDialogOpen(true)}
                           >
-                            <PlusSquare className="h-4 w-4 mr-2" /> Add manually
+                            <PlusSquare className="h-4 w-4 mr-2" /> {t("matches.addManually")}
                           </Button>
                           <Button
                             variant="outline"
                             onClick={() => setCsvUploadDialogOpen(true)}
                           >
-                            <Upload className="h-4 w-4 mr-2" /> Upload CSV
+                            <Upload className="h-4 w-4 mr-2" /> {t("matches.uploadCSV")}
                           </Button>
                         </div>
                       )}

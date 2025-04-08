@@ -173,6 +173,7 @@ export const enUS = {
     noTeamMembersForLineup: "No team members available for lineup",
   },
   matches: {
+    matches: "Matches",
     upcomingMatches: "Upcoming Matches",
     pastMatches: "Past Matches",
     allMatches: "All Matches",
@@ -194,6 +195,9 @@ export const enUS = {
     substitutions: "Substitutions",
     noMatches: "No matches scheduled",
     noMatchesDescription: "Schedule your first match by clicking the button below",
+    noClassificationData: "No classification data available.",
+    addManually: "Add manually",
+    uploadCSV: "Upload CSV",
     addMatchDescription: "Fill out the form below to add a new match",
     editMatchDescription: "Make changes to the match details below",
     uploadCSVDescription: "Upload a CSV file with match data",
@@ -362,6 +366,24 @@ export const enUS = {
       matchDeleted: "The match has been deleted successfully",
       matchUpdated: "Match updated successfully",
       matchCreated: "Match created successfully"
+    },
+    classificationSection: {
+      title: "League Classification",
+      description: "Current standings in the league",
+      position: "#",
+      team: "Team",
+      points: "Pts",
+      played: "P",
+      won: "W",
+      drawn: "D",
+      lost: "L",
+      goalsFor: "GF",
+      goalsAgainst: "GA",
+      goalDifference: "GD",
+      actions: "Actions",
+      addEntry: "Add Entry",
+      uploadCsv: "Upload CSV",
+      sampleCsv: "Sample CSV"
     }
   },
   events: {
