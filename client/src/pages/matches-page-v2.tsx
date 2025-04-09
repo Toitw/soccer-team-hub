@@ -522,14 +522,14 @@ export default function MatchesPage() {
       setDeleteDialogOpen(false);
       setMatchToDelete(null);
       toast({
-        title: "Match deleted",
-        description: "The match has been deleted successfully",
+        title: t("matches.deleteMatch"),
+        description: t("matches.success.matchDeleted"),
       });
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error",
-        description: "Failed to delete match",
+        title: t("common.error"),
+        description: t("matches.errors.failedToDelete"),
         variant: "destructive",
       });
     }
@@ -622,16 +622,16 @@ export default function MatchesPage() {
       await refetchMatchesData();
 
       toast({
-        title: isEditing ? "Match updated" : "Match created",
-        description: successMessage,
+        title: isEditing ? t("matches.success.matchUpdated") : t("matches.success.matchCreated"),
+        description: t(isEditing ? "matches.success.matchUpdatedDesc" : "matches.success.matchCreatedDesc"),
       });
     } catch (error) {
       console.error("Error in onSubmit:", error);
       toast({
-        title: "Error",
-        description: isEditing
-          ? "Failed to update match"
-          : "Failed to create match",
+        title: t("common.error"),
+        description: t(isEditing 
+          ? "matches.errors.failedToUpdate" 
+          : "matches.errors.failedToCreate"),
         variant: "destructive",
       });
     }
@@ -729,10 +729,10 @@ export default function MatchesPage() {
       return "secondary";
     };
     const getResultText = () => {
-      if (!hasScores) return "No Score";
-      if (match.goalsScored! > match.goalsConceded!) return "Win";
-      if (match.goalsScored! < match.goalsConceded!) return "Loss";
-      return "Draw";
+      if (!hasScores) return t("matches.noScore");
+      if (match.goalsScored! > match.goalsConceded!) return t("matches.win");
+      if (match.goalsScored! < match.goalsConceded!) return t("matches.loss");
+      return t("matches.draw");
     };
 
     return (
@@ -805,7 +805,7 @@ export default function MatchesPage() {
             size="sm"
             onClick={() => setSelectedMatch(match)}
           >
-            Details <ChevronRight className="h-4 w-4 ml-1" />
+            {t("matches.details")} <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
           {canManage && (
             <div className="flex space-x-2">
@@ -814,14 +814,14 @@ export default function MatchesPage() {
                 size="sm"
                 onClick={() => handleEditMatch(match)}
               >
-                <ClipboardEdit className="h-4 w-4 mr-1" /> Edit
+                <ClipboardEdit className="h-4 w-4 mr-1" /> {t("common.edit")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => confirmDelete(match)}
               >
-                <Trash className="h-4 w-4 mr-1" /> Delete
+                <Trash className="h-4 w-4 mr-1" /> {t("common.delete")}
               </Button>
             </div>
           )}
@@ -1104,9 +1104,9 @@ export default function MatchesPage() {
                     name="opponentName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Opponent Team</FormLabel>
+                        <FormLabel>{t("matches.opponent")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter opponent name" />
+                          <Input {...field} placeholder={t("matches.enterOpponentName")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1117,7 +1117,7 @@ export default function MatchesPage() {
                     name="matchDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Match Date and Time</FormLabel>
+                        <FormLabel>{t("matches.date")} & {t("matches.time")}</FormLabel>
                         <FormControl>
                           <Input {...field} type="datetime-local" />
                         </FormControl>
@@ -1130,20 +1130,20 @@ export default function MatchesPage() {
                     name="matchType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Match Type</FormLabel>
+                        <FormLabel>{t("matches.matchType")}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select match type" />
+                              <SelectValue placeholder={t("matches.selectMatchType")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="friendly">Friendly</SelectItem>
-                            <SelectItem value="league">League</SelectItem>
-                            <SelectItem value="copa">Copa</SelectItem>
+                            <SelectItem value="friendly">{t("matches.friendly")}</SelectItem>
+                            <SelectItem value="league">{t("matches.official")}</SelectItem>
+                            <SelectItem value="copa">{t("matches.tournament")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1155,11 +1155,11 @@ export default function MatchesPage() {
                     name="location"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Location</FormLabel>
+                        <FormLabel>{t("matches.location")}</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Enter match location"
+                            placeholder={t("matches.enterMatchLocation")}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1180,7 +1180,7 @@ export default function MatchesPage() {
                           />
                         </FormControl>
                         <FormLabel className="font-normal">
-                          Home match
+                          {t("matches.homeMatch")}
                         </FormLabel>
                       </FormItem>
                     )}
@@ -1190,20 +1190,20 @@ export default function MatchesPage() {
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>{t("matches.status")}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select match status" />
+                              <SelectValue placeholder={t("matches.selectMatchStatus")} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="scheduled">Scheduled</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="scheduled">{t("matches.scheduled")}</SelectItem>
+                            <SelectItem value="completed">{t("matches.completed")}</SelectItem>
+                            <SelectItem value="cancelled">{t("matches.cancelled")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -1217,7 +1217,7 @@ export default function MatchesPage() {
                         name="goalsScored"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Goals Scored</FormLabel>
+                            <FormLabel>{t("matches.goalsScored")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1240,7 +1240,7 @@ export default function MatchesPage() {
                         name="goalsConceded"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Goals Conceded</FormLabel>
+                            <FormLabel>{t("matches.goalsConceded")}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1265,11 +1265,11 @@ export default function MatchesPage() {
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notes</FormLabel>
+                        <FormLabel>{t("matches.notes")}</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
-                            placeholder="Enter any additional notes"
+                            placeholder={t("matches.enterNotes")}
                           />
                         </FormControl>
                         <FormMessage />

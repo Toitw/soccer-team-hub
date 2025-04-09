@@ -260,6 +260,12 @@ export const esES = {
     goalsConceded: "Goles Concedidos",
     notes: "Notas",
     enterAdditionalNotes: "Introduce notas adicionales",
+    win: "Victoria",
+    loss: "Derrota",
+    draw: "Empate",
+    noScore: "Sin Marcador",
+    details: "Detalles",
+    enterNotes: "Introduce notas adicionales",
     addClassificationEntry: "Añadir Entrada de Clasificación",
     editClassificationDetails: "Edita los detalles de la clasificación a continuación.",
     enterTeamDetailsClassification: "Introduce detalles del equipo para añadir a la tabla de clasificación.",
@@ -303,7 +309,9 @@ export const esES = {
       entriesCreated: "Se han creado {count} entradas de clasificación con éxito",
       matchDeleted: "El partido ha sido eliminado con éxito",
       matchUpdated: "Partido actualizado con éxito",
-      matchCreated: "Partido creado con éxito"
+      matchCreated: "Partido creado con éxito",
+      matchUpdatedDesc: "Los detalles del partido han sido actualizados con éxito",
+      matchCreatedDesc: "El nuevo partido ha sido añadido con éxito"
     },
     areYouSure: "¿Estás seguro?",
     permanentlyDeleteMatch: "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",

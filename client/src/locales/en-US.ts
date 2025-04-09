@@ -322,6 +322,12 @@ export const enUS = {
     goalsConceded: "Goals Conceded",
     notes: "Notes",
     enterAdditionalNotes: "Enter additional notes",
+    win: "Win",
+    loss: "Loss",
+    draw: "Draw",
+    noScore: "No Score",
+    details: "Details",
+    enterNotes: "Enter any additional notes",
     addClassificationEntry: "Add Classification Entry",
     editClassificationDetails: "Edit the classification details below.",
     enterTeamDetailsClassification: "Enter team details to add to the classification table.",
@@ -365,7 +371,9 @@ export const enUS = {
       entriesCreated: "Successfully created {count} classification entries",
       matchDeleted: "The match has been deleted successfully",
       matchUpdated: "Match updated successfully",
-      matchCreated: "Match created successfully"
+      matchCreated: "Match created successfully",
+      matchUpdatedDesc: "The match details have been updated successfully",
+      matchCreatedDesc: "The new match has been added successfully"
     },
     classificationSection: {
       title: "League Classification",
