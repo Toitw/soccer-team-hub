@@ -11,5 +11,19 @@
     "teamId": 2,
     "id": 1,
     "opponentLogo": null
+  },
+  {
+    "opponentName": "Pomares",
+    "matchDate": "2025-04-10T18:44:00.000Z",
+    "location": "Candas",
+    "isHome": true,
+    "notes": "Prueba",
+    "status": "scheduled",
+    "matchType": "league",
+    "goalsScored": null,
+    "goalsConceded": null,
+    "teamId": 1,
+    "id": 7,
+    "opponentLogo": null
   }
 ]

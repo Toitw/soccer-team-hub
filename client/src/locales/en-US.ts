@@ -337,6 +337,8 @@ export const enUS = {
     friendly: "Friendly",
     official: "Official",
     tournament: "Tournament",
+    dateFormat: "EEEE, MMMM d, yyyy",
+    timeFormat: "h:mm a",
     selectMatchType: "Select match type",
     enterOpponentName: "Enter opponent name",
     addEntry: "Add Entry",

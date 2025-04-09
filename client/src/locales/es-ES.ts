@@ -275,6 +275,8 @@ export const esES = {
     friendly: "Amistoso",
     official: "Oficial",
     tournament: "Torneo",
+    dateFormat: "EEEE, d 'de' MMMM 'de' yyyy",
+    timeFormat: "H:mm",
     selectMatchType: "Seleccionar tipo de partido",
     enterOpponentName: "Introduce nombre del oponente",
     addEntry: "Añadir Entrada",
