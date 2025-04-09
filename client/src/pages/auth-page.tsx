@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/hooks/use-language";
 
 // Login form schema
 const loginSchema = z.object({
@@ -47,6 +48,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("login");
 
   // If user is already logged in, redirect to dashboard
@@ -64,13 +66,13 @@ export default function AuthPage() {
               <circle cx="12" cy="12" r="10" />
               <polygon points="10 8 16 12 10 16 10 8" />
             </svg>
-            <h1 className="text-2xl font-bold text-primary">TeamKick</h1>
+            <h1 className="text-2xl font-bold text-primary">{t('common.teamKick')}</h1>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+              <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
@@ -86,8 +88,8 @@ export default function AuthPage() {
         {/* Right Side - Hero */}
         <div className="hidden lg:block lg:w-1/2 bg-primary text-white p-12">
           <div className="h-full flex flex-col justify-center">
-            <h2 className="text-3xl font-bold mb-4">Manage Your Soccer Team Like a Pro</h2>
-            <p className="mb-6">TeamKick helps you organize activities, track player performance, and manage team communications all in one place.</p>
+            <h2 className="text-3xl font-bold mb-4">{t('landingPage.heroTitle')}</h2>
+            <p className="mb-6">{t('landingPage.heroSubtitle')}</p>
             
             <div className="space-y-4">
               <div className="flex items-start">
@@ -100,8 +102,8 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">Team Management</h3>
-                  <p className="text-sm opacity-80">Assign roles, invite members, manage permissions</p>
+                  <h3 className="font-medium text-lg">{t('landingPage.teamManagement')}</h3>
+                  <p className="text-sm opacity-80">{t('landingPage.teamManagementDesc')}</p>
                 </div>
               </div>
               
@@ -112,8 +114,8 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">Performance Tracking</h3>
-                  <p className="text-sm opacity-80">Track goals, assists, and other player statistics</p>
+                  <h3 className="font-medium text-lg">{t('landingPage.performanceTracking')}</h3>
+                  <p className="text-sm opacity-80">{t('landingPage.performanceTrackingDesc')}</p>
                 </div>
               </div>
               
@@ -127,8 +129,8 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">Event Management</h3>
-                  <p className="text-sm opacity-80">Organize trainings, matches, and team meetings</p>
+                  <h3 className="font-medium text-lg">{t('landingPage.eventManagement')}</h3>
+                  <p className="text-sm opacity-80">{t('landingPage.eventManagementDesc')}</p>
                 </div>
               </div>
             </div>
@@ -141,6 +143,7 @@ export default function AuthPage() {
 
 function LoginForm() {
   const { loginMutation } = useAuth();
+  const { t } = useLanguage();
   
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -157,8 +160,8 @@ function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardTitle>{t('auth.welcome')}</CardTitle>
+        <CardDescription>{t('auth.loginPrompt')}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -168,9 +171,9 @@ function LoginForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t('auth.username')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
+                    <Input placeholder={`${t('auth.username')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,9 +184,9 @@ function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('auth.password')}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Enter your password" {...field} />
+                    <Input type="password" placeholder={`${t('auth.password')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,9 +200,9 @@ function LoginForm() {
               {loginMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Logging in...
+                  {t('auth.loggingIn')}
                 </>
-              ) : "Log in"}
+              ) : t('auth.login')}
             </Button>
           </form>
         </Form>
@@ -210,6 +213,7 @@ function LoginForm() {
 
 function RegisterForm() {
   const { registerMutation } = useAuth();
+  const { t } = useLanguage();
   const [joinCodeStatus, setJoinCodeStatus] = useState<{ valid: boolean; teamName?: string } | null>(null);
   const [isCheckingJoinCode, setIsCheckingJoinCode] = useState(false);
   
@@ -277,8 +281,8 @@ function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>Enter your information to register</CardDescription>
+        <CardTitle>{t('auth.createAccount')}</CardTitle>
+        <CardDescription>{t('auth.registerPrompt')}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -288,9 +292,9 @@ function RegisterForm() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>{t('auth.fullName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your full name" {...field} />
+                    <Input placeholder={`${t('auth.fullName')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -301,9 +305,9 @@ function RegisterForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t('auth.username')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Choose a username" {...field} />
+                    <Input placeholder={`${t('auth.username')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -312,30 +316,42 @@ function RegisterForm() {
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Enter your email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Ensure field.value is always a string
+                const safeValue = typeof field.value === 'string' ? field.value : '';
+                return (
+                  <FormItem>
+                    <FormLabel>{t('auth.email')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="email" 
+                        placeholder={`${t('auth.email')}...`} 
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        name={field.name}
+                        value={safeValue}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>{t('auth.role')}</FormLabel>
                   <FormControl>
                     <select 
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       {...field}
                     >
-                      <option value="player">Player</option>
-                      <option value="coach">Coach</option>
-                      <option value="admin">Administrator</option>
+                      <option value="player">{t('auth.player')}</option>
+                      <option value="coach">{t('auth.coach')}</option>
+                      <option value="admin">{t('auth.admin')}</option>
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -347,9 +363,9 @@ function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('auth.password')}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Create a password" {...field} />
+                    <Input type="password" placeholder={`${t('auth.password')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -360,9 +376,9 @@ function RegisterForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{t('auth.confirmPassword')}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm your password" {...field} />
+                    <Input type="password" placeholder={`${t('auth.confirmPassword')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -373,15 +389,15 @@ function RegisterForm() {
               name="joinCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team Join Code (Optional)</FormLabel>
+                  <FormLabel>{t('auth.joinCode')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter team join code if you have one" {...field} />
+                    <Input placeholder={`${t('auth.joinCodeHelp')}...`} {...field} />
                   </FormControl>
                   <FormMessage />
                   {isCheckingJoinCode && (
                     <div className="flex items-center mt-1">
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      <p className="text-sm text-muted-foreground">Checking join code...</p>
+                      <p className="text-sm text-muted-foreground">{t('auth.checkingJoinCode')}</p>
                     </div>
                   )}
                   {joinCodeStatus && !isCheckingJoinCode && (
@@ -391,21 +407,25 @@ function RegisterForm() {
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          <p className="text-sm">Valid join code for team "{joinCodeStatus.teamName}"</p>
+                          <p className="text-sm">
+                            {joinCodeStatus.teamName 
+                              ? t('auth.validJoinCode', { teamName: joinCodeStatus.teamName }) 
+                              : t('auth.validJoinCode', { teamName: 'Unknown' })}
+                          </p>
                         </>
                       ) : (
                         <>
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                          <p className="text-sm">Invalid join code</p>
+                          <p className="text-sm">{t('auth.invalidJoinCode')}</p>
                         </>
                       )}
                     </div>
                   )}
                   {!joinCodeStatus && !isCheckingJoinCode && (
                     <p className="text-sm text-muted-foreground">
-                      Have a team join code? Enter it to join a team during registration.
+                      {t('auth.joinCodeHelp')}
                     </p>
                   )}
                 </FormItem>
@@ -419,9 +439,9 @@ function RegisterForm() {
               {registerMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Registering...
+                  {t('auth.registering')}
                 </>
-              ) : "Register"}
+              ) : t('auth.register')}
             </Button>
           </form>
         </Form>
