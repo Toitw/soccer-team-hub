@@ -706,9 +706,16 @@ export default function MatchesPage() {
     if (matchType === "league") variant = "default";
     else if (matchType === "copa") variant = "destructive";
     else if (matchType === "friendly") variant = "outline";
+    
+    // Get translated match type
+    let translatedType = matchType;
+    if (matchType === "league") translatedType = t("matches.official");
+    else if (matchType === "copa") translatedType = t("matches.tournament");
+    else if (matchType === "friendly") translatedType = t("matches.friendly");
+    
     return (
       <Badge variant={variant} className="ml-2 capitalize">
-        {matchType}
+        {translatedType}
       </Badge>
     );
   };
@@ -745,7 +752,7 @@ export default function MatchesPage() {
             <div className="flex items-center">
               <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
               <span className="text-sm text-muted-foreground">
-                {format(matchDate, "EEEE, MMMM d, yyyy")}
+                {format(matchDate, t("matches.dateFormat"))}
               </span>
               {getMatchTypeBadge(match.matchType)}
             </div>
@@ -790,7 +797,7 @@ export default function MatchesPage() {
             </div>
             <div className="flex items-center text-sm">
               <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-              <span>{format(matchDate, "h:mm a")}</span>
+              <span>{format(matchDate, t("matches.timeFormat"))}</span>
             </div>
             {match.notes && (
               <div className="mt-2 text-sm text-muted-foreground">
