@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/use-language";
 
 interface AnnouncementsProps {
   teamId?: number;
@@ -19,6 +20,7 @@ export default function Announcements({ teamId, announcements: propAnnouncements
   // Use the teamId if provided, otherwise use announcement data passed as props
   const useProvidedData = !!propAnnouncements;
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   // If propAnnouncements is provided, use that instead of making an API call
@@ -115,7 +117,7 @@ export default function Announcements({ teamId, announcements: propAnnouncements
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex justify-between items-center">
-          <span>Announcements</span>
+          <span>{t("announcements.latestAnnouncements")}</span>
           <div className="flex items-center">
             <Button 
               variant="ghost" 
@@ -138,7 +140,7 @@ export default function Announcements({ teamId, announcements: propAnnouncements
       <CardContent className="px-4 pb-2">
         {announcements.length === 0 ? (
           <div className="text-center py-4 text-muted-foreground text-sm">
-            <p>No announcements found</p>
+            <p>{t("announcements.noAnnouncements")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -161,10 +163,10 @@ export default function Announcements({ teamId, announcements: propAnnouncements
                   </p>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-muted-foreground">
-                      {announcement.createdAt ? format(new Date(announcement.createdAt), "MMMM d, yyyy") : "Date not available"}
+                      {announcement.createdAt ? format(new Date(announcement.createdAt), "MMMM d, yyyy") : t("common.notAvailable")}
                     </span>
                     <span className="text-xs font-medium text-primary">
-                      {announcement.creator?.fullName || `User ${announcement.createdById}`}
+                      {announcement.creator?.fullName || `${t("common.user")} ${announcement.createdById}`}
                     </span>
                   </div>
                 </div>
@@ -177,7 +179,7 @@ export default function Announcements({ teamId, announcements: propAnnouncements
       <CardFooter className="pt-2">
         <Link to="/announcements" className="w-full">
           <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
-            View all announcements
+            {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
             <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>

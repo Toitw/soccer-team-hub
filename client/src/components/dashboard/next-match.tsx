@@ -8,12 +8,14 @@ import { format } from "date-fns";
 import { CalendarIcon, MapPin, Clock, Share2, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/hooks/use-language";
 
 interface NextMatchProps {
   teamId?: number;
 }
 
 export default function NextMatch({ teamId }: NextMatchProps) {
+  const { t } = useLanguage();
   const { data: teams } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
@@ -62,7 +64,7 @@ export default function NextMatch({ teamId }: NextMatchProps) {
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-primary" />
-          Next Match
+          {t("matches.nextMatch")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -79,24 +81,24 @@ export default function NextMatch({ teamId }: NextMatchProps) {
                   {nextMatch.isHome ? (
                     <Badge variant="outline" className="flex items-center gap-1 bg-blue-50">
                       <Home className="h-3 w-3" />
-                      Home
+                      {t("common.home")}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="flex items-center gap-1">
                       <Share2 className="h-3 w-3" />
-                      Away
+                      {t("common.away")}
                     </Badge>
                   )}
                   <span className="text-sm font-medium">
                     {getDaysRemaining(nextMatch.matchDate) === 0 
-                      ? "Today" 
+                      ? t("matches.today") 
                       : getDaysRemaining(nextMatch.matchDate) === 1 
-                        ? "Tomorrow" 
-                        : `In ${getDaysRemaining(nextMatch.matchDate)} days`}
+                        ? t("matches.tomorrow") 
+                        : t("matches.inDays", { days: getDaysRemaining(nextMatch.matchDate) })}
                   </span>
                 </div>
                 <Badge variant={getDaysRemaining(nextMatch.matchDate) <= 3 ? "default" : "outline"}>
-                  {getDaysRemaining(nextMatch.matchDate) <= 3 ? "Soon" : "Scheduled"}
+                  {getDaysRemaining(nextMatch.matchDate) <= 3 ? t("matches.soon") : t("matches.scheduled")}
                 </Badge>
               </div>
               
@@ -115,7 +117,7 @@ export default function NextMatch({ teamId }: NextMatchProps) {
                 </div>
                 <div className="text-center">
                   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-lg font-bold">VS</span>
+                    <span className="text-lg font-bold">{t("matches.vs")}</span>
                   </div>
                 </div>
                 <div className="flex items-center">
@@ -146,17 +148,17 @@ export default function NextMatch({ teamId }: NextMatchProps) {
             
             <Link href="/matches">
               <Button variant="outline" className="w-full">
-                View All Matches
+                {t("matches.viewAllMatches")}
               </Button>
             </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-6">
             <CalendarIcon className="h-12 w-12 text-gray-300 mb-2" />
-            <p className="text-gray-500 mb-2">No upcoming matches</p>
+            <p className="text-gray-500 mb-2">{t("matches.noUpcomingMatches")}</p>
             <Link href="/matches">
               <Button variant="outline" size="sm">
-                Schedule a Match
+                {t("matches.scheduleMatch")}
               </Button>
             </Link>
           </div>
