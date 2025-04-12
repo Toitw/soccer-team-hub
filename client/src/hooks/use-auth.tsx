@@ -47,13 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
       toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.fullName}`,
+        titleKey: "toasts.loginSuccess",
+        descriptionKey: "toasts.welcomeBack",
+        descriptionParams: { name: user.fullName },
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
+        titleKey: "toasts.loginFailed",
         description: error.message,
         variant: "destructive",
       });
@@ -68,13 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Registration successful",
-        description: `Welcome to TeamKick, ${user.fullName}`,
+        titleKey: "toasts.registrationSuccess",
+        descriptionKey: "toasts.welcomeToTeamKick",
+        descriptionParams: { name: user.fullName },
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
+        titleKey: "toasts.registrationFailed",
         description: error.message,
         variant: "destructive",
       });
