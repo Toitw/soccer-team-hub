@@ -613,5 +613,14 @@ export const esES = {
     changesSaved: "Cambios guardados correctamente",
     actionCompleted: "Acción completada",
     actionFailed: "Error en la acción",
+    
+    // Mensajes relacionados con detalles de partido
+    playerAlreadyInLineup: "Jugador ya está en la alineación",
+    playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
+    removePlayerFirst: "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
+    playerAlreadyOnBench: "Jugador ya está en el banquillo",
+    playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
+    lineupSaved: "Alineación guardada",
+    lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
   },
 };

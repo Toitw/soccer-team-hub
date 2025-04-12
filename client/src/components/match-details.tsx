@@ -272,8 +272,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const addPlayerToPosition = (member: TeamMemberWithUser, positionId: string) => {
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
-        title: "Player already in lineup",
-        description: "This player is already assigned to a position.",
+        titleKey: "toasts.playerAlreadyInLineup",
+        descriptionKey: "toasts.playerAlreadyAssigned",
         variant: "destructive"
       });
       return;
@@ -319,8 +319,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     // Check if player is already on the field
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
-        title: "Player already in lineup",
-        description: "Remove the player from the field position first before adding to bench.",
+        titleKey: "toasts.playerAlreadyInLineup",
+        descriptionKey: "toasts.removePlayerFirst",
         variant: "destructive"
       });
       return;
@@ -329,8 +329,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     // Check if player is already on the bench
     if (currentBenchIds.includes(member.userId)) {
       toast({
-        title: "Player already on bench",
-        description: "This player is already on the bench.",
+        titleKey: "toasts.playerAlreadyOnBench",
+        descriptionKey: "toasts.playerAlreadyOnBenchDesc",
         variant: "destructive"
       });
       return;
@@ -443,8 +443,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`] });
       toast({
-        title: "Lineup saved",
-        description: "Match lineup has been saved successfully"
+        titleKey: "toasts.lineupSaved",
+        descriptionKey: "toasts.lineupSavedDesc"
       });
       setLineupDialogOpen(false);
       lineupForm.reset();

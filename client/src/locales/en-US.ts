@@ -547,5 +547,14 @@ export const enUS = {
     changesSaved: "Changes saved successfully",
     actionCompleted: "Action completed",
     actionFailed: "Action failed",
+    
+    // Match details related toast messages
+    playerAlreadyInLineup: "Player already in lineup",
+    playerAlreadyAssigned: "This player is already assigned to a position.",
+    removePlayerFirst: "Remove the player from the field position first before adding to bench.",
+    playerAlreadyOnBench: "Player already on bench",
+    playerAlreadyOnBenchDesc: "This player is already on the bench.",
+    lineupSaved: "Lineup saved",
+    lineupSavedDesc: "Match lineup has been saved successfully",
   },
 };
