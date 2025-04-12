@@ -123,6 +123,18 @@ export default function Sidebar() {
               </div>
             </Link>
           )}
+          
+          {/* Only superusers can access admin panel */}
+          {user?.role === "superuser" && (
+            <Link href="/admin">
+              <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/admin' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l3 6.5l7 .5l-5 4.5l2 7l-7-4l-7 4l2-7l-5-4.5l7-.5z" />
+                </svg>
+                <span>Admin Panel</span>
+              </div>
+            </Link>
+          )}
           <button 
             onClick={() => logoutMutation.mutate()}
             className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/10 text-left"

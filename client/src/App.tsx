@@ -11,6 +11,7 @@ import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";
 import SettingsPage from "@/pages/settings-page";
+import AdminPage from "@/pages/admin-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -45,6 +46,14 @@ function Router() {
         component={SettingsPage} 
         requiredRole="admin" 
         allowedRoles={["admin"]} 
+      />
+
+      {/* Admin panel - restricted to superuser only */}
+      <ProtectedRoute 
+        path="/admin" 
+        component={AdminPage} 
+        requiredRole="superuser" 
+        allowedRoles={["superuser"]} 
       />
       
       {/* 404 Page */}
