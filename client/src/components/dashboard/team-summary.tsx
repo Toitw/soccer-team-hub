@@ -16,6 +16,20 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
   const { data: matches } = useQuery<Match[]>({
     queryKey: ["/api/teams", team?.id, "matches"],
     enabled: !!team,
+    queryFn: async () => {
+      if (!team?.id) return [];
+      console.log(`Dashboard: Fetching matches for team ${team.id}`);
+      const response = await fetch(`/api/teams/${team.id}/matches`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        console.error(`Dashboard: Error fetching matches: ${response.statusText}`);
+        return [];
+      }
+      const matchData = await response.json();
+      console.log(`Dashboard: Retrieved ${matchData.length} matches for team ${team.id}`, matchData);
+      return matchData;
+    },
   });
   
   // Get team members to show accurate player count
