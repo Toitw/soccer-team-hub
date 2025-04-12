@@ -26,14 +26,20 @@ echo
 # Show individual file improvements
 echo "Individual file improvements:"
 echo "---------------------------------------------------------------"
-echo "Original schema.ts: $(wc -l < shared/schema.ts) lines"
-echo "Optimized schema.ts: $(wc -l < shared/optimized-schema.ts) lines"
-echo "Reduction: $(echo "scale=1; (1 - $(wc -l < shared/optimized-schema.ts) / $(wc -l < shared/schema.ts)) * 100" | bc)%"
+SCHEMA_ORIG=$(wc -l < shared/schema.ts)
+SCHEMA_OPT=$(wc -l < shared/optimized-schema.ts)
+echo "Original schema.ts: $SCHEMA_ORIG lines"
+echo "Optimized schema.ts: $SCHEMA_OPT lines"
+SCHEMA_REDUCTION=$(awk "BEGIN {print int((1 - $SCHEMA_OPT / $SCHEMA_ORIG) * 100)}")
+echo "Reduction: $SCHEMA_REDUCTION%"
 echo
 
-echo "Original auth.ts: $(wc -l < server/auth.ts) lines"
-echo "Optimized auth.ts: $(wc -l < server/optimized-auth.ts) lines"
-echo "Reduction: $(echo "scale=1; (1 - $(wc -l < server/optimized-auth.ts) / $(wc -l < server/auth.ts)) * 100" | bc)%"
+AUTH_ORIG=$(wc -l < server/auth.ts)
+AUTH_OPT=$(wc -l < server/optimized-auth.ts)
+echo "Original auth.ts: $AUTH_ORIG lines"
+echo "Optimized auth.ts: $AUTH_OPT lines"
+AUTH_REDUCTION=$(awk "BEGIN {print int((1 - $AUTH_OPT / $AUTH_ORIG) * 100)}")
+echo "Reduction: $AUTH_REDUCTION%"
 echo
 
 # Show optimization benefits
