@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
-  role: text("role", { enum: ["admin", "coach", "player"] }).notNull().default("player"),
+  role: text("role", { enum: ["superuser", "admin", "coach", "player"] }).notNull().default("player"),
   profilePicture: text("profile_picture").default("/default-avatar.png"),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
