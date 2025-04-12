@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -65,10 +65,25 @@ export default function TeamsPanel() {
   const { toast } = useToast();
 
   // Fetch all teams
-  const { data: teams = [], isLoading, refetch } = useQuery({
+  const { data: apiResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/admin/teams'],
     queryFn: () => apiRequest('/api/admin/teams'),
   });
+  
+  // Handle errors from the query
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error loading teams',
+        description: 'There was a problem loading the team data.',
+        variant: 'destructive',
+      });
+      console.error('Error loading teams:', error);
+    }
+  }, [error, toast]);
+
+  // Convert the API response to an array, ensuring we always have an array even if the API returns unexpected data
+  const teams = Array.isArray(apiResponse) ? apiResponse : apiResponse ? [apiResponse] : [];
 
   // Delete team mutation
   const deleteMutation = useMutation({
