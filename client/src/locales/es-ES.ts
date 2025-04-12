@@ -606,7 +606,7 @@ export const esES = {
     announcementDeletedDesc: "El anuncio ha sido eliminado",
     refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
-    failedToRefreshAnnouncements: "Error al actualizar anuncios",
+    failedToRefresh: "Error al actualizar",
     
     // Mensajes generales de acciones
     dataSaved: "Datos guardados",
