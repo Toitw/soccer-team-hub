@@ -25,5 +25,19 @@
     "teamId": 1,
     "id": 7,
     "opponentLogo": null
+  },
+  {
+    "opponentName": "Probando contador",
+    "matchDate": "2025-04-09T05:51:00.000Z",
+    "location": "Mata",
+    "isHome": true,
+    "notes": "",
+    "status": "completed",
+    "matchType": "friendly",
+    "goalsScored": 5,
+    "goalsConceded": 0,
+    "teamId": 1,
+    "id": 8,
+    "opponentLogo": null
   }
 ]
