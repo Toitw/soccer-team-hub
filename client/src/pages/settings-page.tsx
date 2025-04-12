@@ -5,6 +5,7 @@ import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { 
   Card, 
   CardContent, 
