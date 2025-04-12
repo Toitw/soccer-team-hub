@@ -109,9 +109,10 @@ export default function TeamsPanel() {
   // Filter teams based on search query
   const filteredTeams = teams.filter(
     (team: Team) =>
-      team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (team.division && team.division.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (team.joinCode && team.joinCode.toLowerCase().includes(searchQuery.toLowerCase()))
+      team?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (team?.division && team.division.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (team?.joinCode && team.joinCode.toLowerCase().includes(searchQuery.toLowerCase())) || 
+      false // Fallback if team is null/undefined
   );
 
   // Handle team deletion

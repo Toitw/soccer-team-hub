@@ -77,12 +77,26 @@ export function requireRole(roles: string[]): RouteHandler {
 
 /**
  * Create a standard JSON response
+ * For admin endpoints, ensure we always return an array for consistent frontend handling
  * @param res - Express response object
  * @param data - Data to send
  * @param status - HTTP status code
  */
 export function jsonResponse(res: Response, data: any, status = 200): void {
-  res.status(status).json(data);
+  // For admin endpoints, ensure users and teams are returned as arrays
+  const url = res.req.originalUrl;
+  if (url.includes('/api/admin/users') && !url.includes('/api/admin/users/')) {
+    // Ensure users endpoint returns array
+    const resultData = Array.isArray(data) ? data : data ? [data] : [];
+    res.status(status).json(resultData);
+  } else if (url.includes('/api/admin/teams') && !url.includes('/api/admin/teams/')) {
+    // Ensure teams endpoint returns array
+    const resultData = Array.isArray(data) ? data : data ? [data] : [];
+    res.status(status).json(resultData);
+  } else {
+    // Standard response for other endpoints
+    res.status(status).json(data);
+  }
 }
 
 /**
