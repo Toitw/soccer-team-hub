@@ -69,8 +69,8 @@ export default function Announcements({ teamId, announcements: propAnnouncements
       if (useProvidedData) {
         // Show a toast that we can't refresh provided data
         toast({
-          title: "Info",
-          description: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
+          titleKey: "toasts.info",
+          descriptionKey: "toasts.refreshingAnnouncements",
         });
         
         // Allow a small delay to show loading state
@@ -84,8 +84,9 @@ export default function Announcements({ teamId, announcements: propAnnouncements
       
       if (result.isSuccess) {
         toast({
-          title: "Refreshed",
-          description: `${result.data?.length || 0} announcements loaded successfully.`,
+          titleKey: "toasts.refreshed",
+          descriptionKey: "toasts.announcementsLoaded",
+          descriptionParams: { count: result.data?.length || 0 },
         });
       } else if (result.isError && result.error) {
         console.error('Dashboard: Error during manual refresh:', result.error);
@@ -94,8 +95,8 @@ export default function Announcements({ teamId, announcements: propAnnouncements
     } catch (error) {
       console.error('Dashboard: Failed to refresh announcements:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to refresh announcements",
+        titleKey: "toasts.error",
+        description: error instanceof Error ? error.message : t("toasts.failedToRefresh"),
         variant: "destructive",
       });
     } finally {
