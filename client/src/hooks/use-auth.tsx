@@ -98,13 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.location.href = "/auth";
       
       toast({
-        title: "Logged out",
-        description: "You have been successfully logged out",
+        titleKey: "toasts.logoutSuccess",
+        descriptionKey: "toasts.logoutSuccess",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Logout failed",
+        titleKey: "toasts.error",
         description: error.message,
         variant: "destructive",
       });
