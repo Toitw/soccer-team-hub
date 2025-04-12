@@ -50,8 +50,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
-  // Register admin routes 
-  app.use('/api/admin', createAdminRouter(storage));
+  // Register admin routes - use the router directly to ensure proper route handling
+  const adminRouter = createAdminRouter(storage);
+  app.use('/api', adminRouter);
 
   const httpServer = createServer(app);
 

@@ -83,6 +83,9 @@ export function requireRole(roles: string[]): RouteHandler {
  * @param status - HTTP status code
  */
 export function jsonResponse(res: Response, data: any, status = 200): void {
+  // Set content type header explicitly to ensure proper JSON response
+  res.setHeader('Content-Type', 'application/json');
+  
   // For admin endpoints, ensure users and teams are returned as arrays
   const url = res.req.originalUrl;
   if (url.includes('/api/admin/users') && !url.includes('/api/admin/users/')) {
