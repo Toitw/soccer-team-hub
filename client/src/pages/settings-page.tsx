@@ -64,6 +64,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("members");
   const [isGeneratingJoinCode, setIsGeneratingJoinCode] = useState(false);
   const [joinCodeVisible, setJoinCodeVisible] = useState(false);
@@ -315,27 +316,27 @@ export default function SettingsPage() {
       <Sidebar />
 
       <div className="flex-1 ml-0 md:ml-64 z-30">
-        <Header title="Settings" />
+        <Header title={t("navigation.settings")} />
 
         <div className="px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || "Team"}</h1>
-              <p className="text-gray-500">{selectedTeam?.division || "No division set"}</p>
+              <h1 className="text-2xl font-bold text-primary">{selectedTeam?.name || t("team.title")}</h1>
+              <p className="text-gray-500">{selectedTeam?.division || t("common.notAvailable")}</p>
             </div>
 
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  Invite Member
+                  {t("settings.inviteMember")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invite Team Member</DialogTitle>
+                  <DialogTitle>{t("settings.inviteTeamMember")}</DialogTitle>
                   <DialogDescription>
-                    Send an invitation email to add a new member to the team.
+                    {t("settings.inviteDescription")}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -345,9 +346,9 @@ export default function SettingsPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t("settings.email")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter email address" {...field} />
+                            <Input placeholder={t("settings.enterEmailAddress")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -358,15 +359,15 @@ export default function SettingsPage() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Role</FormLabel>
+                          <FormLabel>{t("settings.role")}</FormLabel>
                           <FormControl>
                             <select 
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                               {...field}
                             >
-                              <option value="player">Player</option>
-                              <option value="coach">Coach</option>
-                              <option value="admin">Administrator</option>
+                              <option value="player">{t("auth.player")}</option>
+                              <option value="coach">{t("auth.coach")}</option>
+                              <option value="admin">{t("auth.admin")}</option>
                             </select>
                           </FormControl>
                           <FormMessage />
@@ -376,7 +377,7 @@ export default function SettingsPage() {
                     <DialogFooter>
                       <Button type="submit" className="bg-primary hover:bg-primary/90">
                         <Mail className="h-4 w-4 mr-2" />
-                        Send Invitation
+                        {t("settings.sendInvitation")}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -387,8 +388,8 @@ export default function SettingsPage() {
 
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="members">Team Members</TabsTrigger>
-              <TabsTrigger value="settings">Team Settings</TabsTrigger>
+              <TabsTrigger value="members">{t("settings.teamMembers")}</TabsTrigger>
+              <TabsTrigger value="settings">{t("settings.teamSettings")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="members" className="mt-6">
@@ -396,17 +397,17 @@ export default function SettingsPage() {
                 {/* Administrators */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>Administrators</CardTitle>
-                    <CardDescription>Team administrators with full access to team settings</CardDescription>
+                    <CardTitle>{t("settings.administrators")}</CardTitle>
+                    <CardDescription>{t("settings.administratorsDescription")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Position</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead>{t("settings.name")}</TableHead>
+                          <TableHead>{t("settings.position")}</TableHead>
+                          <TableHead>{t("settings.contact")}</TableHead>
+                          <TableHead className="text-right">{t("settings.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -421,7 +422,7 @@ export default function SettingsPage() {
                               {member.user.fullName}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">Administrator</Badge>
+                              <Badge variant="outline">{t("settings.administrator")}</Badge>
                             </TableCell>
                             <TableCell>{member.user.email}</TableCell>
                             <TableCell className="text-right">
@@ -447,17 +448,17 @@ export default function SettingsPage() {
                 {/* Coaches */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>Coaches</CardTitle>
-                    <CardDescription>Team coaches who manage training sessions and matches</CardDescription>
+                    <CardTitle>{t("settings.coaches")}</CardTitle>
+                    <CardDescription>{t("settings.coachesDescription")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Position</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead>{t("settings.name")}</TableHead>
+                          <TableHead>{t("settings.position")}</TableHead>
+                          <TableHead>{t("settings.contact")}</TableHead>
+                          <TableHead className="text-right">{t("settings.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -472,7 +473,7 @@ export default function SettingsPage() {
                               {member.user.fullName}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="bg-[#4CAF50]/10 text-[#4CAF50] hover:bg-[#4CAF50]/20">Coach</Badge>
+                              <Badge variant="outline" className="bg-[#4CAF50]/10 text-[#4CAF50] hover:bg-[#4CAF50]/20">{t("auth.coach")}</Badge>
                             </TableCell>
                             <TableCell>{member.user.email}</TableCell>
                             <TableCell className="text-right">
@@ -495,18 +496,18 @@ export default function SettingsPage() {
                 {/* Players */}
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>Players</CardTitle>
-                    <CardDescription>Team players roster</CardDescription>
+                    <CardTitle>{t("settings.players")}</CardTitle>
+                    <CardDescription>{t("settings.playersDescription")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Position</TableHead>
-                          <TableHead>Jersey #</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+                          <TableHead>{t("settings.name")}</TableHead>
+                          <TableHead>{t("settings.position")}</TableHead>
+                          <TableHead>{t("team.jerseyNumberColumn")}</TableHead>
+                          <TableHead>{t("settings.contact")}</TableHead>
+                          <TableHead className="text-right">{t("settings.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -520,7 +521,7 @@ export default function SettingsPage() {
                               />
                               {member.user.fullName}
                             </TableCell>
-                            <TableCell>{member.user.position || "Not set"}</TableCell>
+                            <TableCell>{member.user.position || t("common.notAvailable")}</TableCell>
                             <TableCell>{member.user.jerseyNumber || "-"}</TableCell>
                             <TableCell>{member.user.email}</TableCell>
                             <TableCell className="text-right">
@@ -545,8 +546,8 @@ export default function SettingsPage() {
             <TabsContent value="settings" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Team Settings</CardTitle>
-                  <CardDescription>Manage your team's information and preferences</CardDescription>
+                  <CardTitle>{t("settings.teamSettings")}</CardTitle>
+                  <CardDescription>{t("settings.manageTeamInformation")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Form {...teamSettingsForm}>
@@ -556,7 +557,7 @@ export default function SettingsPage() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Team Name</FormLabel>
+                            <FormLabel>{t("settings.teamName")}</FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
@@ -576,7 +577,7 @@ export default function SettingsPage() {
                         name="division"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Division</FormLabel>
+                            <FormLabel>{t("settings.division")}</FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
@@ -596,7 +597,7 @@ export default function SettingsPage() {
                         name="seasonYear"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Season Year</FormLabel>
+                            <FormLabel>{t("settings.seasonYear")}</FormLabel>
                             <FormControl>
                               <Input 
                                 {...field} 
@@ -612,11 +613,11 @@ export default function SettingsPage() {
                       />
                     
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Team Logo</label>
+                        <label className="text-sm font-medium">{t("settings.logo")}</label>
                         <div className="flex items-center gap-4">
                           <img 
                             src={selectedTeam?.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-                            alt="Team Logo" 
+                            alt={t("settings.logo")} 
                             className="w-16 h-16 rounded-full object-cover border-2 border-primary"
                           />
                           <Button 
@@ -627,7 +628,7 @@ export default function SettingsPage() {
                               setIsLogoDialogOpen(true);
                             }}
                           >
-                            Change Logo
+                            {t("settings.changeTeamLogo")}
                           </Button>
                         </div>
                       </div>
@@ -636,14 +637,14 @@ export default function SettingsPage() {
                       <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Change Team Logo</DialogTitle>
+                            <DialogTitle>{t("settings.changeTeamLogo")}</DialogTitle>
                             <DialogDescription>
-                              Upload a new logo image for your team.
+                              {t("settings.uploadNewLogo")}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-2">
                             <div className="space-y-2">
-                              <label className="text-sm font-medium">Select Image</label>
+                              <label className="text-sm font-medium">{t("settings.selectImageFile")}</label>
                               <div className="flex items-center gap-2">
                                 <Input 
                                   type="file" 
@@ -653,7 +654,7 @@ export default function SettingsPage() {
                                 />
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                Select an image file from your computer (PNG, JPG, GIF).
+                                {t("settings.selectImageFile")} (PNG, JPG, GIF).
                               </p>
                             </div>
                             
@@ -662,7 +663,7 @@ export default function SettingsPage() {
                                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
                                   <img 
                                     src={logoUrl} 
-                                    alt="New Logo Preview" 
+                                    alt={t("settings.currentLogo")} 
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).src = "https://ui-avatars.com/api/?name=Error&background=FF5252&color=fff";
@@ -680,7 +681,7 @@ export default function SettingsPage() {
                                 setLogoFile(null);
                               }}
                             >
-                              Cancel
+                              {t("settings.cancel")}
                             </Button>
                             <Button
                               onClick={handleLogoUpload}
@@ -689,10 +690,10 @@ export default function SettingsPage() {
                               {isUploadingLogo ? (
                                 <>
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Uploading...
+                                  {t("common.loading")}
                                 </>
                               ) : (
-                                'Upload Logo'
+                                t("settings.uploadLogo")
                               )}
                             </Button>
                           </DialogFooter>
@@ -701,8 +702,8 @@ export default function SettingsPage() {
                       
                       <div className="space-y-2 pt-4 border-t">
                         <label className="text-sm font-medium flex items-center justify-between">
-                          <span>Team Join Code</span>
-                          <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">Admin Only</Badge>
+                          <span>{t("settings.joinCode")}</span>
+                          <Badge variant="outline" className="ml-2 bg-primary/10 text-primary">{t("auth.admin")}</Badge>
                         </label>
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
@@ -719,8 +720,12 @@ export default function SettingsPage() {
                                 size="icon"
                                 className="absolute right-0 top-0 h-full aspect-square"
                                 onClick={() => setJoinCodeVisible(!joinCodeVisible)}
+                                title={joinCodeVisible ? t("settings.hideCode") : t("settings.showCode")}
                               >
-                                {joinCodeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {joinCodeVisible ? 
+                                  <EyeOff className="h-4 w-4" /> : 
+                                  <Eye className="h-4 w-4" />
+                                }
                               </Button>
                             </div>
                             <Button 
@@ -728,7 +733,7 @@ export default function SettingsPage() {
                               size="icon" 
                               onClick={copyJoinCodeToClipboard}
                               type="button"
-                              title="Copy join code"
+                              title={t("settings.copyToClipboard")}
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -741,18 +746,18 @@ export default function SettingsPage() {
                               {isGeneratingJoinCode ? (
                                 <>
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Generating...
+                                  {t("common.loading")}
                                 </>
                               ) : (
                                 <>
                                   <RefreshCw className="h-4 w-4 mr-2" />
-                                  Generate New
+                                  {t("settings.regenerateJoinCode")}
                                 </>
                               )}
                             </Button>
                           </div>
                           <p className="text-xs text-gray-500">
-                            Share this code with people who want to join your team. They can enter it during registration.
+                            {t("settings.joinCodeDescription")}
                           </p>
                         </div>
                       </div>
@@ -765,10 +770,10 @@ export default function SettingsPage() {
                         {updateTeamMutation.isPending ? (
                           <>
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Saving...
+                            {t("common.loading")}
                           </>
                         ) : (
-                          'Save Changes'
+                          t("common.saveChanges")
                         )}
                       </Button>
                     </form>
@@ -790,11 +795,11 @@ export default function SettingsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-500">
               <AlertTriangle className="h-5 w-5" />
-              Remove Team Member
+              {t("team.removeTeamMember")}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove <strong>{memberToDelete?.user.fullName}</strong> from the team?
-              This action cannot be undone.
+              {t("settings.confirmDeleteMember")}<br/>
+              {t("settings.deleteWarning")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -802,7 +807,7 @@ export default function SettingsPage() {
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
             >
-              Cancel
+              {t("settings.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -813,12 +818,12 @@ export default function SettingsPage() {
               {deleteTeamMemberMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Removing...
+                  {t("common.loading")}
                 </>
               ) : (
                 <>
                   <Trash2 className="h-4 w-4" />
-                  Remove Member
+                  {t("settings.confirmDelete")}
                 </>
               )}
             </Button>
