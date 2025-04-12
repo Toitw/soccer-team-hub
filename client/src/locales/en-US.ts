@@ -514,4 +514,38 @@ export const enUS = {
     addNewEvent: "Add New Event",
     noUpcomingEvents: "No upcoming events scheduled",
   },
+  toasts: {
+    // Common toast messages
+    info: "Info",
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    refreshed: "Refreshed",
+    
+    // Auth related toast messages
+    loginSuccess: "Login successful",
+    loginFailed: "Login failed",
+    welcomeBack: "Welcome back, {{name}}",
+    registrationSuccess: "Registration successful",
+    registrationFailed: "Registration failed",
+    welcomeToTeamKick: "Welcome to TeamKick, {{name}}",
+    logoutSuccess: "Logged out successfully",
+    
+    // Announcements related toast messages
+    announcementCreated: "Announcement created",
+    announcementCreatedDesc: "Your announcement has been published",
+    announcementUpdated: "Announcement updated",
+    announcementUpdatedDesc: "Your announcement has been updated",
+    announcementDeleted: "Announcement deleted",
+    announcementDeletedDesc: "The announcement has been removed",
+    refreshingAnnouncements: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
+    announcementsLoaded: "{{count}} announcements loaded successfully.",
+    failedToRefreshAnnouncements: "Failed to refresh announcements",
+    
+    // General action messages
+    dataSaved: "Data saved",
+    changesSaved: "Changes saved successfully",
+    actionCompleted: "Action completed",
+    actionFailed: "Action failed",
+  },
 };
