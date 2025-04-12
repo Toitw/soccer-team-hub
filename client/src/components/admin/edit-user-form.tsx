@@ -1,10 +1,12 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useMutation } from '@tanstack/react-query';
+import { z } from 'zod';
+import { insertUserSchema, User } from '@shared/schema';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -14,7 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -22,63 +23,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
-// Schema for editing a user
-const userEditSchema = z.object({
-  fullName: z.string().min(2, 'Full name is required'),
-  email: z.string().email('Invalid email format').optional().or(z.literal('')),
-  role: z.enum(['superuser', 'admin', 'coach', 'player']),
-  profilePicture: z.string().optional(),
-  position: z.string().optional(),
-  jerseyNumber: z.string().optional().or(z.literal('')),
-  phoneNumber: z.string().optional().or(z.literal('')),
-  password: z.string().optional().or(z.literal('')),
+// Extend the user schema with validation, but make password optional for edits
+const formSchema = insertUserSchema.extend({
+  // Add additional validation rules
+  password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
+  email: z.string().email('Invalid email format').nullable().optional(),
 });
 
-type UserEditFormData = z.infer<typeof userEditSchema>;
+// Extract the inferred type
+type FormValues = z.infer<typeof formSchema>;
 
 interface EditUserFormProps {
-  user: any;
+  user: User;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Convert numeric jersey number to string for the form
-  const jerseyNumberStr = user.jerseyNumber !== null ? user.jerseyNumber.toString() : '';
-
-  // Define the form with validation
-  const form = useForm<UserEditFormData>({
-    resolver: zodResolver(userEditSchema),
+  // Initialize form with user data
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: user.fullName || '',
-      email: user.email || '',
-      role: user.role || 'player',
-      profilePicture: user.profilePicture || '',
-      position: user.position || '',
-      jerseyNumber: jerseyNumberStr,
-      phoneNumber: user.phoneNumber || '',
-      password: '',
+      username: user.username,
+      fullName: user.fullName,
+      password: '', // Empty for security
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+      position: user.position,
+      jerseyNumber: user.jerseyNumber,
+      phoneNumber: user.phoneNumber,
     },
   });
 
   // Update user mutation
-  const updateUser = useMutation({
-    mutationFn: (data: UserEditFormData) => {
+  const mutation = useMutation({
+    mutationFn: (data: FormValues) => {
+      // If password is empty, remove it from the request
+      if (!data.password) {
+        const { password, ...userData } = data;
+        return apiRequest(`/api/admin/users/${user.id}`, {
+          method: 'PUT',
+          data: userData,
+        });
+      }
+      
       return apiRequest(`/api/admin/users/${user.id}`, {
         method: 'PUT',
         data,
       });
     },
-    onSuccess: () => {
+    onSuccess: (updatedUser) => {
       toast({
-        title: 'User Updated',
-        description: 'The user has been updated successfully.',
+        title: 'User updated',
+        description: `User ${updatedUser.username} has been updated successfully.`,
       });
       onSuccess();
     },
@@ -89,179 +92,96 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
         variant: 'destructive',
       });
     },
-    onSettled: () => {
-      setIsLoading(false);
-    },
   });
 
   // Form submission handler
-  const onSubmit = async (data: UserEditFormData) => {
-    setIsLoading(true);
-    
-    // Clean up data before submission
-    const formData = { ...data };
-    
-    // Only include password if it was provided
-    if (!formData.password) {
-      delete formData.password;
-    }
-    
-    // Convert jersey number to number if provided
-    if (formData.jerseyNumber) {
-      formData.jerseyNumber = formData.jerseyNumber.toString();
-    }
-    
-    updateUser.mutate(formData);
+  const onSubmit = (data: FormValues) => {
+    mutation.mutate(data);
   };
-
-  // Handle original role to determine if role can be changed
-  const isOriginalSuperuser = user.role === 'superuser';
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium mb-2">Username</p>
-            <p className="rounded-md border border-input px-3 py-2 text-sm bg-muted">
-              {user.username}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">Username cannot be changed</p>
-          </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Username */}
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="johndoe" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Used for login. Must be unique.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
+          {/* Full Name */}
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Doe" {...field} />
+                </FormControl>
+                <FormDescription>
+                  The user's full name.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Password */}
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password (optional)</FormLabel>
+                <FormLabel>New Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Leave blank to keep current" {...field} />
+                  <Input type="password" placeholder="Leave empty to keep current password" {...field} />
                 </FormControl>
-                <FormDescription>Only fill this if you want to change the password</FormDescription>
+                <FormDescription>
+                  Only fill this if you want to change the password.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="user@example.com" {...field} />
-              </FormControl>
-              <FormDescription>Contact email for the user</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={isOriginalSuperuser}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {isOriginalSuperuser ? (
-                    <SelectItem value="superuser">Superuser</SelectItem>
-                  ) : (
-                    <>
-                      <SelectItem value="superuser">Superuser</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                      <SelectItem value="coach">Coach</SelectItem>
-                      <SelectItem value="player">Player</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {isOriginalSuperuser
-                  ? 'Superuser role cannot be changed'
-                  : 'Determines the user\'s permissions in the system'}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+          {/* Email */}
           <FormField
             control={form.control}
-            name="profilePicture"
+            name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Profile Picture URL</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://example.com/image.jpg" {...field} />
+                  <Input 
+                    type="email" 
+                    placeholder="john@example.com" 
+                    {...field} 
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
                 </FormControl>
-                <FormDescription>User's profile image URL</FormDescription>
+                <FormDescription>
+                  The user's email address.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Show position for all users */}
-          <FormField
-            control={form.control}
-            name="position"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Position</FormLabel>
-                <FormControl>
-                  <Input placeholder="Forward, Goalkeeper, etc." {...field} />
-                </FormControl>
-                <FormDescription>Position on the field</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="jerseyNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Jersey Number</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="10" {...field} />
-                </FormControl>
-                <FormDescription>Player's jersey number</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          {/* Phone Number */}
           <FormField
             control={form.control}
             name="phoneNumber"
@@ -269,21 +189,134 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="+1234567890" {...field} />
+                  <Input 
+                    placeholder="+1234567890" 
+                    {...field} 
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
                 </FormControl>
-                <FormDescription>Contact number</FormDescription>
+                <FormDescription>
+                  The user's phone number.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Role */}
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="player">Player</SelectItem>
+                    <SelectItem value="coach">Coach</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="superuser">Superuser</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  The user's role in the system.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Position */}
+          <FormField
+            control={form.control}
+            name="position"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Position</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Forward, Defender, etc." 
+                    {...field} 
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Player's position on the team.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Jersey Number */}
+          <FormField
+            control={form.control}
+            name="jerseyNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Jersey Number</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="10" 
+                    {...field} 
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value ? parseInt(e.target.value) : null;
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Player's jersey number.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Profile Picture URL */}
+          <FormField
+            control={form.control}
+            name="profilePicture"
+            render={({ field }) => (
+              <FormItem className="col-span-1 md:col-span-2">
+                <FormLabel>Profile Picture URL</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="https://example.com/profile.jpg" 
+                    {...field} 
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
+                </FormControl>
+                <FormDescription>
+                  URL to the user's profile picture.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <Separator />
+
+        <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Update User
           </Button>
         </div>

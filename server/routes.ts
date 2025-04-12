@@ -4,7 +4,7 @@ import { storage, hashPasswordInStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { randomBytes } from "crypto";
-import { registerAdminRoutes } from "./routes/admin-routes";
+import { createAdminRouter } from "./routes/admin-routes";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -50,8 +50,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
-  // Register admin routes
-  registerAdminRoutes(app);
+  // Register admin routes 
+  app.use('/api/admin', createAdminRouter(storage));
 
   const httpServer = createServer(app);
 

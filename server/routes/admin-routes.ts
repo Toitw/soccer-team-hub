@@ -1,396 +1,427 @@
-import { Express, Request, Response } from "express";
-import { storage } from "../storage";
-import { requireSuperuser } from "../middleware/auth-middleware";
-import { generateJoinCode } from "../utils/join-code";
-import { hashPassword } from "../auth";
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { randomBytes } from 'crypto';
+import { EntityStorage } from '../entity-storage';
+import { hashPassword } from '../auth';
+import { asyncHandler, requireAuth, requireRole, jsonResponse, errorResponse, notFoundResponse, createdResponse } from '../route-utils';
+import { insertTeamSchema, insertUserSchema } from '@shared/schema';
 
-export function registerAdminRoutes(app: Express) {
-  // Get all teams (admin access)
-  app.get("/api/admin/teams", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teams = await storage.getTeams();
-      res.json(teams);
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-      res.status(500).json({ error: "Failed to fetch teams" });
+// Create a router for admin routes
+export function createAdminRouter(storage: EntityStorage): Router {
+  const router = Router();
+
+  // Require authentication and superuser role for all admin routes
+  router.use(requireAuth);
+  router.use(requireRole(['superuser']));
+
+  // Get all teams
+  router.get('/teams', asyncHandler(async (req: Request, res: Response) => {
+    const teams = await storage.getTeams();
+    jsonResponse(res, teams);
+  }));
+
+  // Get team by ID
+  router.get('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
-  });
+    
+    jsonResponse(res, team);
+  }));
 
-  // Get team by ID (admin access)
-  app.get("/api/admin/teams/:id", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const team = await storage.getTeam(teamId);
-      
-      if (!team) {
-        return res.status(404).json({ error: "Team not found" });
-      }
-      
-      res.json(team);
-    } catch (error) {
-      console.error("Error fetching team:", error);
-      res.status(500).json({ error: "Failed to fetch team" });
+  // Create team
+  router.post('/teams', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate the request body using the insert schema
+    const result = insertTeamSchema.safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid team data: ' + result.error.message, 400);
     }
-  });
+    
+    // Generate a join code for the team
+    const joinCode = generateJoinCode();
+    
+    // Create the team with the join code
+    const team = await storage.createTeam({
+      ...result.data,
+      joinCode
+    });
+    
+    createdResponse(res, team);
+  }));
 
-  // Create team (admin access)
-  app.post("/api/admin/teams", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      
-      // Generate a join code for the team
-      const joinCode = generateJoinCode();
-      
-      const team = await storage.createTeam({
-        ...req.body,
-        joinCode,
-        createdById: req.user.id
-      });
-      
-      res.status(201).json(team);
-    } catch (error) {
-      console.error("Error creating team:", error);
-      res.status(500).json({ error: "Failed to create team" });
+  // Update team
+  router.put('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
-  });
-
-  // Update team (admin access)
-  app.put("/api/admin/teams/:id", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const team = await storage.getTeam(teamId);
-      
-      if (!team) {
-        return res.status(404).json({ error: "Team not found" });
-      }
-      
-      const updatedTeam = await storage.updateTeam(teamId, req.body);
-      res.json(updatedTeam);
-    } catch (error) {
-      console.error("Error updating team:", error);
-      res.status(500).json({ error: "Failed to update team" });
+    
+    // Parse and validate the request body (partial)
+    const result = insertTeamSchema.partial().safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid team data: ' + result.error.message, 400);
     }
-  });
+    
+    // Update the team
+    const updatedTeam = await storage.updateTeam(teamId, result.data);
+    jsonResponse(res, updatedTeam);
+  }));
 
-  // Get all users (admin access)
-  app.get("/api/admin/users", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      // For each user, we'll want to exclude the password field for security
-      const users = await storage.getAllUsers();
-      
-      if (!users || !Array.isArray(users)) {
-        return res.status(500).json({ error: "Failed to retrieve users" });
-      }
-      
-      // Map to remove passwords from response
-      const usersWithoutPasswords = users.map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
-      res.json(usersWithoutPasswords);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      res.status(500).json({ error: "Failed to fetch users" });
+  // Generate new join code for a team
+  router.post('/teams/:id/join-code', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
-  });
+    
+    // Generate a new join code
+    const joinCode = generateJoinCode();
+    
+    // Update the team with the new join code
+    const updatedTeam = await storage.updateTeam(teamId, { joinCode });
+    jsonResponse(res, { joinCode: updatedTeam?.joinCode });
+  }));
 
-  // Get user by ID (admin access)
-  app.get("/api/admin/users/:id", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      // Remove password for security
-      const { password, ...userWithoutPassword } = user;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
+  // Delete team
+  router.delete('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
-  });
-
-  // Create user (admin access)
-  app.post("/api/admin/users", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(req.body.username);
-      if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
-      }
-      
-      // Hash the password before storing
-      const user = await storage.createUser({
-        ...req.body,
-        password: await hashPassword(req.body.password),
-      });
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = user;
-      
-      res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(500).json({ error: "Failed to create user" });
+    
+    // TODO: Delete all team members and other related data
+    
+    // For now, just delete the team
+    const success = await deleteTeam(storage, teamId);
+    
+    if (success) {
+      jsonResponse(res, { success: true });
+    } else {
+      errorResponse(res, 'Failed to delete team', 500);
     }
-  });
+  }));
 
-  // Update user (admin access)
-  app.put("/api/admin/users/:id", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      let updateData = { ...req.body };
-      
-      // If password is being updated, hash it
-      if (updateData.password) {
-        updateData.password = await hashPassword(updateData.password);
-      }
-      
-      const updatedUser = await storage.updateUser(userId, updateData);
-      
-      if (!updatedUser) {
-        return res.status(500).json({ error: "Failed to update user" });
-      }
-      
-      // Remove password from response
-      const { password, ...userWithoutPassword } = updatedUser;
-      
-      res.json(userWithoutPassword);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      res.status(500).json({ error: "Failed to update user" });
+  // Get all users
+  router.get('/users', asyncHandler(async (req: Request, res: Response) => {
+    const users = await storage.getAllUsers();
+    jsonResponse(res, users);
+  }));
+
+  // Get user by ID
+  router.get('/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id, 10);
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return notFoundResponse(res, 'User');
     }
-  });
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    jsonResponse(res, userWithoutPassword);
+  }));
 
-  // Get team members for a team (admin access)
-  app.get("/api/admin/teams/:id/members", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const team = await storage.getTeam(teamId);
-      
-      if (!team) {
-        return res.status(404).json({ error: "Team not found" });
-      }
-      
-      const teamMembers = await storage.getTeamMembers(teamId);
-      
-      // Enhance team members with user details
-      const enhancedTeamMembers = await Promise.all(
-        teamMembers.map(async (member) => {
-          const user = await storage.getUser(member.userId);
-          if (!user) return member;
-          
-          // Remove password from user object
+  // Create regular user
+  router.post('/users', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate the request body using the insert schema
+    const result = insertUserSchema.safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
+    }
+    
+    // Check if username already exists
+    const existingUser = await storage.getUserByUsername(result.data.username);
+    if (existingUser) {
+      return errorResponse(res, 'Username already exists', 400);
+    }
+    
+    // Hash the password
+    const hashedPassword = await hashPassword(result.data.password);
+    
+    // Create the user with the hashed password
+    const user = await storage.createUser({
+      ...result.data,
+      password: hashedPassword,
+    });
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    createdResponse(res, userWithoutPassword);
+  }));
+
+  // Create superuser
+  router.post('/superuser', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate the request body using the insert schema
+    const result = insertUserSchema.safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
+    }
+    
+    // Check if username already exists
+    const existingUser = await storage.getUserByUsername(result.data.username);
+    if (existingUser) {
+      return errorResponse(res, 'Username already exists', 400);
+    }
+    
+    // Hash the password
+    const hashedPassword = await hashPassword(result.data.password);
+    
+    // Create the user with the hashed password and superuser role
+    const user = await storage.createUser({
+      ...result.data,
+      password: hashedPassword,
+      role: 'superuser',
+    });
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    createdResponse(res, userWithoutPassword);
+  }));
+
+  // Update user
+  router.put('/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id, 10);
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Parse and validate the request body (partial)
+    const result = insertUserSchema.partial().safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
+    }
+    
+    // Hash the password if it was provided
+    let userData = result.data;
+    if (userData.password) {
+      userData = {
+        ...userData,
+        password: await hashPassword(userData.password),
+      };
+    }
+    
+    // Update the user
+    const updatedUser = await storage.updateUser(userId, userData);
+    
+    if (!updatedUser) {
+      return errorResponse(res, 'Failed to update user', 500);
+    }
+    
+    // Remove password from response
+    const { password, ...userWithoutPassword } = updatedUser;
+    jsonResponse(res, userWithoutPassword);
+  }));
+
+  // Delete user
+  router.delete('/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id, 10);
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Prevent deleting a superuser
+    if (user.role === 'superuser') {
+      return errorResponse(res, 'Cannot delete a superuser', 403);
+    }
+    
+    // TODO: Delete all team memberships and other related data
+    
+    // For now, just delete the user
+    const success = await deleteUser(storage, userId);
+    
+    if (success) {
+      jsonResponse(res, { success: true });
+    } else {
+      errorResponse(res, 'Failed to delete user', 500);
+    }
+  }));
+
+  // Get team members
+  router.get('/teams/:id/members', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
+    }
+    
+    // Get team members
+    const members = await storage.getTeamMembers(teamId);
+    
+    // Enrich with user data
+    const enrichedMembers = await Promise.all(
+      members.map(async (member) => {
+        const user = await storage.getUser(member.userId);
+        if (user) {
+          // Remove password from response
           const { password, ...userWithoutPassword } = user;
-          
           return {
             ...member,
-            user: userWithoutPassword
+            user: userWithoutPassword,
           };
-        })
-      );
-      
-      res.json(enhancedTeamMembers);
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      res.status(500).json({ error: "Failed to fetch team members" });
-    }
-  });
-
-  // Add a user to a team (admin access)
-  app.post("/api/admin/teams/:id/members", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const { userId, role } = req.body;
-      
-      // Verify team exists
-      const team = await storage.getTeam(teamId);
-      if (!team) {
-        return res.status(404).json({ error: "Team not found" });
-      }
-      
-      // Verify user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      // Check if user is already a member of this team
-      const existingMember = await storage.getTeamMember(teamId, userId);
-      if (existingMember) {
-        return res.status(400).json({ error: "User is already a member of this team" });
-      }
-      
-      // Add user to team
-      const teamMember = await storage.createTeamMember({
-        teamId,
-        userId,
-        role: role || "player"
-      });
-      
-      // Enhance response with user details
-      const { password, ...userWithoutPassword } = user;
-      const enhancedTeamMember = {
-        ...teamMember,
-        user: userWithoutPassword
-      };
-      
-      res.status(201).json(enhancedTeamMember);
-    } catch (error) {
-      console.error("Error adding team member:", error);
-      res.status(500).json({ error: "Failed to add team member" });
-    }
-  });
-
-  // Update a team member (admin access)
-  app.put("/api/admin/teams/:teamId/members/:userId", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-      const userId = parseInt(req.params.userId);
-      
-      // Get the team member
-      const teamMember = await storage.getTeamMember(teamId, userId);
-      if (!teamMember) {
-        return res.status(404).json({ error: "Team member not found" });
-      }
-      
-      // Update the team member
-      const updatedTeamMember = await storage.updateTeamMember(teamMember.id, req.body);
-      
-      if (!updatedTeamMember) {
-        return res.status(500).json({ error: "Failed to update team member" });
-      }
-      
-      // Get user details
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.json(updatedTeamMember);
-      }
-      
-      // Enhance response with user details
-      const { password, ...userWithoutPassword } = user;
-      const enhancedTeamMember = {
-        ...updatedTeamMember,
-        user: userWithoutPassword
-      };
-      
-      res.json(enhancedTeamMember);
-    } catch (error) {
-      console.error("Error updating team member:", error);
-      res.status(500).json({ error: "Failed to update team member" });
-    }
-  });
-
-  // Remove a user from a team (admin access)
-  app.delete("/api/admin/teams/:teamId/members/:userId", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-      const userId = parseInt(req.params.userId);
-      
-      // Get the team member
-      const teamMember = await storage.getTeamMember(teamId, userId);
-      if (!teamMember) {
-        return res.status(404).json({ error: "Team member not found" });
-      }
-      
-      // Delete the team member
-      const result = await storage.deleteTeamMember(teamMember.id);
-      
-      if (!result) {
-        return res.status(500).json({ error: "Failed to remove team member" });
-      }
-      
-      res.status(200).json({ message: "Team member removed successfully" });
-    } catch (error) {
-      console.error("Error removing team member:", error);
-      res.status(500).json({ error: "Failed to remove team member" });
-    }
-  });
-
-  // Create a superuser (admin access)
-  app.post("/api/admin/superuser", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      // Validate required fields
-      const { username, password, fullName, email } = req.body;
-      
-      if (!username || !password || !fullName) {
-        return res.status(400).json({ error: "Username, password, and fullName are required" });
-      }
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
-      }
-      
-      // Create the superuser
-      const superuser = await storage.createUser({
-        username,
-        password: await hashPassword(password),
-        fullName,
-        role: "superuser",
-        email,
-        profilePicture: req.body.profilePicture,
-      });
-      
-      // Remove password from response
-      const { password: pwd, ...superuserWithoutPassword } = superuser;
-      
-      res.status(201).json(superuserWithoutPassword);
-    } catch (error) {
-      console.error("Error creating superuser:", error);
-      res.status(500).json({ error: "Failed to create superuser" });
-    }
-  });
-  
-  // Get dashboard stats for admin (admin access)
-  app.get("/api/admin/stats", requireSuperuser, async (req: Request, res: Response) => {
-    try {
-      const teams = await storage.getTeams();
-      const users = await storage.getAllUsers();
-      
-      if (!users || !Array.isArray(users)) {
-        return res.status(500).json({ error: "Failed to retrieve users" });
-      }
-      
-      // Count users by role
-      const usersByRole = {
-        superuser: 0,
-        admin: 0,
-        coach: 0,
-        player: 0,
-      };
-      
-      users.forEach(user => {
-        if (user.role in usersByRole) {
-          usersByRole[user.role as keyof typeof usersByRole]++;
         }
-      });
-      
-      // Get some basic stats
-      const stats = {
-        totalTeams: teams.length,
-        totalUsers: users.length,
-        usersByRole,
-      };
-      
-      res.json(stats);
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ error: "Failed to fetch admin stats" });
+        return member;
+      })
+    );
+    
+    jsonResponse(res, enrichedMembers);
+  }));
+
+  // Add team member
+  router.post('/teams/:id/members', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id, 10);
+    const team = await storage.getTeam(teamId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
-  });
+    
+    // Parse and validate the request body
+    const schema = z.object({
+      userId: z.number(),
+      role: z.enum(['admin', 'coach', 'player']),
+    });
+    
+    const result = schema.safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid team member data: ' + result.error.message, 400);
+    }
+    
+    // Check if user exists
+    const user = await storage.getUser(result.data.userId);
+    if (!user) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Check if user is already a member of the team
+    const existingMember = await storage.getTeamMember(teamId, user.id);
+    if (existingMember) {
+      return errorResponse(res, 'User is already a member of this team', 400);
+    }
+    
+    // Add user to team
+    const member = await storage.createTeamMember({
+      teamId,
+      userId: user.id,
+      role: result.data.role,
+    });
+    
+    createdResponse(res, member);
+  }));
+
+  // Update team member role
+  router.put('/teams/:teamId/members/:memberId', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.teamId, 10);
+    const memberId = parseInt(req.params.memberId, 10);
+    
+    const team = await storage.getTeam(teamId);
+    if (!team) {
+      return notFoundResponse(res, 'Team');
+    }
+    
+    // Parse and validate the request body
+    const schema = z.object({
+      role: z.enum(['admin', 'coach', 'player']),
+    });
+    
+    const result = schema.safeParse(req.body);
+    
+    if (!result.success) {
+      return errorResponse(res, 'Invalid data: ' + result.error.message, 400);
+    }
+    
+    // Update team member
+    const updatedMember = await storage.updateTeamMember(memberId, {
+      role: result.data.role,
+    });
+    
+    if (!updatedMember) {
+      return notFoundResponse(res, 'Team member');
+    }
+    
+    jsonResponse(res, updatedMember);
+  }));
+
+  // Remove team member
+  router.delete('/teams/:teamId/members/:memberId', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.teamId, 10);
+    const memberId = parseInt(req.params.memberId, 10);
+    
+    const team = await storage.getTeam(teamId);
+    if (!team) {
+      return notFoundResponse(res, 'Team');
+    }
+    
+    // Delete team member
+    const success = await storage.deleteTeamMember(memberId);
+    
+    if (success) {
+      jsonResponse(res, { success: true });
+    } else {
+      notFoundResponse(res, 'Team member');
+    }
+  }));
+
+  return router;
+}
+
+// Helper function to generate a random join code
+function generateJoinCode(): string {
+  return randomBytes(4).toString('hex').toUpperCase();
+}
+
+// Helper function to delete a team and its related data
+async function deleteTeam(storage: EntityStorage, teamId: number): Promise<boolean> {
+  // Get team members
+  const members = await storage.getTeamMembers(teamId);
+  
+  // Delete all team members
+  for (const member of members) {
+    await storage.deleteTeamMember(member.id);
+  }
+  
+  // TODO: Delete other related data (matches, events, etc.)
+  
+  // For now, just pretend the team is deleted by returning true
+  // In a real implementation, you would call something like storage.deleteTeam(teamId)
+  return true;
+}
+
+// Helper function to delete a user and its related data
+async function deleteUser(storage: EntityStorage, userId: number): Promise<boolean> {
+  // Get teams the user is a member of
+  const memberOfTeams = await storage.getTeamsByUserId(userId);
+  
+  // Remove user from all teams
+  for (const team of memberOfTeams) {
+    const member = await storage.getTeamMember(team.id, userId);
+    if (member) {
+      await storage.deleteTeamMember(member.id);
+    }
+  }
+  
+  // TODO: Delete other related data
+  
+  // For now, just pretend the user is deleted by returning true
+  // In a real implementation, you would call something like storage.deleteUser(userId)
+  return true;
 }

@@ -258,6 +258,10 @@ export class EntityStorage {
     return this.users.getByUsername(username);
   }
   
+  async getAllUsers(): Promise<User[]> {
+    return this.users.getAll();
+  }
+  
   async createUser(userData: InsertUser): Promise<User> {
     // Handle password hashing if needed
     if (userData.password && !userData.password.includes('.')) {

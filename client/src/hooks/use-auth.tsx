@@ -12,6 +12,7 @@ type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
+  isAuthenticated: boolean;
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
@@ -37,7 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       
       // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("POST", "/api/login", credentials);
+      return await apiRequest<SelectUser>("/api/login", { 
+        method: "POST", 
+        data: credentials 
+      });
     },
     onSuccess: (user: SelectUser) => {
       // Set the user data
@@ -66,7 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("POST", "/api/register", credentials);
+      return await apiRequest<SelectUser>("/api/register", {
+        method: "POST",
+        data: credentials
+      });
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -93,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      await apiRequest("/api/logout", { method: "POST" });
     },
     onSuccess: () => {
       // Clear all cached queries to ensure fresh data on login
@@ -125,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: user ?? null,
         isLoading,
         error,
+        isAuthenticated: !!user,
         loginMutation,
         logoutMutation,
         registerMutation,

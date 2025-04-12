@@ -18,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Card,
@@ -29,20 +28,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Eye, Pencil, Trash2, Search, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, Search, RefreshCw, Users, UserPlus } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { Team } from '@shared/schema';
 import { TeamMemberList } from './team-member-list';
 import { AddTeamForm } from './add-team-form';
 import { EditTeamForm } from './edit-team-form';
-import { Team } from '@shared/schema';
 
-export default function AdminTeamsPanel() {
+export default function TeamsPanel() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [isEditTeamOpen, setIsEditTeamOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isViewMembersOpen, setIsViewMembersOpen] = useState(false);
+  const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
   const [currentTeamId, setCurrentTeamId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
@@ -51,7 +50,7 @@ export default function AdminTeamsPanel() {
   // Fetch all teams
   const { data: teams = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/admin/teams'],
-    queryFn: () => apiRequest<Team[]>('/api/admin/teams'),
+    queryFn: () => apiRequest('/api/admin/teams'),
   });
 
   // Delete team mutation
@@ -75,8 +74,11 @@ export default function AdminTeamsPanel() {
   });
 
   // Filter teams based on search query
-  const filteredTeams = teams.filter((team) =>
-    team?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTeams = teams.filter(
+    (team: Team) =>
+      team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      team.division?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      team.seasonYear?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Handle team deletion
@@ -86,22 +88,23 @@ export default function AdminTeamsPanel() {
     }
   };
 
-  // Open team members modal
-  const handleViewMembers = (team: any) => {
-    setSelectedTeam(team);
-    setCurrentTeamId(team.id);
-    setIsViewMembersOpen(true);
-  };
-
   // Open edit team modal
-  const handleEditTeam = (team: any) => {
+  const handleEditTeam = (team: Team) => {
     setSelectedTeam(team);
     setCurrentTeamId(team.id);
     setIsEditTeamOpen(true);
   };
 
+  // Open view team members modal
+  const handleViewTeamMembers = (team: Team) => {
+    setSelectedTeam(team);
+    setCurrentTeamId(team.id);
+    setIsTeamMembersOpen(true);
+  };
+
   // Open delete confirmation modal
-  const confirmDelete = (team: any) => {
+  const confirmDelete = (team: Team) => {
+    setSelectedTeam(team);
     setCurrentTeamId(team.id);
     setIsDeleteDialogOpen(true);
   };
@@ -133,7 +136,7 @@ export default function AdminTeamsPanel() {
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search teams..."
+              placeholder="Search teams by name, division or season..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
@@ -148,7 +151,7 @@ export default function AdminTeamsPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>Team Name</TableHead>
+                  <TableHead>Team</TableHead>
                   <TableHead>Division</TableHead>
                   <TableHead>Season</TableHead>
                   <TableHead>Join Code</TableHead>
@@ -157,34 +160,36 @@ export default function AdminTeamsPanel() {
               </TableHeader>
               <TableBody>
                 {filteredTeams.length > 0 ? (
-                  filteredTeams.map((team) => (
+                  filteredTeams.map((team: Team) => (
                     <TableRow key={team.id}>
                       <TableCell className="font-medium">{team.id}</TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell>
                         <div className="flex items-center space-x-2">
                           {team.logo && (
                             <img
                               src={team.logo}
                               alt={team.name}
-                              className="h-6 w-6 rounded-full object-cover"
+                              className="h-8 w-8 rounded-full object-cover"
                             />
                           )}
-                          <span>{team.name}</span>
+                          <span className="font-medium">{team.name}</span>
                         </div>
                       </TableCell>
                       <TableCell>{team.division || 'N/A'}</TableCell>
                       <TableCell>{team.seasonYear || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{team.joinCode || 'None'}</Badge>
+                        <Badge variant="outline" className="font-mono">
+                          {team.joinCode || 'None'}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => handleViewMembers(team)}
+                            onClick={() => handleViewTeamMembers(team)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Users className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
@@ -262,13 +267,46 @@ export default function AdminTeamsPanel() {
         </Dialog>
       )}
 
+      {/* Team Members Dialog */}
+      {selectedTeam && (
+        <Dialog 
+          open={isTeamMembersOpen} 
+          onOpenChange={setIsTeamMembersOpen}
+        >
+          <DialogContent className="sm:max-w-[850px]">
+            <DialogHeader>
+              <DialogTitle>Team Members</DialogTitle>
+              <DialogDescription>
+                Manage members for team: {selectedTeam.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto py-4">
+              <TeamMemberList 
+                teamId={selectedTeam.id} 
+                onSuccess={() => {
+                  queryClient.invalidateQueries({ queryKey: [`/api/admin/teams/${selectedTeam.id}/members`] });
+                }}
+              />
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsTeamMembersOpen(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Team</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this team? This action cannot be undone.
+              Are you sure you want to delete this team? This action cannot be undone and will remove all associated data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -286,26 +324,6 @@ export default function AdminTeamsPanel() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* View Team Members Dialog */}
-      {selectedTeam && (
-        <Dialog open={isViewMembersOpen} onOpenChange={setIsViewMembersOpen}>
-          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Team Members - {selectedTeam.name}</DialogTitle>
-              <DialogDescription>
-                Manage team members, roles, and permissions.
-              </DialogDescription>
-            </DialogHeader>
-            <TeamMemberList
-              teamId={selectedTeam.id}
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/admin/teams'] });
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 }
