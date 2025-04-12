@@ -1,18 +1,5 @@
 [
   {
-    "opponentName": "Pruwba",
-    "matchDate": "2025-03-15T13:58:00.000Z",
-    "location": "Cnadaa",
-    "isHome": true,
-    "notes": null,
-    "status": "scheduled",
-    "goalsScored": null,
-    "goalsConceded": null,
-    "teamId": 2,
-    "id": 1,
-    "opponentLogo": null
-  },
-  {
     "opponentName": "Pomares",
     "matchDate": "2025-04-10T16:44:00.000Z",
     "location": "Candas",
