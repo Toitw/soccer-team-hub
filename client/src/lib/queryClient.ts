@@ -36,6 +36,18 @@ export async function apiRequest<T = any>(
     }
   }
   
+  // For admin endpoints, ensure we always return an array
+  if (url.includes('/api/admin/users') || url.includes('/api/admin/teams')) {
+    try {
+      const data = await res.json();
+      // If the response isn't an array, wrap it in an array
+      return (Array.isArray(data) ? data : (data ? [data] : [])) as T;
+    } catch (error) {
+      console.warn(`Could not parse JSON from admin endpoint ${url}:`, error);
+      return [] as unknown as T;  // Return empty array for admin endpoints
+    }
+  }
+  
   // For empty responses
   if (res.status === 204) {
     return {} as T;
@@ -68,6 +80,18 @@ export const getQueryFn = <TData = any>({ on401: unauthorizedBehavior }: {
   // For empty responses
   if (res.status === 204) {
     return {} as TData;
+  }
+  
+  // For admin endpoints, ensure we always return an array
+  if (url.includes('/api/admin/users') || url.includes('/api/admin/teams')) {
+    try {
+      const data = await res.json();
+      // If the response isn't an array, wrap it in an array
+      return (Array.isArray(data) ? data : (data ? [data] : [])) as TData;
+    } catch (error) {
+      console.warn(`getQueryFn: Could not parse JSON from admin endpoint ${url}:`, error);
+      return [] as unknown as TData;  // Return empty array for admin endpoints
+    }
   }
   
   try {

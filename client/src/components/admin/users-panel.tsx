@@ -100,11 +100,12 @@ export default function UsersPanel() {
   // Filter users based on search query
   const filteredUsers = users.filter(
     (user: UserType) =>
-      user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user.position && user.position.toLowerCase().includes(searchQuery.toLowerCase()))
+      user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user?.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user?.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user?.position && user.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      false // Fallback if user is null/undefined
   );
 
   // Handle user deletion
