@@ -28,16 +28,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Pencil, Trash2, Search, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, Search, RefreshCw, UserCog } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { User } from '@shared/schema';
+// We'll create these components later
 import { AddUserForm } from './add-user-form';
 import { EditUserForm } from './edit-user-form';
 
-export default function AdminUsersPanel() {
+export default function UsersPanel() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [isAddSuperuserOpen, setIsAddSuperuserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -73,10 +74,11 @@ export default function AdminUsersPanel() {
 
   // Filter users based on search query
   const filteredUsers = users.filter(
-    (user: any) =>
-      user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    (user: User) =>
+      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Handle user deletion
@@ -87,30 +89,19 @@ export default function AdminUsersPanel() {
   };
 
   // Open edit user modal
-  const handleEditUser = (user: any) => {
-    setSelectedUser(user);
+  const handleEditUser = (user: User) => {
+    // Remove the password from the user object for security purposes
+    const { password, ...userWithoutPassword } = user;
+    setSelectedUser(userWithoutPassword as User);
     setCurrentUserId(user.id);
     setIsEditUserOpen(true);
   };
 
   // Open delete confirmation modal
-  const confirmDelete = (user: any) => {
+  const confirmDelete = (user: User) => {
+    setSelectedUser(user);
     setCurrentUserId(user.id);
     setIsDeleteDialogOpen(true);
-  };
-
-  // Get role badge variant
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'superuser':
-        return 'destructive';
-      case 'admin':
-        return 'default';
-      case 'coach':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
   };
 
   if (isLoading) {
@@ -127,16 +118,10 @@ export default function AdminUsersPanel() {
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl">Users Management</CardTitle>
-            <div className="flex space-x-2">
-              <Button variant="outline" onClick={() => setIsAddSuperuserOpen(true)}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Add Superuser
-              </Button>
-              <Button onClick={() => setIsAddUserOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add User
-              </Button>
-            </div>
+            <Button onClick={() => setIsAddUserOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add User
+            </Button>
           </div>
           <CardDescription>
             Manage all users in the system. You can add, edit, or remove users.
@@ -146,7 +131,7 @@ export default function AdminUsersPanel() {
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users by name, username or email..."
+              placeholder="Search users by name, username, email or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
@@ -162,6 +147,7 @@ export default function AdminUsersPanel() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>User</TableHead>
+                  <TableHead>Username</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -169,28 +155,32 @@ export default function AdminUsersPanel() {
               </TableHeader>
               <TableBody>
                 {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user: any) => (
+                  filteredUsers.map((user: User) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {user.profilePicture && (
+                          {user.profilePicture ? (
                             <img
                               src={user.profilePicture}
-                              alt={user.username}
+                              alt={user.fullName}
                               className="h-8 w-8 rounded-full object-cover"
                             />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                              <UserCog className="h-4 w-4" />
+                            </div>
                           )}
-                          <div className="flex flex-col">
-                            <span className="font-medium">{user.fullName}</span>
-                            <span className="text-xs text-muted-foreground">@{user.username}</span>
-                          </div>
+                          <span className="font-medium">{user.fullName}</span>
                         </div>
                       </TableCell>
+                      <TableCell>{user.username}</TableCell>
                       <TableCell>{user.email || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                        <Badge 
+                          variant={user.role === 'superuser' ? 'destructive' : 'secondary'}
+                        >
+                          {user.role}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -207,6 +197,7 @@ export default function AdminUsersPanel() {
                             size="icon"
                             className="text-destructive"
                             onClick={() => confirmDelete(user)}
+                            disabled={user.role === 'superuser'} // Prevent deleting superusers
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -216,7 +207,7 @@ export default function AdminUsersPanel() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={6} className="h-24 text-center">
                       No users found.
                     </TableCell>
                   </TableRow>
@@ -245,27 +236,6 @@ export default function AdminUsersPanel() {
               setIsAddUserOpen(false);
             }}
             onCancel={() => setIsAddUserOpen(false)}
-            isSuperuser={false}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Superuser Dialog */}
-      <Dialog open={isAddSuperuserOpen} onOpenChange={setIsAddSuperuserOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Superuser</DialogTitle>
-            <DialogDescription>
-              Create a new superuser with full system access. Use with caution.
-            </DialogDescription>
-          </DialogHeader>
-          <AddUserForm
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-              setIsAddSuperuserOpen(false);
-            }}
-            onCancel={() => setIsAddSuperuserOpen(false)}
-            isSuperuser={true}
           />
         </DialogContent>
       </Dialog>
@@ -277,7 +247,7 @@ export default function AdminUsersPanel() {
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Update user information for {selectedUser.username}.
+                Update user information for {selectedUser.fullName}.
               </DialogDescription>
             </DialogHeader>
             <EditUserForm
@@ -298,7 +268,7 @@ export default function AdminUsersPanel() {
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone and will remove the user from all teams.
+              Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

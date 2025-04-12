@@ -1,85 +1,85 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import AdminTeamsPanel from '@/components/admin/teams-panel';
-import AdminUsersPanel from '@/components/admin/users-panel';
-import AdminStatsPanel from '@/components/admin/stats-panel';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+// We're importing default exports from the components
+// Import with regular name as this doesn't use named exports
+import TeamsPanel from '../components/admin/teams-panel';
+import UsersPanel from '../components/admin/users-panel';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const { isAuthenticated, user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<string>('teams');
 
-  // Fetch admin stats
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ['/api/admin/stats'],
-    enabled: isAuthenticated && user?.role === 'superuser'
-  });
-
-  // If not authenticated or not a superuser, show unauthorized message
-  if (!isAuthenticated) {
+  // Redirect non-superusers
+  if (!user || user.role !== 'superuser') {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Unauthorized</CardTitle>
-            <CardDescription>Please log in to access this page.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  if (user?.role !== 'superuser') {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="w-full max-w-md">
+      <div className="flex flex-col items-center justify-center h-screen">
+        <Card className="w-[450px]">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You don't have permission to access the admin panel.</CardDescription>
+            <CardDescription>
+              This page is restricted to superusers only.
+            </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/')} className="w-full">
+              Go to Dashboard
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage teams, users, and configurations</p>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate('/')}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Panel</h1>
+            <p className="text-muted-foreground">
+              Manage teams, users and system settings
+            </p>
+          </div>
         </div>
+        <Badge variant="destructive" className="text-md px-3 py-1">
+          Superuser Access
+        </Badge>
       </div>
 
-      <Separator className="my-6" />
+      <Separator className="mb-6" />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="teams">Teams</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
+      <Tabs 
+        defaultValue="teams"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="teams">Teams Management</TabsTrigger>
+          <TabsTrigger value="users">Users Management</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-4">
-          {isLoadingStats ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <AdminStatsPanel stats={stats} />
-          )}
-        </TabsContent>
-
         <TabsContent value="teams" className="space-y-4">
-          <AdminTeamsPanel />
+          <TeamsPanel />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
-          <AdminUsersPanel />
+          <UsersPanel />
         </TabsContent>
       </Tabs>
     </div>
