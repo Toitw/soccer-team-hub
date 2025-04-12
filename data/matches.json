@@ -14,14 +14,14 @@
   },
   {
     "opponentName": "Pomares",
-    "matchDate": "2025-04-10T18:44:00.000Z",
+    "matchDate": "2025-04-10T16:44:00.000Z",
     "location": "Candas",
     "isHome": true,
     "notes": "Prueba",
     "status": "completed",
     "matchType": "league",
-    "goalsScored": null,
-    "goalsConceded": null,
+    "goalsScored": 4,
+    "goalsConceded": 0,
     "teamId": 1,
     "id": 7,
     "opponentLogo": null
