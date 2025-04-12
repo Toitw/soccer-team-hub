@@ -109,6 +109,8 @@ export function jsonResponse(res: Response, data: any, status = 200): void {
  * @param status - HTTP status code
  */
 export function errorResponse(res: Response, message: string, status = 500): void {
+  // Set content type header explicitly to ensure proper JSON response
+  res.setHeader('Content-Type', 'application/json');
   res.status(status).json({ error: message });
 }
 
@@ -118,6 +120,8 @@ export function errorResponse(res: Response, message: string, status = 500): voi
  * @param message - Success message
  */
 export function successResponse(res: Response, message: string): void {
+  // Set content type header explicitly to ensure proper JSON response
+  res.setHeader('Content-Type', 'application/json');
   res.status(200).json({ success: true, message });
 }
 
@@ -127,6 +131,8 @@ export function successResponse(res: Response, message: string): void {
  * @param data - Created entity data
  */
 export function createdResponse(res: Response, data: any): void {
+  // Set content type header explicitly to ensure proper JSON response
+  res.setHeader('Content-Type', 'application/json');
   res.status(201).json(data);
 }
 
@@ -136,5 +142,7 @@ export function createdResponse(res: Response, data: any): void {
  * @param entity - Name of the entity that was not found
  */
 export function notFoundResponse(res: Response, entity: string): void {
+  // Set content type header explicitly to ensure proper JSON response
+  res.setHeader('Content-Type', 'application/json');
   res.status(404).json({ error: `${entity} not found` });
 }
