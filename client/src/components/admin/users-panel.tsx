@@ -12,14 +12,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Card,
   CardContent,
   CardDescription,
@@ -27,7 +19,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Loader2, 
   Plus, 
@@ -35,19 +34,20 @@ import {
   Trash2, 
   Search, 
   RefreshCw, 
-  Shield, 
+  UserCog, 
+  Shield,
   ShieldAlert,
-  UserCog
+  User
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
-import { User } from '@shared/schema';
-// We'll implement these components later
+import { User as UserType } from '@shared/schema';
 import { AddUserForm } from './add-user-form';
 import { EditUserForm } from './edit-user-form';
 
 export default function UsersPanel() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -84,11 +84,12 @@ export default function UsersPanel() {
 
   // Filter users based on search query
   const filteredUsers = users.filter(
-    (user: User) =>
+    (user: UserType) =>
       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (user.position && user.position.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Handle user deletion
@@ -99,19 +100,20 @@ export default function UsersPanel() {
   };
 
   // Open edit user modal
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: UserType) => {
     setSelectedUser(user);
     setCurrentUserId(user.id);
     setIsEditUserOpen(true);
   };
 
   // Open delete confirmation modal
-  const confirmDelete = (user: User) => {
+  const confirmDelete = (user: UserType) => {
     setSelectedUser(user);
     setCurrentUserId(user.id);
     setIsDeleteDialogOpen(true);
   };
 
+  // Get badge and icon for user role
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'superuser':
@@ -160,14 +162,14 @@ export default function UsersPanel() {
             </Button>
           </div>
           <CardDescription>
-            Manage all users in the system. You can add, edit, or remove users.
+            Manage users, their roles, and profiles.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users by name, username, role, or email..."
+              placeholder="Search users by name, username, role, email, or position..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
@@ -181,19 +183,18 @@ export default function UsersPanel() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Position</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user: User) => (
+                  filteredUsers.map((user: UserType) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           {user.profilePicture ? (
@@ -204,7 +205,7 @@ export default function UsersPanel() {
                             />
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                              <UserCog className="h-4 w-4" />
+                              <User className="h-4 w-4" />
                             </div>
                           )}
                           <span className="font-medium">{user.fullName}</span>
@@ -219,7 +220,18 @@ export default function UsersPanel() {
                           </div>
                         </Badge>
                       </TableCell>
-                      <TableCell>{user.email || 'N/A'}</TableCell>
+                      <TableCell>{user.position || 'N/A'}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {user.email && (
+                            <div className="text-muted-foreground">{user.email}</div>
+                          )}
+                          {user.phoneNumber && (
+                            <div className="text-muted-foreground">{user.phoneNumber}</div>
+                          )}
+                          {!user.email && !user.phoneNumber && 'N/A'}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button
@@ -236,7 +248,7 @@ export default function UsersPanel() {
                             className="text-destructive"
                             onClick={() => confirmDelete(user)}
                             title="Delete user"
-                            disabled={user.role === 'superuser'}
+                            disabled={user.role === 'superuser'} // Prevent deleting superusers
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -307,7 +319,7 @@ export default function UsersPanel() {
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.
+              Are you sure you want to delete this user? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -317,7 +329,7 @@ export default function UsersPanel() {
             <Button
               variant="destructive"
               onClick={handleDeleteUser}
-              disabled={deleteMutation.isPending || (selectedUser?.role === 'superuser')}
+              disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete
