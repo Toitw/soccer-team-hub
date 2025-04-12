@@ -182,6 +182,7 @@ export default function TeamPage() {
     queryKey: teamMembersQueryKey,
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
+      console.log(`Fetching team members for team ${selectedTeam.id}`);
       const response = await fetch(`/api/teams/${selectedTeam.id}/members`, {
         credentials: "include",
       });
@@ -192,7 +193,9 @@ export default function TeamPage() {
         }
         throw new Error(`Failed to fetch team members: ${response.statusText}`);
       }
-      return await response.json();
+      const members = await response.json();
+      console.log(`Retrieved ${members.length} team members for team ${selectedTeam.id}`);
+      return members;
     },
     enabled: !!selectedTeam?.id,
     retry: 1,
