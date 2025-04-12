@@ -11,6 +11,8 @@ export function createAdminRouter(storage: EntityStorage) {
   // Middleware to check if user is a superuser
   const requireSuperuser = (req: Request, res: Response, next: NextFunction) => {
     if (req.user && req.user.role === 'superuser') {
+      // Set content type to ensure proper JSON response
+      res.setHeader('Content-Type', 'application/json');
       next();
     } else {
       res.status(403).json({ error: 'Forbidden - Superuser access required' });
