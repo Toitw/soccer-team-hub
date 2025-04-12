@@ -2,14 +2,19 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, ShieldAlert, LogOut } from "lucide-react";
 import UsersPanel from "@/components/admin/users-panel";
 import TeamsPanel from "@/components/admin/teams-panel";
 import { Link } from "wouter";
 
 export default function AdminPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logoutMutation } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   // Show loading state
   if (isLoading) {
@@ -38,10 +43,32 @@ export default function AdminPage() {
 
   return (
     <div className="container py-10 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <p className="text-muted-foreground mb-8">
-        Manage teams, users, and system settings from this central admin dashboard.
-      </p>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2" 
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+        >
+          {logoutMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          Logout
+        </Button>
+      </div>
+      <div className="mb-8">
+        <p className="text-muted-foreground">
+          Manage teams, users, and system settings from this central admin dashboard.
+        </p>
+        {user && (
+          <p className="text-sm font-medium mt-2">
+            Logged in as: <span className="text-primary">{user.fullName}</span> (Superuser)
+          </p>
+        )}
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 mb-8">
