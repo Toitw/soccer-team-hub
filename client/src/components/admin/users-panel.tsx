@@ -28,10 +28,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Pencil, Trash2, Search, RefreshCw, UserCog } from 'lucide-react';
+import { 
+  Loader2, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Search, 
+  RefreshCw, 
+  Shield, 
+  ShieldAlert,
+  UserCog
+} from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { User } from '@shared/schema';
-// We'll create these components later
+// We'll implement these components later
 import { AddUserForm } from './add-user-form';
 import { EditUserForm } from './edit-user-form';
 
@@ -77,8 +87,8 @@ export default function UsersPanel() {
     (user: User) =>
       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+      user.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Handle user deletion
@@ -90,9 +100,7 @@ export default function UsersPanel() {
 
   // Open edit user modal
   const handleEditUser = (user: User) => {
-    // Remove the password from the user object for security purposes
-    const { password, ...userWithoutPassword } = user;
-    setSelectedUser(userWithoutPassword as User);
+    setSelectedUser(user);
     setCurrentUserId(user.id);
     setIsEditUserOpen(true);
   };
@@ -102,6 +110,34 @@ export default function UsersPanel() {
     setSelectedUser(user);
     setCurrentUserId(user.id);
     setIsDeleteDialogOpen(true);
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'superuser':
+        return 'destructive';
+      case 'admin':
+        return 'default';
+      case 'coach':
+        return 'secondary';
+      case 'player':
+        return 'outline';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'superuser':
+        return <ShieldAlert className="h-3 w-3 mr-1" />;
+      case 'admin':
+        return <Shield className="h-3 w-3 mr-1" />;
+      case 'coach':
+        return <UserCog className="h-3 w-3 mr-1" />;
+      default:
+        return null;
+    }
   };
 
   if (isLoading) {
@@ -131,7 +167,7 @@ export default function UsersPanel() {
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search users by name, username, email or role..."
+              placeholder="Search users by name, username, role, or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
@@ -148,8 +184,8 @@ export default function UsersPanel() {
                   <TableHead>ID</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Username</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -175,20 +211,22 @@ export default function UsersPanel() {
                         </div>
                       </TableCell>
                       <TableCell>{user.username}</TableCell>
-                      <TableCell>{user.email || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge 
-                          variant={user.role === 'superuser' ? 'destructive' : 'secondary'}
-                        >
-                          {user.role}
+                        <Badge variant={getRoleBadgeVariant(user.role)}>
+                          <div className="flex items-center">
+                            {getRoleIcon(user.role)}
+                            {user.role}
+                          </div>
                         </Badge>
                       </TableCell>
+                      <TableCell>{user.email || 'N/A'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button
                             variant="outline"
                             size="icon"
                             onClick={() => handleEditUser(user)}
+                            title="Edit user"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -197,7 +235,8 @@ export default function UsersPanel() {
                             size="icon"
                             className="text-destructive"
                             onClick={() => confirmDelete(user)}
-                            disabled={user.role === 'superuser'} // Prevent deleting superusers
+                            title="Delete user"
+                            disabled={user.role === 'superuser'}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -278,7 +317,7 @@ export default function UsersPanel() {
             <Button
               variant="destructive"
               onClick={handleDeleteUser}
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || (selectedUser?.role === 'superuser')}
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete

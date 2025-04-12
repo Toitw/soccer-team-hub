@@ -33,9 +33,12 @@ export default function Announcements({ teamId, announcements: propAnnouncements
           console.warn('Dashboard: No teamId provided for announcements fetch');
           return [];
         }
-        const response = await apiRequest<(Announcement & { creator?: any })[]>("GET", `/api/teams/${teamId}/announcements/recent?limit=5`);
+        const response = await apiRequest(`/api/teams/${teamId}/announcements/recent?limit=5`);
         console.log('Dashboard: Retrieved announcements:', response);
-        return response.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        // Ensure response is an array before sorting
+        return Array.isArray(response) 
+          ? response.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          : [];
       } catch (error) {
         console.error('Dashboard: Error fetching announcements:', error);
         return [];
@@ -50,7 +53,10 @@ export default function Announcements({ teamId, announcements: propAnnouncements
   });
   
   // Use provided announcements or fetched announcements
-  const announcements = useProvidedData ? propAnnouncements || [] : fetchedAnnouncements;
+  // Ensure announcements is always an array
+  const announcements = Array.isArray(useProvidedData ? propAnnouncements : fetchedAnnouncements) 
+    ? (useProvidedData ? propAnnouncements : fetchedAnnouncements) 
+    : [];
   
   // Force refetch on component mount
   useEffect(() => {
