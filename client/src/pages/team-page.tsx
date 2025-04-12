@@ -703,7 +703,7 @@ export default function TeamPage() {
                                   <SelectValue placeholder={t("team.selectPosition")} />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="overflow-y-auto max-h-[300px] pt-1" position="item-aligned">
                                 <SelectGroup>
                                   <SelectLabel>{t("team.goalkeepers")}</SelectLabel>
                                   <SelectItem value="Goalkeeper">
@@ -1382,7 +1382,7 @@ export default function TeamPage() {
                           <SelectValue placeholder={t("team.selectPosition")} />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="overflow-y-auto max-h-[300px] pt-1" position="item-aligned">
                         <SelectItem value="none">{t("team.none")}</SelectItem>
                         <SelectItem value="Goalkeeper">{t("team.goalkeeper")}</SelectItem>
                         <SelectItem value="Defender">{t("team.defender")}</SelectItem>
