@@ -12,6 +12,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,15 +28,24 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { 
+  Loader2, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Search, 
+  RefreshCw, 
+  Users, 
+  ChevronDown,
+  ChevronRight,
+  Shield
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Pencil, Trash2, Search, RefreshCw, Users, UserPlus } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Team } from '@shared/schema';
 import { TeamMemberList } from './team-member-list';
@@ -38,10 +55,10 @@ import { EditTeamForm } from './edit-team-form';
 export default function TeamsPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
   const [isAddTeamOpen, setIsAddTeamOpen] = useState(false);
   const [isEditTeamOpen, setIsEditTeamOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isTeamMembersOpen, setIsTeamMembersOpen] = useState(false);
   const [currentTeamId, setCurrentTeamId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
@@ -62,6 +79,7 @@ export default function TeamsPanel() {
         description: 'The team has been deleted successfully.',
       });
       setIsDeleteDialogOpen(false);
+      setExpandedTeam(null);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/teams'] });
     },
     onError: (error) => {
@@ -77,8 +95,8 @@ export default function TeamsPanel() {
   const filteredTeams = teams.filter(
     (team: Team) =>
       team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.division?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      team.seasonYear?.toLowerCase().includes(searchQuery.toLowerCase())
+      (team.division && team.division.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (team.joinCode && team.joinCode.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Handle team deletion
@@ -88,18 +106,16 @@ export default function TeamsPanel() {
     }
   };
 
+  // Toggle team details expansion
+  const toggleTeamExpansion = (teamId: number) => {
+    setExpandedTeam(expandedTeam === teamId ? null : teamId);
+  };
+
   // Open edit team modal
   const handleEditTeam = (team: Team) => {
     setSelectedTeam(team);
     setCurrentTeamId(team.id);
     setIsEditTeamOpen(true);
-  };
-
-  // Open view team members modal
-  const handleViewTeamMembers = (team: Team) => {
-    setSelectedTeam(team);
-    setCurrentTeamId(team.id);
-    setIsTeamMembersOpen(true);
   };
 
   // Open delete confirmation modal
@@ -129,14 +145,14 @@ export default function TeamsPanel() {
             </Button>
           </div>
           <CardDescription>
-            Manage all teams in the system. You can add, edit, or remove teams.
+            Manage teams, their members, and settings.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-2 mb-4">
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search teams by name, division or season..."
+              placeholder="Search teams by name, division, or join code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
@@ -150,69 +166,82 @@ export default function TeamsPanel() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead>Division</TableHead>
-                  <TableHead>Season</TableHead>
                   <TableHead>Join Code</TableHead>
+                  <TableHead>Season</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTeams.length > 0 ? (
                   filteredTeams.map((team: Team) => (
-                    <TableRow key={team.id}>
-                      <TableCell className="font-medium">{team.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {team.logo && (
-                            <img
-                              src={team.logo}
-                              alt={team.name}
-                              className="h-8 w-8 rounded-full object-cover"
-                            />
-                          )}
-                          <span className="font-medium">{team.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{team.division || 'N/A'}</TableCell>
-                      <TableCell>{team.seasonYear || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono">
-                          {team.joinCode || 'None'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleViewTeamMembers(team)}
+                    <React.Fragment key={team.id}>
+                      <TableRow>
+                        <TableCell>
+                          <div 
+                            className="flex items-center space-x-2 cursor-pointer" 
+                            onClick={() => toggleTeamExpansion(team.id)}
                           >
-                            <Users className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleEditTeam(team)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => confirmDelete(team)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                            {expandedTeam === team.id ? 
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            }
+                            <div className="flex items-center space-x-2">
+                              {team.logo ? (
+                                <img
+                                  src={team.logo}
+                                  alt={team.name}
+                                  className="h-8 w-8 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                                  <Shield className="h-4 w-4" />
+                                </div>
+                              )}
+                              <span className="font-medium">{team.name}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{team.division || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{team.joinCode || 'N/A'}</Badge>
+                        </TableCell>
+                        <TableCell>{team.seasonYear || 'N/A'}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleEditTeam(team)}
+                              title="Edit team"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => confirmDelete(team)}
+                              title="Delete team"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {expandedTeam === team.id && (
+                        <TableRow className="bg-muted/30">
+                          <TableCell colSpan={5} className="p-4">
+                            <TeamMemberList team={team} />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                       No teams found.
                     </TableCell>
                   </TableRow>
@@ -267,46 +296,13 @@ export default function TeamsPanel() {
         </Dialog>
       )}
 
-      {/* Team Members Dialog */}
-      {selectedTeam && (
-        <Dialog 
-          open={isTeamMembersOpen} 
-          onOpenChange={setIsTeamMembersOpen}
-        >
-          <DialogContent className="sm:max-w-[850px]">
-            <DialogHeader>
-              <DialogTitle>Team Members</DialogTitle>
-              <DialogDescription>
-                Manage members for team: {selectedTeam.name}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto py-4">
-              <TeamMemberList 
-                teamId={selectedTeam.id} 
-                onSuccess={() => {
-                  queryClient.invalidateQueries({ queryKey: [`/api/admin/teams/${selectedTeam.id}/members`] });
-                }}
-              />
-            </div>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsTeamMembersOpen(false)}
-              >
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Team</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this team? This action cannot be undone and will remove all associated data.
+              Are you sure you want to delete this team? This action cannot be undone and will remove all associated data including team members, matches, events, and announcements.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

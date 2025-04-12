@@ -1,104 +1,108 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+import { insertTeamSchema } from "@shared/schema";
+import { Loader2 } from "lucide-react";
+
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
-// Schema for adding a team
-const teamSchema = z.object({
-  name: z.string().min(2, 'Team name is required'),
-  logo: z.string().optional(),
-  division: z.string().optional(),
-  seasonYear: z.string().optional(),
+// Create a schema for the add team form
+const addTeamSchema = insertTeamSchema.omit({ 
+  createdById: true, 
+  joinCode: true 
 });
 
-type TeamFormData = z.infer<typeof teamSchema>;
+type AddTeamFormValues = z.infer<typeof addTeamSchema>;
 
-interface AddTeamFormProps {
+type AddTeamFormProps = {
   onSuccess: () => void;
   onCancel: () => void;
-}
+};
 
 export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  // Define the form with validation
-  const form = useForm<TeamFormData>({
-    resolver: zodResolver(teamSchema),
+  // Set up form
+  const form = useForm<AddTeamFormValues>({
+    resolver: zodResolver(addTeamSchema),
     defaultValues: {
-      name: '',
-      logo: '',
-      division: '',
+      name: "",
+      division: "",
       seasonYear: new Date().getFullYear().toString(),
+      logo: "",
     },
   });
 
   // Create team mutation
-  const createTeam = useMutation({
-    mutationFn: (data: TeamFormData) => {
+  const mutation = useMutation({
+    mutationFn: (values: AddTeamFormValues) => {
       return apiRequest('/api/admin/teams', {
         method: 'POST',
-        data,
+        data: values,
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: 'Team Created',
-        description: 'The team has been created successfully.',
+        description: `Successfully created team ${data.name}.`,
       });
       onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create team. Please try again.',
+        description: 'Failed to create team. Please try again.',
         variant: 'destructive',
       });
     },
-    onSettled: () => {
-      setIsLoading(false);
-    },
   });
 
-  // Form submission handler
-  const onSubmit = async (data: TeamFormData) => {
-    setIsLoading(true);
-    createTeam.mutate(data);
+  // Handle form submission
+  const onSubmit = (values: AddTeamFormValues) => {
+    mutation.mutate(values);
+  };
+
+  // Handle logo preview
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    form.setValue("logo", value);
+    setLogoPreview(value);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Real Madrid" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
+          {/* Team Name field */}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Team Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="City Football Club" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Division field */}
           <FormField
             control={form.control}
             name="division"
@@ -106,14 +110,14 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
               <FormItem>
                 <FormLabel>Division</FormLabel>
                 <FormControl>
-                  <Input placeholder="First Division" {...field} />
+                  <Input placeholder="Premier League, Division 1, etc." {...field} />
                 </FormControl>
-                <FormDescription>League or division name</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
+          {/* Season Year field */}
           <FormField
             control={form.control}
             name="seasonYear"
@@ -121,37 +125,54 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
               <FormItem>
                 <FormLabel>Season Year</FormLabel>
                 <FormControl>
-                  <Input placeholder={new Date().getFullYear().toString()} {...field} />
+                  <Input placeholder="2023" {...field} />
                 </FormControl>
-                <FormDescription>Current season year</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Logo URL field */}
+          <FormField
+            control={form.control}
+            name="logo"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Team Logo URL</FormLabel>
+                <div className="flex space-x-4">
+                  <FormControl>
+                    <Input
+                      placeholder="https://example.com/logo.png"
+                      {...field}
+                      onChange={handleLogoChange}
+                    />
+                  </FormControl>
+                  {logoPreview && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={logoPreview}
+                        alt="Logo preview"
+                        className="h-10 w-10 rounded-full object-cover"
+                        onError={() => setLogoPreview(null)}
+                      />
+                    </div>
+                  )}
+                </div>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="logo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Logo URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/logo.png" {...field} />
-              </FormControl>
-              <FormDescription>URL to the team's logo image</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Team
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Create Team
           </Button>
         </div>
       </form>

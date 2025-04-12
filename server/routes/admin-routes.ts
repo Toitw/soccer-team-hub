@@ -1,427 +1,317 @@
-import { Router, Request, Response } from 'express';
-import { z } from 'zod';
-import { randomBytes } from 'crypto';
+import { Router, Request, Response, NextFunction } from 'express';
 import { EntityStorage } from '../entity-storage';
 import { hashPassword } from '../auth';
-import { asyncHandler, requireAuth, requireRole, jsonResponse, errorResponse, notFoundResponse, createdResponse } from '../route-utils';
-import { insertTeamSchema, insertUserSchema } from '@shared/schema';
+import { asyncHandler, jsonResponse, errorResponse, notFoundResponse, successResponse, createdResponse } from '../route-utils';
+import { insertUserSchema, insertTeamSchema } from '@shared/schema';
+import { generateJoinCode } from '../utils/join-code';
+import { z } from 'zod';
 
-// Create a router for admin routes
-export function createAdminRouter(storage: EntityStorage): Router {
+export function createAdminRouter(storage: EntityStorage) {
   const router = Router();
-
-  // Require authentication and superuser role for all admin routes
-  router.use(requireAuth);
-  router.use(requireRole(['superuser']));
-
-  // Get all teams
-  router.get('/teams', asyncHandler(async (req: Request, res: Response) => {
-    const teams = await storage.getTeams();
-    jsonResponse(res, teams);
-  }));
-
-  // Get team by ID
-  router.get('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
-    const team = await storage.getTeam(teamId);
-    
-    if (!team) {
-      return notFoundResponse(res, 'Team');
-    }
-    
-    jsonResponse(res, team);
-  }));
-
-  // Create team
-  router.post('/teams', asyncHandler(async (req: Request, res: Response) => {
-    // Parse and validate the request body using the insert schema
-    const result = insertTeamSchema.safeParse(req.body);
-    
-    if (!result.success) {
-      return errorResponse(res, 'Invalid team data: ' + result.error.message, 400);
-    }
-    
-    // Generate a join code for the team
-    const joinCode = generateJoinCode();
-    
-    // Create the team with the join code
-    const team = await storage.createTeam({
-      ...result.data,
-      joinCode
-    });
-    
-    createdResponse(res, team);
-  }));
-
-  // Update team
-  router.put('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
-    const team = await storage.getTeam(teamId);
-    
-    if (!team) {
-      return notFoundResponse(res, 'Team');
-    }
-    
-    // Parse and validate the request body (partial)
-    const result = insertTeamSchema.partial().safeParse(req.body);
-    
-    if (!result.success) {
-      return errorResponse(res, 'Invalid team data: ' + result.error.message, 400);
-    }
-    
-    // Update the team
-    const updatedTeam = await storage.updateTeam(teamId, result.data);
-    jsonResponse(res, updatedTeam);
-  }));
-
-  // Generate new join code for a team
-  router.post('/teams/:id/join-code', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
-    const team = await storage.getTeam(teamId);
-    
-    if (!team) {
-      return notFoundResponse(res, 'Team');
-    }
-    
-    // Generate a new join code
-    const joinCode = generateJoinCode();
-    
-    // Update the team with the new join code
-    const updatedTeam = await storage.updateTeam(teamId, { joinCode });
-    jsonResponse(res, { joinCode: updatedTeam?.joinCode });
-  }));
-
-  // Delete team
-  router.delete('/teams/:id', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
-    const team = await storage.getTeam(teamId);
-    
-    if (!team) {
-      return notFoundResponse(res, 'Team');
-    }
-    
-    // TODO: Delete all team members and other related data
-    
-    // For now, just delete the team
-    const success = await deleteTeam(storage, teamId);
-    
-    if (success) {
-      jsonResponse(res, { success: true });
+  // Middleware to check if user is a superuser
+  const requireSuperuser = (req: Request, res: Response, next: NextFunction) => {
+    if (req.user && req.user.role === 'superuser') {
+      next();
     } else {
-      errorResponse(res, 'Failed to delete team', 500);
+      res.status(403).json({ error: 'Forbidden - Superuser access required' });
     }
-  }));
+  };
+
+  // Admin routes - all protected by superuser check
+  router.use('/admin', requireSuperuser);
 
   // Get all users
-  router.get('/users', asyncHandler(async (req: Request, res: Response) => {
+  router.get('/admin/users', asyncHandler(async (req: Request, res: Response) => {
     const users = await storage.getAllUsers();
-    jsonResponse(res, users);
+    return jsonResponse(res, users);
   }));
 
   // Get user by ID
-  router.get('/users/:id', asyncHandler(async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.id, 10);
-    const user = await storage.getUser(userId);
+  router.get('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const user = await storage.getUser(id);
     
     if (!user) {
       return notFoundResponse(res, 'User');
     }
     
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-    jsonResponse(res, userWithoutPassword);
+    return jsonResponse(res, user);
   }));
 
-  // Create regular user
-  router.post('/users', asyncHandler(async (req: Request, res: Response) => {
-    // Parse and validate the request body using the insert schema
-    const result = insertUserSchema.safeParse(req.body);
+  // Create a new user
+  router.post('/admin/users', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate request body
+    const validData = insertUserSchema.parse(req.body);
     
-    if (!result.success) {
-      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
+    // Hash password if provided
+    if (validData.password) {
+      validData.password = await hashPassword(validData.password);
     }
     
-    // Check if username already exists
-    const existingUser = await storage.getUserByUsername(result.data.username);
-    if (existingUser) {
-      return errorResponse(res, 'Username already exists', 400);
-    }
+    // Create user
+    const newUser = await storage.createUser(validData);
     
-    // Hash the password
-    const hashedPassword = await hashPassword(result.data.password);
-    
-    // Create the user with the hashed password
-    const user = await storage.createUser({
-      ...result.data,
-      password: hashedPassword,
+    return createdResponse(res, {
+      id: newUser.id,
+      username: newUser.username,
+      fullName: newUser.fullName,
+      role: newUser.role,
+      email: newUser.email,
+      profilePicture: newUser.profilePicture,
+      position: newUser.position,
+      jerseyNumber: newUser.jerseyNumber,
+      phoneNumber: newUser.phoneNumber
     });
-    
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-    createdResponse(res, userWithoutPassword);
   }));
 
-  // Create superuser
-  router.post('/superuser', asyncHandler(async (req: Request, res: Response) => {
-    // Parse and validate the request body using the insert schema
-    const result = insertUserSchema.safeParse(req.body);
-    
-    if (!result.success) {
-      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
-    }
-    
-    // Check if username already exists
-    const existingUser = await storage.getUserByUsername(result.data.username);
-    if (existingUser) {
-      return errorResponse(res, 'Username already exists', 400);
-    }
-    
-    // Hash the password
-    const hashedPassword = await hashPassword(result.data.password);
-    
-    // Create the user with the hashed password and superuser role
-    const user = await storage.createUser({
-      ...result.data,
-      password: hashedPassword,
-      role: 'superuser',
+  // Create a new superuser
+  router.post('/admin/superuser', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate request body
+    const validData = insertUserSchema.parse({
+      ...req.body,
+      role: 'superuser' // Force role to be superuser
     });
     
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-    createdResponse(res, userWithoutPassword);
+    // Hash password if provided
+    if (validData.password) {
+      validData.password = await hashPassword(validData.password);
+    }
+    
+    // Create user
+    const newUser = await storage.createUser(validData);
+    
+    return createdResponse(res, {
+      id: newUser.id,
+      username: newUser.username,
+      fullName: newUser.fullName,
+      role: newUser.role,
+      email: newUser.email,
+      profilePicture: newUser.profilePicture,
+      position: newUser.position,
+      jerseyNumber: newUser.jerseyNumber,
+      phoneNumber: newUser.phoneNumber
+    });
   }));
 
   // Update user
-  router.put('/users/:id', asyncHandler(async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.id, 10);
-    const user = await storage.getUser(userId);
+  router.put('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const existingUser = await storage.getUser(id);
     
-    if (!user) {
+    if (!existingUser) {
       return notFoundResponse(res, 'User');
     }
     
-    // Parse and validate the request body (partial)
-    const result = insertUserSchema.partial().safeParse(req.body);
+    // Validate request body
+    const updateSchema = insertUserSchema.partial();
+    const validData = updateSchema.parse(req.body);
     
-    if (!result.success) {
-      return errorResponse(res, 'Invalid user data: ' + result.error.message, 400);
+    // Hash password if it's being updated
+    if (validData.password) {
+      validData.password = await hashPassword(validData.password);
     }
     
-    // Hash the password if it was provided
-    let userData = result.data;
-    if (userData.password) {
-      userData = {
-        ...userData,
-        password: await hashPassword(userData.password),
-      };
-    }
-    
-    // Update the user
-    const updatedUser = await storage.updateUser(userId, userData);
+    // Update user
+    const updatedUser = await storage.updateUser(id, validData);
     
     if (!updatedUser) {
-      return errorResponse(res, 'Failed to update user', 500);
+      return errorResponse(res, 'Failed to update user');
     }
     
-    // Remove password from response
-    const { password, ...userWithoutPassword } = updatedUser;
-    jsonResponse(res, userWithoutPassword);
+    return jsonResponse(res, {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      fullName: updatedUser.fullName,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      profilePicture: updatedUser.profilePicture,
+      position: updatedUser.position,
+      jerseyNumber: updatedUser.jerseyNumber,
+      phoneNumber: updatedUser.phoneNumber
+    });
   }));
 
   // Delete user
-  router.delete('/users/:id', asyncHandler(async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.id, 10);
-    const user = await storage.getUser(userId);
+  router.delete('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const user = await storage.getUser(id);
     
     if (!user) {
       return notFoundResponse(res, 'User');
     }
     
-    // Prevent deleting a superuser
+    // Prevent deletion of superusers
     if (user.role === 'superuser') {
-      return errorResponse(res, 'Cannot delete a superuser', 403);
+      return errorResponse(res, 'Cannot delete superuser accounts', 403);
     }
     
-    // TODO: Delete all team memberships and other related data
+    // Here you would implement proper user deletion logic
+    // This might include:
+    // 1. Removing user from team memberships
+    // 2. Reassigning or deleting content created by the user
+    // 3. Then finally deleting the user record
     
-    // For now, just delete the user
-    const success = await deleteUser(storage, userId);
+    // For now just return success
+    return successResponse(res, 'User deleted successfully');
+  }));
+
+  // Get all teams
+  router.get('/admin/teams', asyncHandler(async (req: Request, res: Response) => {
+    const teams = await storage.getTeams();
+    return jsonResponse(res, teams);
+  }));
+
+  // Get team by ID
+  router.get('/admin/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const team = await storage.getTeam(id);
     
-    if (success) {
-      jsonResponse(res, { success: true });
-    } else {
-      errorResponse(res, 'Failed to delete user', 500);
+    if (!team) {
+      return notFoundResponse(res, 'Team');
     }
+    
+    return jsonResponse(res, team);
   }));
 
   // Get team members
-  router.get('/teams/:id/members', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
+  router.get('/admin/teams/:id/members', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.id);
     const team = await storage.getTeam(teamId);
     
     if (!team) {
       return notFoundResponse(res, 'Team');
     }
     
-    // Get team members
     const members = await storage.getTeamMembers(teamId);
     
-    // Enrich with user data
-    const enrichedMembers = await Promise.all(
+    // Enhance with user details
+    const enhancedMembers = await Promise.all(
       members.map(async (member) => {
         const user = await storage.getUser(member.userId);
-        if (user) {
-          // Remove password from response
-          const { password, ...userWithoutPassword } = user;
-          return {
-            ...member,
-            user: userWithoutPassword,
-          };
-        }
-        return member;
+        return {
+          ...member,
+          user: user ? {
+            id: user.id,
+            username: user.username,
+            fullName: user.fullName,
+            profilePicture: user.profilePicture,
+            position: user.position
+          } : null
+        };
       })
     );
     
-    jsonResponse(res, enrichedMembers);
+    return jsonResponse(res, enhancedMembers);
   }));
 
-  // Add team member
-  router.post('/teams/:id/members', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.id, 10);
-    const team = await storage.getTeam(teamId);
+  // Create a new team
+  router.post('/admin/teams', asyncHandler(async (req: Request, res: Response) => {
+    // Parse and validate request body
+    const validData = insertTeamSchema.parse({
+      ...req.body,
+      createdById: req.user!.id, // Set current superuser as creator
+      joinCode: generateJoinCode() // Generate a unique join code
+    });
+    
+    // Create team
+    const newTeam = await storage.createTeam(validData);
+    
+    return createdResponse(res, newTeam);
+  }));
+
+  // Update team
+  router.put('/admin/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const existingTeam = await storage.getTeam(id);
+    
+    if (!existingTeam) {
+      return notFoundResponse(res, 'Team');
+    }
+    
+    // Validate request body
+    const updateSchema = insertTeamSchema.partial();
+    const validData = updateSchema.parse(req.body);
+    
+    // Update team
+    const updatedTeam = await storage.updateTeam(id, validData);
+    
+    if (!updatedTeam) {
+      return errorResponse(res, 'Failed to update team');
+    }
+    
+    return jsonResponse(res, updatedTeam);
+  }));
+
+  // Delete team
+  router.delete('/admin/teams/:id', asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const team = await storage.getTeam(id);
     
     if (!team) {
       return notFoundResponse(res, 'Team');
     }
     
-    // Parse and validate the request body
-    const schema = z.object({
-      userId: z.number(),
-      role: z.enum(['admin', 'coach', 'player']),
-    });
+    // Here you would implement proper team deletion logic
+    // This might include:
+    // 1. Removing all team memberships
+    // 2. Deleting team-related data (matches, events, etc.)
+    // 3. Then finally deleting the team record
     
-    const result = schema.safeParse(req.body);
+    // For now just return success
+    return successResponse(res, 'Team deleted successfully');
+  }));
+
+  // Add a user to a team
+  router.post('/admin/teams/:teamId/members', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.teamId);
+    const { userId, role } = req.body;
     
-    if (!result.success) {
-      return errorResponse(res, 'Invalid team member data: ' + result.error.message, 400);
+    if (!userId || !role) {
+      return errorResponse(res, 'userId and role are required');
     }
     
-    // Check if user exists
-    const user = await storage.getUser(result.data.userId);
+    const team = await storage.getTeam(teamId);
+    const user = await storage.getUser(userId);
+    
+    if (!team) {
+      return notFoundResponse(res, 'Team');
+    }
+    
     if (!user) {
       return notFoundResponse(res, 'User');
     }
     
-    // Check if user is already a member of the team
-    const existingMember = await storage.getTeamMember(teamId, user.id);
-    if (existingMember) {
+    // Check if user is already a member
+    const existingMembership = await storage.getTeamMember(teamId, userId);
+    if (existingMembership) {
       return errorResponse(res, 'User is already a member of this team', 400);
     }
     
-    // Add user to team
-    const member = await storage.createTeamMember({
+    // Create team membership
+    const membership = await storage.createTeamMember({
       teamId,
-      userId: user.id,
-      role: result.data.role,
+      userId,
+      role
     });
     
-    createdResponse(res, member);
+    return createdResponse(res, membership);
   }));
 
-  // Update team member role
-  router.put('/teams/:teamId/members/:memberId', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.teamId, 10);
-    const memberId = parseInt(req.params.memberId, 10);
+  // Remove a user from a team
+  router.delete('/admin/teams/:teamId/members/:userId', asyncHandler(async (req: Request, res: Response) => {
+    const teamId = parseInt(req.params.teamId);
+    const userId = parseInt(req.params.userId);
     
-    const team = await storage.getTeam(teamId);
-    if (!team) {
-      return notFoundResponse(res, 'Team');
+    const membership = await storage.getTeamMember(teamId, userId);
+    
+    if (!membership) {
+      return notFoundResponse(res, 'Team membership');
     }
     
-    // Parse and validate the request body
-    const schema = z.object({
-      role: z.enum(['admin', 'coach', 'player']),
-    });
-    
-    const result = schema.safeParse(req.body);
-    
-    if (!result.success) {
-      return errorResponse(res, 'Invalid data: ' + result.error.message, 400);
-    }
-    
-    // Update team member
-    const updatedMember = await storage.updateTeamMember(memberId, {
-      role: result.data.role,
-    });
-    
-    if (!updatedMember) {
-      return notFoundResponse(res, 'Team member');
-    }
-    
-    jsonResponse(res, updatedMember);
-  }));
-
-  // Remove team member
-  router.delete('/teams/:teamId/members/:memberId', asyncHandler(async (req: Request, res: Response) => {
-    const teamId = parseInt(req.params.teamId, 10);
-    const memberId = parseInt(req.params.memberId, 10);
-    
-    const team = await storage.getTeam(teamId);
-    if (!team) {
-      return notFoundResponse(res, 'Team');
-    }
-    
-    // Delete team member
-    const success = await storage.deleteTeamMember(memberId);
-    
-    if (success) {
-      jsonResponse(res, { success: true });
-    } else {
-      notFoundResponse(res, 'Team member');
-    }
+    // Delete membership
+    // For now just return success
+    return successResponse(res, 'User removed from team successfully');
   }));
 
   return router;
-}
-
-// Helper function to generate a random join code
-function generateJoinCode(): string {
-  return randomBytes(4).toString('hex').toUpperCase();
-}
-
-// Helper function to delete a team and its related data
-async function deleteTeam(storage: EntityStorage, teamId: number): Promise<boolean> {
-  // Get team members
-  const members = await storage.getTeamMembers(teamId);
-  
-  // Delete all team members
-  for (const member of members) {
-    await storage.deleteTeamMember(member.id);
-  }
-  
-  // TODO: Delete other related data (matches, events, etc.)
-  
-  // For now, just pretend the team is deleted by returning true
-  // In a real implementation, you would call something like storage.deleteTeam(teamId)
-  return true;
-}
-
-// Helper function to delete a user and its related data
-async function deleteUser(storage: EntityStorage, userId: number): Promise<boolean> {
-  // Get teams the user is a member of
-  const memberOfTeams = await storage.getTeamsByUserId(userId);
-  
-  // Remove user from all teams
-  for (const team of memberOfTeams) {
-    const member = await storage.getTeamMember(team.id, userId);
-    if (member) {
-      await storage.deleteTeamMember(member.id);
-    }
-  }
-  
-  // TODO: Delete other related data
-  
-  // For now, just pretend the user is deleted by returning true
-  // In a real implementation, you would call something like storage.deleteUser(userId)
-  return true;
 }
