@@ -22,6 +22,20 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
   const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
     queryKey: ["/api/teams", team?.id, "members"],
     enabled: !!team,
+    queryFn: async () => {
+      if (!team?.id) return [];
+      console.log(`Dashboard: Fetching team members for team ${team.id}`);
+      const response = await fetch(`/api/teams/${team.id}/members`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        console.error(`Dashboard: Error fetching team members: ${response.statusText}`);
+        return [];
+      }
+      const members = await response.json();
+      console.log(`Dashboard: Retrieved ${members.length} team members for team ${team.id}`);
+      return members;
+    },
   });
 
   if (!team) return null;

@@ -43,8 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set the user data
       queryClient.setQueryData(["/api/user"], user);
       
-      // Invalidate any potentially cached queries to ensure fresh data
+      // Invalidate all team-related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
       
       toast({
         titleKey: "toasts.loginSuccess",
@@ -68,6 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Invalidate all team-related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
+      queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
+      
       toast({
         titleKey: "toasts.registrationSuccess",
         descriptionKey: "toasts.welcomeToTeamKick",
