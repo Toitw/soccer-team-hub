@@ -9,11 +9,15 @@ import { useLanguage } from "@/hooks/use-language"
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+// Define the toast object structure
+type ToasterToast = {
   id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
+  title?: string
+  description?: string
   action?: ToastActionElement
+  variant?: "default" | "destructive"
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const actionTypes = {
@@ -140,8 +144,21 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+// Extended toast interface that supports i18n keys
+interface ToastParams extends Omit<ToasterToast, "id" | "onOpenChange" | "open"> {
+  // Internationalization properties
+  titleKey?: string
+  descriptionKey?: string
+  titleParams?: Record<string, string | number>
+  descriptionParams?: Record<string, string | number>
+}
+
+// Main toast function that supports both direct text and i18n keys
+function toast(params: ToastParams) {
   const id = genId()
+  
+  // Extract i18n specific properties that shouldn't be in the final toast object
+  const { titleKey, descriptionKey, titleParams, descriptionParams, ...standardProps } = params
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -153,7 +170,7 @@ function toast({ ...props }: Toast) {
   dispatch({
     type: "ADD_TOAST",
     toast: {
-      ...props,
+      ...standardProps,
       id,
       open: true,
       onOpenChange: (open) => {
@@ -171,6 +188,7 @@ function toast({ ...props }: Toast) {
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
+  const { t } = useLanguage()
 
   React.useEffect(() => {
     listeners.push(setState)
@@ -182,11 +200,34 @@ function useToast() {
     }
   }, [state])
 
+  // Enhanced toast function that supports i18n
+  const i18nToast = (params: ToastParams) => {
+    // If i18n keys are provided, translate them
+    if (params.titleKey) {
+      params.title = t(params.titleKey, params.titleParams)
+    }
+    
+    if (params.descriptionKey) {
+      params.description = t(params.descriptionKey, params.descriptionParams)
+    }
+    
+    // Use the standard toast function with translated content
+    return toast(params)
+  }
+
   return {
     ...state,
-    toast,
+    toast: i18nToast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
-export { useToast, toast }
+// Create a standalone i18n toast function
+const standaloneToast = (params: ToastParams) => {
+  // Since we can't use React hooks outside of components,
+  // this function doesn't translate keys automatically
+  // It's included for compatibility with the previous API
+  return toast(params);
+}
+
+export { useToast, standaloneToast as toast }
