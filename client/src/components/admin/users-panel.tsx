@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -57,10 +57,25 @@ export default function UsersPanel() {
   const { toast } = useToast();
 
   // Fetch all users
-  const { data: users = [], isLoading, refetch } = useQuery({
+  const { data: apiResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: () => apiRequest('/api/admin/users'),
   });
+  
+  // Handle errors from the query
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error loading users',
+        description: 'There was a problem loading the user data.',
+        variant: 'destructive',
+      });
+      console.error('Error loading users:', error);
+    }
+  }, [error, toast]);
+
+  // Convert the API response to an array, ensuring we always have an array even if the API returns unexpected data
+  const users = Array.isArray(apiResponse) ? apiResponse : apiResponse ? [apiResponse] : [];
 
   // Delete user mutation
   const deleteMutation = useMutation({
@@ -85,9 +100,9 @@ export default function UsersPanel() {
   // Filter users based on search query
   const filteredUsers = users.filter(
     (user: UserType) =>
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (user.position && user.position.toLowerCase().includes(searchQuery.toLowerCase()))
   );
