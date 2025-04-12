@@ -703,7 +703,7 @@ export default function TeamPage() {
                                   <SelectValue placeholder={t("team.selectPosition")} />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent position="popper" side="bottom" align="start" sideOffset={5}>
+                              <SelectContent>
                                 <SelectGroup>
                                   <SelectLabel>{t("team.goalkeepers")}</SelectLabel>
                                   <SelectItem value="Goalkeeper">
