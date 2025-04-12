@@ -580,4 +580,38 @@ export const esES = {
     addNewEvent: "Añadir Nuevo Evento",
     noUpcomingEvents: "No hay próximos eventos programados",
   },
+  toasts: {
+    // Mensajes comunes de toast
+    info: "Información",
+    success: "Éxito",
+    error: "Error",
+    warning: "Advertencia",
+    refreshed: "Actualizado",
+    
+    // Mensajes relacionados con autenticación
+    loginSuccess: "Inicio de sesión exitoso",
+    loginFailed: "Error al iniciar sesión",
+    welcomeBack: "Bienvenido de nuevo, {{name}}",
+    registrationSuccess: "Registro exitoso",
+    registrationFailed: "Error al registrarse",
+    welcomeToTeamKick: "Bienvenido a TeamKick, {{name}}",
+    logoutSuccess: "Sesión cerrada correctamente",
+    
+    // Mensajes relacionados con anuncios
+    announcementCreated: "Anuncio creado",
+    announcementCreatedDesc: "Tu anuncio ha sido publicado",
+    announcementUpdated: "Anuncio actualizado",
+    announcementUpdatedDesc: "Tu anuncio ha sido actualizado",
+    announcementDeleted: "Anuncio eliminado",
+    announcementDeletedDesc: "El anuncio ha sido eliminado",
+    refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
+    announcementsLoaded: "{{count}} anuncios cargados correctamente.",
+    failedToRefreshAnnouncements: "Error al actualizar anuncios",
+    
+    // Mensajes generales de acciones
+    dataSaved: "Datos guardados",
+    changesSaved: "Cambios guardados correctamente",
+    actionCompleted: "Acción completada",
+    actionFailed: "Error en la acción",
+  },
 };
