@@ -49,7 +49,7 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
 
     // Send the email (mock implementation)
     const emailResult = await sendEmail(
-      user.email,
+      user.email || '',
       emailContent.subject,
       emailContent.html,
       emailContent.text
@@ -145,7 +145,7 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
 
     // Send the email (mock implementation)
     const emailResult = await sendEmail(
-      user.email,
+      user.email || '',
       emailContent.subject,
       emailContent.html,
       emailContent.text
