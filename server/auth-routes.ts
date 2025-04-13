@@ -47,7 +47,7 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
       baseUrl
     );
 
-    // Send the email (mock implementation)
+    // Send the email using nodemailer
     const emailResult = await sendEmail(
       user.email || '',
       emailContent.subject,
@@ -143,7 +143,7 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
       baseUrl
     );
 
-    // Send the email (mock implementation)
+    // Send the email using nodemailer
     const emailResult = await sendEmail(
       user.email || '',
       emailContent.subject,
