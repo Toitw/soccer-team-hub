@@ -138,7 +138,7 @@ export function generatePasswordResetEmail(
 }
 
 /**
- * Send an email (mock implementation)
+ * Send an email using nodemailer
  * @param to - The recipient's email address
  * @param subject - The email subject
  * @param html - The HTML content
@@ -151,14 +151,58 @@ export async function sendEmail(
   html: string,
   text: string
 ): Promise<EmailSendResult> {
-  // In a real implementation, this would use an email service like SendGrid, Mailgun, etc.
-  console.log(`Sending email to ${to} with subject "${subject}"`);
-  console.log(`Text content: ${text.substring(0, 100)}...`);
-  
-  // For development, always return success
-  // In production, this would return the actual result from the email service
-  return {
-    success: true,
-    message: `Email sent to ${to}`
-  };
+  try {
+    // Import nodemailer dynamically to avoid server-side only code in client bundle
+    const nodemailer = await import('nodemailer');
+    
+    // Get email credentials from environment variables
+    const emailUser = process.env.EMAIL_USER;
+    const emailPassword = process.env.EMAIL_PASSWORD;
+    
+    if (!emailUser || !emailPassword) {
+      console.error('Email credentials not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
+      return {
+        success: false,
+        message: 'Email configuration error: Missing credentials'
+      };
+    }
+    
+    // Log that we're attempting to send an email (but don't log credentials)
+    console.log(`Sending email to ${to} with subject "${subject}"`);
+    
+    // Create a transporter for Gmail
+    const transporter = nodemailer.default.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser,
+        pass: emailPassword
+      }
+    });
+    
+    // Define email options
+    const mailOptions = {
+      from: emailUser,
+      to,
+      subject,
+      text,
+      html
+    };
+    
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log(`Email sent successfully: ${info.messageId}`);
+    
+    return {
+      success: true,
+      message: `Email sent to ${to} (Message ID: ${info.messageId})`
+    };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    
+    return {
+      success: false,
+      message: `Failed to send email: ${error instanceof Error ? error.message : String(error)}`
+    };
+  }
 }
