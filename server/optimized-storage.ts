@@ -185,13 +185,18 @@ export class OptimizedStorage {
   
   async createUser(insertUser: InsertUser): Promise<User> {
     // Handle password hashing if needed
-    if (insertUser.password && !insertUser.password.includes('.')) {
+    if (insertUser.password && !insertUser.password.includes(':')) {
       insertUser.password = await hashPassword(insertUser.password);
     }
     return this.users.create(insertUser);
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    // When updating a password, make sure it's properly hashed
+    // Don't re-hash passwords that are already hashed (containing a colon separator)
+    if (userData.password && !userData.password.includes(':')) {
+      userData.password = await hashPassword(userData.password);
+    }
     return this.users.update(id, userData);
   }
   

@@ -264,13 +264,18 @@ export class EntityStorage {
   
   async createUser(userData: InsertUser): Promise<User> {
     // Handle password hashing if needed
-    if (userData.password && !userData.password.includes('.')) {
+    if (userData.password && !userData.password.includes(':')) {
       userData.password = await hashPassword(userData.password);
     }
     return this.users.create(userData);
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    // When updating a password, make sure it's properly hashed
+    // Don't re-hash passwords that are already hashed (containing a colon separator)
+    if (userData.password && !userData.password.includes(':')) {
+      userData.password = await hashPassword(userData.password);
+    }
     return this.users.update(id, userData);
   }
   

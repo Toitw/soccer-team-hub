@@ -188,12 +188,10 @@ router.post("/reset-password", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Reset token expired" });
     }
 
-    // Hash the new password
-    const hashedPassword = await hashPassword(password);
-
     // Update user password and clear reset token
+    // Note: The storage.updateUser method will hash the password for us
     await storage.updateUser(user.id, {
-      password: hashedPassword,
+      password: password,
       resetPasswordToken: null,
       resetPasswordTokenExpiry: null
     });
