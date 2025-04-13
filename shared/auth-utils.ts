@@ -35,36 +35,19 @@ export async function comparePasswords(supplied: string, stored: string | undefi
   if (!stored) return false;
   
   try {
-    // Parse the stored hash components
-    const [salt, costFactorStr, blockSizeStr, parallelizationStr, hash] = stored.split('.');
+    // Split the stored hash components (assumes simple "salt.hash" format)
+    const [salt, hash] = stored.split('.');
     
-    // Handle legacy format if needed
-    if (!blockSizeStr || !parallelizationStr) {
-      // Legacy format (salt.hash)
-      const legacyHash = await scryptAsync(supplied, salt, 64) as Buffer;
-      const storedHash = Buffer.from(hash || costFactorStr, 'hex');
-      return timingSafeEqual(legacyHash, storedHash);
+    if (!salt || !hash) {
+      console.error("Invalid stored password format");
+      return false;
     }
     
-    // Parse parameters
-    const costFactor = parseInt(costFactorStr, 10);
-    const blockSize = parseInt(blockSizeStr, 10);
-    const parallelization = parseInt(parallelizationStr, 10);
-    
-    // Hash the supplied password with the same parameters
-    const suppliedHash = await scryptAsync(
-      supplied, 
-      salt, 
-      SCRYPT_KEY_LENGTH, 
-      { 
-        N: costFactor, 
-        r: blockSize, 
-        p: parallelization 
-      }
-    ) as Buffer;
-    
+    // Generate hash of the supplied password with the stored salt
+    const suppliedHash = await scryptAsync(supplied, salt, SCRYPT_KEY_LENGTH) as Buffer;
     const storedHash = Buffer.from(hash, 'hex');
     
+    // Compare the hashes using a constant-time comparison to prevent timing attacks
     return timingSafeEqual(suppliedHash, storedHash);
   } catch (error) {
     console.error("Error comparing passwords:", error);
