@@ -14,6 +14,12 @@ export const users = pgTable("users", {
   jerseyNumber: integer("jersey_number"),
   email: text("email"),
   phoneNumber: text("phone_number"),
+  isEmailVerified: boolean("is_email_verified").default(false),
+  verificationToken: text("verification_token"),
+  verificationTokenExpiry: timestamp("verification_token_expiry"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
+  lastLoginAt: timestamp("last_login_at"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -26,6 +32,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   jerseyNumber: true,
   email: true,
   phoneNumber: true,
+  isEmailVerified: true,
+  verificationToken: true,
+  verificationTokenExpiry: true,
 });
 
 // Teams table
