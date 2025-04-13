@@ -166,7 +166,7 @@ function LoginForm() {
                 <FormItem>
                   <div className="flex justify-between items-center">
                     <FormLabel>{t('auth.password')}</FormLabel>
-                    <Link href="/reset-password" className="text-xs text-primary hover:underline">
+                    <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                       {t('auth.forgotPassword')}
                     </Link>
                   </div>
