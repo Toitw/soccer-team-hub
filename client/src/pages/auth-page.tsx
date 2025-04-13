@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
-import { Redirect } from "wouter";
+import { Redirect, Link } from "wouter";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -164,7 +164,12 @@ function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.password')}</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>{t('auth.password')}</FormLabel>
+                    <Link href="/reset-password" className="text-xs text-primary hover:underline">
+                      {t('auth.forgotPassword')}
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input type="password" placeholder={`${t('auth.password')}...`} {...field} />
                   </FormControl>
