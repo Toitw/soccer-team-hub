@@ -51,6 +51,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
+  // Register our custom auth routes for email verification and password reset
+  app.use('/api/auth', authRoutes);
+  
   // Register admin routes directly to ensure proper JSON responses
   const adminRouter = Router();
   
