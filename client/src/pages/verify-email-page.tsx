@@ -1,91 +1,133 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { apiRequest } from "@/lib/queryClient";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+/**
+ * Email verification page
+ * 
+ * This page is responsible for verifying the user's email address via a token
+ * sent to their email. It handles 3 states:
+ * 1. Verifying - checking the token with the server
+ * 2. Success - email verified successfully
+ * 3. Error - verification failed
+ */
 export default function VerifyEmailPage() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { t } = useLanguage();
-  const [verificationStatus, setVerificationStatus] = useState<"loading" | "success" | "error">("loading");
+  const { user, isAuthenticated } = useAuth();
+  
+  // Extract the token from URL query parameters
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  
+  const [verificationState, setVerificationState] = useState<"verifying" | "success" | "error">("verifying");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Extract the verification token from the URL query parameters
-  const getToken = (): string | null => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("token");
-  };
-
   useEffect(() => {
+    // If no token is provided, redirect to login
+    if (!token) {
+      setVerificationState("error");
+      setErrorMessage("No verification token provided");
+      return;
+    }
+    
+    // Verify the token with the server
     const verifyEmail = async () => {
       try {
-        const token = getToken();
+        // Send verification request to the server
+        await apiRequest(`/api/auth/verify-email/${token}`, { method: "GET" });
         
-        if (!token) {
-          setVerificationStatus("error");
-          setErrorMessage("Verification token is missing");
-          return;
-        }
-
-        // Call the API to verify the email
-        const response = await fetch(`/api/auth/verify-email/${token}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          setVerificationStatus("success");
-        } else {
-          setVerificationStatus("error");
-          setErrorMessage(data.error || "Failed to verify email");
-        }
+        // If successful, set state to success
+        setVerificationState("success");
       } catch (error) {
-        console.error("Error verifying email:", error);
-        setVerificationStatus("error");
-        setErrorMessage("An unexpected error occurred");
+        // If verification fails, set state to error
+        setVerificationState("error");
+        setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
       }
     };
-
+    
     verifyEmail();
-  }, []);
+  }, [token]);
 
-  const handleGoToLogin = () => {
-    setLocation("/auth");
+  // Handle different verification states
+  const renderContent = () => {
+    switch (verificationState) {
+      case "verifying":
+        return (
+          <>
+            <CardHeader>
+              <CardTitle>{t("auth.emailVerification")}</CardTitle>
+              <CardDescription>{t("auth.verifyEmailPrompt")}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center items-center py-6">
+              <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <p>{t("common.loading")}</p>
+            </CardFooter>
+          </>
+        );
+        
+      case "success":
+        return (
+          <>
+            <CardHeader>
+              <CardTitle>{t("auth.emailVerification")}</CardTitle>
+              <CardDescription>{t("auth.verifyEmailSuccess")}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center items-center py-6">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <Button onClick={() => setLocation("/auth")}>{t("auth.login")}</Button>
+            </CardFooter>
+          </>
+        );
+        
+      case "error":
+        return (
+          <>
+            <CardHeader>
+              <CardTitle>{t("auth.emailVerification")}</CardTitle>
+              <CardDescription>{t("auth.verifyEmailFailed")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-center items-center py-4">
+                <XCircle className="h-16 w-16 text-destructive" />
+              </div>
+              
+              {errorMessage && (
+                <Alert variant="destructive">
+                  <AlertTitle>{t("toasts.error")}</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-center space-x-4">
+              <Button variant="outline" onClick={() => navigate("/auth")}>
+                {t("auth.login")}
+              </Button>
+              {user && (
+                <Button onClick={() => navigate("/")}>
+                  {t("navigation.dashboard")}
+                </Button>
+              )}
+            </CardFooter>
+          </>
+        );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="container flex h-screen items-center justify-center">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{t('auth.emailVerification')}</CardTitle>
-          <CardDescription>
-            {verificationStatus === "loading" && t('auth.verifyingEmail')}
-            {verificationStatus === "success" && t('auth.emailVerifiedSuccess')}
-            {verificationStatus === "error" && t('auth.emailVerificationFailed')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center py-4">
-            {verificationStatus === "loading" && (
-              <Loader2 className="h-16 w-16 text-primary animate-spin mb-4" />
-            )}
-            {verificationStatus === "success" && (
-              <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-            )}
-            {verificationStatus === "error" && (
-              <>
-                <XCircle className="h-16 w-16 text-red-500 mb-4" />
-                <p className="text-red-500 mt-2">{errorMessage}</p>
-              </>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button onClick={handleGoToLogin}>
-            {verificationStatus === "success" 
-              ? t('auth.proceedToLogin') 
-              : t('auth.backToLogin')}
-          </Button>
-        </CardFooter>
+        {renderContent()}
       </Card>
     </div>
   );
