@@ -138,7 +138,7 @@ export function generatePasswordResetEmail(
 }
 
 /**
- * Send an email using nodemailer
+ * Send an email using SendGrid
  * @param to - The recipient's email address
  * @param subject - The email subject
  * @param html - The HTML content
@@ -152,61 +152,50 @@ export async function sendEmail(
   text: string
 ): Promise<EmailSendResult> {
   try {
-    // Import nodemailer dynamically to avoid server-side only code in client bundle
-    const nodemailer = await import('nodemailer');
+    // Import SendGrid dynamically to avoid server-side only code in client bundle
+    const sgMail = await import('@sendgrid/mail');
     
-    // Get email credentials from environment variables
-    // Hard code the email address as provided
-    const emailUser = "canchaplusapp@gmail.com";
-    const emailPassword = process.env.EMAIL_PASSWORD;
+    // Get SendGrid API key from environment variables
+    const apiKey = process.env.SENDGRID_API_KEY;
     
-    if (!emailPassword) {
-      console.error('Email credentials not configured. Please set EMAIL_PASSWORD environment variable.');
+    if (!apiKey) {
+      console.error('SendGrid API key not configured. Please set SENDGRID_API_KEY environment variable.');
       return {
         success: false,
-        message: 'Email configuration error: Missing credentials'
+        message: 'Email configuration error: Missing SendGrid API key'
       };
     }
     
-    // Log that we're attempting to send an email (but don't log credentials)
+    // Set the API key
+    sgMail.default.setApiKey(apiKey);
+    
+    // Set the sender email
+    const fromEmail = "canchaplusapp@gmail.com";
+    
+    // Log that we're attempting to send an email
     console.log(`Sending email to ${to} with subject "${subject}"`);
     
-    // Create a transporter for Gmail with more secure settings
-    const transporter = nodemailer.default.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Use SSL
-      auth: {
-        user: emailUser,
-        pass: emailPassword
-      },
-      tls: {
-        // Do not fail on invalid certs
-        rejectUnauthorized: false
-      }
-    });
-    
-    // Define email options
-    const mailOptions = {
-      from: emailUser,
+    // Define email message
+    const msg = {
       to,
+      from: fromEmail,
       subject,
       text,
       html
     };
     
     // Send the email
-    const info = await transporter.sendMail(mailOptions);
+    const response = await sgMail.default.send(msg);
     
-    console.log(`Email sent successfully: ${info.messageId}`);
+    console.log(`Email sent successfully with status code: ${response[0].statusCode}`);
     
     return {
       success: true,
-      message: `Email sent to ${to} (Message ID: ${info.messageId})`
+      message: `Email sent to ${to}`
     };
   } catch (error) {
     // Log the full error for debugging
-    console.error('Error sending email details:', error);
+    console.error('Error sending email with SendGrid:', error);
     
     // Extract the most relevant error information
     let errorMessage = 'Unknown error';
@@ -214,19 +203,13 @@ export async function sendEmail(
     if (error instanceof Error) {
       errorMessage = error.message;
       
-      // For nodemailer specific errors, provide more context
-      if ('code' in error && typeof error.code === 'string') {
-        const code = error.code;
-        
-        // Special handling for common Gmail auth errors
-        if (code === 'EAUTH') {
-          errorMessage = 'Authentication failed. Please check Gmail credentials and app password.';
-          
-          // Additional troubleshooting instructions in the logs
-          console.error('Troubleshooting Gmail EAUTH errors:');
-          console.error('1. Verify the app password is correct');
-          console.error('2. Make sure "Less secure app access" is enabled in Google account settings');
-          console.error('3. Gmail may have temporarily blocked access due to too many attempts');
+      // Additional info for debugging
+      if ('response' in error && error.response) {
+        try {
+          const responseBody = JSON.stringify(error.response);
+          console.error('SendGrid error response:', responseBody);
+        } catch (e) {
+          console.error('Unable to stringify SendGrid error response');
         }
       }
     } else {
