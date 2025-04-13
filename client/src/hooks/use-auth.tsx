@@ -16,6 +16,7 @@ type AuthContextType = {
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  requestVerificationEmail: UseMutationResult<void, Error, void>;
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
@@ -126,6 +127,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Email verification mutation
+  const requestVerificationEmail = useMutation({
+    mutationFn: async () => {
+      await apiRequest("/api/auth/verify-email/request", { method: "POST" });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Verification email sent",
+        description: "Please check your inbox for the verification email",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to send verification email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -136,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginMutation,
         logoutMutation,
         registerMutation,
+        requestVerificationEmail,
       }}
     >
       {children}
