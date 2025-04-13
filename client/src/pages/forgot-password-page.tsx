@@ -91,7 +91,7 @@ export default function ForgotPasswordPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('auth.email')}</FormLabel>
+                        <FormLabel>{t('auth.emailAddress')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="email" 
