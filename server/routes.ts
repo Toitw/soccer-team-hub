@@ -5,6 +5,7 @@ import { setupAuth } from "./auth";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
+import authRoutes from "./auth-routes";
 
 // Mock data creation has been disabled
 async function createMockData() {

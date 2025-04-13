@@ -1,138 +1,164 @@
 /**
- * Email utilities for generating and sending verification emails
- * 
- * Note: This is a mock implementation. In a production environment,
- * you should use a real email service like SendGrid, Mailgun, etc.
+ * Email utilities for creating and sending verification and password reset emails
  */
 
 /**
- * Generate a verification email
- * @param username - The username of the recipient
+ * Interface for return type of email sending functions
+ */
+interface EmailSendResult {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Interface for email content
+ */
+interface EmailContent {
+  subject: string;
+  text: string;
+  html: string;
+}
+
+/**
+ * Generate a verification email with a clickable link
+ * @param username - The recipient's username
  * @param token - The verification token
- * @param baseUrl - The base URL for verification
- * @returns An object containing email subject, HTML, and text content
+ * @param baseUrl - The base URL for the verification link
+ * @returns An object containing the email subject, text and HTML content
  */
 export function generateVerificationEmail(
-  username: string, 
-  token: string, 
+  username: string,
+  token: string,
   baseUrl: string
-): { subject: string; html: string; text: string } {
-  const verificationLink = `${baseUrl}?token=${token}`;
+): EmailContent {
+  // Build the verification URL with token as query parameter
+  const verificationUrl = `${baseUrl}?token=${token}`;
   
-  return {
-    subject: "Verify your email address",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4a5568;">Email Verification</h2>
-        <p>Hi ${username},</p>
-        <p>Thank you for creating an account. Please verify your email address by clicking the button below:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationLink}" 
-             style="background-color: #3182ce; color: white; padding: 12px 24px; 
-                    text-decoration: none; border-radius: 4px; font-weight: bold;">
-            Verify Email Address
-          </a>
-        </div>
-        <p>If you didn't create an account, you can safely ignore this email.</p>
-        <p>This link will expire in 24 hours.</p>
-        <p>If the button above doesn't work, copy and paste this URL into your browser:</p>
-        <p style="word-break: break-all;">${verificationLink}</p>
+  const subject = "Verify your email address";
+  
+  // Plain text version
+  const text = `
+    Hello ${username},
+    
+    Please verify your email address by clicking the link below:
+    
+    ${verificationUrl}
+    
+    If you did not create an account, please ignore this email.
+    
+    This link will expire in 24 hours.
+    
+    Thank you,
+    Soccer Team Management System
+  `.trim();
+  
+  // HTML version
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #4a5568;">Verify Your Email Address</h2>
+      <p>Hello ${username},</p>
+      <p>Please verify your email address by clicking the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" style="background-color: #4c51bf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+          Verify Email Address
+        </a>
       </div>
-    `,
-    text: `
-      Email Verification
-      
-      Hi ${username},
-      
-      Thank you for creating an account. Please verify your email address by visiting the link below:
-      
-      ${verificationLink}
-      
-      If you didn't create an account, you can safely ignore this email.
-      
-      This link will expire in 24 hours.
-    `
-  };
+      <p>Or copy and paste the following link in your browser:</p>
+      <p><a href="${verificationUrl}" style="color: #4c51bf; word-break: break-all;">${verificationUrl}</a></p>
+      <p>If you did not create an account, please ignore this email.</p>
+      <p><em>This link will expire in 24 hours.</em></p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="color: #718096; font-size: 12px;">
+        Soccer Team Management System<br />
+        This is an automated email, please do not reply.
+      </p>
+    </div>
+  `.trim();
+  
+  return { subject, text, html };
 }
 
 /**
- * Generate a password reset email
- * @param username - The username of the recipient
+ * Generate a password reset email with a clickable link
+ * @param username - The recipient's username
  * @param token - The reset token
- * @param baseUrl - The base URL for password reset
- * @returns An object containing email subject, HTML, and text content
+ * @param baseUrl - The base URL for the reset link
+ * @returns An object containing the email subject, text and HTML content
  */
 export function generatePasswordResetEmail(
-  username: string, 
-  token: string, 
+  username: string,
+  token: string,
   baseUrl: string
-): { subject: string; html: string; text: string } {
-  const resetLink = `${baseUrl}?token=${token}`;
+): EmailContent {
+  // Build the reset URL with token as query parameter
+  const resetUrl = `${baseUrl}?token=${token}`;
   
-  return {
-    subject: "Reset your password",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4a5568;">Password Reset</h2>
-        <p>Hi ${username},</p>
-        <p>We received a request to reset your password. Click the button below to reset it:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetLink}" 
-             style="background-color: #3182ce; color: white; padding: 12px 24px; 
-                    text-decoration: none; border-radius: 4px; font-weight: bold;">
-            Reset Password
-          </a>
-        </div>
-        <p>If you didn't request a password reset, you can safely ignore this email.</p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If the button above doesn't work, copy and paste this URL into your browser:</p>
-        <p style="word-break: break-all;">${resetLink}</p>
+  const subject = "Reset your password";
+  
+  // Plain text version
+  const text = `
+    Hello ${username},
+    
+    We received a request to reset your password. Please click the link below to set a new password:
+    
+    ${resetUrl}
+    
+    If you did not request a password reset, please ignore this email and your password will remain unchanged.
+    
+    This link will expire in 1 hour.
+    
+    Thank you,
+    Soccer Team Management System
+  `.trim();
+  
+  // HTML version
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #4a5568;">Reset Your Password</h2>
+      <p>Hello ${username},</p>
+      <p>We received a request to reset your password. Please click the button below to set a new password:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #4c51bf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+          Reset Password
+        </a>
       </div>
-    `,
-    text: `
-      Password Reset
-      
-      Hi ${username},
-      
-      We received a request to reset your password. Please visit the link below to reset it:
-      
-      ${resetLink}
-      
-      If you didn't request a password reset, you can safely ignore this email.
-      
-      This link will expire in 1 hour.
-    `
-  };
+      <p>Or copy and paste the following link in your browser:</p>
+      <p><a href="${resetUrl}" style="color: #4c51bf; word-break: break-all;">${resetUrl}</a></p>
+      <p>If you did not request a password reset, please ignore this email and your password will remain unchanged.</p>
+      <p><em>This link will expire in 1 hour.</em></p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="color: #718096; font-size: 12px;">
+        Soccer Team Management System<br />
+        This is an automated email, please do not reply.
+      </p>
+    </div>
+  `.trim();
+  
+  return { subject, text, html };
 }
 
 /**
- * Mock function to send an email
- * In a production environment, this would use a real email service
- * @param to - Recipient email address
- * @param subject - Email subject
- * @param html - HTML email content
- * @param text - Plain text email content
- * @returns Promise resolving to success or failure
+ * Send an email (mock implementation)
+ * @param to - The recipient's email address
+ * @param subject - The email subject
+ * @param html - The HTML content
+ * @param text - The plain text content
+ * @returns An object indicating success or failure
  */
 export async function sendEmail(
   to: string,
   subject: string,
   html: string,
   text: string
-): Promise<{ success: boolean; message?: string }> {
-  // In a production environment, you would use a real email service like SendGrid, Mailgun, etc.
-  // This is a mock implementation that logs the email to the console
+): Promise<EmailSendResult> {
+  // In a real implementation, this would use an email service like SendGrid, Mailgun, etc.
+  console.log(`Sending email to ${to} with subject "${subject}"`);
+  console.log(`Text content: ${text.substring(0, 100)}...`);
   
-  console.log("==== EMAIL SENT (MOCK) ====");
-  console.log(`TO: ${to}`);
-  console.log(`SUBJECT: ${subject}`);
-  console.log("TEXT CONTENT:");
-  console.log(text);
-  console.log("==========================");
-  
-  // Simulate a successful email send
-  return { success: true };
-  
-  // To simulate failures for testing:
-  // return { success: false, message: "Failed to send email" };
+  // For development, always return success
+  // In production, this would return the actual result from the email service
+  return {
+    success: true,
+    message: `Email sent to ${to}`
+  };
 }

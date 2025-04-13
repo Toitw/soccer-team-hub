@@ -110,11 +110,11 @@ export default function VerifyEmailPage() {
               )}
             </CardContent>
             <CardFooter className="flex justify-center space-x-4">
-              <Button variant="outline" onClick={() => navigate("/auth")}>
+              <Button variant="outline" onClick={() => setLocation("/auth")}>
                 {t("auth.login")}
               </Button>
               {user && (
-                <Button onClick={() => navigate("/")}>
+                <Button onClick={() => setLocation("/")}>
                   {t("navigation.dashboard")}
                 </Button>
               )}
