@@ -1,11 +1,9 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useEffect } from "react";
 import { Redirect } from "wouter";
 import React from "react";
-import { insertUserSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,33 +16,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
-
-// Login form schema
-const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-// Registration form schema
-const registerSchema = insertUserSchema.pick({
-  username: true,
-  password: true,
-  fullName: true,
-  role: true,
-  email: true,
-}).extend({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string(),
-  joinCode: z.string().optional(), // Optional join code for joining a team during registration
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"]
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  loginSchema, 
+  registerSchema, 
+  LoginFormData, 
+  RegisterFormData 
+} from "@/lib/validation-schemas";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -227,6 +207,7 @@ function RegisterForm() {
       role: "player",
       email: "",
       joinCode: "",
+      agreedToTerms: false,
     },
   });
 
@@ -257,7 +238,7 @@ function RegisterForm() {
   
   // Watch for join code changes
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
+    const subscription = form.watch((value: any, { name }: { name: string }) => {
       if (name === "joinCode") {
         const joinCode = value.joinCode as string;
         if (joinCode && joinCode.length >= 4) {
@@ -270,7 +251,11 @@ function RegisterForm() {
       }
     });
     
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      }
+    };
   }, [form]);
 
   const onSubmit = (data: RegisterFormData) => {
@@ -431,6 +416,36 @@ function RegisterForm() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="agreedToTerms"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 mt-1 rounded"
+                      checked={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      {t('auth.agreeToTerms')}
+                    </FormLabel>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <Alert variant="destructive" className="mt-4 mb-2">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <AlertDescription>
+                {t('auth.emailVerification')}
+              </AlertDescription>
+            </Alert>
+            
             <Button 
               type="submit" 
               className="w-full bg-primary hover:bg-primary/90"

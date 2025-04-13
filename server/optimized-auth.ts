@@ -5,6 +5,7 @@ import session from "express-session";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import { hashPassword, comparePasswords } from "@shared/auth-utils";
+import authRoutes from "./auth-routes";
 
 declare global {
   namespace Express {
@@ -57,6 +58,9 @@ export function setupAuth(app: Express) {
   });
 
   registerAuthRoutes(app);
+  
+  // Register email verification and password reset routes
+  app.use("/api/auth", authRoutes);
 }
 
 /**
