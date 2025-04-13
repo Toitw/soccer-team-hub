@@ -14,6 +14,7 @@ import SettingsPage from "@/pages/settings-page";
 import AdminPage from "@/pages/admin-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { ProtectedRoute } from "./lib/protected-route";
@@ -23,6 +24,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={AuthPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       
       {/* Dashboard accessible to all authenticated users */}
