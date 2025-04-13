@@ -18,7 +18,8 @@ const scryptAsync = promisify(scrypt);
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  // Use the same format as shared/auth-utils.ts: salt:hash
+  return `${salt}:${buf.toString("hex")}`;
 }
 
 export async function comparePasswords(supplied: string, stored: string | undefined) {
@@ -26,12 +27,28 @@ export async function comparePasswords(supplied: string, stored: string | undefi
   if (!stored) return false;
   
   try {
-    const [hashed, salt] = stored.split(".");
-    if (!hashed || !salt) return false;
+    // Support both old and new formats
+    if (stored.includes('.')) {
+      // Old format with dot separator (hash.salt)
+      const [hashed, salt] = stored.split(".");
+      if (!hashed || !salt) return false;
+      
+      const hashedBuf = Buffer.from(hashed, "hex");
+      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+      return timingSafeEqual(hashedBuf, suppliedBuf);
+    } else if (stored.includes(':')) {
+      // New format with colon separator (salt:hash)
+      const [salt, hash] = stored.split(":");
+      if (!salt || !hash) return false;
     
-    const hashedBuf = Buffer.from(hashed, "hex");
-    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-    return timingSafeEqual(hashedBuf, suppliedBuf);
+      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+      return timingSafeEqual(
+        Buffer.from(hash, 'hex'),
+        suppliedBuf
+      );
+    }
+    
+    return false;
   } catch (error) {
     console.error("Error comparing passwords:", error);
     return false;
