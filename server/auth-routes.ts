@@ -34,7 +34,7 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
     // Store the token in the user record
     await storage.updateUser(userId, {
       verificationToken: token,
-      verificationTokenExpires: expires
+      verificationTokenExpiry: expires
     });
 
     // Generate the verification link
@@ -84,15 +84,15 @@ router.get("/verify-email/:token", async (req: Request, res: Response) => {
 
     // Check if token is expired
     const now = new Date();
-    if (user.verificationTokenExpires && new Date(user.verificationTokenExpires) < now) {
+    if (user.verificationTokenExpiry && new Date(user.verificationTokenExpiry) < now) {
       return res.status(400).json({ error: "Verification token expired" });
     }
 
     // Update user as verified
     await storage.updateUser(user.id, {
-      verified: true,
+      isEmailVerified: true,
       verificationToken: null,
-      verificationTokenExpires: null
+      verificationTokenExpiry: null
     });
 
     return res.status(200).json({ success: true, message: "Email verified successfully" });
@@ -129,8 +129,8 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
 
     // Store the token in the user record
     await storage.updateUser(user.id, {
-      resetToken: token,
-      resetTokenExpires: expires
+      resetPasswordToken: token,
+      resetPasswordTokenExpiry: expires
     });
 
     // Generate the reset link
@@ -176,7 +176,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
     // Find user with this reset token
     const users = await storage.getAllUsers();
-    const user = users.find((u: any) => u.resetToken === token);
+    const user = users.find((u: any) => u.resetPasswordToken === token);
     
     if (!user) {
       return res.status(400).json({ error: "Invalid reset token" });
@@ -184,7 +184,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
     // Check if token is expired
     const now = new Date();
-    if (user.resetTokenExpires && new Date(user.resetTokenExpires) < now) {
+    if (user.resetPasswordTokenExpiry && new Date(user.resetPasswordTokenExpiry) < now) {
       return res.status(400).json({ error: "Reset token expired" });
     }
 
@@ -194,8 +194,8 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     // Update user password and clear reset token
     await storage.updateUser(user.id, {
       password: hashedPassword,
-      resetToken: null,
-      resetTokenExpires: null
+      resetPasswordToken: null,
+      resetPasswordTokenExpiry: null
     });
 
     return res.status(200).json({ success: true, message: "Password reset successfully" });
