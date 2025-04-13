@@ -156,11 +156,12 @@ export async function sendEmail(
     const nodemailer = await import('nodemailer');
     
     // Get email credentials from environment variables
-    const emailUser = process.env.EMAIL_USER;
+    // Hard code the email address as provided
+    const emailUser = "canchaplusapp@gmail.com";
     const emailPassword = process.env.EMAIL_PASSWORD;
     
-    if (!emailUser || !emailPassword) {
-      console.error('Email credentials not configured. Please set EMAIL_USER and EMAIL_PASSWORD environment variables.');
+    if (!emailPassword) {
+      console.error('Email credentials not configured. Please set EMAIL_PASSWORD environment variable.');
       return {
         success: false,
         message: 'Email configuration error: Missing credentials'
@@ -170,12 +171,18 @@ export async function sendEmail(
     // Log that we're attempting to send an email (but don't log credentials)
     console.log(`Sending email to ${to} with subject "${subject}"`);
     
-    // Create a transporter for Gmail
+    // Create a transporter for Gmail with more secure settings
     const transporter = nodemailer.default.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // Use SSL
       auth: {
         user: emailUser,
         pass: emailPassword
+      },
+      tls: {
+        // Do not fail on invalid certs
+        rejectUnauthorized: false
       }
     });
     
@@ -198,11 +205,37 @@ export async function sendEmail(
       message: `Email sent to ${to} (Message ID: ${info.messageId})`
     };
   } catch (error) {
-    console.error('Error sending email:', error);
+    // Log the full error for debugging
+    console.error('Error sending email details:', error);
+    
+    // Extract the most relevant error information
+    let errorMessage = 'Unknown error';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // For nodemailer specific errors, provide more context
+      if ('code' in error && typeof error.code === 'string') {
+        const code = error.code;
+        
+        // Special handling for common Gmail auth errors
+        if (code === 'EAUTH') {
+          errorMessage = 'Authentication failed. Please check Gmail credentials and app password.';
+          
+          // Additional troubleshooting instructions in the logs
+          console.error('Troubleshooting Gmail EAUTH errors:');
+          console.error('1. Verify the app password is correct');
+          console.error('2. Make sure "Less secure app access" is enabled in Google account settings');
+          console.error('3. Gmail may have temporarily blocked access due to too many attempts');
+        }
+      }
+    } else {
+      errorMessage = String(error);
+    }
     
     return {
       success: false,
-      message: `Failed to send email: ${error instanceof Error ? error.message : String(error)}`
+      message: `Failed to send email: ${errorMessage}`
     };
   }
 }
