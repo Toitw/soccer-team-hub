@@ -1,95 +1,96 @@
-import { promisify } from "util";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { z } from "zod";
+import crypto from 'crypto';
+import { promisify } from 'util';
+import { z } from 'zod';
 
-const scryptAsync = promisify(scrypt);
+// Password strength requirements
+const MIN_PASSWORD_LENGTH = 8;
+const REQUIRE_UPPERCASE = true;
+const REQUIRE_LOWERCASE = true;
+const REQUIRE_NUMBER = true;
+const REQUIRE_SPECIAL_CHAR = true;
 
-// Constants for password hashing
-const SCRYPT_KEY_LENGTH = 64;
-const SCRYPT_COST_FACTOR = 16384; // Higher cost factor = more secure but slower
-const SCRYPT_BLOCK_SIZE = 8;
-const SCRYPT_PARALLELIZATION = 1;
+// Promisify crypto functions
+const randomBytes = promisify(crypto.randomBytes);
+const scrypt = promisify(crypto.scrypt);
 
 /**
- * Hash a password using scrypt with improved parameters
- * @param password - The password to hash
- * @returns A string containing the parameters and hash, separated by dots
+ * Generate a secure random salt
+ * @returns A random salt string
+ */
+export async function generateSalt(): Promise<string> {
+  const buffer = await randomBytes(16);
+  return buffer.toString('hex');
+}
+
+/**
+ * Hash a password using scrypt (more secure than bcrypt)
+ * @param password - The plain password to hash
+ * @returns A string containing the salt and hash, separated by a colon
  */
 export async function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString('hex');
-  
-  // Use scrypt with reasonable defaults
-  const hash = await scryptAsync(password, salt, SCRYPT_KEY_LENGTH) as Buffer;
-  
-  // Store the salt and hash
-  return `${salt}.${hash.toString('hex')}`;
+  const salt = await generateSalt();
+  const derivedKey = await scrypt(password, salt, 64) as Buffer;
+  return `${salt}:${derivedKey.toString('hex')}`;
 }
 
 /**
- * Compare a password with a hash
- * @param supplied - The supplied password
- * @param stored - The stored hash
- * @returns True if the password matches the hash
+ * Compare a plain password with a stored hash
+ * @param plainPassword - The plain password to compare
+ * @param storedHash - The stored hash (salt:hash format)
+ * @returns True if the password matches, false otherwise
  */
-export async function comparePasswords(supplied: string, stored: string | undefined): Promise<boolean> {
-  if (!stored) return false;
-  
-  try {
-    // Split the stored hash components (assumes simple "salt.hash" format)
-    const [salt, hash] = stored.split('.');
-    
-    if (!salt || !hash) {
-      console.error("Invalid stored password format");
-      return false;
-    }
-    
-    // Generate hash of the supplied password with the stored salt
-    const suppliedHash = await scryptAsync(supplied, salt, SCRYPT_KEY_LENGTH) as Buffer;
-    const storedHash = Buffer.from(hash, 'hex');
-    
-    // Compare the hashes using a constant-time comparison to prevent timing attacks
-    return timingSafeEqual(suppliedHash, storedHash);
-  } catch (error) {
-    console.error("Error comparing passwords:", error);
-    return false;
-  }
+export async function comparePasswords(plainPassword: string, storedHash: string | undefined): Promise<boolean> {
+  if (!storedHash) return false;
+
+  const [salt, hash] = storedHash.split(':');
+  if (!salt || !hash) return false;
+
+  const derivedKey = await scrypt(plainPassword, salt, 64) as Buffer;
+  return crypto.timingSafeEqual(
+    Buffer.from(hash, 'hex'),
+    derivedKey
+  );
 }
 
 /**
- * Generate a secure verification token
- * @returns A random string token
+ * Generate a secure random token for email verification or password reset
+ * @returns A random token string
  */
 export function generateVerificationToken(): string {
-  return randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString('hex');
 }
 
 /**
- * Generate a token expiry timestamp
+ * Generate an expiry timestamp for a token
  * @param hours - Number of hours until expiry
- * @returns Timestamp when the token expires
+ * @returns A Date object representing the expiry time
  */
-export function generateTokenExpiry(hours: number = 24): Date {
-  const expiry = new Date();
-  expiry.setHours(expiry.getHours() + hours);
-  return expiry;
+export function generateTokenExpiry(hours: number): Date {
+  const expiryTime = new Date();
+  expiryTime.setHours(expiryTime.getHours() + hours);
+  return expiryTime;
 }
 
 /**
  * Password validation schema with security requirements
  */
 export const passwordSchema = z.string()
-  .min(8, "Password must be at least 8 characters")
+  .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
   .max(100, "Password is too long")
   .refine(
-    password => /[A-Z]/.test(password),
+    password => !REQUIRE_UPPERCASE || /[A-Z]/.test(password),
     "Password must contain at least one uppercase letter"
   )
   .refine(
-    password => /[0-9]/.test(password),
+    password => !REQUIRE_LOWERCASE || /[a-z]/.test(password),
+    "Password must contain at least one lowercase letter"
+  )
+  .refine(
+    password => !REQUIRE_NUMBER || /[0-9]/.test(password),
     "Password must contain at least one number"
   )
   .refine(
-    password => /[^A-Za-z0-9]/.test(password),
+    password => !REQUIRE_SPECIAL_CHAR || /[^A-Za-z0-9]/.test(password),
     "Password must contain at least one special character"
   );
 
@@ -110,14 +111,3 @@ export const usernameSchema = z.string()
     username => /^[a-zA-Z0-9_.-]+$/.test(username),
     "Username can only contain letters, numbers, underscores, dots, and hyphens"
   );
-
-/**
- * Check if a username is a mock username
- * @param username - The username to check
- * @returns True if the username is a mock username
- */
-export function isMockUsername(username: string): boolean {
-  return username.startsWith('test_') || 
-         username.startsWith('mock_') || 
-         username.startsWith('demo_');
-}
