@@ -2,7 +2,7 @@
  * Authentication routes for the API
  */
 import { Router, Request, Response, NextFunction } from "express";
-import { storage } from "./index";
+import { storage } from "./storage";
 import { generateVerificationToken, generateTokenExpiry, comparePasswords, hashPassword } from "@shared/auth-utils";
 import { isAuthenticated } from "./auth-middleware";
 import { generateVerificationEmail, generatePasswordResetEmail, sendEmail } from "@shared/email-utils";
@@ -76,7 +76,7 @@ router.get("/verify-email/:token", async (req: Request, res: Response) => {
     
     // Find user with this verification token
     const users = await storage.getAllUsers();
-    const user = users.find(u => u.verificationToken === token);
+    const user = users.find((u: any) => u.verificationToken === token);
     
     if (!user) {
       return res.status(400).json({ error: "Invalid verification token" });
@@ -116,7 +116,7 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
 
     // Find user with this email
     const users = await storage.getAllUsers();
-    const user = users.find(u => u.email === email);
+    const user = users.find((u: any) => u.email === email);
     
     // For security reasons, always return success even if user not found
     if (!user) {
@@ -176,7 +176,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
     // Find user with this reset token
     const users = await storage.getAllUsers();
-    const user = users.find(u => u.resetToken === token);
+    const user = users.find((u: any) => u.resetToken === token);
     
     if (!user) {
       return res.status(400).json({ error: "Invalid reset token" });
