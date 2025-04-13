@@ -189,9 +189,12 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     }
 
     // Update user password and clear reset token
-    // Note: The storage.updateUser method will hash the password for us
+    // We need to hash the password before updating
+    const hashedPassword = await hashPassword(password);
+    console.log("DEBUG: Hashed password for reset:", hashedPassword.substring(0, 20) + "...");
+    
     await storage.updateUser(user.id, {
-      password: password,
+      password: hashedPassword,
       resetPasswordToken: null,
       resetPasswordTokenExpiry: null
     });
