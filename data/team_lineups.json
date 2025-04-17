@@ -1,12 +1,22 @@
 [
   {
     "teamId": 1,
-    "formation": "4-3-3",
+    "formation": "4-4-2",
     "positionMapping": {
-      "def-4": 67
+      "def-4": 74,
+      "gk": 68,
+      "def-1": 69,
+      "fwd-2": 82,
+      "def-2": 72,
+      "def-3": 73,
+      "mid-1": 75,
+      "mid-2": 76,
+      "mid-3": 77,
+      "mid-4": 78,
+      "fwd-1": 79
     },
     "id": 1,
     "createdAt": "2025-04-05T10:43:25.442Z",
-    "updatedAt": "2025-04-05T10:43:25.442Z"
+    "updatedAt": "2025-04-17T11:59:43.107Z"
   }
 ]

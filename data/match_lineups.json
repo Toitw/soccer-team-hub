@@ -35,5 +35,19 @@
     },
     "id": 1,
     "createdAt": "2025-03-23T22:07:58.854Z"
+  },
+  {
+    "matchId": 7,
+    "teamId": 1,
+    "playerIds": [
+      69
+    ],
+    "benchPlayerIds": [],
+    "formation": "4-4-2",
+    "positionMapping": {
+      "fwd-2": 69
+    },
+    "id": 2,
+    "createdAt": "2025-04-17T12:03:57.014Z"
   }
 ]
