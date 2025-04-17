@@ -90,11 +90,11 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
           </div>
           <div className="text-center p-2 rounded-lg bg-background">
             <p className="text-sm text-gray-500">{t("dashboard.wins")}</p>
-            <p className="text-xl font-semibold text-secondary">{winCount}</p>
+            <p className="text-xl font-semibold text-primary">{winCount}</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-background">
             <p className="text-sm text-gray-500">{t("dashboard.goals")}</p>
-            <p className="text-xl font-semibold text-accent">{goalCount}</p>
+            <p className="text-xl font-semibold text-primary">{goalCount}</p>
           </div>
         </div>
         
