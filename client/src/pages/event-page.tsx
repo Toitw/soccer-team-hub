@@ -140,19 +140,10 @@ export default function EventPage() {
         endTime: new Date(data.endTime).toISOString(),
       };
 
-      const response = await apiRequest(
-        "POST",
-        `/api/teams/${selectedTeam.id}/events`,
-        formattedData,
-      );
-      
-      try {
-        // Try to parse the response as JSON
-        return await response.json();
-      } catch (error) {
-        // If parsing fails, just return a success indicator
-        return { success: true };
-      }
+      return await apiRequest(`/api/teams/${selectedTeam.id}/events`, {
+        method: "POST",
+        data: formattedData,
+      });
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
@@ -190,19 +181,10 @@ export default function EventPage() {
         endTime: new Date(formData.endTime).toISOString(),
       };
 
-      const response = await apiRequest(
-        "PATCH",
-        `/api/teams/${selectedTeam.id}/events/${id}`,
-        formattedData,
-      );
-      
-      try {
-        // Try to parse the response as JSON
-        return await response.json();
-      } catch (error) {
-        // If parsing fails, just return a success indicator
-        return { success: true };
-      }
+      return await apiRequest(`/api/teams/${selectedTeam.id}/events/${id}`, {
+        method: "PATCH",
+        data: formattedData,
+      });
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
@@ -234,19 +216,9 @@ export default function EventPage() {
         throw new Error("No team selected");
       }
 
-      const response = await apiRequest(
-        "DELETE",
-        `/api/teams/${selectedTeam.id}/events/${id}`,
-        {}
-      );
-      
-      try {
-        // Try to parse the response as JSON
-        return await response.json();
-      } catch (error) {
-        // If parsing fails, just return a success indicator
-        return { success: true };
-      }
+      return await apiRequest(`/api/teams/${selectedTeam.id}/events/${id}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
@@ -425,10 +397,22 @@ export default function EventPage() {
   const eventsForSelectedDate =
     events?.filter((event) => {
       if (!selectedDate || !event.startTime) return false;
-      // Parse dates properly
-      const eventDate = new Date(event.startTime);
-      return isSameDay(eventDate, selectedDate);
+      
+      // Parse dates properly - make sure we're comparing just the dates without time
+      const eventStartDate = new Date(event.startTime);
+      return isSameDay(eventStartDate, selectedDate);
     }) || [];
+    
+  // Log events information to help debug
+  useEffect(() => {
+    if (events && events.length > 0) {
+      console.log('All events data:', events);
+      if (selectedDate) {
+        console.log('Selected date:', selectedDate);
+        console.log('Events for selected date:', eventsForSelectedDate);
+      }
+    }
+  }, [events, selectedDate, eventsForSelectedDate]);
 
   return (
     <div className="flex h-screen bg-background">
@@ -453,6 +437,18 @@ export default function EventPage() {
                 <Button
                   className="bg-primary hover:bg-primary/90"
                   aria-label={t("events.addEvent")}
+                  onClick={() => {
+                    // Update form with selected date when opening dialog
+                    if (selectedDate) {
+                      const selectedDateString = selectedDate.toISOString().slice(0, 16);
+                      const endTime = new Date(selectedDate.getTime() + 90 * 60 * 1000)
+                        .toISOString()
+                        .slice(0, 16);
+                      
+                      form.setValue("startTime", selectedDateString);
+                      form.setValue("endTime", endTime);
+                    }
+                  }}
                 >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   {t("events.addEvent")}
@@ -589,9 +585,11 @@ export default function EventPage() {
                       className="rounded-md border"
                       locale={es}
                       modifiers={{
-                        hasEvent:
-                          events?.map((event) => new Date(event.startTime)) ||
-                          [],
+                        hasEvent: events?.map(event => {
+                          // Ensure we create a proper date object without time component
+                          const date = new Date(event.startTime);
+                          return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                        }) || []
                       }}
                       modifiersStyles={{
                         hasEvent: {
