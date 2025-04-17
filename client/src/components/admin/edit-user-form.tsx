@@ -62,7 +62,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.profilePicture);
   const [changePassword, setChangePassword] = useState(false);
 
-  // Set up form with safe default values (converting null to empty string to avoid type errors)
+  // Set up form
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
@@ -88,36 +88,23 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
     setChangePassword(watchChangePassword);
   }, [watchChangePassword]);
 
-  // Update user mutation with improved error handling
+  // Update user mutation
   const mutation = useMutation({
-    mutationFn: async (values: EditUserFormValues) => {
-      try {
-        // Process form data
-        const { confirmPassword, changePassword, ...userData } = values;
-        
-        // If we're not changing the password, remove it from the request
-        if (!changePassword) {
-          delete userData.password;
-        }
-        
-        console.log("Sending update request with data:", userData);
-        console.log("User ID:", user.id);
-        
-        // Use a try/catch to handle network errors and get more details
-        const response = await apiRequest(`/api/admin/users/${user.id}`, {
-          method: 'PATCH',
-          data: userData,
-        });
-        
-        console.log("Update response:", response);
-        return response;
-      } catch (error) {
-        console.error("API request failed:", error);
-        throw error; // Re-throw to trigger onError
+    mutationFn: (values: EditUserFormValues) => {
+      // Process form data
+      const { confirmPassword, changePassword, ...userData } = values;
+      
+      // If we're not changing the password, remove it from the request
+      if (!changePassword) {
+        delete userData.password;
       }
+      
+      return apiRequest(`/api/admin/users/${user.id}`, {
+        method: 'PUT',
+        data: userData,
+      });
     },
     onSuccess: (data) => {
-      console.log("Update successful:", data);
       toast({
         title: 'User Updated',
         description: `Successfully updated user ${data.fullName}.`,
@@ -125,10 +112,9 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       onSuccess();
     },
     onError: (error) => {
-      console.error('Update user error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update user. Please check console for details.',
+        description: 'Failed to update user. Please try again.',
         variant: 'destructive',
       });
     },
@@ -136,25 +122,12 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   // Handle form submission
   const onSubmit = (values: EditUserFormValues) => {
-    console.log("Submitting form with values:", values);
-    
-    // Make sure the form is valid before submitting
-    if (form.formState.errors && Object.keys(form.formState.errors).length > 0) {
-      console.error("Form has validation errors:", form.formState.errors);
-      toast({
-        title: 'Validation Error',
-        description: 'Please fix the form errors before submitting.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
     mutation.mutate(values);
   };
 
   // Handle avatar preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || ""; // Ensure we always have a string
+    const value = e.target.value;
     form.setValue("profilePicture", value);
     setAvatarPreview(value);
   };
@@ -281,46 +254,34 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => {
-              // Convert null to empty string to avoid type errors
-              const safeValue = field.value ?? "";
-              return (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="email@example.com"
-                      {...field}
-                      value={safeValue}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="email@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           {/* Position field */}
           <FormField
             control={form.control}
             name="position"
-            render={({ field }) => {
-              const safeValue = field.value ?? "";
-              return (
-                <FormItem>
-                  <FormLabel>Position</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Forward, Midfielder, etc."
-                      {...field}
-                      value={safeValue}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Position</FormLabel>
+                <FormControl>
+                  <Input placeholder="Forward, Midfielder, etc." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           {/* Jersey Number field */}
@@ -352,57 +313,46 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <FormField
             control={form.control}
             name="phoneNumber"
-            render={({ field }) => {
-              const safeValue = field.value ?? "";
-              return (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="+1234567890" 
-                      {...field}
-                      value={safeValue}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="+1234567890" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           {/* Profile Picture field */}
           <FormField
             control={form.control}
             name="profilePicture"
-            render={({ field }) => {
-              const safeValue = field.value ?? "";
-              return (
-                <FormItem className="col-span-2">
-                  <FormLabel>Profile Picture URL</FormLabel>
-                  <div className="flex space-x-4">
-                    <FormControl>
-                      <Input
-                        placeholder="https://example.com/avatar.png"
-                        {...field}
-                        value={safeValue}
-                        onChange={handleAvatarChange}
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>Profile Picture URL</FormLabel>
+                <div className="flex space-x-4">
+                  <FormControl>
+                    <Input
+                      placeholder="https://example.com/avatar.png"
+                      {...field}
+                      onChange={handleAvatarChange}
+                    />
+                  </FormControl>
+                  {avatarPreview && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={avatarPreview}
+                        alt="Avatar preview"
+                        className="h-10 w-10 rounded-full object-cover"
+                        onError={() => setAvatarPreview(null)}
                       />
-                    </FormControl>
-                    {avatarPreview && (
-                      <div className="flex-shrink-0">
-                        <img
-                          src={avatarPreview}
-                          alt="Avatar preview"
-                          className="h-10 w-10 rounded-full object-cover"
-                          onError={() => setAvatarPreview(null)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
+                    </div>
+                  )}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 

@@ -54,8 +54,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register our custom auth routes for email verification and password reset
   app.use('/api/auth', authRoutes);
   
-  // Register admin routes using the complete admin router
-  const adminRouter = createAdminRouter(storage as any); // Type assertion to resolve type conflict
+  // Register admin routes directly to ensure proper JSON responses
+  const adminRouter = Router();
+  
+  // Get all users route
+  adminRouter.get('/admin/users', async (req: express.Request, res: express.Response) => {
+    if (!req.isAuthenticated() || req.user.role !== 'superuser') {
+      return res.status(403).json({ error: 'Forbidden - Superuser access required' });
+    }
+    
+    try {
+      // Set header explicitly to ensure proper JSON response
+      res.setHeader('Content-Type', 'application/json');
+      
+      const users = await storage.getAllUsers();
+      return res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+  
+  // Get all teams route
+  adminRouter.get('/admin/teams', async (req: express.Request, res: express.Response) => {
+    if (!req.isAuthenticated() || req.user.role !== 'superuser') {
+      return res.status(403).json({ error: 'Forbidden - Superuser access required' });
+    }
+    
+    try {
+      // Set header explicitly to ensure proper JSON response
+      res.setHeader('Content-Type', 'application/json');
+      
+      const teams = await storage.getTeams();
+      return res.json(teams);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+      return res.status(500).json({ error: 'Failed to fetch teams' });
+    }
+  });
+  
+  // Attach admin router to main app
   app.use('/api', adminRouter);
 
   const httpServer = createServer(app);
