@@ -151,7 +151,8 @@ export default function Announcements({ teamId, announcements: propAnnouncements
           </div>
         ) : (
           <div className="space-y-3">
-            {announcements.slice(0, 3).map(announcement => {
+            {/* Only show the most recent announcement */}
+            {announcements.slice(0, 1).map(announcement => {
               let borderColor = "border-secondary";
               
               if (announcement.title) {

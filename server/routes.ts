@@ -1060,7 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      const limit = parseInt(req.query.limit as string) || 5;
+      const limit = parseInt(req.query.limit as string) || 1; // Default to 1 to get only the most recent
 
       // Check if user is a member of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
