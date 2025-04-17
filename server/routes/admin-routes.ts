@@ -95,8 +95,47 @@ export function createAdminRouter(storage: EntityStorage) {
     });
   }));
 
-  // Update user
-  router.put('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
+  // Update user (support both PUT and PATCH)
+  const updateUserHandler = asyncHandler(async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const existingUser = await storage.getUser(id);
+    
+    if (!existingUser) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Validate request body
+    const updateSchema = insertUserSchema.partial();
+    const validData = updateSchema.parse(req.body);
+    
+    // Hash password if it's being updated
+    if (validData.password) {
+      validData.password = await hashPassword(validData.password);
+    }
+    
+    // Update user
+    const updatedUser = await storage.updateUser(id, validData);
+    
+    if (!updatedUser) {
+      return errorResponse(res, 'Failed to update user');
+    }
+    
+    return jsonResponse(res, {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      fullName: updatedUser.fullName,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      profilePicture: updatedUser.profilePicture,
+      position: updatedUser.position,
+      jerseyNumber: updatedUser.jerseyNumber,
+      phoneNumber: updatedUser.phoneNumber
+    });
+  });
+  
+  // Register both PUT and PATCH routes to the same handler
+  router.put('/admin/users/:id', updateUserHandler);
+  router.patch('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const existingUser = await storage.getUser(id);
     
@@ -148,12 +187,16 @@ export function createAdminRouter(storage: EntityStorage) {
     }
     
     // Implement actual user deletion (instead of just returning success)
-    // 1. Get all team memberships for this user
-    const teamMembers = await storage.teamMembers.getByUserId(id);
+    // Directly use the methods available on the storage interface
+    // Get all teams the user is a member of
+    const userTeams = await storage.getTeamsByUserId(id);
     
-    // 2. Delete all team memberships
-    for (const teamMember of teamMembers) {
-      await storage.deleteTeamMember(teamMember.id);
+    // For each team, find and delete the user's membership
+    for (const team of userTeams) {
+      const teamMember = await storage.getTeamMember(team.id, id);
+      if (teamMember) {
+        await storage.deleteTeamMember(teamMember.id);
+      }
     }
     
     // 3. Delete the user from storage
@@ -266,13 +309,27 @@ export function createAdminRouter(storage: EntityStorage) {
       return notFoundResponse(res, 'Team');
     }
     
-    // Here you would implement proper team deletion logic
-    // This might include:
-    // 1. Removing all team memberships
-    // 2. Deleting team-related data (matches, events, etc.)
-    // 3. Then finally deleting the team record
+    // Implement proper team deletion logic
+    // 1. Get all team members
+    const teamMembers = await storage.getTeamMembers(id);
     
-    // For now just return success
+    // 2. Delete all team memberships
+    for (const teamMember of teamMembers) {
+      await storage.deleteTeamMember(teamMember.id);
+    }
+    
+    // 3. For a complete solution, we would also need to delete:
+    //    - Team matches
+    //    - Team events
+    //    - Team announcements
+    //    - Other team-related data
+    
+    // 4. Mark the team as deleted (since we don't have a direct deleteTeam method)
+    await storage.updateTeam(id, {
+      name: `[Deleted] ${team.name}`,
+      joinCode: `DELETED-${Math.floor(Math.random() * 10000)}`
+    });
+    
     return successResponse(res, 'Team deleted successfully');
   }));
 
@@ -323,8 +380,9 @@ export function createAdminRouter(storage: EntityStorage) {
       return notFoundResponse(res, 'Team membership');
     }
     
-    // Delete membership
-    // For now just return success
+    // Actually delete the membership
+    await storage.deleteTeamMember(membership.id);
+    
     return successResponse(res, 'User removed from team successfully');
   }));
 
