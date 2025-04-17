@@ -831,9 +831,9 @@ export default function TeamPage() {
 
           {/* Team Lineup Card */}
           <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <Select
                   defaultValue={selectedFormation}
                   onValueChange={handleFormationChange}
@@ -855,6 +855,7 @@ export default function TeamPage() {
                     size="sm" 
                     onClick={handleSaveLineup}
                     disabled={isSavingLineup || saveLineupMutation.isPending}
+                    className="w-full sm:w-auto"
                   >
                     {(isSavingLineup || saveLineupMutation.isPending) && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1138,12 +1139,11 @@ export default function TeamPage() {
             </CardContent>
           </Card>
           <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center">
-                <UserCircle className="mr-2 h-5 w-5 text-primary" />
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <CardTitle className="text-xl">
                 {t("team.teamMembers")}
               </CardTitle>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-row items-center space-x-2 w-full sm:w-auto">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder={t("team.filterByRole")}>
@@ -1169,8 +1169,8 @@ export default function TeamPage() {
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    className="w-[200px] pl-9"
-                    placeholder={t("team.searchMembers")}
+                    className="w-[140px] pl-9 text-sm"
+                    placeholder={t("common.search")}
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
