@@ -363,38 +363,6 @@ export default function EventPage() {
     },
   });
 
-  // Handle opening the add event dialog with selected date
-  const handleAddEvent = () => {
-    setIsEditMode(false);
-    setCurrentEvent(null);
-    
-    // If a date is selected in the calendar, use it for the form
-    if (selectedDate) {
-      // Set the time to the current time
-      const startDateTime = new Date(selectedDate);
-      startDateTime.setHours(new Date().getHours());
-      startDateTime.setMinutes(new Date().getMinutes());
-      
-      // Set end time 90 minutes after start time
-      const endDateTime = new Date(startDateTime);
-      endDateTime.setMinutes(endDateTime.getMinutes() + 90);
-      
-      form.reset({
-        title: "",
-        startTime: startDateTime.toISOString().slice(0, 16),
-        endTime: endDateTime.toISOString().slice(0, 16),
-        location: "",
-        description: "",
-        type: "training",
-      });
-    } else {
-      // If no date selected, use default form values
-      form.reset();
-    }
-    
-    setDialogOpen(true);
-  };
-
   // Handle opening the edit dialog
   const handleEditEvent = (event: Event) => {
     setIsEditMode(true);
@@ -485,7 +453,6 @@ export default function EventPage() {
                 <Button
                   className="bg-primary hover:bg-primary/90"
                   aria-label={t("events.addEvent")}
-                  onClick={handleAddEvent}
                 >
                   <PlusCircle className="h-4 w-4 mr-2" />
                   {t("events.addEvent")}
@@ -656,7 +623,7 @@ export default function EventPage() {
                         <p>{t("events.noEventsForDate")}</p>
                         <Button
                           variant="link"
-                          onClick={handleAddEvent}
+                          onClick={() => setDialogOpen(true)}
                           className="text-primary mt-2"
                         >
                           {t("events.scheduleEvent")}
@@ -813,7 +780,7 @@ export default function EventPage() {
                       <p>{t("events.noEvents")}</p>
                       <Button
                         variant="link"
-                        onClick={handleAddEvent}
+                        onClick={() => setDialogOpen(true)}
                         className="text-primary mt-2"
                       >
                         {t("events.scheduleFirstEvent")}
