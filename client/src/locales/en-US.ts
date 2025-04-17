@@ -348,6 +348,7 @@ export const enUS = {
     min: "Min",
     type: "Type",
     setupStartingLineupDescription: "Enter details to record match statistics",
+    matchDetailsDescription: "View and manage match information, lineup, and statistics",
     yellowCard: "Yellow Card",
     redCard: "Red Card",
     yellow: "Yellow",

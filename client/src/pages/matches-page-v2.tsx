@@ -1689,6 +1689,12 @@ export default function MatchesPage() {
             }}
           >
             <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>{t("matches.matchDetails")}</DialogTitle>
+                <DialogDescription>
+                  {t("matches.matchDetailsDescription")}
+                </DialogDescription>
+              </DialogHeader>
               {selectedMatch && selectedTeam && (
                 <MatchDetails
                   match={selectedMatch}
