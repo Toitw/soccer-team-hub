@@ -417,6 +417,7 @@ export const esES = {
     addCard: "Añadir Tarjeta",
     min: "Min",
     type: "Tipo",
+    setupStartingLineupDescription: "Introduce detalles para registrar estadísticas del partido",
     yellowCard: "Tarjeta Amarilla",
     redCard: "Tarjeta Roja",
     yellow: "Amarilla",
