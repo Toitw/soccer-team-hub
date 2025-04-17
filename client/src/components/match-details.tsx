@@ -133,6 +133,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState(false);
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
+  const [showAddToLineupDialog, setShowAddToLineupDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   
   // Function to handle opening the lineup dialog and initialize form with existing data
   const handleOpenLineupDialog = () => {
@@ -267,9 +269,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
+    setShowAddToLineupDialog(true);
   };
   
-  const addPlayerToPosition = (member: TeamMemberWithUser, positionId: string) => {
+  const addPlayerToLineup = (member: TeamMemberWithUser) => {
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
         titleKey: "toasts.playerAlreadyInLineup",
@@ -278,19 +281,27 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       });
       return;
     }
-    
-    setLineupPositions(prev => ({
-      ...prev,
-      [positionId]: member
-    }));
-    
-    // Add to form's playerIds if not already included
-    const currentIds = lineupForm.getValues().playerIds;
-    if (!currentIds.includes(member.userId)) {
-      lineupForm.setValue('playerIds', [...currentIds, member.userId]);
+
+    if (selectedPosition) {
+      setLineupPositions(prev => ({
+        ...prev,
+        [selectedPosition]: member
+      }));
+      
+      // Add to form's playerIds if not already included
+      const currentIds = lineupForm.getValues().playerIds;
+      if (!currentIds.includes(member.userId)) {
+        lineupForm.setValue('playerIds', [...currentIds, member.userId]);
+      }
+      
+      setShowAddToLineupDialog(false);
+      setSelectedPosition(null);
+      
+      toast({
+        titleKey: "matches.playerAddedToLineup",
+        descriptionKey: "matches.playerAssigned"
+      });
     }
-    
-    setSelectedPosition(null);
   };
   
   const removePlayerFromPosition = (positionId: string) => {
