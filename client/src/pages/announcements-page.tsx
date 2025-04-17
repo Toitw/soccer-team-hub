@@ -61,7 +61,7 @@ interface PageProps {
 
 export default function AnnouncementsPage(props: PageProps = {}) {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [currentAnnouncement, setCurrentAnnouncement] = useState<Announcement | null>(null);
@@ -515,10 +515,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                           ? format(
                               new Date(announcement.createdAt),
                               // Use different date formats based on current language
-                              t("language") === "es" 
+                              currentLanguage === "es" 
                                 ? "d 'de' MMMM 'de' yyyy"
                                 : "MMMM d, yyyy",
-                              { locale: t("language") === "es" ? es : undefined }
+                              { locale: currentLanguage === "es" ? es : undefined }
                             )
                           : t("common.notAvailable")}
                       </span>
