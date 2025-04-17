@@ -133,11 +133,11 @@ export default function EventPage() {
         throw new Error("No team selected");
       }
 
-      // Format dates properly for API
+      // Format dates properly for API, ensuring we use the exact date selected
       const formattedData = {
         ...data,
-        startTime: new Date(data.startTime).toISOString(),
-        endTime: new Date(data.endTime).toISOString(),
+        startTime: data.startTime, // Use the ISO string from the form directly
+        endTime: data.endTime,     // Use the ISO string from the form directly
       };
 
       return await apiRequest(`/api/teams/${selectedTeam.id}/events`, {
@@ -173,12 +173,12 @@ export default function EventPage() {
         throw new Error("No team selected");
       }
 
-      // Format dates properly for API
+      // Format dates properly for API, ensuring we use the exact date selected
       const { id, ...formData } = data;
       const formattedData = {
         ...formData,
-        startTime: new Date(formData.startTime).toISOString(),
-        endTime: new Date(formData.endTime).toISOString(),
+        startTime: formData.startTime, // Use the ISO string from the form directly
+        endTime: formData.endTime,     // Use the ISO string from the form directly
       };
 
       return await apiRequest(`/api/teams/${selectedTeam.id}/events/${id}`, {
@@ -439,8 +439,12 @@ export default function EventPage() {
                   onClick={() => {
                     // Update form with selected date when opening dialog
                     if (selectedDate) {
-                      const selectedDateString = selectedDate.toISOString().slice(0, 16);
-                      const endTime = new Date(selectedDate.getTime() + 90 * 60 * 1000)
+                      // Create date at noon on the selected day to avoid timezone issues
+                      const localDate = new Date(selectedDate);
+                      localDate.setHours(12, 0, 0, 0);
+                      
+                      const selectedDateString = localDate.toISOString().slice(0, 16);
+                      const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
                         .toISOString()
                         .slice(0, 16);
                       
@@ -620,7 +624,23 @@ export default function EventPage() {
                         <p>{t("events.noEventsForDate")}</p>
                         <Button
                           variant="link"
-                          onClick={() => setDialogOpen(true)}
+                          onClick={() => {
+                            // Update form with selected date when opening dialog
+                            if (selectedDate) {
+                              // Create date at noon on the selected day to avoid timezone issues
+                              const localDate = new Date(selectedDate);
+                              localDate.setHours(12, 0, 0, 0);
+                              
+                              const selectedDateString = localDate.toISOString().slice(0, 16);
+                              const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
+                                .toISOString()
+                                .slice(0, 16);
+                              
+                              form.setValue("startTime", selectedDateString);
+                              form.setValue("endTime", endTime);
+                            }
+                            setDialogOpen(true);
+                          }}
                           className="text-primary mt-2"
                         >
                           {t("events.scheduleEvent")}
@@ -777,7 +797,20 @@ export default function EventPage() {
                       <p>{t("events.noEvents")}</p>
                       <Button
                         variant="link"
-                        onClick={() => setDialogOpen(true)}
+                        onClick={() => {
+                          // Use current date if no date is selected
+                          const today = new Date();
+                          today.setHours(12, 0, 0, 0);
+                          
+                          const selectedDateString = today.toISOString().slice(0, 16);
+                          const endTime = new Date(today.getTime() + 90 * 60 * 1000)
+                            .toISOString()
+                            .slice(0, 16);
+                          
+                          form.setValue("startTime", selectedDateString);
+                          form.setValue("endTime", endTime);
+                          setDialogOpen(true);
+                        }}
                         className="text-primary mt-2"
                       >
                         {t("events.scheduleFirstEvent")}
