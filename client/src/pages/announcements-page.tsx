@@ -83,22 +83,35 @@ export default function AnnouncementsPage(props: PageProps = {}) {
     queryFn: async () => {
       console.log(`AnnouncementsPage: Fetching announcements for team ${selectedTeam?.id}`);
       try {
-        const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements`);
-        if (response instanceof Response) {
-          console.error('AnnouncementsPage: Error fetching announcements, received Response object instead of data');
+        if (!selectedTeam?.id) {
+          console.warn('AnnouncementsPage: No team ID available');
           return [];
         }
-        const data = response as (Announcement & { creator?: any })[];
+        
+        // Use apiRequest without specifying method to use the default GET
+        const response = await apiRequest(`/api/teams/${selectedTeam.id}/announcements`);
+        
+        // Handle empty or invalid responses
+        if (!response || typeof response !== 'object') {
+          console.error('AnnouncementsPage: Invalid response format:', response);
+          return [];
+        }
+        
+        // Make sure we have an array
+        const data = Array.isArray(response) ? response : [];
         console.log('AnnouncementsPage: Retrieved announcements:', data);
-        const sorted = data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        console.log('AnnouncementsPage: Sorted announcements:', sorted);
+        
+        // Sort announcements by creation date (newest first)
+        const sorted = data.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
         return sorted;
       } catch (error) {
         console.error('AnnouncementsPage: Error fetching announcements:', error);
         return [];
       }
     },
-    enabled: !!selectedTeam,
+    enabled: !!selectedTeam?.id, // Only run query if we have a team ID
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0, // Always consider data stale to ensure fresh data
@@ -138,11 +151,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
   const createAnnouncementMutation = useMutation({
     mutationFn: async (data: AnnouncementFormData) => {
       if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest(
-        "POST",
-        `/api/teams/${selectedTeam.id}/announcements`,
-        data
-      );
+      return apiRequest(`/api/teams/${selectedTeam.id}/announcements`, {
+        method: "POST",
+        data: data
+      });
     },
     onSuccess: async (response) => {
       // Explicitly invalidate the queries
