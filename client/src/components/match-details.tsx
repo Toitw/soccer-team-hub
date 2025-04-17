@@ -736,7 +736,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 min-h-[45px]">
             <TabsTrigger value="lineup">
               {t("matches.lineups")}
             </TabsTrigger>
