@@ -62,7 +62,7 @@ export const enUS = {
     joinCodeHelp: "Have a team join code? Enter it to join a team during registration.",
     logout: "Logout",
     agreeToTerms: "I agree to the Terms and Conditions",
-    
+
     // Email verification
     emailVerification: "Email Verification",
     verifyEmailPrompt: "Please check your email to verify your account",
@@ -75,7 +75,7 @@ export const enUS = {
     verifyEmailSuccessMessage: "Your email has been successfully verified. You can now log in to your account.",
     verifyEmailFailedMessage: "We couldn't verify your email address. The verification link may be invalid or expired.",
     emailVerificationNotice: "A verification email will be sent to your email address",
-    
+
     // Password reset
     resetPassword: "Reset Password",
     resetPasswordPrompt: "Enter your email to reset your password",
@@ -226,8 +226,8 @@ export const enUS = {
   },
   matches: {
     matches: "Matches",
-    upcomingMatches: "Upcoming Matches",
-    pastMatches: "Past Matches",
+    upcomingMatches: "Upcoming",
+    pastMatches: "Past",
     allMatches: "All Matches",
     addMatch: "Add Match",
     editMatch: "Edit Match",
@@ -302,7 +302,7 @@ export const enUS = {
     failedToUpload: "Failed to upload CSV data",
     leagueTable: "League Table",
     standings: "Standings",
-    leagueClassification: "League Classification",
+    leagueClassification: "Classification",
     addClassification: "Add Classification",
     editClassification: "Edit Classification",
     deleteClassification: "Delete Classification",
@@ -326,7 +326,7 @@ export const enUS = {
     home: "Home",
     away: "Away",
     vs: "vs",
-    
+
     // New entries for match-details.tsx
     noCardsRecorded: "No cards recorded for this match.",
     recordCardsHelp: "Record yellow and red cards received by your team.",
@@ -576,7 +576,7 @@ export const enUS = {
     error: "Error",
     warning: "Warning",
     refreshed: "Refreshed",
-    
+
     // Auth related toast messages
     loginSuccess: "Login successful",
     loginFailed: "Login failed",
@@ -585,7 +585,7 @@ export const enUS = {
     registrationFailed: "Registration failed",
     welcomeToTeamKick: "Welcome to TeamKick, {{name}}",
     logoutSuccess: "Logged out successfully",
-    
+
     // Announcements related toast messages
     announcementCreated: "Announcement created",
     announcementCreatedDesc: "Your announcement has been published",
@@ -596,13 +596,13 @@ export const enUS = {
     refreshingAnnouncements: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
     announcementsLoaded: "{{count}} announcements loaded successfully.",
     failedToRefreshAnnouncements: "Failed to refresh announcements",
-    
+
     // General action messages
     dataSaved: "Data saved",
     changesSaved: "Changes saved successfully",
     actionCompleted: "Action completed",
     actionFailed: "Action failed",
-    
+
     // Match details related toast messages
     playerAlreadyInLineup: "Player already in lineup",
     playerAlreadyAssigned: "This player is already assigned to a position.",
