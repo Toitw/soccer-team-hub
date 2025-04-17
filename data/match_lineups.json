@@ -40,34 +40,12 @@
     "matchId": 7,
     "teamId": 1,
     "playerIds": [
-      69,
-      68,
-      72,
-      74,
-      75,
-      73,
-      76,
-      77,
-      78,
-      79,
-      81
+      69
     ],
-    "benchPlayerIds": [
-      80
-    ],
+    "benchPlayerIds": [],
     "formation": "4-4-2",
     "positionMapping": {
-      "fwd-2": 69,
-      "gk": 68,
-      "def-4": 72,
-      "def-3": 74,
-      "def-2": 75,
-      "def-1": 73,
-      "mid-1": 76,
-      "mid-2": 77,
-      "mid-3": 78,
-      "mid-4": 79,
-      "fwd-1": 81
+      "fwd-2": 69
     },
     "id": 2,
     "createdAt": "2025-04-17T12:03:57.014Z"
