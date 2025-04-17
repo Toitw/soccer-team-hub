@@ -418,6 +418,7 @@ export const esES = {
     min: "Min",
     type: "Tipo",
     setupStartingLineupDescription: "Introduce detalles para registrar estadísticas del partido",
+    matchDetailsDescription: "Ver y gestionar información del partido, alineación y estadísticas",
     yellowCard: "Tarjeta Amarilla",
     redCard: "Tarjeta Roja",
     yellow: "Amarilla",
