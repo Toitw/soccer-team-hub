@@ -259,10 +259,9 @@ export default function TeamPage() {
   const removeMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
       if (!selectedTeam) throw new Error("No team selected");
-      await apiRequest(
-        "DELETE",
-        `/api/teams/${selectedTeam.id}/members/${memberId}`,
-      );
+      return apiRequest(`/api/teams/${selectedTeam.id}/members/${memberId}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: () => {
       toast({
@@ -327,7 +326,9 @@ export default function TeamPage() {
       // Force a refetch to ensure the latest data
       setTimeout(() => {
         console.log("Refetching team members after short delay");
-        queryClient.fetchQuery(["/api/teams", selectedTeam?.id, "members"]);
+        queryClient.fetchQuery({
+          queryKey: ["/api/teams", selectedTeam?.id, "members"]
+        });
       }, 300);
     },
     onError: (error) => {
@@ -345,16 +346,15 @@ export default function TeamPage() {
     mutationFn: async (data: EditTeamMemberFormData) => {
       if (!selectedTeam || !memberToEdit)
         throw new Error("No team or member selected");
-      return apiRequest(
-        "PATCH",
-        `/api/teams/${selectedTeam.id}/members/${memberToEdit.id}`,
-        {
+      return apiRequest(`/api/teams/${selectedTeam.id}/members/${memberToEdit.id}`, {
+        method: "PATCH",
+        data: {
           role: data.role,
           position: data.position,
           jerseyNumber: data.jerseyNumber,
           profilePicture: data.profilePicture,
         },
-      );
+      });
     },
     onSuccess: () => {
       toast({
@@ -561,11 +561,14 @@ export default function TeamPage() {
         });
       }
       
-      return apiRequest("POST", `/api/teams/${selectedTeam.id}/lineup`, {
-        formation: selectedFormation,
-        playerIds,
-        benchPlayerIds,
-        positionMapping
+      return apiRequest(`/api/teams/${selectedTeam.id}/lineup`, {
+        method: "POST",
+        data: {
+          formation: selectedFormation,
+          playerIds,
+          benchPlayerIds,
+          positionMapping
+        }
       });
     },
     onSuccess: () => {
