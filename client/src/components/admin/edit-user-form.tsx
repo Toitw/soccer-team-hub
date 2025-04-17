@@ -88,23 +88,36 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
     setChangePassword(watchChangePassword);
   }, [watchChangePassword]);
 
-  // Update user mutation
+  // Update user mutation with improved error handling
   const mutation = useMutation({
-    mutationFn: (values: EditUserFormValues) => {
-      // Process form data
-      const { confirmPassword, changePassword, ...userData } = values;
-      
-      // If we're not changing the password, remove it from the request
-      if (!changePassword) {
-        delete userData.password;
+    mutationFn: async (values: EditUserFormValues) => {
+      try {
+        // Process form data
+        const { confirmPassword, changePassword, ...userData } = values;
+        
+        // If we're not changing the password, remove it from the request
+        if (!changePassword) {
+          delete userData.password;
+        }
+        
+        console.log("Sending update request with data:", userData);
+        console.log("User ID:", user.id);
+        
+        // Use a try/catch to handle network errors and get more details
+        const response = await apiRequest(`/api/admin/users/${user.id}`, {
+          method: 'PATCH',
+          data: userData,
+        });
+        
+        console.log("Update response:", response);
+        return response;
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error; // Re-throw to trigger onError
       }
-      
-      return apiRequest(`/api/admin/users/${user.id}`, {
-        method: 'PATCH',
-        data: userData,
-      });
     },
     onSuccess: (data) => {
+      console.log("Update successful:", data);
       toast({
         title: 'User Updated',
         description: `Successfully updated user ${data.fullName}.`,
@@ -112,9 +125,10 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       onSuccess();
     },
     onError: (error) => {
+      console.error('Update user error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update user. Please try again.',
+        description: 'Failed to update user. Please check console for details.',
         variant: 'destructive',
       });
     },
@@ -122,6 +136,19 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   // Handle form submission
   const onSubmit = (values: EditUserFormValues) => {
+    console.log("Submitting form with values:", values);
+    
+    // Make sure the form is valid before submitting
+    if (form.formState.errors && Object.keys(form.formState.errors).length > 0) {
+      console.error("Form has validation errors:", form.formState.errors);
+      toast({
+        title: 'Validation Error',
+        description: 'Please fix the form errors before submitting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     mutation.mutate(values);
   };
 
