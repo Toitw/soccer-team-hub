@@ -833,7 +833,7 @@ export default function TeamPage() {
           <Card className="mb-8">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                 <Select
                   defaultValue={selectedFormation}
                   onValueChange={handleFormationChange}
@@ -855,6 +855,7 @@ export default function TeamPage() {
                     size="sm" 
                     onClick={handleSaveLineup}
                     disabled={isSavingLineup || saveLineupMutation.isPending}
+                    className="w-full sm:w-auto"
                   >
                     {(isSavingLineup || saveLineupMutation.isPending) && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
