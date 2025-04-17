@@ -1139,12 +1139,11 @@ export default function TeamPage() {
             </CardContent>
           </Card>
           <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center">
-                <UserCircle className="mr-2 h-5 w-5 text-primary" />
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <CardTitle className="text-xl">
                 {t("team.teamMembers")}
               </CardTitle>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex flex-row items-center space-x-2 w-full sm:w-auto">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder={t("team.filterByRole")}>
