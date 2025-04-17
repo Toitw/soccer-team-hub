@@ -36,28 +36,15 @@ export async function apiRequest<T = any>(
     }
   }
   
-  // Special handling for admin endpoints
+  // For admin endpoints, ensure we always return an array
   if (url.includes('/api/admin/users') || url.includes('/api/admin/teams')) {
     try {
       const data = await res.json();
-      
-      // For GET requests to collection endpoints, ensure we return an array
-      if (method === 'GET' && !url.match(/\/users\/\d+$/) && !url.match(/\/teams\/\d+$/)) {
-        console.log("Processing admin collection response:", data);
-        // If the response isn't an array, wrap it in an array
-        return (Array.isArray(data) ? data : (data ? [data] : [])) as T;
-      }
-      
-      // For other requests (PATCH, PUT, POST, DELETE or GET to a specific item), 
-      // return the response as-is
-      console.log("Processing admin item response:", data);
-      return data as T;
+      // If the response isn't an array, wrap it in an array
+      return (Array.isArray(data) ? data : (data ? [data] : [])) as T;
     } catch (error) {
       console.warn(`Could not parse JSON from admin endpoint ${url}:`, error);
-      // Return appropriate empty result based on the request type
-      return (method === 'GET' && !url.match(/\/users\/\d+$/) && !url.match(/\/teams\/\d+$/)) 
-        ? ([] as unknown as T) 
-        : ({} as T);
+      return [] as unknown as T;  // Return empty array for admin endpoints
     }
   }
   
@@ -95,25 +82,15 @@ export const getQueryFn = <TData = any>({ on401: unauthorizedBehavior }: {
     return {} as TData;
   }
   
-  // Special handling for admin endpoints
+  // For admin endpoints, ensure we always return an array
   if (url.includes('/api/admin/users') || url.includes('/api/admin/teams')) {
     try {
       const data = await res.json();
-      
-      // For collection endpoints, ensure we return an array
-      if (!url.match(/\/users\/\d+$/) && !url.match(/\/teams\/\d+$/)) {
-        // If the response isn't an array, wrap it in an array
-        return (Array.isArray(data) ? data : (data ? [data] : [])) as TData;
-      }
-      
-      // For specific item requests, return the response as-is
-      return data as TData;
+      // If the response isn't an array, wrap it in an array
+      return (Array.isArray(data) ? data : (data ? [data] : [])) as TData;
     } catch (error) {
       console.warn(`getQueryFn: Could not parse JSON from admin endpoint ${url}:`, error);
-      // Return appropriate empty result based on the request type
-      return (!url.match(/\/users\/\d+$/) && !url.match(/\/teams\/\d+$/)) 
-        ? ([] as unknown as TData) 
-        : ({} as TData);
+      return [] as unknown as TData;  // Return empty array for admin endpoints
     }
   }
   
