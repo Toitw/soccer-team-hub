@@ -74,7 +74,7 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">{t("dashboard.teamSummary")}</h2>
-          <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
+          <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full flex items-center justify-center">
             {t("dashboard.season")} {team.seasonYear || "2023/24"}
           </span>
         </div>
