@@ -831,9 +831,9 @@ export default function TeamPage() {
 
           {/* Team Lineup Card */}
           <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <Select
                   defaultValue={selectedFormation}
                   onValueChange={handleFormationChange}
