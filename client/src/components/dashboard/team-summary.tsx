@@ -12,7 +12,7 @@ interface TeamSummaryProps {
 
 export default function TeamSummary({ team }: TeamSummaryProps) {
   const { t } = useLanguage();
-  
+
   const { data: matches } = useQuery<Match[]>({
     queryKey: ["/api/teams", team?.id, "matches"],
     enabled: !!team,
@@ -31,7 +31,7 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
       return matchData;
     },
   });
-  
+
   // Get team members to show accurate player count
   const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
     queryKey: ["/api/teams", team?.id, "members"],
@@ -74,11 +74,13 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">{t("dashboard.teamSummary")}</h2>
-          <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full inline-flex items-center justify-center">
-            {t("dashboard.season")} {team.seasonYear || "2023/24"}
-          </span>
+          <div className="flex items-center justify-center">
+            <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full text-center">
+              {t("dashboard.season")} {team.seasonYear || "2023/24"}
+            </span>
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="text-center p-2 rounded-lg bg-background">
             <p className="text-sm text-gray-500">{t("dashboard.players")}</p>
@@ -97,7 +99,7 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
             <p className="text-xl font-semibold text-primary">{goalCount}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <img 
             src={team.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
