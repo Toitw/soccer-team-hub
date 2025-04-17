@@ -766,6 +766,87 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           <TabsContent value="lineup" className="py-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">{t("matches.startingLineup")}</h3>
+              
+              {/* Add Player to Lineup Dialog */}
+              <Dialog
+                open={showAddToLineupDialog}
+                onOpenChange={setShowAddToLineupDialog}
+              >
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.setupStartingLineupDescription")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="max-h-80 overflow-y-auto py-4">
+                    <div className="space-y-2">
+                      <div className="mb-4">
+                        <Input
+                          placeholder={t("team.searchPlayers")}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          value={searchQuery}
+                          className="mb-2"
+                        />
+                      </div>
+                      {teamMembers
+                        ?.filter(
+                          (m) =>
+                            m.role === "player" &&
+                            !Object.values(lineupPositions).some(p => p?.id === m.id) &&
+                            (m.user.fullName
+                              ?.toLowerCase()
+                              .includes(searchQuery.toLowerCase()) ||
+                              m.user.position
+                                ?.toLowerCase()
+                                .includes(searchQuery.toLowerCase()) ||
+                              !searchQuery),
+                        )
+                        .map((member) => (
+                          <div
+                            key={member.id}
+                            className="flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer"
+                            onClick={() => addPlayerToLineup(member)}
+                          >
+                            <div className="flex-1">
+                              <div className="font-medium">{member.user.fullName}</div>
+                              <div className="text-sm text-gray-500 flex items-center">
+                                {member.user.position && (
+                                  <span className="mr-2">{member.user.position}</span>
+                                )}
+                                {member.user.jerseyNumber && (
+                                  <span className="text-xs px-1.5 py-0.5 bg-gray-200 rounded">
+                                    #{member.user.jerseyNumber}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      {teamMembers?.filter(
+                        (m) =>
+                          m.role === "player" &&
+                          !Object.values(lineupPositions).some(
+                            (p) => p?.id === m.id,
+                          ),
+                      ).length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>{t("team.allPlayersInLineup")}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAddToLineupDialog(false)}
+                    >
+                      {t("common.cancel")}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
@@ -880,6 +961,21 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                     {player.user.fullName}
                                                   </div>
                                                 )}
+                                                
+                                                {/* Remove player button (red X) */}
+                                                {player && (
+                                                  <div
+                                                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      removePlayerFromPosition(position.id);
+                                                    }}
+                                                  >
+                                                    <span className="text-white text-xs font-bold">
+                                                      ✕
+                                                    </span>
+                                                  </div>
+                                                )}
                                               </div>
                                             );
                                           }
@@ -935,9 +1031,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                             selectedPosition ? "cursor-pointer hover:bg-primary/5" : ""
                                           }`}
                                           onClick={() => {
-                                            if (selectedPosition) {
-                                              addPlayerToPosition(member, selectedPosition);
-                                            }
+                                            addPlayerToLineup(member);
                                           }}
                                         >
                                           <div className="flex items-center">
