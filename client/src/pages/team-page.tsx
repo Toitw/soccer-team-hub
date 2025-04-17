@@ -1169,8 +1169,8 @@ export default function TeamPage() {
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    className="w-[200px] pl-9"
-                    placeholder={t("team.searchMembers")}
+                    className="w-[160px] pl-9 text-sm"
+                    placeholder={t("team.search")}
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
