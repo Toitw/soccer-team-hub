@@ -100,7 +100,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       }
       
       return apiRequest(`/api/admin/users/${user.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         data: userData,
       });
     },
