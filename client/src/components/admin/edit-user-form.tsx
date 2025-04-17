@@ -62,7 +62,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.profilePicture);
   const [changePassword, setChangePassword] = useState(false);
 
-  // Set up form
+  // Set up form with safe default values (converting null to empty string to avoid type errors)
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
@@ -127,7 +127,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   // Handle avatar preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.value || ""; // Ensure we always have a string
     form.setValue("profilePicture", value);
     setAvatarPreview(value);
   };
@@ -254,34 +254,46 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="email@example.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              // Convert null to empty string to avoid type errors
+              const safeValue = field.value ?? "";
+              return (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="email@example.com"
+                      {...field}
+                      value={safeValue}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* Position field */}
           <FormField
             control={form.control}
             name="position"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Position</FormLabel>
-                <FormControl>
-                  <Input placeholder="Forward, Midfielder, etc." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const safeValue = field.value ?? "";
+              return (
+                <FormItem>
+                  <FormLabel>Position</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Forward, Midfielder, etc."
+                      {...field}
+                      value={safeValue}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* Jersey Number field */}
@@ -313,46 +325,57 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <FormField
             control={form.control}
             name="phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input placeholder="+1234567890" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const safeValue = field.value ?? "";
+              return (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="+1234567890" 
+                      {...field}
+                      value={safeValue}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           {/* Profile Picture field */}
           <FormField
             control={form.control}
             name="profilePicture"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Profile Picture URL</FormLabel>
-                <div className="flex space-x-4">
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com/avatar.png"
-                      {...field}
-                      onChange={handleAvatarChange}
-                    />
-                  </FormControl>
-                  {avatarPreview && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={avatarPreview}
-                        alt="Avatar preview"
-                        className="h-10 w-10 rounded-full object-cover"
-                        onError={() => setAvatarPreview(null)}
+            render={({ field }) => {
+              const safeValue = field.value ?? "";
+              return (
+                <FormItem className="col-span-2">
+                  <FormLabel>Profile Picture URL</FormLabel>
+                  <div className="flex space-x-4">
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/avatar.png"
+                        {...field}
+                        value={safeValue}
+                        onChange={handleAvatarChange}
                       />
-                    </div>
-                  )}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
+                    </FormControl>
+                    {avatarPreview && (
+                      <div className="flex-shrink-0">
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar preview"
+                          className="h-10 w-10 rounded-full object-cover"
+                          onError={() => setAvatarPreview(null)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
 
