@@ -1485,9 +1485,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t("matches.recordSubstitution")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.setupStartingLineupDescription")}
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...substitutionForm}>
                     <form onSubmit={substitutionForm.handleSubmit(handleSubstitutionSubmit)} className="space-y-4">
@@ -1656,9 +1659,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     {t("matches.addGoal")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t("matches.recordGoal")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.setupStartingLineupDescription")}
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...goalForm}>
                     <form onSubmit={goalForm.handleSubmit(handleGoalSubmit)} className="space-y-4">
@@ -1861,9 +1867,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     {t("matches.addCard")}
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t("matches.recordCard")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.setupStartingLineupDescription")}
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...cardForm}>
                     <form onSubmit={cardForm.handleSubmit(handleCardSubmit)} className="space-y-4">
