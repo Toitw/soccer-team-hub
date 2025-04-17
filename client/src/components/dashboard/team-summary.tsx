@@ -110,13 +110,7 @@ export default function TeamSummary({ team }: TeamSummaryProps) {
             <h3 className="text-lg font-medium">{team.name}</h3>
             <p className="text-sm text-gray-500">{team.division}</p>
           </div>
-          <div className="ml-auto">
-            <Link href="/team">
-              <Button className="text-sm bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90">
-                {t("dashboard.teamDetails")}
-              </Button>
-            </Link>
-          </div>
+          
         </div>
       </CardContent>
     </Card>
