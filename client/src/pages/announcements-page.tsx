@@ -190,11 +190,10 @@ export default function AnnouncementsPage(props: PageProps = {}) {
   const updateAnnouncementMutation = useMutation({
     mutationFn: async (data: { id: number; title: string; content: string }) => {
       if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest(
-        "PATCH",
-        `/api/teams/${selectedTeam.id}/announcements/${data.id}`,
-        { title: data.title, content: data.content }
-      );
+      return apiRequest(`/api/teams/${selectedTeam.id}/announcements/${data.id}`, {
+        method: "PATCH",
+        data: { title: data.title, content: data.content }
+      });
     },
     onSuccess: async (response) => {
       // Explicitly invalidate the queries
@@ -230,10 +229,9 @@ export default function AnnouncementsPage(props: PageProps = {}) {
   const deleteAnnouncementMutation = useMutation({
     mutationFn: async (id: number) => {
       if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest(
-        "DELETE",
-        `/api/teams/${selectedTeam.id}/announcements/${id}`
-      );
+      return apiRequest(`/api/teams/${selectedTeam.id}/announcements/${id}`, {
+        method: "DELETE"
+      });
     },
     onSuccess: async (response) => {
       // Explicitly invalidate the queries
