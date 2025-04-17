@@ -135,42 +135,7 @@ export function createAdminRouter(storage: EntityStorage) {
   
   // Register both PUT and PATCH routes to the same handler
   router.put('/admin/users/:id', updateUserHandler);
-  router.patch('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id);
-    const existingUser = await storage.getUser(id);
-    
-    if (!existingUser) {
-      return notFoundResponse(res, 'User');
-    }
-    
-    // Validate request body
-    const updateSchema = insertUserSchema.partial();
-    const validData = updateSchema.parse(req.body);
-    
-    // Hash password if it's being updated
-    if (validData.password) {
-      validData.password = await hashPassword(validData.password);
-    }
-    
-    // Update user
-    const updatedUser = await storage.updateUser(id, validData);
-    
-    if (!updatedUser) {
-      return errorResponse(res, 'Failed to update user');
-    }
-    
-    return jsonResponse(res, {
-      id: updatedUser.id,
-      username: updatedUser.username,
-      fullName: updatedUser.fullName,
-      role: updatedUser.role,
-      email: updatedUser.email,
-      profilePicture: updatedUser.profilePicture,
-      position: updatedUser.position,
-      jerseyNumber: updatedUser.jerseyNumber,
-      phoneNumber: updatedUser.phoneNumber
-    });
-  }));
+  router.patch('/admin/users/:id', updateUserHandler);
 
   // Delete user
   router.delete('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
