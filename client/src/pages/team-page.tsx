@@ -866,7 +866,7 @@ export default function TeamPage() {
               </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
                 {/* Field Container */}
                 <div className="lg:col-span-3">
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
