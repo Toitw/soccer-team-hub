@@ -147,13 +147,26 @@ export function createAdminRouter(storage: EntityStorage) {
       return errorResponse(res, 'Cannot delete superuser accounts', 403);
     }
     
-    // Here you would implement proper user deletion logic
-    // This might include:
-    // 1. Removing user from team memberships
-    // 2. Reassigning or deleting content created by the user
-    // 3. Then finally deleting the user record
+    // Implement actual user deletion (instead of just returning success)
+    // 1. Get all team memberships for this user
+    const teamMembers = await storage.teamMembers.getByUserId(id);
     
-    // For now just return success
+    // 2. Delete all team memberships
+    for (const teamMember of teamMembers) {
+      await storage.deleteTeamMember(teamMember.id);
+    }
+    
+    // 3. Delete the user from storage
+    // Note: We would ideally have a deleteUser method in the storage
+    // For now, we'll just mark the user as deleted by updating a field
+    await storage.updateUser(id, {
+      username: `deleted_${id}_${user.username}`,
+      fullName: `[Deleted User]`,
+      email: null,
+      phoneNumber: null
+      // isActive field is not in schema, so we can't use it
+    });
+    
     return successResponse(res, 'User deleted successfully');
   }));
 
