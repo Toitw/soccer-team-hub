@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Event } from "@shared/schema";
 import { Link } from "wouter";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { PlusIcon, Users, MapPin } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 
@@ -11,7 +12,7 @@ interface UpcomingEventsProps {
 }
 
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const getEventTypeColor = (type: string) => {
     switch(type) {
       case "match":
@@ -46,11 +47,18 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
         throw new Error("Invalid date");
       }
       
+      // Usar localización española si el idioma actual es español
+      const locale = currentLanguage === "es" ? es : undefined;
+      
       return {
-        day: format(date, "EEE").toUpperCase(),
-        number: format(date, "d"),
-        month: format(date, "MMM").toUpperCase(),
-        time: format(date, "HH:mm")
+        // Usar EEE para el formato corto del día de la semana
+        day: format(date, "EEE", { locale }).toUpperCase(),
+        // Mantener el número del día igual
+        number: format(date, "d", { locale }),
+        // Usar MMM para el formato corto del mes
+        month: format(date, "MMM", { locale }).toUpperCase(),
+        // Mantener el formato de hora
+        time: format(date, "HH:mm", { locale })
       };
     } catch (error) {
       return {

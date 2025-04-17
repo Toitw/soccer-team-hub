@@ -60,7 +60,7 @@ export default function DashboardPage() {
       return allEvents
         .filter((event: Event) => new Date(event.startTime) >= now)
         .sort((a: Event, b: Event) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-        .slice(0, 3);
+        .slice(0, 2); // Mostrar solo los 2 próximos eventos
     }
   });
 
