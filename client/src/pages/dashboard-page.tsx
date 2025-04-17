@@ -25,7 +25,9 @@ export default function DashboardPage() {
   // Create mock data for demonstration if none exists
   useEffect(() => {
     if (teams && teams.length === 0) {
-      apiRequest("POST", "/api/mock-data")
+      apiRequest("/api/mock-data", {
+        method: "POST"
+      })
         .then(() => {
           // Refetch teams after creating mock data
           window.location.reload();
@@ -67,8 +69,18 @@ export default function DashboardPage() {
   >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/teams/${selectedTeam?.id}/announcements/recent`);
-      return response instanceof Response ? [] : response as (Announcement & { creator?: any })[];
+      if (!selectedTeam?.id) {
+        return [];
+      }
+      try {
+        const response = await apiRequest(`/api/teams/${selectedTeam.id}/announcements/recent`);
+        // Ensure we have a valid array response
+        const data = Array.isArray(response) ? response : [];
+        return data as (Announcement & { creator?: any })[];
+      } catch (error) {
+        console.error("Failed to fetch announcements:", error);
+        return [];
+      }
     },
     enabled: !!selectedTeam,
   });
