@@ -30,7 +30,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
+  DialogClose,
+  DialogDescription
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -266,19 +267,35 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   
   const handlePositionClick = (positionId: string) => {
+    // Clear any existing position selection
     setSelectedPosition(positionId);
+    
+    // If there's a player in this position, provide option to remove
+    const player = lineupPositions[positionId];
+    if (player) {
+      // Show remove option in tooltip or display a remove button
+      toast({
+        title: t("matches.playerAssigned"),
+        description: `${player.user.fullName} is assigned to this position. Click again to remove.`,
+        action: <Button variant="destructive" size="sm" onClick={() => removePlayerFromPosition(positionId)}>
+          {t("common.remove")}
+        </Button>
+      });
+    }
   };
   
   const addPlayerToPosition = (member: TeamMemberWithUser, positionId: string) => {
-    if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
+    // Check if player is already in another position
+    if (Object.values(lineupPositions).some(p => p?.userId === member.userId)) {
       toast({
-        titleKey: "toasts.playerAlreadyInLineup",
-        descriptionKey: "toasts.playerAlreadyAssigned",
+        title: t("matches.playerAlreadyInLineup"),
+        description: t("matches.playerAlreadyAssigned"),
         variant: "destructive"
       });
       return;
     }
     
+    // Add player to the position
     setLineupPositions(prev => ({
       ...prev,
       [positionId]: member
@@ -290,7 +307,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       lineupForm.setValue('playerIds', [...currentIds, member.userId]);
     }
     
+    // Clear the selected position
     setSelectedPosition(null);
+    
+    // Show success toast
+    toast({
+      title: t("matches.playerAddedToLineup"),
+      description: `${member.user.fullName} added to position ${positionId.toUpperCase()}`
+    });
   };
   
   const removePlayerFromPosition = (positionId: string) => {
@@ -317,10 +341,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     const currentBenchIds = lineupForm.getValues().benchPlayerIds || [];
     
     // Check if player is already on the field
-    if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
+    if (Object.values(lineupPositions).some(p => p?.userId === member.userId)) {
       toast({
-        titleKey: "toasts.playerAlreadyInLineup",
-        descriptionKey: "toasts.removePlayerFirst",
+        title: t("matches.playerAlreadyInLineup"),
+        description: t("matches.removePlayerFirst"),
         variant: "destructive"
       });
       return;
@@ -329,8 +353,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     // Check if player is already on the bench
     if (currentBenchIds.includes(member.userId)) {
       toast({
-        titleKey: "toasts.playerAlreadyOnBench",
-        descriptionKey: "toasts.playerAlreadyOnBenchDesc",
+        title: t("matches.playerAlreadyOnBench"),
+        description: t("matches.playerAlreadyOnBenchDesc"),
         variant: "destructive"
       });
       return;
@@ -338,6 +362,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     
     lineupForm.setValue('benchPlayerIds', [...currentBenchIds, member.userId]);
     setBenchPlayers([...benchPlayers, member.userId]);
+    
+    // Show success toast
+    toast({
+      title: t("matches.playerAddedToBench"),
+      description: `${member.user.fullName} added to bench`
+    });
   };
   
   // Remove player from bench
@@ -443,8 +473,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`] });
       toast({
-        titleKey: "toasts.lineupSaved",
-        descriptionKey: "toasts.lineupSavedDesc"
+        title: t("matches.lineupSaved"),
+        description: t("matches.lineupSavedDesc")
       });
       setLineupDialogOpen(false);
       lineupForm.reset();
@@ -764,11 +794,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{lineup ? t("matches.editMatchLineup") : t("matches.addMatchLineup")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.setupStartingLineupDescription")}
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">
-
-                      
                       <FormField
                         control={lineupForm.control}
                         name="formation"
