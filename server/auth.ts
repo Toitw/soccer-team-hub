@@ -24,57 +24,32 @@ export async function hashPassword(password: string) {
 
 export async function comparePasswords(supplied: string, stored: string | undefined) {
   // Handle case where stored password is undefined or empty
-  if (!stored) {
-    console.log("DEBUG: Stored password is undefined or empty");
-    return false;
-  }
-  
-  console.log("DEBUG: Comparing passwords");
-  console.log("DEBUG: Supplied password (length):", supplied.length);
-  console.log("DEBUG: Stored password format:", stored.substring(0, 10) + "...");
+  if (!stored) return false;
   
   try {
     // Support both old and new formats
     if (stored.includes('.')) {
       // Old format with dot separator (hash.salt)
-      console.log("DEBUG: Using old format with dot separator");
       const [hashed, salt] = stored.split(".");
-      if (!hashed || !salt) {
-        console.log("DEBUG: Invalid hash or salt in old format");
-        return false;
-      }
+      if (!hashed || !salt) return false;
       
-      console.log("DEBUG: Salt (old format):", salt.substring(0, 5) + "...");
       const hashedBuf = Buffer.from(hashed, "hex");
       const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-      const result = timingSafeEqual(hashedBuf, suppliedBuf);
-      console.log("DEBUG: Password comparison result (old format):", result);
-      return result;
+      return timingSafeEqual(hashedBuf, suppliedBuf);
     } else if (stored.includes(':')) {
       // New format with colon separator (salt:hash)
-      console.log("DEBUG: Using new format with colon separator");
       const [salt, hash] = stored.split(":");
-      if (!salt || !hash) {
-        console.log("DEBUG: Invalid salt or hash in new format");
-        return false;
-      }
+      if (!salt || !hash) return false;
     
-      console.log("DEBUG: Salt (new format):", salt.substring(0, 5) + "...");
       const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
       const storedHashBuf = Buffer.from(hash, 'hex');
       
-      console.log("DEBUG: Supplied hash length:", suppliedBuf.length);
-      console.log("DEBUG: Stored hash length:", storedHashBuf.length);
-      
-      const result = timingSafeEqual(storedHashBuf, suppliedBuf);
-      console.log("DEBUG: Password comparison result (new format):", result);
-      return result;
-    } else {
-      console.log("DEBUG: Unknown password format, no separator found");
-      return false;
-    }
+      return timingSafeEqual(storedHashBuf, suppliedBuf);
+    } 
+    
+    return false;
   } catch (error) {
-    console.error("DEBUG: Error comparing passwords:", error);
+    console.error("Error comparing passwords:", error);
     return false;
   }
 }
