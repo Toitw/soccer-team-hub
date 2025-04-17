@@ -80,28 +80,23 @@ type AttendanceData = {
 };
 
 export default function EventPage() {
+  // Hooks setup - all hooks must be declared before any conditional logic
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
-  // We control which tab is active:
+  // State hooks - declare all state hooks up front  
   const [activeTab, setActiveTab] = useState<"calendar" | "list">("calendar");
-
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date(),
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AttendanceData>>({});
-  const [attendanceStatus, setAttendanceStatus] = useState<
-    Record<number, "attending" | "notAttending" | null>
-  >({});
+  const [attendanceStatus, setAttendanceStatus] = useState<Record<number, "attending" | "notAttending" | null>>({});
 
-  // Use React Query client for manual invalidation
-  const queryClient = useQueryClient();
-
+  // Query hooks
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
@@ -126,7 +121,22 @@ export default function EventPage() {
     refetchOnWindowFocus: true,
   });
 
-  // Define mutation for creating events
+  // Form setup
+  const form = useForm<EventFormData>({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      title: "",
+      startTime: new Date().toISOString().slice(0, 16),
+      endTime: new Date(new Date().getTime() + 90 * 60 * 1000)
+        .toISOString()
+        .slice(0, 16),
+      location: "",
+      description: "",
+      type: "training",
+    },
+  });
+
+  // Mutation hooks
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
       if (!selectedTeam) {
@@ -147,9 +157,11 @@ export default function EventPage() {
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
-      queryClient.invalidateQueries({
-        queryKey: ["/api/teams", selectedTeam?.id, "events"],
-      });
+      if (selectedTeam?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/teams", selectedTeam.id, "events"],
+        });
+      }
       setDialogOpen(false);
       toast({
         title: "Event created",
@@ -166,7 +178,6 @@ export default function EventPage() {
     },
   });
 
-  // Define mutation for updating events
   const updateEventMutation = useMutation({
     mutationFn: async (data: EventFormData & { id: number }) => {
       if (!selectedTeam) {
@@ -188,9 +199,11 @@ export default function EventPage() {
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
-      queryClient.invalidateQueries({
-        queryKey: ["/api/teams", selectedTeam?.id, "events"],
-      });
+      if (selectedTeam?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/teams", selectedTeam.id, "events"],
+        });
+      }
       setDialogOpen(false);
       setIsEditMode(false);
       setCurrentEvent(null);
@@ -209,7 +222,6 @@ export default function EventPage() {
     },
   });
 
-  // Define mutation for deleting events
   const deleteEventMutation = useMutation({
     mutationFn: async (id: number) => {
       if (!selectedTeam) {
@@ -222,9 +234,11 @@ export default function EventPage() {
     },
     onSuccess: () => {
       // Invalidate events query to trigger a refetch
-      queryClient.invalidateQueries({
-        queryKey: ["/api/teams", selectedTeam?.id, "events"],
-      });
+      if (selectedTeam?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ["/api/teams", selectedTeam.id, "events"],
+        });
+      }
       setDeleteDialogOpen(false);
       setCurrentEvent(null);
       toast({
@@ -241,40 +255,6 @@ export default function EventPage() {
     },
   });
 
-  // Function to fetch attendance data for an event
-  const fetchAttendance = async (teamId: number, eventId: number) => {
-    try {
-      const response = await fetch(`/api/teams/${teamId}/events/${eventId}/attendance`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch attendance data');
-      }
-      const data: AttendanceData = await response.json();
-      
-      setAttendanceMap(prev => ({
-        ...prev,
-        [eventId]: data
-      }));
-      
-      // Set current user's attendance status
-      if (user) {
-        const userAttendance = data.attendees.find(a => a.userId === user.id);
-        if (userAttendance) {
-          setAttendanceStatus(prev => ({
-            ...prev,
-            [eventId]: userAttendance.status === 'confirmed' ? 'attending' : 
-                      userAttendance.status === 'declined' ? 'notAttending' : null
-          }));
-        }
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error fetching attendance:', error);
-      return null;
-    }
-  };
-
-  // Mutation for updating attendance
   const updateAttendanceMutation = useMutation({
     mutationFn: async ({ 
       eventId, 
@@ -308,33 +288,51 @@ export default function EventPage() {
     },
   });
 
-  // Effect to load attendance data for events
-  useEffect(() => {
-    if (events && events.length > 0 && selectedTeam) {
-      // Fetch attendance for each event
-      events.forEach(event => {
-        fetchAttendance(selectedTeam.id, event.id);
-      });
-    }
-  }, [events, selectedTeam]);
-
+  // Computed values - always compute these, don't make them conditional
   const isLoading = teamsLoading || eventsLoading;
+  const trainingEvents = events?.filter((event) => event.type === "training") || [];
+  
+  // Get events for the selected date - always compute this
+  const eventsForSelectedDate = events?.filter((event) => {
+    if (!selectedDate || !event.startTime) return false;
+    // Parse dates properly - make sure we're comparing just the dates without time
+    const eventStartDate = new Date(event.startTime);
+    return isSameDay(eventStartDate, selectedDate);
+  }) || [];
 
-  const form = useForm<EventFormData>({
-    resolver: zodResolver(eventSchema),
-    defaultValues: {
-      title: "",
-      startTime: new Date().toISOString().slice(0, 16),
-      endTime: new Date(new Date().getTime() + 90 * 60 * 1000)
-        .toISOString()
-        .slice(0, 16),
-      location: "",
-      description: "",
-      type: "training",
-    },
-  });
+  // Function declarations
+  const fetchAttendance = async (teamId: number, eventId: number) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/events/${eventId}/attendance`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch attendance data');
+      }
+      const data: AttendanceData = await response.json();
+      
+      setAttendanceMap(prev => ({
+        ...prev,
+        [eventId]: data
+      }));
+      
+      // Set current user's attendance status
+      if (user) {
+        const userAttendance = data.attendees.find(a => a.userId === user.id);
+        if (userAttendance) {
+          setAttendanceStatus(prev => ({
+            ...prev,
+            [eventId]: userAttendance.status === 'confirmed' ? 'attending' : 
+                      userAttendance.status === 'declined' ? 'notAttending' : null
+          }));
+        }
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      return null;
+    }
+  };
 
-  // Handle opening the edit dialog
   const handleEditEvent = (event: Event) => {
     setIsEditMode(true);
     setCurrentEvent(event);
@@ -351,13 +349,11 @@ export default function EventPage() {
     setDialogOpen(true);
   };
 
-  // Handle opening the delete confirmation dialog
   const handleDeleteDialog = (event: Event) => {
     setCurrentEvent(event);
     setDeleteDialogOpen(true);
   };
 
-  // Handle form submission (create or update)
   const onSubmit = (data: EventFormData) => {
     if (isEditMode && currentEvent) {
       updateEventMutation.mutate({ ...data, id: currentEvent.id });
@@ -366,7 +362,6 @@ export default function EventPage() {
     }
   };
 
-  // Handle attendance status change
   const handleAttendanceChange = (eventId: number, attending: boolean) => {
     setAttendanceStatus(prev => ({
       ...prev,
@@ -380,29 +375,17 @@ export default function EventPage() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  // useEffect hooks - keep them grouped together
+  useEffect(() => {
+    if (events && events.length > 0 && selectedTeam) {
+      // Fetch attendance for each event
+      events.forEach(event => {
+        fetchAttendance(selectedTeam.id, event.id);
+      });
+    }
+  }, [events, selectedTeam, user?.id]);
 
-  // Filter events to show only training sessions
-  const trainingEvents =
-    events?.filter((event) => event.type === "training") || [];
-
-  // Get events for the selected date
-  const eventsForSelectedDate =
-    events?.filter((event) => {
-      if (!selectedDate || !event.startTime) return false;
-      
-      // Parse dates properly - make sure we're comparing just the dates without time
-      const eventStartDate = new Date(event.startTime);
-      return isSameDay(eventStartDate, selectedDate);
-    }) || [];
-    
-  // Log events information to help debug (fixed dependency array)
+  // Debug effect
   useEffect(() => {
     if (events && events.length > 0) {
       console.log('All events data:', events);
@@ -411,7 +394,15 @@ export default function EventPage() {
         console.log('Events for selected date:', eventsForSelectedDate);
       }
     }
-  }, [events, selectedDate]); // Removed eventsForSelectedDate from dependencies
+  }, [events, selectedDate]);
+  
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -584,7 +575,7 @@ export default function EventPage() {
                     <Calendar
                       mode="single"
                       selected={selectedDate}
-                      onSelect={setSelectedDate}
+                      onSelect={(date) => setSelectedDate(date)}
                       className="rounded-md border"
                       locale={es}
                       modifiers={{
