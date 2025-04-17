@@ -1375,8 +1375,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               <Dialog open={substitutionDialogOpen} onOpenChange={setSubstitutionDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("matches.addSubstitution")}
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
