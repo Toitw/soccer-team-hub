@@ -30,8 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
-  DialogDescription
+  DialogClose
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -134,8 +133,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState(false);
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
-  const [showAddToLineupDialog, setShowAddToLineupDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   
   // Function to handle opening the lineup dialog and initialize form with existing data
   const handleOpenLineupDialog = () => {
@@ -270,39 +267,30 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
-    setShowAddToLineupDialog(true);
   };
   
-  const addPlayerToPosition = (member: TeamMemberWithUser) => {
+  const addPlayerToPosition = (member: TeamMemberWithUser, positionId: string) => {
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
-        title: t("toasts.playerAlreadyInLineup"),
-        description: t("toasts.playerAlreadyAssigned"),
+        titleKey: "toasts.playerAlreadyInLineup",
+        descriptionKey: "toasts.playerAlreadyAssigned",
         variant: "destructive"
       });
       return;
     }
     
-    if (selectedPosition) {
-      setLineupPositions(prev => ({
-        ...prev,
-        [selectedPosition]: member
-      }));
-      
-      // Add to form's playerIds if not already included
-      const currentIds = lineupForm.getValues().playerIds;
-      if (!currentIds.includes(member.userId)) {
-        lineupForm.setValue('playerIds', [...currentIds, member.userId]);
-      }
-      
-      toast({
-        title: t("toasts.playerAddedToLineup"),
-        description: `${member.user.fullName} ${t("toasts.addedToPosition")} ${selectedPosition}.`,
-      });
-      
-      setSelectedPosition(null);
-      setShowAddToLineupDialog(false);
+    setLineupPositions(prev => ({
+      ...prev,
+      [positionId]: member
+    }));
+    
+    // Add to form's playerIds if not already included
+    const currentIds = lineupForm.getValues().playerIds;
+    if (!currentIds.includes(member.userId)) {
+      lineupForm.setValue('playerIds', [...currentIds, member.userId]);
     }
+    
+    setSelectedPosition(null);
   };
   
   const removePlayerFromPosition = (positionId: string) => {
@@ -850,7 +838,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 onClick={() => handlePositionClick(position.id)}
                                               >
                                                 <div
-                                                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg transition-all ${
+                                                  className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white border-1 border-white shadow-lg transition-all ${
                                                     player
                                                       ? "scale-100"
                                                       : "scale-90 opacity-70"
@@ -866,12 +854,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 >
                                                   {player ? (
                                                     <div className="flex flex-col items-center">
-                                                      <span className="font-bold text-sm">
+                                                      <span className="font-bold text-xs">
                                                         {player.user.jerseyNumber || "?"}
                                                       </span>
                                                     </div>
                                                   ) : (
-                                                    <div className="opacity-70 text-sm">+</div>
+                                                    <div className="opacity-50 text-sm">+</div>
                                                   )}
                                                 </div>
                                                 
@@ -937,7 +925,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           }`}
                                           onClick={() => {
                                             if (selectedPosition) {
-                                              addPlayerToPosition(member);
+                                              addPlayerToPosition(member, selectedPosition);
                                             }
                                           }}
                                         >
@@ -1924,81 +1912,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </TabsContent>
         </Tabs>
       </CardContent>
-
-      {/* Dialog for adding players to lineup */}
-      <Dialog
-        open={showAddToLineupDialog}
-        onOpenChange={setShowAddToLineupDialog}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
-            <DialogDescription>
-              {t("team.selectPlayerForPosition")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-80 overflow-y-auto py-4">
-            <div className="space-y-2">
-              <div className="mb-4">
-                <Input
-                  placeholder={t("team.searchPlayers")}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  value={searchQuery}
-                  className="mb-2"
-                />
-              </div>
-              {teamMembers
-                ?.filter(
-                  (member) =>
-                    member.role === "player" &&
-                    !Object.values(lineupPositions).some(
-                      (p) => p?.id === member.id
-                    ) &&
-                    member.user.fullName
-                      .toLowerCase()
-                      .includes(searchQuery.toLowerCase())
-                )
-                .map((member) => (
-                  <div
-                    key={member.userId}
-                    className="flex items-center justify-between p-2 bg-white border rounded-md cursor-pointer hover:bg-gray-50"
-                    onClick={() => addPlayerToPosition(member)}
-                  >
-                    <div className="flex items-center">
-                      <div className="ml-2">
-                        <div className="font-medium">{member.user.fullName}</div>
-                        <div className="text-xs text-gray-500 flex">
-                          {member.user.position && (
-                            <span className="mr-2">{member.user.position}</span>
-                          )}
-                          {member.user.jerseyNumber && (
-                            <span>#{member.user.jerseyNumber}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              
-              {/* Empty state if no players match filter */}
-              {teamMembers?.filter(
-                (member) =>
-                  member.role === "player" &&
-                  !Object.values(lineupPositions).some(
-                    (p) => p?.id === member.id
-                  ) &&
-                  member.user.fullName
-                    .toLowerCase()
-                    .includes(searchQuery.toLowerCase())
-              ).length === 0 && (
-                <div className="text-center py-4 text-muted-foreground">
-                  <p>{t("team.noPlayersAvailable")}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
