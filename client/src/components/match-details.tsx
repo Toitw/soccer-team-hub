@@ -736,7 +736,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4 min-h-[45px]">
             <TabsTrigger value="lineup">
               {t("matches.lineups")}
             </TabsTrigger>
@@ -758,8 +758,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
-                    {lineup ? <Edit className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                    {lineup ? t("matches.editLineup") : t("matches.addLineup")}
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] overflow-y-auto">
@@ -1376,8 +1375,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               <Dialog open={substitutionDialogOpen} onOpenChange={setSubstitutionDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("matches.addSubstitution")}
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
