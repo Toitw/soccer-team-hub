@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, PlusIcon, TrashIcon, AlertTriangle, PencilIcon, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   Form,
   FormControl,
@@ -511,7 +512,14 @@ export default function AnnouncementsPage(props: PageProps = {}) {
                     <CardFooter className="flex flex-wrap justify-between pt-2 text-xs text-muted-foreground gap-y-1">
                       <span className="break-words">
                         {announcement.createdAt
-                          ? format(new Date(announcement.createdAt), "MMMM d, yyyy")
+                          ? format(
+                              new Date(announcement.createdAt),
+                              // Use different date formats based on current language
+                              t("language") === "es" 
+                                ? "d 'de' MMMM 'de' yyyy"
+                                : "MMMM d, yyyy",
+                              { locale: t("language") === "es" ? es : undefined }
+                            )
                           : t("common.notAvailable")}
                       </span>
                       <span className="break-words">
