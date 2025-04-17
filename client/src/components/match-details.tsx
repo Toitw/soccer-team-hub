@@ -30,7 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
+  DialogClose,
+  DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog";
 import {
   Form,
