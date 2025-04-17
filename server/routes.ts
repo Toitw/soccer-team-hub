@@ -576,9 +576,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Client-side will handle displaying base64 images correctly
           // No need to save to disk since we'll store the base64 string directly
         } else if (!profilePicture.startsWith('http')) {
-          // If not a URL and not base64, use a default avatar with a random ID
-          const randomId = Math.floor(Math.random() * 10000);
-          profilePicture = `https://i.pravatar.cc/150?u=${randomId}`;
+          // If not a URL and not base64, use a consistent default avatar icon
+          profilePicture = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
         }
       }
 
@@ -593,7 +592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle profile picture (use default avatar if none provided or empty string)
         const profilePicture = user.profilePicture && user.profilePicture.trim() !== '' 
           ? user.profilePicture 
-          : `https://i.pravatar.cc/150?u=${mockUserId}`;
+          : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
         // Create the user with basic info
         const newUser = await storage.createUser({
@@ -635,7 +634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: fullUser.username,
             fullName: fullUser.fullName,
             role: fullUser.role,
-            profilePicture: fullUser.profilePicture || `/default-avatar.png?u=${newUser.id}`,
+            profilePicture: fullUser.profilePicture || `https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png`,
             position: fullUser.position || "",
             jerseyNumber: fullUser.jerseyNumber || null,
             email: fullUser.email || "",
