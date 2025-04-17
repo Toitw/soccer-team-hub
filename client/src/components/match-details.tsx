@@ -778,7 +778,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   <DialogHeader>
                     <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
                     <DialogDescription>
-                      {t("matches.setupStartingLineupDescription")}
+                      Select a player for this position
                     </DialogDescription>
                   </DialogHeader>
                   <div className="max-h-80 overflow-y-auto py-4">
