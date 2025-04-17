@@ -295,26 +295,40 @@ export default function TeamPage() {
   const addTeamMemberMutation = useMutation({
     mutationFn: async (data: SimplifiedMemberPayload) => {
       if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest("POST", `/api/teams/${selectedTeam.id}/members`, {
-        role: data.role,
-        user: {
-          fullName: data.user.fullName,
-          position: data.user.position,
-          jerseyNumber: data.user.jerseyNumber,
-          profilePicture: data.user.profilePicture,
-        },
+      console.log("Sending team member creation request:", {
+        teamId: selectedTeam.id,
+        payload: data
+      });
+      return apiRequest(`/api/teams/${selectedTeam.id}/members`, {
+        method: "POST",
+        data: {
+          role: data.role,
+          user: {
+            fullName: data.user.fullName,
+            position: data.user.position,
+            jerseyNumber: data.user.jerseyNumber,
+            profilePicture: data.user.profilePicture,
+          },
+        }
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Team member added successfully. Response data:", data);
       toast({
         title: "Team member added",
         description: "The new team member has been added successfully.",
       });
       setOpenAddMemberDialog(false);
       form.reset();
+      console.log("Invalidating query for team members with key:", ["/api/teams", selectedTeam?.id, "members"]);
       queryClient.invalidateQueries({
         queryKey: ["/api/teams", selectedTeam?.id, "members"],
       });
+      // Force a refetch to ensure the latest data
+      setTimeout(() => {
+        console.log("Refetching team members after short delay");
+        queryClient.fetchQuery(["/api/teams", selectedTeam?.id, "members"]);
+      }, 300);
     },
     onError: (error) => {
       toast({

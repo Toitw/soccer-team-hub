@@ -424,20 +424,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
+      console.log(`GET /api/teams/${teamId}/members - Request from user: ${req.user.id}`);
 
       // Check if user is a member of the team
       const userTeamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!userTeamMember) {
+        console.log(`User ${req.user.id} is not authorized to access team ${teamId}`);
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
       const teamMembers = await storage.getTeamMembers(teamId);
+      console.log(`Found ${teamMembers.length} team members for team ${teamId}`);
 
       // Get user details for each team member
       const teamMembersWithUserDetails = await Promise.all(
         teamMembers.map(async (member) => {
           const user = await storage.getUser(member.userId);
-          if (!user) return null;
+          if (!user) {
+            console.log(`No user found for team member with userId: ${member.userId}`);
+            return null;
+          }
 
           // Exclude password but include all other user fields explicitly
           const { password, ...userWithoutPassword } = user;
@@ -456,8 +462,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
-      res.json(teamMembersWithUserDetails.filter(Boolean));
+      const filteredMembers = teamMembersWithUserDetails.filter(Boolean);
+      console.log(`Returning ${filteredMembers.length} team members with user details for team ${teamId}`);
+      res.json(filteredMembers);
     } catch (error) {
+      console.error(`Error fetching team members for team ${req.params.id}:`, error);
       console.error("Error fetching team members:", error);
       res.status(500).json({ error: "Failed to fetch team members" });
     }
@@ -549,6 +558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
+      console.log(`POST /api/teams/${teamId}/members - Request body:`, JSON.stringify(req.body));
 
       // Check if user has admin role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
