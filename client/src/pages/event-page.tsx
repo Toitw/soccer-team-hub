@@ -402,7 +402,7 @@ export default function EventPage() {
       return isSameDay(eventStartDate, selectedDate);
     }) || [];
     
-  // Log events information to help debug
+  // Log events information to help debug (fixed dependency array)
   useEffect(() => {
     if (events && events.length > 0) {
       console.log('All events data:', events);
@@ -411,7 +411,7 @@ export default function EventPage() {
         console.log('Events for selected date:', eventsForSelectedDate);
       }
     }
-  }, [events, selectedDate, eventsForSelectedDate]);
+  }, [events, selectedDate]); // Removed eventsForSelectedDate from dependencies
 
   return (
     <div className="flex h-screen bg-background">
