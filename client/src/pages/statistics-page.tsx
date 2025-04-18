@@ -105,37 +105,26 @@ export default function StatisticsPage() {
     };
   }, [matches]);
 
-  // Calculate player statistics
+  // Fetch player statistics from API
+  const { data: apiPlayerStats, isLoading: playerStatsLoading } = useQuery<any[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "player-stats"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/player-stats`);
+      if (!response.ok) throw new Error("Failed to fetch player statistics");
+      return response.json();
+    },
+    enabled: !!selectedTeam,
+  });
+
+  // Process player statistics
   const playerStats = useMemo(() => {
-    if (!teamMembers || !matches) return [];
-
-    // Extract players only (not coaches or admins)
-    const players = teamMembers.filter(member => member.role === 'player');
+    // If API data is available, use it
+    if (apiPlayerStats) return apiPlayerStats;
     
-    // We would fetch player stats from API, but let's simulate simple stats based on available data
-    return players.map(player => {
-      // In a real app, you would get this data from match lineups, goals, etc.
-      // For now we'll use placeholder data based on player IDs to simulate different stats
-      // In a real implementation, this would come from a stats API endpoint
-
-      // Generate deterministic but varying stats based on userId as seed
-      const seed = player.user.id;
-      const matchesPlayed = Math.min(teamStats.played, 5 + (seed % 5)); // Vary between 5 and 9
-      
-      return {
-        id: player.user.id,
-        name: player.user.fullName || player.user.username,
-        position: player.user.position || "Unknown",
-        matchesPlayed,
-        minutesPlayed: matchesPlayed * 85 + (seed % 10) * 5,
-        goals: seed % 7, // Some random goals based on ID
-        assists: seed % 5, // Some random assists based on ID
-        yellowCards: seed % 3,
-        redCards: seed % 2,
-        image: player.user.profilePicture
-      };
-    });
-  }, [teamMembers, matches, teamStats.played]);
+    // Fallback to empty array if no data
+    return [];
+  }, [apiPlayerStats]);
 
   // Sort player stats by goals scored
   const topScorers = useMemo(() => {
@@ -151,13 +140,24 @@ export default function StatisticsPage() {
   const matchesByType = useMemo(() => {
     if (!matches) return { league: 0, friendly: 0, cup: 0, other: 0 };
     
-    const types = matches.reduce((acc, match) => {
-      const type = match.matchType || 'other';
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, { league: 0, friendly: 0, cup: 0, other: 0 });
+    // Create base stats object
+    const stats = { league: 0, friendly: 0, cup: 0, other: 0 };
     
-    return types;
+    // Count matches by type
+    matches.forEach(match => {
+      const type = match.matchType || 'other';
+      
+      // Map copa type to cup in our UI
+      if (type === 'copa') {
+        stats.cup += 1;
+      } else if (type === 'league' || type === 'friendly') {
+        stats[type] += 1;
+      } else {
+        stats.other += 1;
+      }
+    });
+    
+    return stats;
   }, [matches]);
 
   // Calculate home/away stats
@@ -234,7 +234,7 @@ export default function StatisticsPage() {
     });
   }, [matches]);
 
-  const isLoading = teamMembersLoading || matchesLoading || classificationLoading;
+  const isLoading = teamMembersLoading || matchesLoading || classificationLoading || playerStatsLoading;
 
   if (isLoading) {
     return (
