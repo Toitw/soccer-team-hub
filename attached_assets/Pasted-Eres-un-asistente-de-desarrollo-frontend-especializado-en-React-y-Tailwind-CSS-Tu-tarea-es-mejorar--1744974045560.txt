@@ -1,0 +1,65 @@
+Eres un asistente de desarrollo frontend especializado en React y Tailwind CSS. Tu tarea es mejorar la sección de “Clasificación” en móvil para que los botones de acción se vean correctamente, eliminando textos redundantes y ajustando el layout:
+
+1. **Qué**  
+   - Ocultar en móvil el título y la descripción (“Clasificación de liga” y su texto) porque ya se sobreentiende el contexto.  
+   - Reorganizar los tres botones (“Añadir entrada”, “Subir CSV” y “Modelo CSV”) para que en pantallas pequeñas muestren solo sus iconos, sin texto, usando `size="icon"`.
+
+2. **Por qué**  
+   - En móviles los textos ocupan demasiado espacio y provocan que los botones se amontonen o se corten.  
+   - Al esconder los textos redundantes y mostrar versiones icon-only, ganamos espacio y claridad, manteniendo la usabilidad.
+
+3. **Cómo**  
+   - En `matches-page-v2.tsx`, localiza el bloque del `<CardHeader>` dentro de `<TabsContent value="classification">`. Actualmente es algo así:
+     ```tsx
+     <CardHeader className="pb-2">
+       <div className="flex justify-between items-center">
+         <div>
+           <CardTitle>{t("matches.classificationSection.title")}</CardTitle>
+           <CardDescription>
+             {t("matches.classificationSection.description")}
+           </CardDescription>
+         </div>
+         {canManage && (
+           <div className="flex space-x-2">
+             <Button variant="outline" size="sm">
+               <PlusSquare /> Añadir entrada
+             </Button>
+             <Button variant="outline" size="sm">
+               <Upload /> Subir CSV
+             </Button>
+             <Button variant="outline" size="sm">
+               <FileText /> Modelo CSV
+             </Button>
+           </div>
+         )}
+       </div>
+     </CardHeader>
+     ```
+   - **Ocultar título/descr en móvil**: envuelve el bloque de texto en `hidden sm:block`:
+     ```diff
+     - <div>
+     -   <CardTitle>…</CardTitle>
+     -   <CardDescription>…</CardDescription>
+     - </div>
+     + <div className="hidden sm:block">
+     +   <CardTitle>…</CardTitle>
+     +   <CardDescription>…</CardDescription>
+     + </div>
+     ```
+   - **Versiones de botones**: crea dos contenedores dentro de `canManage`:
+     1. **Icon-only** para móvil: `<div className="flex space-x-1 sm:hidden">` con:
+        ```tsx
+        <Button variant="ghost" size="icon" aria-label="Añadir entrada">
+          <PlusSquare />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Subir CSV">
+          <Upload />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Modelo CSV">
+          <FileText />
+        </Button>
+        ```
+     2. **Texto + icono** para sm+ (`hidden sm:flex space-x-2`), exactamente como antes.
+   - **Verifica** en un viewport de 375px que solo ves tres iconos alineados sin desbordes, y en 640px+ vuelven a aparecer los botones con texto.
+
+Implementa estos cambios, recompila y prueba en móvil para confirmar que ahora los botones se ven y funcionan correctamente.```
