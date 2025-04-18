@@ -148,7 +148,7 @@ export function createAdminRouter(storage: EntityStorage) {
     }
     
     // Borra todas sus membresías
-    const memberships = await storage.teamMembers.getByUserId(id);
+    const memberships = await storage.getTeamMembersByUserId(id);
     await Promise.all(memberships.map(m => storage.deleteTeamMember(m.id)));
     
     // Borra al usuario

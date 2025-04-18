@@ -316,6 +316,10 @@ export class EntityStorage {
     return this.teamMembers.getByTeamAndUser(teamId, userId);
   }
   
+  async getTeamMembersByUserId(userId: number): Promise<TeamMember[]> {
+    return this.teamMembers.getByUserId(userId);
+  }
+  
   async createTeamMember(teamMemberData: InsertTeamMember): Promise<TeamMember> {
     return this.teamMembers.create(teamMemberData);
   }
