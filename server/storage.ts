@@ -72,6 +72,7 @@ export interface IStorage {
   // TeamMember methods
   getTeamMembers(teamId: number): Promise<TeamMember[]>;
   getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined>;
+  getTeamMembersByUserId(userId: number): Promise<TeamMember[]>;
   createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: number, teamMemberData: Partial<TeamMember>): Promise<TeamMember | undefined>;
   deleteTeamMember(id: number): Promise<boolean>;
