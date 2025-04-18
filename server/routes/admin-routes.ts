@@ -123,24 +123,32 @@ export function createAdminRouter(storage: IStorage) {
       return errorResponse(res, 'Failed to update user');
     }
     
-    // If role changed, also update the user's team memberships to match the new role
-    // Only for coach and player roles (admin roles in teams should be managed separately)
-    if (isRoleChanged && (validData.role === 'player' || validData.role === 'coach')) {
+    // If role changed, update the user's team memberships to match the new role
+    if (isRoleChanged && validData.role) {
       try {
         // Get all team memberships for this user
         const userTeamMemberships = await storage.getTeamMembersByUserId(id);
         
-        // Update each team membership to match the new user role
-        // Only update team roles that are player or coach (leave admin team memberships as is)
-        await Promise.all(
-          userTeamMemberships
-            .filter(member => member.role === 'player' || member.role === 'coach')
-            .map(member => 
-              storage.updateTeamMember(member.id, { role: validData.role as 'player' | 'coach' })
-            )
-        );
-        
-        console.log(`Updated team memberships for user ${id} to role: ${validData.role}`);
+        if (userTeamMemberships.length > 0) {
+          console.log(`Found ${userTeamMemberships.length} team memberships for user ${id}`);
+          
+          // Update all team memberships to the new role
+          // For admin users, we respect the team context, so if a user is being set as global admin,
+          // we'll also set them as team admin
+          for (const member of userTeamMemberships) {
+            // If user is being set to 'admin' or 'superuser', set team role to 'admin'
+            // Otherwise use the exact same role (player/coach)
+            const newTeamRole = (validData.role === 'admin' || validData.role === 'superuser') 
+              ? 'admin' 
+              : validData.role;
+              
+            await storage.updateTeamMember(member.id, { 
+              role: newTeamRole as 'admin' | 'coach' | 'player' 
+            });
+            
+            console.log(`Updated team membership ${member.id} for user ${id} in team ${member.teamId} to role: ${newTeamRole}`);
+          }
+        }
       } catch (error) {
         console.error(`Error updating team memberships for user ${id}:`, error);
         // Don't fail the request if membership updates fail
