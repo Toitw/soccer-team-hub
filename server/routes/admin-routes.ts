@@ -1,12 +1,12 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { EntityStorage } from '../entity-storage';
+import { IStorage } from '../storage';
 import { hashPassword } from '../auth';
 import { asyncHandler, jsonResponse, errorResponse, notFoundResponse, successResponse, createdResponse } from '../route-utils';
 import { insertUserSchema, insertTeamSchema } from '@shared/schema';
 import { generateJoinCode } from '../utils/join-code';
 import { z } from 'zod';
 
-export function createAdminRouter(storage: EntityStorage) {
+export function createAdminRouter(storage: IStorage) {
   const router = Router();
   // Middleware to check if user is a superuser
   const requireSuperuser = (req: Request, res: Response, next: NextFunction) => {
