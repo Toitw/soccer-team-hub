@@ -9,11 +9,12 @@
     "joinCode": "RVLJXE"
   },
   {
-    "name": "My Team",
+    "name": "My Team 2",
     "logo": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
     "division": "League Division",
     "seasonYear": "2025",
     "createdById": 32,
-    "id": 2
+    "id": 2,
+    "joinCode": ""
   }
 ]
