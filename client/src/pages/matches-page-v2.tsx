@@ -1333,13 +1333,13 @@ export default function MatchesPage() {
               <DialogHeader>
                 <DialogTitle>
                   {isEditingClassification
-                    ? "Edit Classification"
-                    : "Add Classification Entry"}
+                    ? t("matches.editClassification")
+                    : t("matches.addClassificationEntry")}
                 </DialogTitle>
                 <DialogDescription>
                   {isEditingClassification
-                    ? "Edit the classification details below."
-                    : "Enter team details below to add to the classification table."}
+                    ? t("matches.editClassificationDetails")
+                    : t("matches.enterTeamDetailsClassification")}
                 </DialogDescription>
               </DialogHeader>
               <Form {...classificationForm}>
@@ -1354,9 +1354,9 @@ export default function MatchesPage() {
                     name="externalTeamName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Team Name</FormLabel>
+                        <FormLabel>{t("matches.teamName")}</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Enter team name" />
+                          <Input {...field} placeholder={t("matches.enterTeamName")} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1368,7 +1368,7 @@ export default function MatchesPage() {
                       name="points"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Points</FormLabel>
+                          <FormLabel>{t("statistics.points")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1389,7 +1389,7 @@ export default function MatchesPage() {
                       name="position"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Position</FormLabel>
+                          <FormLabel>{t("statistics.position")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1401,7 +1401,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1415,7 +1415,7 @@ export default function MatchesPage() {
                       name="gamesPlayed"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Played</FormLabel>
+                          <FormLabel>{t("matches.classificationSection.played")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1427,7 +1427,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1439,7 +1439,7 @@ export default function MatchesPage() {
                       name="gamesWon"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Won</FormLabel>
+                          <FormLabel>{t("matches.classificationSection.won")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1451,7 +1451,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1465,7 +1465,7 @@ export default function MatchesPage() {
                       name="gamesDrawn"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Drawn</FormLabel>
+                          <FormLabel>{t("matches.classificationSection.drawn")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1477,7 +1477,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
