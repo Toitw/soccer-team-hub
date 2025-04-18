@@ -251,7 +251,7 @@ export default function StatisticsPage() {
       <div className="flex-1 ml-0 md:ml-64 flex flex-col overflow-hidden">
         <Header title={t("navigation.statistics")} />
         
-        <div className="flex-1 overflow-auto p-4 pb-16">
+        <div className="flex-1 overflow-auto p-4 pb-16 md:pb-16 pb-24">
           <div className="max-w-6xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex items-center justify-between mb-4">
