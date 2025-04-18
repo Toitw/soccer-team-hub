@@ -251,14 +251,14 @@ export default function StatisticsPage() {
       <div className="flex-1 ml-0 md:ml-64 flex flex-col overflow-hidden">
         <Header title={t("navigation.statistics")} />
         
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-4 pb-16">
           <div className="max-w-6xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-bold hidden md:block">
                   {t("statistics.teamStats")}
                 </h1>
-                <TabsList>
+                <TabsList className="w-full md:w-auto">
                   <TabsTrigger value="team">
                     {t("statistics.team")}
                   </TabsTrigger>
