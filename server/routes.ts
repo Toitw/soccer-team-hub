@@ -2264,5 +2264,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get player statistics for a team
+  app.get('/api/teams/:teamId/player-stats', async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    const teamId = parseInt(req.params.teamId);
+    
+    try {
+      // Verify team exists
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+
+      // Get all team members who are players
+      const teamMembers = await storage.getTeamMembers(teamId);
+      const playerMembers = teamMembers.filter(member => member.role === 'player');
+      
+      // Get all matches for the team
+      const matches = await storage.getMatches(teamId);
+      const completedMatches = matches.filter(match => match.status === 'completed');
+      const matchIds = completedMatches.map(match => match.id);
+      
+      // For each player, collect their statistics across all matches
+      const playerStatsPromises = playerMembers.map(async (member) => {
+        // Get user details
+        const user = await storage.getUser(member.userId);
+        if (!user) return null;
+        
+        // Initialize player summary
+        const playerSummary = {
+          id: user.id,
+          name: user.fullName || user.username,
+          position: user.position || "Unknown",
+          matchesPlayed: 0,
+          minutesPlayed: 0,
+          goals: 0,
+          assists: 0,
+          yellowCards: 0,
+          redCards: 0,
+          image: user.profilePicture || "/default-avatar.png"
+        };
+        
+        // For each player, get their stats from all matches
+        for (const matchId of matchIds) {
+          // Check match stats
+          const matchStats = await storage.getMatchPlayerStats(matchId);
+          const playerStat = matchStats.find(stat => stat.userId === user.id);
+          
+          if (playerStat) {
+            playerSummary.matchesPlayed++;
+            playerSummary.goals += playerStat.goals || 0;
+            playerSummary.assists += playerStat.assists || 0;
+            playerSummary.yellowCards += playerStat.yellowCards || 0;
+            playerSummary.redCards += playerStat.redCards || 0;
+            playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
+          }
+          
+          // Check for goals in match goals table (ensures we catch everything)
+          const matchGoals = await storage.getMatchGoals(matchId);
+          // Count goals scored by this player
+          const goalsScored = matchGoals.filter(goal => goal.scorerId === user.id).length;
+          // Count assists by this player
+          const assistsProvided = matchGoals.filter(goal => goal.assistId === user.id).length;
+          
+          if (goalsScored > 0 || assistsProvided > 0) {
+            playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
+            playerSummary.goals += goalsScored;
+            playerSummary.assists += assistsProvided;
+          }
+          
+          // Check for cards in match cards
+          const matchCards = await storage.getMatchCards(matchId);
+          const yellowCards = matchCards.filter(card => 
+            card.playerId === user.id && card.cardType === 'yellow'
+          ).length;
+          const redCards = matchCards.filter(card => 
+            card.playerId === user.id && card.cardType === 'red'
+          ).length;
+          
+          if (yellowCards > 0 || redCards > 0) {
+            playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
+            playerSummary.yellowCards += yellowCards;
+            playerSummary.redCards += redCards;
+          }
+        }
+        
+        return playerSummary;
+      });
+      
+      const playerStats = (await Promise.all(playerStatsPromises)).filter(Boolean);
+      res.json(playerStats);
+    } catch (error) {
+      console.error("Error fetching player statistics:", error);
+      res.status(500).json({ error: "Failed to retrieve player statistics" });
+    }
+  });
+
   return httpServer;
 }
