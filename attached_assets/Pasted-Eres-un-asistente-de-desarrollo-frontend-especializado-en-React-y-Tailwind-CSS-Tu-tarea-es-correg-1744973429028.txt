@@ -1,0 +1,40 @@
+Eres un asistente de desarrollo frontend especializado en React y Tailwind CSS. 
+Tu tarea es corregir un problema de maquetación en la vista móvil de la página de “Matches” (archivo `matches-page-v2.tsx`):
+
+1. **Qué**  
+   - Detecta que en la pestaña “Clasificación” el contenedor padre se ensancha en móvil porque la tabla tiene un `min-w-[700px]`.
+   - El objetivo es que solo la tabla haga scroll horizontal y el contenedor de tabs no cambie de ancho.
+
+2. **Por qué**  
+   - El `min-w-[700px]` obliga al `<CardContent>` a superar el ancho de pantalla en móvil, forzando todo el layout a “romperse” y mostrar scroll de toda la página.
+   - Al limitar el scroll solo a la tabla, mejoramos la experiencia móvil y mantenemos las pestañas fijas.
+
+3. **Cómo**  
+   - Abre `matches-page-v2.tsx` y localiza la sección:
+     ```tsx
+     <CardContent className="overflow-x-auto">
+       <Table className="w-full min-w-[700px] md:min-w-full">
+         …
+       </Table>
+     </CardContent>
+     ```
+   - **Reemplázala** por:
+     ```tsx
+     <CardContent className="overflow-x-auto max-w-full">
+       <Table className="w-full min-w-full">
+         …
+       </Table>
+     </CardContent>
+     ```
+   - Asegúrate de:
+     - Eliminar cualquier `min-w-[700px]`.
+     - Mantener `overflow-x-auto` y añadir `max-w-full` al contenedor.
+     - Usar `min-w-full` (o eliminar por completo) en la tabla para que crezca y haga scroll internamente.
+   - Verifica en dispositivos móviles que:
+     - Las pestañas (`<TabsList>`) mantienen siempre el mismo ancho de pantalla.
+     - Sólo la tabla de clasificación muestra scroll horizontal cuando es necesaria.
+     - No aparecen barras de scroll en todo el body, solo dentro del `<CardContent>`.
+
+Implementa el cambio, prueba en distintos tamaños de pantalla (375px–768px) y confirma que la navegación entre pestañas no cambie el ancho de la página. ```
+
+— Este prompt explica **qué** cambiar, **por qué** y **cómo** implementarlo paso a paso. Así tu IA en Replit sabrá exactamente qué hacer.
