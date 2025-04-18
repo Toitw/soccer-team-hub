@@ -147,19 +147,13 @@ export function createAdminRouter(storage: EntityStorage) {
       return errorResponse(res, 'Cannot delete superuser accounts', 403);
     }
     
-    // Here you would implement proper user deletion logic
-    // This might include:
-    // 1. Removing user from team memberships
-    // 2. Reassigning or deleting content created by the user
-    // 3. Then finally deleting the user record
+    // Borra todas sus membresías
+    const memberships = await storage.teamMembers.getByUserId(id);
+    await Promise.all(memberships.map(m => storage.deleteTeamMember(m.id)));
     
-    // Delete the user
-    const deleted = await storage.deleteUser(id);
-    
-    if (!deleted) {
-      return errorResponse(res, 'Failed to delete user');
-    }
-    
+    // Borra al usuario
+    const ok = await storage.deleteUser(id);
+    if (!ok) return errorResponse(res, 'Failed to delete user');
     return successResponse(res, 'User deleted successfully');
   }));
 
@@ -259,19 +253,12 @@ export function createAdminRouter(storage: EntityStorage) {
       return notFoundResponse(res, 'Team');
     }
     
-    // Here you would implement proper team deletion logic
-    // This might include:
-    // 1. Removing all team memberships
-    // 2. Deleting team-related data (matches, events, etc.)
-    // 3. Then finally deleting the team record
+    // Borra membresías del equipo
+    const members = await storage.getTeamMembers(id);
+    await Promise.all(members.map(m => storage.deleteTeamMember(m.id)));
     
-    // Delete the team
-    const deleted = await storage.deleteTeam(id);
-    
-    if (!deleted) {
-      return errorResponse(res, 'Failed to delete team');
-    }
-    
+    const ok = await storage.deleteTeam(id);
+    if (!ok) return errorResponse(res, 'Failed to delete team');
     return successResponse(res, 'Team deleted successfully');
   }));
 
@@ -323,7 +310,12 @@ export function createAdminRouter(storage: EntityStorage) {
     }
     
     // Delete membership
-    // For now just return success
+    const deleted = await storage.deleteTeamMember(membership.id);
+    
+    if (!deleted) {
+      return errorResponse(res, 'Failed to remove user from team');
+    }
+    
     return successResponse(res, 'User removed from team successfully');
   }));
 
