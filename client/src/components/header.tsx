@@ -10,14 +10,17 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface HeaderProps {
   title: string;
+  translationKey?: string;
 }
 
-export default function Header({ title }: HeaderProps) {
+export default function Header({ title, translationKey }: HeaderProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
@@ -40,7 +43,9 @@ export default function Header({ title }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-primary">{title}</h1>
+        <h1 className="text-2xl font-semibold text-primary">
+          {translationKey ? t(translationKey) : title}
+        </h1>
         <div className="flex items-center space-x-4">
           <Button variant="ghost" className="text-sm text-primary hover:text-primary/80 relative">
             <Bell className="h-5 w-5" />
