@@ -160,7 +160,7 @@ export default function SettingsPage() {
 
   // Use the selected team ID for members query to maintain consistency
   const { data: teamMembers, isLoading: membersLoading } = useQuery<(TeamMember & { user: any })[]>({
-    queryKey: ["/api/teams", selectedTeamId, "members"],
+    queryKey: [`/api/teams/${selectedTeamId}/members`],
     enabled: !!selectedTeamId,
     staleTime: 0, // Force refetch every time
     refetchOnMount: true, // Always refetch when component mounts
@@ -220,16 +220,16 @@ export default function SettingsPage() {
       // Invalidate all related queries to force a complete refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
-      // Force refetch of team members immediately
+      // Force refetch of team members immediately using the correct URL-based query key
       if (selectedTeamId) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/teams", selectedTeamId, "members"],
+          queryKey: [`/api/teams/${selectedTeamId}/members`],
           refetchType: 'active', 
         });
         
         // Manually refetch to ensure immediate update
         queryClient.refetchQueries({ 
-          queryKey: ["/api/teams", selectedTeamId, "members"],
+          queryKey: [`/api/teams/${selectedTeamId}/members`],
           exact: true 
         });
       }
@@ -353,14 +353,14 @@ export default function SettingsPage() {
     
     console.log("Force refreshing team members for team:", selectedTeamId);
     
-    // Force immediate invalidation and refetch
+    // Force immediate invalidation and refetch with the correct query key
     queryClient.invalidateQueries({ 
-      queryKey: ["/api/teams", selectedTeamId, "members"],
+      queryKey: [`/api/teams/${selectedTeamId}/members`],
       refetchType: 'all'
     });
     
     queryClient.refetchQueries({ 
-      queryKey: ["/api/teams", selectedTeamId, "members"],
+      queryKey: [`/api/teams/${selectedTeamId}/members`],
       exact: true
     }).then(() => {
       console.log("Team members refetch completed");
