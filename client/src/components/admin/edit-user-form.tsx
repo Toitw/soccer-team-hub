@@ -126,6 +126,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   // Handle form submission
   const onSubmit = (values: EditUserFormValues) => {
+    console.log('Form submitted with values:', values);
     mutation.mutate(values);
   };
 
@@ -364,7 +365,14 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button 
+            type="submit" 
+            disabled={mutation.isPending}
+            onClick={(e) => {
+              console.log('Submit button clicked');
+              // No necesitamos preventDefault ya que el formulario manejará el evento de envío
+            }}
+          >
             {mutation.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
