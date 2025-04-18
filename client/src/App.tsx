@@ -10,6 +10,7 @@ import MatchesPage from "@/pages/matches-page-v2";
 import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";
+import StatisticsPage from "@/pages/statistics-page";
 import SettingsPage from "@/pages/settings-page";
 import AdminPage from "@/pages/admin-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
@@ -17,6 +18,7 @@ import ResetPasswordPage from "@/pages/reset-password-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
+import { TeamProvider } from "./hooks/use-team";
 import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
@@ -46,6 +48,12 @@ function Router() {
         component={AnnouncementsPage} 
       />
       
+      {/* Statistics - accessible to all but players are read-only */}
+      <ProtectedRoute
+        path="/statistics"
+        component={StatisticsPage}
+      />
+      
       {/* Settings - restricted to admin only */}
       <ProtectedRoute 
         path="/settings" 
@@ -73,8 +81,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <Router />
-          <Toaster />
+          <TeamProvider>
+            <Router />
+            <Toaster />
+          </TeamProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
