@@ -412,7 +412,7 @@ export default function StatisticsPage() {
                         
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span>{t("statistics.friendly")}</span>
+                            <span>{t("statistics.friendlyMatch")}</span>
                             <span>{matchesByType.friendly}</span>
                           </div>
                           <Progress 
@@ -423,7 +423,7 @@ export default function StatisticsPage() {
                         
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span>{t("statistics.cup")}</span>
+                            <span>{t("statistics.cupMatch")}</span>
                             <span>{matchesByType.cup}</span>
                           </div>
                           <Progress 
@@ -434,7 +434,7 @@ export default function StatisticsPage() {
                         
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span>{t("statistics.other")}</span>
+                            <span>{t("statistics.otherMatch")}</span>
                             <span>{matchesByType.other}</span>
                           </div>
                           <Progress 
@@ -602,7 +602,7 @@ export default function StatisticsPage() {
                           <TableHead className="w-[50px]">{t("statistics.rank")}</TableHead>
                           <TableHead>{t("statistics.player")}</TableHead>
                           <TableHead className="text-right">{t("statistics.played")}</TableHead>
-                          <TableHead className="text-right">{t("statistics.assists")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.playerAssists")}</TableHead>
                           <TableHead className="text-right">{t("statistics.assistsPerMatch")}</TableHead>
                         </TableRow>
                       </TableHeader>
