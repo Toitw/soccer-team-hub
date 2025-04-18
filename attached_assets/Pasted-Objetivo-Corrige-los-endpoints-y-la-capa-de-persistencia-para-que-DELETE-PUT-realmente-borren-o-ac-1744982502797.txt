@@ -1,0 +1,91 @@
+Objetivo
+Corrige los endpoints y la capa de persistencia para que DELETE / PUT realmente borren o actualicen usuarios y equipos. Debe funcionar con los formularios existentes sin tocar el front‑end.
+
+csharp
+Copiar
+Editar
+### Archivos a editar
+1. /server/entity-storage.ts  
+2. /server/admin-routes.ts  
+
+---
+
+### 1 |  entity-storage.ts  
+Busca la clase **EntityManager** (base de los managers).  
+Añade/ajusta el método `update` y crea un método `delete` para que siempre persistan los cambios en disco.
+
+```ts
+// dentro de EntityManager<T, I>
+async update(id: number, partial: Partial<T>): Promise<T | undefined> {
+  const current = this.entities.get(id);
+  if (!current) return undefined;
+
+  const next = { ...current, ...partial };
+  this.entities.set(id, next);
+  this.persist();          // ⬅️  GUARDA EN DISCO
+  return next;
+}
+
+async delete(id: number): Promise<boolean> {
+  const removed = this.entities.delete(id);
+  if (removed) this.persist();   // ⬅️  GARANTIZA PERSISTENCIA
+  return removed;
+}
+Ahora, en EntityStorage implementa métodos finos que deleguen:
+
+ts
+Copiar
+Editar
+// User
+async deleteUser(id: number) {
+  return this.users.delete(id);
+}
+// Team
+async deleteTeam(id: number) {
+  return this.teams.delete(id);
+}
+2 | admin-routes.ts
+2.1 Eliminar Usuario
+Reemplaza el router.delete('/admin/users/:id' …) por:
+
+ts
+Copiar
+Editar
+router.delete('/admin/users/:id', asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const user = await storage.getUser(id);
+  if (!user) return notFoundResponse(res, 'User');
+  if (user.role === 'superuser')
+    return errorResponse(res, 'Cannot delete superuser accounts', 403);
+
+  // Borra todas sus membresías
+  const memberships = await storage.getTeamMembers(id); // implementa getTeamMembersByUser si no existe
+  await Promise.all(memberships.map(m => storage.deleteTeamMember(m.id)));
+
+  // Borra al usuario
+  const ok = await storage.deleteUser(id);
+  if (!ok) return errorResponse(res, 'Failed to delete user');
+  return successResponse(res, 'User deleted successfully');
+}));
+2.2 Eliminar Equipo
+Mismo patrón:
+
+ts
+Copiar
+Editar
+router.delete('/admin/teams/:id', asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const team = await storage.getTeam(id);
+  if (!team) return notFoundResponse(res, 'Team');
+
+  // Borra membresías del equipo
+  const members = await storage.getTeamMembers(id);
+  await Promise.all(members.map(m => storage.deleteTeamMember(m.id)));
+
+  const ok = await storage.deleteTeam(id);
+  if (!ok) return errorResponse(res, 'Failed to delete team');
+  return successResponse(res, 'Team deleted successfully');
+}));
+2.3 Editar Usuario / Equipo
+No cambies la ruta aún; basta con que storage.updateUser y storage.updateTeam ya persistan gracias al cambio anterior. Comprueba que los controladores no sobre‑escriban campos no enviados: filtra propiedades undefined antes de llamar al storage.
+

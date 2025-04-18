@@ -153,7 +153,13 @@ export function createAdminRouter(storage: EntityStorage) {
     // 2. Reassigning or deleting content created by the user
     // 3. Then finally deleting the user record
     
-    // For now just return success
+    // Delete the user
+    const deleted = await storage.deleteUser(id);
+    
+    if (!deleted) {
+      return errorResponse(res, 'Failed to delete user');
+    }
+    
     return successResponse(res, 'User deleted successfully');
   }));
 
@@ -259,7 +265,13 @@ export function createAdminRouter(storage: EntityStorage) {
     // 2. Deleting team-related data (matches, events, etc.)
     // 3. Then finally deleting the team record
     
-    // For now just return success
+    // Delete the team
+    const deleted = await storage.deleteTeam(id);
+    
+    if (!deleted) {
+      return errorResponse(res, 'Failed to delete team');
+    }
+    
     return successResponse(res, 'Team deleted successfully');
   }));
 
