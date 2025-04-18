@@ -8,22 +8,6 @@
     "createdAt": "2025-03-14T16:00:38.865Z"
   },
   {
-    "title": "First announce",
-    "content": "first",
-    "teamId": 3,
-    "createdById": 1,
-    "id": 11,
-    "createdAt": "2025-03-16T08:42:31.001Z"
-  },
-  {
-    "title": "second announce",
-    "content": "second",
-    "teamId": 3,
-    "createdById": 1,
-    "id": 12,
-    "createdAt": "2025-03-16T08:42:39.444Z"
-  },
-  {
     "title": "eo",
     "content": "lk",
     "teamId": 1,
