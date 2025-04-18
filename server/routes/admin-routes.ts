@@ -147,13 +147,9 @@ export function createAdminRouter(storage: EntityStorage) {
       return errorResponse(res, 'Cannot delete superuser accounts', 403);
     }
     
-    // Here you would implement proper user deletion logic
-    // This might include:
-    // 1. Removing user from team memberships
-    // 2. Reassigning or deleting content created by the user
-    // 3. Then finally deleting the user record
+    // Delete the user using the new storage method
+    await storage.deleteUser(id);
     
-    // For now just return success
     return successResponse(res, 'User deleted successfully');
   }));
 
@@ -253,13 +249,9 @@ export function createAdminRouter(storage: EntityStorage) {
       return notFoundResponse(res, 'Team');
     }
     
-    // Here you would implement proper team deletion logic
-    // This might include:
-    // 1. Removing all team memberships
-    // 2. Deleting team-related data (matches, events, etc.)
-    // 3. Then finally deleting the team record
+    // Delete the team using the new storage method
+    await storage.deleteTeam(id);
     
-    // For now just return success
     return successResponse(res, 'Team deleted successfully');
   }));
 
