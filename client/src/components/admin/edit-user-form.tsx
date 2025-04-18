@@ -127,7 +127,39 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   // Handle form submission
   const onSubmit = (values: EditUserFormValues) => {
     console.log('Form submitted with values:', values);
-    mutation.mutate(values);
+    
+    // Log the current form state for debugging
+    console.log('Form state:', {
+      isDirty: form.formState.isDirty,
+      errors: form.formState.errors,
+      isValid: form.formState.isValid
+    });
+    
+    // Direct API call for testing
+    const { confirmPassword, changePassword, ...userData } = values;
+    if (!changePassword) {
+      delete userData.password;
+    }
+    
+    console.log('Calling API directly...');
+    fetch(`/api/admin/users/${user.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+      credentials: 'include'
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('API response:', data);
+      alert('Usuario actualizado correctamente');
+    })
+    .catch(err => {
+      console.error('API error:', err);
+      alert('Error al actualizar usuario');
+    });
+    
+    // Original mutation approach - commenting out temporarily
+    // mutation.mutate(values);
   };
 
   // Handle avatar preview
