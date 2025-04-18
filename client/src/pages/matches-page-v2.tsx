@@ -945,9 +945,9 @@ export default function MatchesPage() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="overflow-x-auto">
+                <CardContent className="overflow-x-auto max-w-full">
                   {classifications && classifications.length > 0 ? (
-                    <Table className="w-full min-w-[700px] md:min-w-full">
+                    <Table className="w-full min-w-full">
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-12 truncate">{t("matches.classificationSection.position")}</TableHead>
