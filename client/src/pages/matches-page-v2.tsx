@@ -1489,7 +1489,7 @@ export default function MatchesPage() {
                       name="gamesLost"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Games Lost</FormLabel>
+                          <FormLabel>{t("matches.classificationSection.lost")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1501,7 +1501,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1515,7 +1515,7 @@ export default function MatchesPage() {
                       name="goalsFor"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Goals For</FormLabel>
+                          <FormLabel>{t("statistics.goalsFor")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1527,7 +1527,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1539,7 +1539,7 @@ export default function MatchesPage() {
                       name="goalsAgainst"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Goals Against</FormLabel>
+                          <FormLabel>{t("statistics.goalsAgainst")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1551,7 +1551,7 @@ export default function MatchesPage() {
                                   value === "" ? null : parseInt(value, 10),
                                 );
                               }}
-                              placeholder="Optional"
+                              placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1561,7 +1561,7 @@ export default function MatchesPage() {
                   </div>
                   <DialogFooter>
                     <Button type="submit">
-                      {isEditingClassification ? "Save Changes" : "Add Entry"}
+                      {isEditingClassification ? t("common.saveChanges") : t("matches.addEntry")}
                     </Button>
                   </DialogFooter>
                 </form>
