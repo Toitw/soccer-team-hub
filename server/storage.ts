@@ -60,6 +60,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   
   // Team methods
   getTeam(id: number): Promise<Team | undefined>;
@@ -68,6 +69,7 @@ export interface IStorage {
   getTeamByJoinCode(joinCode: string): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
   updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined>;
+  deleteTeam(id: number): Promise<boolean>;
   
   // TeamMember methods
   getTeamMembers(teamId: number): Promise<TeamMember[]>;
@@ -939,6 +941,31 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+  async deleteUser(id: number): Promise<boolean> {
+    // First, get all team memberships for this user
+    const teamMembers = await this.getTeamMembersByUserId(id);
+    
+    // Delete all team memberships
+    let allDeleted = true;
+    for (const member of teamMembers) {
+      const deleted = await this.deleteTeamMember(member.id);
+      if (!deleted) {
+        allDeleted = false;
+        console.error(`Failed to delete team member ${member.id} for user ${id}`);
+      }
+    }
+    
+    // Now delete the user
+    const result = this.users.delete(id);
+    
+    // Save users data to file
+    if (result) {
+      this.saveUsersData();
+    }
+    
+    return result;
+  }
+
   // Team methods
   async getTeam(id: number): Promise<Team | undefined> {
     return this.teams.get(id);
@@ -1004,6 +1031,52 @@ export class MemStorage implements IStorage {
     return updatedTeam;
   }
 
+  async deleteTeam(id: number): Promise<boolean> {
+    // First, get all team members for this team
+    const teamMembers = await this.getTeamMembers(id);
+    
+    // Delete all team members
+    let allDeleted = true;
+    for (const member of teamMembers) {
+      const deleted = await this.deleteTeamMember(member.id);
+      if (!deleted) {
+        allDeleted = false;
+        console.error(`Failed to delete team member ${member.id} for team ${id}`);
+      }
+    }
+    
+    // Delete all related matches
+    const matches = await this.getMatches(id);
+    for (const match of matches) {
+      await this.deleteMatch(match.id);
+    }
+    
+    // Delete all related events
+    const events = await this.getEvents(id);
+    for (const event of events) {
+      await this.deleteEvent(event.id);
+    }
+    
+    // Delete all related announcements
+    const announcements = await this.getAnnouncements(id);
+    for (const announcement of announcements) {
+      await this.deleteAnnouncement(announcement.id);
+    }
+    
+    // Delete all related league classifications
+    await this.deleteAllTeamClassifications(id);
+    
+    // Now delete the team
+    const result = this.teams.delete(id);
+    
+    // Save teams data to file
+    if (result) {
+      this.saveTeamsData();
+    }
+    
+    return result;
+  }
+
   // TeamMember methods
   async getTeamMembers(teamId: number): Promise<TeamMember[]> {
     return Array.from(this.teamMembers.values()).filter(
@@ -1014,6 +1087,12 @@ export class MemStorage implements IStorage {
   async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
     return Array.from(this.teamMembers.values()).find(
       (member) => member.teamId === teamId && member.userId === userId
+    );
+  }
+
+  async getTeamMembersByUserId(userId: number): Promise<TeamMember[]> {
+    return Array.from(this.teamMembers.values()).filter(
+      (member) => member.userId === userId
     );
   }
 
