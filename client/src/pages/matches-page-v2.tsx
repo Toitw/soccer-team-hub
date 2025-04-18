@@ -706,13 +706,13 @@ export default function MatchesPage() {
     if (matchType === "league") variant = "default";
     else if (matchType === "copa") variant = "destructive";
     else if (matchType === "friendly") variant = "outline";
-    
+
     // Get translated match type
     let translatedType = matchType;
     if (matchType === "league") translatedType = t("matches.official");
     else if (matchType === "copa") translatedType = t("matches.tournament");
     else if (matchType === "friendly") translatedType = t("matches.friendly");
-    
+
     return (
       <Badge variant={variant} className="ml-2 capitalize">
         {translatedType}
@@ -949,7 +949,7 @@ export default function MatchesPage() {
                             <FileText className="h-4 w-4" />
                           </Button>
                         </div>
-                        
+
                         {/* Botones con texto para tablet/desktop */}
                         <div className="hidden sm:flex space-x-2">
                           <Button
