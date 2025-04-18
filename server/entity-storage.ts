@@ -398,14 +398,4 @@ export class EntityStorage {
   async deleteAnnouncement(id: number): Promise<boolean> {
     return this.announcements.delete(id);
   }
-  
-  // User deletion method
-  async deleteUser(id: number): Promise<boolean> {
-    return this.users.delete(id);
-  }
-  
-  // Team deletion method
-  async deleteTeam(id: number): Promise<boolean> {
-    return this.teams.delete(id);
-  }
 }
