@@ -912,36 +912,67 @@ export default function MatchesPage() {
               <Card>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
-                    <div>
+                    <div className="hidden sm:block">
                       <CardTitle>{t("matches.classificationSection.title")}</CardTitle>
                       <CardDescription>
                         {t("matches.classificationSection.description")}
                       </CardDescription>
                     </div>
                     {canManage && (
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setClassificationDialogOpen(true)}
-                        >
-                          <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.classificationSection.addEntry")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCsvUploadDialogOpen(true)}
-                        >
-                          <Upload className="h-4 w-4 mr-1" /> {t("matches.classificationSection.uploadCsv")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={generateSampleCsv}
-                        >
-                          <FileText className="h-4 w-4 mr-1" /> {t("matches.classificationSection.sampleCsv")}
-                        </Button>
-                      </div>
+                      <>
+                        {/* Botones solo con iconos para móvil */}
+                        <div className="flex space-x-1 sm:hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setClassificationDialogOpen(true)}
+                            aria-label={t("matches.classificationSection.addEntry")}
+                          >
+                            <PlusSquare className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                            aria-label={t("matches.classificationSection.uploadCsv")}
+                          >
+                            <Upload className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={generateSampleCsv}
+                            aria-label={t("matches.classificationSection.sampleCsv")}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        {/* Botones con texto para tablet/desktop */}
+                        <div className="hidden sm:flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setClassificationDialogOpen(true)}
+                          >
+                            <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.classificationSection.addEntry")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                          >
+                            <Upload className="h-4 w-4 mr-1" /> {t("matches.classificationSection.uploadCsv")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={generateSampleCsv}
+                          >
+                            <FileText className="h-4 w-4 mr-1" /> {t("matches.classificationSection.sampleCsv")}
+                          </Button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </CardHeader>
