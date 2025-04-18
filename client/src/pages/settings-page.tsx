@@ -162,6 +162,8 @@ export default function SettingsPage() {
   const { data: teamMembers, isLoading: membersLoading } = useQuery<(TeamMember & { user: any })[]>({
     queryKey: ["/api/teams", selectedTeamId, "members"],
     enabled: !!selectedTeamId,
+    staleTime: 0, // Force refetch every time
+    refetchOnMount: true, // Always refetch when component mounts
   });
 
   const isLoading = teamsLoading || membersLoading;
@@ -215,22 +217,21 @@ export default function SettingsPage() {
       console.log("Team update successful, response:", response);
       console.log("Submitted data:", submittedData);
       
-      // Invalidate team data to force a refetch
+      // Invalidate all related queries to force a complete refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
-      // Reset the form to the new values to ensure they are correctly displayed
-      if (selectedTeam) {
-        teamSettingsForm.reset({
-          name: selectedTeam.name,
-          division: submittedData.division || "",
-          seasonYear: submittedData.seasonYear || "",
-          logo: selectedTeam.logo || "",
-        });
-      }
-      
-      // Also invalidate team members to ensure they are refreshed
+      // Force refetch of team members immediately
       if (selectedTeamId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/teams", selectedTeamId, "members"],
+          refetchType: 'active', 
+        });
+        
+        // Manually refetch to ensure immediate update
+        queryClient.refetchQueries({ 
+          queryKey: ["/api/teams", selectedTeamId, "members"],
+          exact: true 
+        });
       }
       
       toast({
@@ -257,7 +258,11 @@ export default function SettingsPage() {
     onSuccess: () => {
       setIsDeleteDialogOpen(false);
       setMemberToDelete(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
+      
+      // Use the same more aggressive refetch strategy
+      setTimeout(() => {
+        forceRefreshTeamMembers();
+      }, 300);
       toast({
         title: "Member removed",
         description: "Team member has been removed successfully.",
@@ -296,10 +301,10 @@ export default function SettingsPage() {
       // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
-      // Also invalidate team members to ensure they are refreshed
-      if (selectedTeamId) {
-        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
-      }
+      // Use our force refresh function to ensure team members are reloaded
+      setTimeout(() => {
+        forceRefreshTeamMembers();
+      }, 300);
       
       toast({
         title: "Logo updated",
@@ -342,8 +347,35 @@ export default function SettingsPage() {
     uploadLogoMutation.mutate(logoUrl);
   };
   
+  // Helper function to force refresh team members
+  const forceRefreshTeamMembers = () => {
+    if (!selectedTeamId) return;
+    
+    console.log("Force refreshing team members for team:", selectedTeamId);
+    
+    // Force immediate invalidation and refetch
+    queryClient.invalidateQueries({ 
+      queryKey: ["/api/teams", selectedTeamId, "members"],
+      refetchType: 'all'
+    });
+    
+    queryClient.refetchQueries({ 
+      queryKey: ["/api/teams", selectedTeamId, "members"],
+      exact: true
+    }).then(() => {
+      console.log("Team members refetch completed");
+    }).catch(error => {
+      console.error("Error refetching team members:", error);
+    });
+  };
+  
   const handleTeamSettingsSubmit = (data: TeamSettingsFormData) => {
     updateTeamMutation.mutate(data);
+    
+    // Set a small delay to ensure the mutation has time to complete
+    setTimeout(() => {
+      forceRefreshTeamMembers();
+    }, 300);
   };
   
   const form = useForm<InviteFormData>({
