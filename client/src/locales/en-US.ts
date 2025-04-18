@@ -369,7 +369,7 @@ export const enUS = {
     failedToUpload: "Failed to upload CSV data",
     leagueTable: "League Table",
     standings: "Standings",
-    leagueClassification: "Classification",
+    leagueClassification: "League",
     addClassification: "Add Classification",
     editClassification: "Edit Classification",
     deleteClassification: "Delete Classification",
