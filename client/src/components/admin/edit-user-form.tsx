@@ -114,7 +114,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
     onSuccess: (data) => {
       // 1) Invalidate admin users list
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      
+
       // 2) Invalidate all team-related queries and team members lists
       queryClient.invalidateQueries({
         predicate: query => 
@@ -122,7 +122,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/teams')
       });
-      
+
       // 2.1) Specifically target team members lists to ensure role updates are reflected
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -131,10 +131,10 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           query.queryKey[0].startsWith("/api/teams") &&
           query.queryKey[0].includes("/members")
       });
-      
+
       // 3) Invalidate current user data if the updated user is the logged-in user
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      
+
       // 4) Invalidate any individual user queries
       queryClient.invalidateQueries({
         predicate: query => 
@@ -142,7 +142,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/users')
       });
-      
+
       // 4.1) Specifically target user-by-ID queries
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -150,10 +150,10 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           typeof query.queryKey[0] === "string" &&
           query.queryKey[0].startsWith("/api/users/")
       });
-      
+
       // 5) Invalidate auth context
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      
+
       toast({ title: "User Updated", description: `Updated ${data.fullName}` });
       onSuccess();
     },
