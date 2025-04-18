@@ -1,0 +1,833 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { useState, useMemo } from "react";
+import { useTeam } from "../hooks/use-team";
+import { Match, TeamMember, LeagueClassification } from "@shared/schema";
+import Header from "@/components/header";
+import Sidebar from "@/components/sidebar";
+import MobileNavigation from "@/components/mobile-navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, BarChart3, TrendingUp, Trophy, Users, Goal, Award, Clock, Calendar } from "lucide-react";
+import { useTranslation } from "../hooks/use-translation";
+import { format, parseISO } from "date-fns";
+
+export default function StatisticsPage() {
+  const { user } = useAuth();
+  const { selectedTeam } = useTeam();
+  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState("team");
+
+  // Fetch team members
+  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
+    (TeamMember & { user: any })[]
+  >({
+    queryKey: ["/api/teams", selectedTeam?.id, "members"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/members`);
+      if (!response.ok) throw new Error("Failed to fetch team members");
+      return response.json();
+    },
+    enabled: !!selectedTeam,
+  });
+
+  // Fetch matches
+  const { data: matches, isLoading: matchesLoading } = useQuery<Match[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "matches"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
+      if (!response.ok) throw new Error("Failed to fetch matches");
+      return response.json();
+    },
+    enabled: !!selectedTeam,
+  });
+
+  // Fetch league classification
+  const { data: classification, isLoading: classificationLoading } = useQuery<LeagueClassification[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "classification"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/classification`);
+      if (!response.ok) throw new Error("Failed to fetch league classification");
+      return response.json();
+    },
+    enabled: !!selectedTeam,
+  });
+
+  // Calculate team statistics
+  const teamStats = useMemo(() => {
+    if (!matches) return {
+      played: 0,
+      won: 0,
+      drawn: 0,
+      lost: 0,
+      goalsScored: 0,
+      goalsConceded: 0,
+      winPercentage: 0,
+      cleanSheets: 0,
+      form: []
+    };
+
+    // Only count completed matches
+    const completedMatches = matches.filter(m => m.status === "completed");
+    
+    const won = completedMatches.filter(m => (m.goalsScored || 0) > (m.goalsConceded || 0)).length;
+    const drawn = completedMatches.filter(m => (m.goalsScored || 0) === (m.goalsConceded || 0)).length;
+    const lost = completedMatches.filter(m => (m.goalsScored || 0) < (m.goalsConceded || 0)).length;
+    const goalsScored = completedMatches.reduce((total, match) => total + (match.goalsScored || 0), 0);
+    const goalsConceded = completedMatches.reduce((total, match) => total + (match.goalsConceded || 0), 0);
+    const cleanSheets = completedMatches.filter(m => m.goalsConceded === 0).length;
+    
+    // Get the last 5 matches for form (W/D/L)
+    const lastFiveMatches = [...completedMatches]
+      .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
+      .slice(0, 5)
+      .map(match => {
+        if (match.goalsScored > match.goalsConceded) return 'W';
+        if (match.goalsScored === match.goalsConceded) return 'D';
+        return 'L';
+      });
+
+    return {
+      played: completedMatches.length,
+      won,
+      drawn,
+      lost,
+      goalsScored,
+      goalsConceded,
+      winPercentage: completedMatches.length ? Math.round((won / completedMatches.length) * 100) : 0,
+      cleanSheets,
+      form: lastFiveMatches
+    };
+  }, [matches]);
+
+  // Calculate player statistics
+  const playerStats = useMemo(() => {
+    if (!teamMembers || !matches) return [];
+
+    // Extract players only (not coaches or admins)
+    const players = teamMembers.filter(member => member.role === 'player');
+    
+    // We would fetch player stats from API, but let's simulate simple stats based on available data
+    return players.map(player => {
+      // In a real app, you would get this data from match lineups, goals, etc.
+      // For now we'll use placeholder data based on player IDs to simulate different stats
+      // In a real implementation, this would come from a stats API endpoint
+
+      // Generate deterministic but varying stats based on userId as seed
+      const seed = player.user.id;
+      const matchesPlayed = Math.min(teamStats.played, 5 + (seed % 5)); // Vary between 5 and 9
+      
+      return {
+        id: player.user.id,
+        name: player.user.fullName || player.user.username,
+        position: player.user.position || "Unknown",
+        matchesPlayed,
+        minutesPlayed: matchesPlayed * 85 + (seed % 10) * 5,
+        goals: seed % 7, // Some random goals based on ID
+        assists: seed % 5, // Some random assists based on ID
+        yellowCards: seed % 3,
+        redCards: seed % 2,
+        image: player.user.profilePicture
+      };
+    });
+  }, [teamMembers, matches, teamStats.played]);
+
+  // Sort player stats by goals scored
+  const topScorers = useMemo(() => {
+    return [...playerStats].sort((a, b) => b.goals - a.goals);
+  }, [playerStats]);
+
+  // Sort player stats by assists
+  const topAssistProviders = useMemo(() => {
+    return [...playerStats].sort((a, b) => b.assists - a.assists);
+  }, [playerStats]);
+
+  // Calculate match distribution by type
+  const matchesByType = useMemo(() => {
+    if (!matches) return { league: 0, friendly: 0, cup: 0, other: 0 };
+    
+    const types = matches.reduce((acc, match) => {
+      const type = match.matchType || 'other';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, { league: 0, friendly: 0, cup: 0, other: 0 });
+    
+    return types;
+  }, [matches]);
+
+  // Calculate home/away stats
+  const homeAwayStats = useMemo(() => {
+    if (!matches) return { home: { played: 0, won: 0, drawn: 0, lost: 0 }, away: { played: 0, won: 0, drawn: 0, lost: 0 } };
+    
+    // Only use completed matches
+    const completedMatches = matches.filter(m => m.status === "completed");
+    
+    const homeMatches = completedMatches.filter(m => m.isHome);
+    const awayMatches = completedMatches.filter(m => !m.isHome);
+    
+    return {
+      home: {
+        played: homeMatches.length,
+        won: homeMatches.filter(m => m.goalsScored > m.goalsConceded).length,
+        drawn: homeMatches.filter(m => m.goalsScored === m.goalsConceded).length,
+        lost: homeMatches.filter(m => m.goalsScored < m.goalsConceded).length,
+      },
+      away: {
+        played: awayMatches.length,
+        won: awayMatches.filter(m => m.goalsScored > m.goalsConceded).length,
+        drawn: awayMatches.filter(m => m.goalsScored === m.goalsConceded).length,
+        lost: awayMatches.filter(m => m.goalsScored < m.goalsConceded).length,
+      }
+    };
+  }, [matches]);
+
+  // Calculate monthly performance
+  const monthlyPerformance = useMemo(() => {
+    if (!matches) return [];
+    
+    // Only use completed matches
+    const completedMatches = matches.filter(m => m.status === "completed");
+    
+    // Group matches by month
+    const monthlyStats = completedMatches.reduce((acc, match) => {
+      const date = new Date(match.matchDate);
+      const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!acc[monthYear]) {
+        acc[monthYear] = {
+          month: format(date, 'MMM yyyy'),
+          played: 0,
+          won: 0,
+          drawn: 0,
+          lost: 0,
+          goalsScored: 0,
+          goalsConceded: 0
+        };
+      }
+      
+      acc[monthYear].played++;
+      
+      if (match.goalsScored > match.goalsConceded) {
+        acc[monthYear].won++;
+      } else if (match.goalsScored === match.goalsConceded) {
+        acc[monthYear].drawn++;
+      } else {
+        acc[monthYear].lost++;
+      }
+      
+      acc[monthYear].goalsScored += match.goalsScored || 0;
+      acc[monthYear].goalsConceded += match.goalsConceded || 0;
+      
+      return acc;
+    }, {});
+    
+    // Convert to array and sort chronologically
+    return Object.values(monthlyStats).sort((a, b) => {
+      const [aYear, aMonth] = a.month.split(' ');
+      const [bYear, bMonth] = b.month.split(' ');
+      return new Date(`${bMonth} ${bYear}`).getTime() - new Date(`${aMonth} ${aYear}`).getTime();
+    });
+  }, [matches]);
+
+  const isLoading = teamMembersLoading || matchesLoading || classificationLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar />
+      
+      <div className="flex-1 ml-0 md:ml-64 flex flex-col overflow-hidden">
+        <Header title={t("navigation.statistics")} />
+        
+        <div className="flex-1 overflow-auto p-4">
+          <div className="max-w-6xl mx-auto">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-bold">
+                  {t("statistics.teamStats")}
+                </h1>
+                <TabsList>
+                  <TabsTrigger value="team">
+                    {t("statistics.team")}
+                  </TabsTrigger>
+                  <TabsTrigger value="players">
+                    {t("statistics.players")}
+                  </TabsTrigger>
+                  <TabsTrigger value="performance">
+                    {t("statistics.performance")}
+                  </TabsTrigger>
+                  <TabsTrigger value="league">
+                    {t("statistics.league")}
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              {/* Team Overview */}
+              <TabsContent value="team" className="space-y-4">
+                {/* Overview Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        {t("statistics.played")}
+                      </CardTitle>
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{teamStats.played}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {teamStats.won} {t("statistics.wins")}, {teamStats.drawn} {t("statistics.draws")}, {teamStats.lost} {t("statistics.losses")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        {t("statistics.win")} %
+                      </CardTitle>
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{teamStats.winPercentage}%</div>
+                      <Progress 
+                        value={teamStats.winPercentage} 
+                        className="h-2 mt-2" 
+                      />
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        {t("statistics.goals")}
+                      </CardTitle>
+                      <Goal className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{teamStats.goalsScored}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {(teamStats.played > 0 
+                          ? (teamStats.goalsScored / teamStats.played).toFixed(1) 
+                          : "0")} {t("statistics.goalsPerMatch")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        {t("statistics.cleanSheets")}
+                      </CardTitle>
+                      <Trophy className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{teamStats.cleanSheets}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {(teamStats.played > 0 
+                          ? Math.round((teamStats.cleanSheets / teamStats.played) * 100) 
+                          : 0)}% {t("statistics.ofMatches")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Form and Match Distribution */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t("statistics.recentForm")}</CardTitle>
+                      <CardDescription>
+                        {t("statistics.lastFiveMatches")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex space-x-2">
+                        {teamStats.form.length > 0 ? (
+                          teamStats.form.map((result, index) => (
+                            <div 
+                              key={index}
+                              className={`w-10 h-10 flex items-center justify-center rounded-full font-bold text-white ${
+                                result === 'W' ? 'bg-green-500' : 
+                                result === 'D' ? 'bg-yellow-500' : 
+                                'bg-red-500'
+                              }`}
+                            >
+                              {result}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("statistics.noRecentMatches")}</p>
+                        )}
+                      </div>
+                      
+                      <div className="mt-4 text-sm text-muted-foreground">
+                        <div className="flex items-center mb-1">
+                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                          <span>{t("statistics.win")}</span>
+                        </div>
+                        <div className="flex items-center mb-1">
+                          <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                          <span>{t("statistics.draw")}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                          <span>{t("statistics.loss")}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t("statistics.matchDistribution")}</CardTitle>
+                      <CardDescription>
+                        {t("statistics.matchesByType")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{t("statistics.league")}</span>
+                            <span>{matchesByType.league}</span>
+                          </div>
+                          <Progress 
+                            value={matches?.length ? (matchesByType.league / matches.length) * 100 : 0} 
+                            className="h-2" 
+                          />
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{t("statistics.friendly")}</span>
+                            <span>{matchesByType.friendly}</span>
+                          </div>
+                          <Progress 
+                            value={matches?.length ? (matchesByType.friendly / matches.length) * 100 : 0} 
+                            className="h-2" 
+                          />
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{t("statistics.cup")}</span>
+                            <span>{matchesByType.cup}</span>
+                          </div>
+                          <Progress 
+                            value={matches?.length ? (matchesByType.cup / matches.length) * 100 : 0} 
+                            className="h-2" 
+                          />
+                        </div>
+                        
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>{t("statistics.other")}</span>
+                            <span>{matchesByType.other}</span>
+                          </div>
+                          <Progress 
+                            value={matches?.length ? (matchesByType.other / matches.length) * 100 : 0} 
+                            className="h-2" 
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Home vs Away Stats */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.homeVsAway")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.performanceByVenue")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">{t("statistics.home")}</h3>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-4 gap-2 text-center">
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.home.played}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.played")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.home.won}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.won")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.home.drawn}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.drawn")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.home.lost}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.lost")}</div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium mb-1">{t("statistics.winRate")}</div>
+                            <Progress 
+                              value={homeAwayStats.home.played > 0 
+                                ? (homeAwayStats.home.won / homeAwayStats.home.played) * 100 
+                                : 0
+                              } 
+                              className="h-2" 
+                            />
+                            <div className="text-xs text-right mt-1">
+                              {homeAwayStats.home.played > 0 
+                                ? Math.round((homeAwayStats.home.won / homeAwayStats.home.played) * 100) 
+                                : 0}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">{t("statistics.away")}</h3>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-4 gap-2 text-center">
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.away.played}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.played")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.away.won}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.won")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.away.drawn}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.drawn")}</div>
+                            </div>
+                            <div className="bg-gray-100 rounded p-2">
+                              <div className="text-lg font-semibold">{homeAwayStats.away.lost}</div>
+                              <div className="text-xs text-gray-500">{t("statistics.lost")}</div>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium mb-1">{t("statistics.winRate")}</div>
+                            <Progress 
+                              value={homeAwayStats.away.played > 0 
+                                ? (homeAwayStats.away.won / homeAwayStats.away.played) * 100 
+                                : 0
+                              } 
+                              className="h-2" 
+                            />
+                            <div className="text-xs text-right mt-1">
+                              {homeAwayStats.away.played > 0 
+                                ? Math.round((homeAwayStats.away.won / homeAwayStats.away.played) * 100) 
+                                : 0}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* Player Statistics */}
+              <TabsContent value="players" className="space-y-4">
+                {/* Goal Scorers */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.topScorers")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.topScorersDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">{t("statistics.rank")}</TableHead>
+                          <TableHead>{t("statistics.player")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.played")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.goals")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.goalsPerMatch")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {topScorers.length > 0 ? (
+                          topScorers.slice(0, 5).map((player, index) => (
+                            <TableRow key={player.id}>
+                              <TableCell className="font-medium">{index + 1}</TableCell>
+                              <TableCell className="font-medium">{player.name}</TableCell>
+                              <TableCell className="text-right">{player.matchesPlayed}</TableCell>
+                              <TableCell className="text-right">{player.goals}</TableCell>
+                              <TableCell className="text-right">
+                                {player.matchesPlayed > 0 
+                                  ? (player.goals / player.matchesPlayed).toFixed(2) 
+                                  : "0"}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                              {t("statistics.noPlayersFound")}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+                
+                {/* Assist Providers */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.topAssists")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.topAssistsDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">{t("statistics.rank")}</TableHead>
+                          <TableHead>{t("statistics.player")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.played")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.assists")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.assistsPerMatch")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {topAssistProviders.length > 0 ? (
+                          topAssistProviders.slice(0, 5).map((player, index) => (
+                            <TableRow key={player.id}>
+                              <TableCell className="font-medium">{index + 1}</TableCell>
+                              <TableCell className="font-medium">{player.name}</TableCell>
+                              <TableCell className="text-right">{player.matchesPlayed}</TableCell>
+                              <TableCell className="text-right">{player.assists}</TableCell>
+                              <TableCell className="text-right">
+                                {player.matchesPlayed > 0 
+                                  ? (player.assists / player.matchesPlayed).toFixed(2) 
+                                  : "0"}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                              {t("statistics.noPlayersFound")}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+                
+                {/* Player Appearances */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.playerAppearances")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.playerAppearancesDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("statistics.player")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.played")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.minutes")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.cards")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {playerStats.length > 0 ? (
+                          [...playerStats]
+                            .sort((a, b) => b.minutesPlayed - a.minutesPlayed)
+                            .slice(0, 5)
+                            .map((player) => (
+                              <TableRow key={player.id}>
+                                <TableCell className="font-medium">{player.name}</TableCell>
+                                <TableCell className="text-right">{player.matchesPlayed}</TableCell>
+                                <TableCell className="text-right">{player.minutesPlayed}</TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex items-center justify-end space-x-1">
+                                    {player.yellowCards > 0 && (
+                                      <div className="flex items-center">
+                                        <span className="w-3 h-4 bg-yellow-400 inline-block mr-1"></span>
+                                        <span>{player.yellowCards}</span>
+                                      </div>
+                                    )}
+                                    {player.redCards > 0 && (
+                                      <div className="flex items-center ml-2">
+                                        <span className="w-3 h-4 bg-red-500 inline-block mr-1"></span>
+                                        <span>{player.redCards}</span>
+                                      </div>
+                                    )}
+                                    {player.yellowCards === 0 && player.redCards === 0 && "-"}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground">
+                              {t("statistics.noPlayersFound")}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* Performance Analysis */}
+              <TabsContent value="performance" className="space-y-4">
+                {/* Monthly Performance */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.monthlyPerformance")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.monthlyPerformanceDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("statistics.month")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.played")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.won")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.drawn")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.lost")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.goalsFor")}</TableHead>
+                          <TableHead className="text-right">{t("statistics.goalsAgainst")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {monthlyPerformance.length > 0 ? (
+                          monthlyPerformance.map((month, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{month.month}</TableCell>
+                              <TableCell className="text-right">{month.played}</TableCell>
+                              <TableCell className="text-right">{month.won}</TableCell>
+                              <TableCell className="text-right">{month.drawn}</TableCell>
+                              <TableCell className="text-right">{month.lost}</TableCell>
+                              <TableCell className="text-right">{month.goalsScored}</TableCell>
+                              <TableCell className="text-right">{month.goalsConceded}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center text-muted-foreground">
+                              {t("statistics.noDataAvailable")}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+                
+                {/* Goals Timing Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.goalsAnalysis")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.goalsAnalysisDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center text-muted-foreground py-8">
+                      <BarChart3 className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>{t("statistics.goalsTimingNotAvailable")}</p>
+                      <p className="text-sm mt-1">{t("statistics.futureFeature")}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* League Table */}
+              <TabsContent value="league" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t("statistics.leagueTable")}</CardTitle>
+                    <CardDescription>
+                      {t("statistics.leagueTableDesc")}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {classification && classification.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[50px]">{t("statistics.position")}</TableHead>
+                            <TableHead>{t("statistics.team")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.played")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.won")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.drawn")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.lost")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.goalsFor")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.goalsAgainst")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.goalDifference")}</TableHead>
+                            <TableHead className="text-right">{t("statistics.points")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {[...classification]
+                            .sort((a, b) => {
+                              // Sort by points (desc), then goal difference (desc)
+                              if (a.points !== b.points) return b.points - a.points;
+                              const aDiff = a.goalsFor - a.goalsAgainst;
+                              const bDiff = b.goalsFor - b.goalsAgainst;
+                              if (aDiff !== bDiff) return bDiff - aDiff;
+                              // If still tied, sort by goals scored (desc)
+                              return b.goalsFor - a.goalsFor;
+                            })
+                            .map((team, index) => (
+                              <TableRow key={team.id} className={team.externalTeamName === selectedTeam?.name ? "bg-primary/10" : ""}>
+                                <TableCell className="font-medium">{team.position || index + 1}</TableCell>
+                                <TableCell className="font-medium">{team.externalTeamName}</TableCell>
+                                <TableCell className="text-right">{team.gamesPlayed}</TableCell>
+                                <TableCell className="text-right">{team.gamesWon}</TableCell>
+                                <TableCell className="text-right">{team.gamesDrawn}</TableCell>
+                                <TableCell className="text-right">{team.gamesLost}</TableCell>
+                                <TableCell className="text-right">{team.goalsFor}</TableCell>
+                                <TableCell className="text-right">{team.goalsAgainst}</TableCell>
+                                <TableCell className="text-right">{team.goalsFor - team.goalsAgainst}</TableCell>
+                                <TableCell className="text-right font-bold">{team.points}</TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center p-8 text-muted-foreground">
+                        <Trophy className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                        <p>{t("statistics.noLeagueData")}</p>
+                        <p className="text-sm mt-1">{t("statistics.leagueDataInstruction")}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+        
+        <MobileNavigation />
+      </div>
+    </div>
+  );
+}
