@@ -841,10 +841,9 @@ export default function MatchesPage() {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 ml-0 md:ml-64 z-30 min-w-0">
-        <Header title="Matches" />
+        <Header title="Matches" translationKey="matches.matches" />
         <main className="flex-1 p-4 md:p-6 space-y-4 pb-16 overflow-x-hidden">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{t("matches.matches")}</h1>
             {canManage && (
               <Button onClick={() => setDialogOpen(true)}>
                 <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.addMatch")}
