@@ -47,8 +47,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
 
   // Delete team member mutation
   const deleteMutation = useMutation({
-    mutationFn: (memberId: number) =>
-      apiRequest(`/api/admin/teams/${team.id}/members/${memberId}`, {
+    mutationFn: (membershipId: number) =>
+      apiRequest(`/api/admin/teams/${team.id}/members/${membershipId}`, {
         method: 'DELETE',
       }),
     onSuccess: () => {
@@ -73,6 +73,7 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
   // Handle member deletion
   const handleDeleteMember = () => {
     if (memberToDelete) {
+      // Use the membership ID (member.id) directly
       deleteMutation.mutate(memberToDelete.id);
     }
   };

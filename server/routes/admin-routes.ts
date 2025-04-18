@@ -312,18 +312,24 @@ export function createAdminRouter(storage: EntityStorage) {
   }));
 
   // Remove a user from a team
-  router.delete('/admin/teams/:teamId/members/:userId', asyncHandler(async (req: Request, res: Response) => {
+  router.delete('/admin/teams/:teamId/members/:membershipId', asyncHandler(async (req: Request, res: Response) => {
     const teamId = parseInt(req.params.teamId);
-    const userId = parseInt(req.params.userId);
+    const membershipId = parseInt(req.params.membershipId);
     
-    const membership = await storage.getTeamMember(teamId, userId);
+    // Get the membership to confirm it exists
+    const membership = await storage.teamMembers.get(membershipId);
     
-    if (!membership) {
+    if (!membership || membership.teamId !== teamId) {
       return notFoundResponse(res, 'Team membership');
     }
     
     // Delete membership
-    // For now just return success
+    const deleted = await storage.deleteTeamMember(membershipId);
+    
+    if (!deleted) {
+      return errorResponse(res, 'Failed to delete team membership');
+    }
+    
     return successResponse(res, 'User removed from team successfully');
   }));
 
