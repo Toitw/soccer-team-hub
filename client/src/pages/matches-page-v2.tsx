@@ -864,7 +864,9 @@ export default function MatchesPage() {
               <TabsTrigger value="past">
                 <Trophy className="h-4 w-4 mr-2" /> {t("matches.pastMatches")}
               </TabsTrigger>
-              <TabsTrigger value="classification">{t("matches.leagueClassification")}</TabsTrigger>
+              <TabsTrigger value="classification">
+                <ListOrdered className="h-4 w-4 mr-2" /> {t("matches.leagueClassification")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="upcoming" className="space-y-4">
