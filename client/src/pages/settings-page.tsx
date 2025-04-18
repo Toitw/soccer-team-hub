@@ -83,10 +83,17 @@ export default function SettingsPage() {
   // Regenerate join code mutation
   const regenerateJoinCodeMutation = useMutation({
     mutationFn: async (teamId: number) => {
-      return apiRequest('POST', `/api/teams/${teamId}/regenerate-join-code`);
+      return apiRequest('POST', `/api/teams/${teamId}/regenerate-join-code`, {});
     },
     onSuccess: () => {
+      // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      
+      // Also invalidate team members to ensure they are refreshed
+      if (selectedTeam) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      }
+      
       toast({
         title: "Join code regenerated",
         description: "New join code has been generated successfully",
@@ -174,7 +181,14 @@ export default function SettingsPage() {
       return apiRequest("PATCH", `/api/teams/${selectedTeam.id}`, data);
     },
     onSuccess: () => {
+      // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      
+      // Also invalidate team members to ensure they are refreshed
+      if (selectedTeam) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      }
+      
       toast({
         title: "Team updated",
         description: "Team settings have been updated successfully.",
@@ -234,7 +248,15 @@ export default function SettingsPage() {
     onSuccess: (data) => {
       // Update team logo in the form and invalidate queries
       teamSettingsForm.setValue("logo", data.logo);
+      
+      // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      
+      // Also invalidate team members to ensure they are refreshed
+      if (selectedTeam) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      }
+      
       toast({
         title: "Logo updated",
         description: "Your team logo has been updated successfully.",
