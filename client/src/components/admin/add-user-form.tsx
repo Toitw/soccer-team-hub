@@ -76,7 +76,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
     onSuccess: (data) => {
       // 1) Invalidate admin users list
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-
+      
       // 2) Invalidate all team-related queries
       queryClient.invalidateQueries({
         predicate: query => 
@@ -84,7 +84,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/teams')
       });
-
+      
       // 2.1) Specifically target team members lists
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -93,7 +93,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           query.queryKey[0].startsWith("/api/teams") &&
           query.queryKey[0].includes("/members")
       });
-
+      
       // 3) Invalidate any individual user queries
       queryClient.invalidateQueries({
         predicate: query => 
@@ -101,7 +101,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/users')
       });
-
+      
       // 3.1) Specifically target user-by-ID queries
       queryClient.invalidateQueries({
         predicate: (query) =>
@@ -109,7 +109,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
           typeof query.queryKey[0] === "string" &&
           query.queryKey[0].startsWith("/api/users/")
       });
-
+      
       toast({
         title: 'User Created',
         description: `Successfully created user ${data.fullName}.`,

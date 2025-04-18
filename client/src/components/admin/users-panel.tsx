@@ -92,15 +92,6 @@ export default function UsersPanel() {
           query.queryKey[0].startsWith('/api/teams')
       });
       
-      // 2.1) Specifically target team members lists
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          Array.isArray(query.queryKey) &&
-          typeof query.queryKey[0] === "string" &&
-          query.queryKey[0].startsWith("/api/teams") &&
-          query.queryKey[0].includes("/members")
-      });
-      
       // 3) Invalidate any individual user queries
       queryClient.invalidateQueries({
         predicate: query => 
@@ -108,17 +99,6 @@ export default function UsersPanel() {
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/users')
       });
-      
-      // 3.1) Specifically target user-by-ID queries
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          Array.isArray(query.queryKey) &&
-          typeof query.queryKey[0] === "string" &&
-          query.queryKey[0].startsWith("/api/users/")
-      });
-      
-      // 4) Invalidate auth context
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       
       toast({
         title: 'User deleted',
