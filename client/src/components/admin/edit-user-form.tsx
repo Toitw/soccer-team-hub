@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema, User } from "@shared/schema";
@@ -27,26 +27,35 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
-// Create a partial schema for editing (password is optional)
+// Create a partial schema for editing (password optional)
 const editUserSchema = insertUserSchema
   .partial()
   .extend({
     changePassword: z.boolean().default(false),
-    password: z.string().min(6, "Password must be at least 6 characters").optional(),
+    password: z.string().optional(),
     confirmPassword: z.string().optional(),
   })
   .refine(
     (data) => {
-      // If changePassword is true, then password and confirmPassword are required and must match
       if (data.changePassword) {
-        return data.password && data.confirmPassword && data.password === data.confirmPassword;
+        return (
+          typeof data.password === "string" &&
+          data.password.length >= 6 &&
+          data.confirmPassword === data.password
+        );
       }
       return true;
     },
     {
-      message: "Passwords do not match",
+      message: (data) => {
+        if (!data.changePassword) return "";
+        if (!data.password || data.password.length < 6) {
+          return "Password must be at least 6 characters";
+        }
+        return "Passwords do not match";
+      },
       path: ["confirmPassword"],
-    }
+    },
   );
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;
@@ -59,11 +68,13 @@ type EditUserFormProps = {
 
 export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const { toast } = useToast();
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.profilePicture);
-  const [changePassword, setChangePassword] = useState(false);
+  const queryClient = useQueryClient();
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user.profilePicture,
+  );
 
-  // Set up form
   const form = useForm<EditUserFormValues>({
+    mode: "onChange",
     resolver: zodResolver(editUserSchema),
     defaultValues: {
       username: user.username,
@@ -73,107 +84,61 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       phoneNumber: user.phoneNumber || "",
       profilePicture: user.profilePicture || "",
       position: user.position || "",
-      jerseyNumber: user.jerseyNumber || undefined,
+      jerseyNumber: user.jerseyNumber ?? undefined,
       changePassword: false,
-      password: "",
-      confirmPassword: "",
+      // ← make these undefined so optional schema skips them
+      password: undefined,
+      confirmPassword: undefined,
     },
   });
 
-  // Watch for password change checkbox
+  // Watch for changePassword toggle
   const watchChangePassword = form.watch("changePassword");
-  
-  // Update local state when checkbox changes
   useEffect(() => {
-    setChangePassword(watchChangePassword);
-  }, [watchChangePassword]);
+    if (!watchChangePassword) {
+      form.setValue("password", "");
+      form.setValue("confirmPassword", "");
+    }
+  }, [watchChangePassword, form]);
 
-  // Update user mutation
+  // Mutation to update user
   const mutation = useMutation({
     mutationFn: (values: EditUserFormValues) => {
-      // Process form data
       const { confirmPassword, changePassword, ...userData } = values;
-      
-      // If we're not changing the password, remove it from the request
-      if (!changePassword) {
-        delete userData.password;
-      }
-      
-      console.log('Sending update request for user:', user.id, userData);
-      
+      if (!changePassword) delete userData.password;
       return apiRequest(`/api/admin/users/${user.id}`, {
-        method: 'PUT',
+        method: "PUT",
         data: userData,
       });
     },
     onSuccess: (data) => {
-      console.log('User update success:', data);
-      toast({
-        title: 'User Updated',
-        description: `Successfully updated user ${data.fullName}.`,
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({ title: "User Updated", description: `Updated ${data.fullName}` });
       onSuccess();
     },
-    onError: (error) => {
-      console.error('User update error:', error);
+    onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to update user. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update user",
+        variant: "destructive",
       });
     },
   });
 
-  // Handle form submission
   const onSubmit = (values: EditUserFormValues) => {
-    console.log('Form submitted with values:', values);
-    
-    // Log the current form state for debugging
-    console.log('Form state:', {
-      isDirty: form.formState.isDirty,
-      errors: form.formState.errors,
-      isValid: form.formState.isValid
-    });
-    
-    // Direct API call for testing
-    const { confirmPassword, changePassword, ...userData } = values;
-    if (!changePassword) {
-      delete userData.password;
-    }
-    
-    console.log('Calling API directly...');
-    fetch(`/api/admin/users/${user.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-      credentials: 'include'
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log('API response:', data);
-      alert('Usuario actualizado correctamente');
-    })
-    .catch(err => {
-      console.error('API error:', err);
-      alert('Error al actualizar usuario');
-    });
-    
-    // Original mutation approach - commenting out temporarily
-    // mutation.mutate(values);
+    mutation.mutate(values);
   };
 
-  // Handle avatar preview
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    form.setValue("profilePicture", value);
-    setAvatarPreview(value);
+    const url = e.target.value;
+    form.setValue("profilePicture", url);
+    setAvatarPreview(url);
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          {/* Username field */}
           <FormField
             control={form.control}
             name="username"
@@ -181,14 +146,13 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username" {...field} />
+                  <Input {...field} placeholder="username" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Full Name field */}
           <FormField
             control={form.control}
             name="fullName"
@@ -196,34 +160,30 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input {...field} placeholder="John Doe" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Change Password checkbox */}
           <FormField
             control={form.control}
             name="changePassword"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 col-span-2">
+              <FormItem className="flex items-start space-x-3 col-span-2">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Change Password</FormLabel>
-                </div>
+                <FormLabel>Change Password</FormLabel>
               </FormItem>
             )}
           />
 
-          {/* Password fields (conditionally shown) */}
-          {changePassword && (
+          {watchChangePassword && (
             <>
               <FormField
                 control={form.control}
@@ -232,7 +192,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                   <FormItem>
                     <FormLabel>New Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Password" {...field} />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -246,11 +206,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Confirm password"
-                        {...field}
-                      />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -259,35 +215,33 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
             </>
           )}
 
-          {/* Role field */}
           <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Role</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
+                <FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="superuser">Superuser</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="coach">Coach</SelectItem>
-                    <SelectItem value="player">Player</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectContent>
+                      <SelectItem value="superuser">Superuser</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="coach">Coach</SelectItem>
+                      <SelectItem value="player">Player</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Email field */}
           <FormField
             control={form.control}
             name="email"
@@ -295,18 +249,13 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="email@example.com"
-                    {...field}
-                  />
+                  <Input type="email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Position field */}
           <FormField
             control={form.control}
             name="position"
@@ -314,14 +263,13 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Position</FormLabel>
                 <FormControl>
-                  <Input placeholder="Forward, Midfielder, etc." {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Jersey Number field */}
           <FormField
             control={form.control}
             name="jerseyNumber"
@@ -331,14 +279,14 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="10"
-                    value={field.value || ""}
-                    onChange={(e) => {
-                      const value = e.target.value
-                        ? parseInt(e.target.value)
-                        : undefined;
-                      field.onChange(value);
-                    }}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value
+                          ? parseInt(e.target.value, 10)
+                          : undefined,
+                      )
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -346,7 +294,6 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
             )}
           />
 
-          {/* Phone Number field */}
           <FormField
             control={form.control}
             name="phoneNumber"
@@ -354,37 +301,30 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="+1234567890" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Profile Picture field */}
           <FormField
             control={form.control}
             name="profilePicture"
             render={({ field }) => (
               <FormItem className="col-span-2">
                 <FormLabel>Profile Picture URL</FormLabel>
-                <div className="flex space-x-4">
+                <div className="flex items-center space-x-4">
                   <FormControl>
-                    <Input
-                      placeholder="https://example.com/avatar.png"
-                      {...field}
-                      onChange={handleAvatarChange}
-                    />
+                    <Input {...field} onChange={handleAvatarChange} />
                   </FormControl>
                   {avatarPreview && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={avatarPreview}
-                        alt="Avatar preview"
-                        className="h-10 w-10 rounded-full object-cover"
-                        onError={() => setAvatarPreview(null)}
-                      />
-                    </div>
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar preview"
+                      className="h-10 w-10 rounded-full object-cover"
+                      onError={() => setAvatarPreview(null)}
+                    />
                   )}
                 </div>
                 <FormMessage />
@@ -397,16 +337,13 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="button"
+            onClick={form.handleSubmit(onSubmit)}
             disabled={mutation.isPending}
-            onClick={(e) => {
-              console.log('Submit button clicked');
-              // No necesitamos preventDefault ya que el formulario manejará el evento de envío
-            }}
           >
             {mutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="animate-spin mr-2 h-4 w-4" />
             )}
             Update User
           </Button>
