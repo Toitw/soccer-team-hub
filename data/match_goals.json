@@ -10,11 +10,11 @@
   },
   {
     "matchId": 7,
-    "scorerId": 68,
-    "assistId": null,
-    "minute": 10,
+    "scorerId": 81,
+    "assistId": 78,
+    "minute": 50,
     "type": "regular",
-    "description": null,
-    "id": 2
+    "description": "Golazo",
+    "id": 3
   }
 ]
