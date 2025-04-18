@@ -82,6 +82,13 @@ export default function SettingsPage() {
     queryKey: ["/api/teams"],
   });
   
+  // Debug logging
+  useEffect(() => {
+    if (teams) {
+      console.log("Teams data loaded:", teams);
+    }
+  }, [teams]);
+  
   // Regenerate join code mutation
   const regenerateJoinCodeMutation = useMutation({
     mutationFn: async (teamId: number) => {
@@ -173,6 +180,9 @@ export default function SettingsPage() {
   // Update teamSettingsForm values when selectedTeam changes
   useEffect(() => {
     if (selectedTeam) {
+      console.log("Selected team changed, updating form values:", selectedTeam);
+      
+      // Reset the form with values from the selected team
       teamSettingsForm.reset({
         name: selectedTeam.name,
         division: selectedTeam.division || "",
@@ -185,15 +195,38 @@ export default function SettingsPage() {
     }
   }, [selectedTeam, teamSettingsForm]);
   
+  // Add debug for form values
+  useEffect(() => {
+    console.log("Current form values:", teamSettingsForm.getValues());
+    console.log("Form state:", { 
+      isDirty: teamSettingsForm.formState.isDirty,
+      dirtyFields: teamSettingsForm.formState.dirtyFields
+    });
+  }, [teamSettingsForm.formState.isDirty]);
+  
   // Mutation for updating team settings
   const updateTeamMutation = useMutation({
     mutationFn: async (data: TeamSettingsFormData) => {
       if (!selectedTeamId) throw new Error("No team selected");
+      console.log("Updating team settings:", { teamId: selectedTeamId, data });
       return apiRequest("PATCH", `/api/teams/${selectedTeamId}`, data);
     },
-    onSuccess: () => {
-      // Invalidate team data
+    onSuccess: (response, submittedData) => {
+      console.log("Team update successful, response:", response);
+      console.log("Submitted data:", submittedData);
+      
+      // Invalidate team data to force a refetch
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      
+      // Reset the form to the new values to ensure they are correctly displayed
+      if (selectedTeam) {
+        teamSettingsForm.reset({
+          name: selectedTeam.name,
+          division: submittedData.division || "",
+          seasonYear: submittedData.seasonYear || "",
+          logo: selectedTeam.logo || "",
+        });
+      }
       
       // Also invalidate team members to ensure they are refreshed
       if (selectedTeamId) {
