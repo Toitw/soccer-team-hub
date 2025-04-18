@@ -857,15 +857,15 @@ export default function MatchesPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="upcoming">
-                <Calendar className="h-4 w-4 mr-2" /> {t("matches.upcomingMatches")}
+            <TabsList className="grid w-full grid-cols-3 max-w-full">
+              <TabsTrigger value="upcoming" className="px-1 sm:px-2">
+                <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.upcomingMatches")}</span>
               </TabsTrigger>
-              <TabsTrigger value="past">
-                <Trophy className="h-4 w-4 mr-2" /> {t("matches.pastMatches")}
+              <TabsTrigger value="past" className="px-1 sm:px-2">
+                <Trophy className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.pastMatches")}</span>
               </TabsTrigger>
-              <TabsTrigger value="classification">
-                <ListOrdered className="h-4 w-4 mr-2" /> {t("matches.leagueClassification")}
+              <TabsTrigger value="classification" className="px-1 sm:px-2">
+                <ListOrdered className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.leagueClassification")}</span>
               </TabsTrigger>
             </TabsList>
 
