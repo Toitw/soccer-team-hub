@@ -2337,10 +2337,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Check for cards in match cards
           const matchCards = await storage.getMatchCards(matchId);
           const yellowCards = matchCards.filter(card => 
-            card.playerId === user.id && card.cardType === 'yellow'
+            card.playerId === user.id && card.type === 'yellow'
           ).length;
           const redCards = matchCards.filter(card => 
-            card.playerId === user.id && card.cardType === 'red'
+            card.playerId === user.id && card.type === 'red'
           ).length;
           
           if (yellowCards > 0 || redCards > 0) {
