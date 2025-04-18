@@ -74,6 +74,25 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       });
     },
     onSuccess: (data) => {
+      // 1) Invalidate admin users list
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      
+      // 2) Invalidate all team-related queries
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/teams')
+      });
+      
+      // 3) Invalidate any individual user queries
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/users')
+      });
+      
       toast({
         title: 'User Created',
         description: `Successfully created user ${data.fullName}.`,

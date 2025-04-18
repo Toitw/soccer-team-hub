@@ -112,21 +112,30 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       });
     },
     onSuccess: (data) => {
-      // Invalidate admin users list
+      // 1) Invalidate admin users list
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       
-      // Invalidate all team members lists that might include this user
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      
-      // Invalidate specific team members queries (for all teams)
-      queryClient.invalidateQueries({ 
-        predicate: (query) => 
-          query.queryKey[0] === "/api/teams" && 
-          query.queryKey[2] === "members"
+      // 2) Invalidate all team-related queries and team members lists
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/teams')
       });
       
-      // Invalidate current user data if the updated user is the logged-in user
+      // 3) Invalidate current user data if the updated user is the logged-in user
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // 4) Invalidate any individual user queries
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/users')
+      });
+      
+      // 5) Invalidate auth context
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       
       toast({ title: "User Updated", description: `Updated ${data.fullName}` });
       onSuccess();
