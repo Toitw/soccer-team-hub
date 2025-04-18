@@ -99,12 +99,15 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
         delete userData.password;
       }
       
+      console.log('Sending update request for user:', user.id, userData);
+      
       return apiRequest(`/api/admin/users/${user.id}`, {
         method: 'PUT',
         data: userData,
       });
     },
     onSuccess: (data) => {
+      console.log('User update success:', data);
       toast({
         title: 'User Updated',
         description: `Successfully updated user ${data.fullName}.`,
@@ -112,6 +115,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       onSuccess();
     },
     onError: (error) => {
+      console.error('User update error:', error);
       toast({
         title: 'Error',
         description: 'Failed to update user. Please try again.',
