@@ -932,11 +932,19 @@ export class MemStorage implements IStorage {
     const user = this.users.get(id);
     if (!user) return undefined;
     
+    // When updating a password, make sure it's properly hashed
+    // Don't re-hash passwords that are already hashed (containing a dot separator)
+    if (userData.password && !userData.password.includes('.')) {
+      userData.password = await hashPasswordInStorage(userData.password);
+    }
+    
     const updatedUser: User = { ...user, ...userData };
     this.users.set(id, updatedUser);
     
     // Save users data to file
     this.saveUsersData();
+    
+    console.log('User updated:', id, updatedUser.fullName);
     
     return updatedUser;
   }
