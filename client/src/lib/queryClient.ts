@@ -7,20 +7,37 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Enhanced version that supports both forms of calling
 export async function apiRequest<T = any>(
-  url: string,
-  options?: {
-    method?: string;
-    data?: unknown;
-  },
+  methodOrUrl: string,
+  urlOrData?: string | object,
+  data?: unknown,
 ): Promise<T> {
-  const method = options?.method || 'GET';
-  const data = options?.data;
+  let method: string;
+  let url: string;
+  let requestData: unknown;
+  
+  // Handle the case where apiRequest is called with (method, url, data)
+  if (urlOrData && typeof urlOrData === 'string') {
+    method = methodOrUrl;
+    url = urlOrData;
+    requestData = data;
+  } 
+  // Handle the case where apiRequest is called with (url, options)
+  else {
+    method = 'GET';
+    url = methodOrUrl;
+    
+    if (urlOrData && typeof urlOrData === 'object') {
+      method = (urlOrData as any).method || 'GET';
+      requestData = (urlOrData as any).data;
+    }
+  }
   
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: requestData ? { "Content-Type": "application/json" } : {},
+    body: requestData ? JSON.stringify(requestData) : undefined,
     credentials: "include",
   });
 
