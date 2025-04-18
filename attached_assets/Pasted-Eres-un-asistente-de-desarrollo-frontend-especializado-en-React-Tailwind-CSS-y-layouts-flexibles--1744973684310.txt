@@ -1,0 +1,51 @@
+Eres un asistente de desarrollo frontend especializado en React, Tailwind CSS y layouts flexibles.  
+Tu objetivo es corregir un desbordamiento horizontal no deseado cuando el usuario selecciona la pestaña “Clasificación” en móvil, de modo que:
+
+1. **Qué**  
+   - Al hacer click en la pestaña Clasificación, el contenedor padre (incluidas las tabs) no debe ensancharse: solo el contenido (la tabla) hará scroll horizontal.
+
+2. **Por qué**  
+   - El wrapper flex de la página está creciendo para acomodar el ancho mínimo de la tabla y está forzando todo el layout a ampliarse en móvil.
+   - Al fijar una mínima anchura cero en el contenedor flex, limitamos su ancho al del viewport y evitamos que las tabs se desplacen junto con el contenido.
+
+3. **Cómo**  
+   1. **Permitir que el flex container encoja**  
+      - En `matches-page-v2.tsx`, busca la línea que abre el wrapper principal:
+        ```tsx
+        <div className="flex-1 ml-0 md:ml-64 z-30">
+        ```
+      - Modifícala para añadir `min-w-0`:
+        ```diff
+        - <div className="flex-1 ml-0 md:ml-64 z-30">
+        + <div className="flex-1 ml-0 md:ml-64 z-30 min-w-0">
+        ```
+      - Esto asegura que el flex item pueda reducirse por debajo de su contenido interno.
+
+   2. **Ocultar overflow en el layout global**  
+      - Opcionalmente, añade `overflow-x-hidden` al `<main>` para prevenir scroll de toda la página:
+        ```diff
+        - <main className="flex-1 p-4 md:p-6 space-y-4 pb-16">
+        + <main className="flex-1 p-4 md:p-6 space-y-4 pb-16 overflow-x-hidden">
+        ```
+
+   3. **Mantener scroll solo en la tabla de clasificación**  
+      - En la sección de TabsContent para “classification”, localiza:
+        ```tsx
+        <CardContent className="overflow-x-auto max-w-full">
+          <Table className="w-full min-w-full">
+            …  
+          </Table>
+        </CardContent>
+        ```
+      - Asegúrate de que:
+        - **El `<CardContent>`** tenga `overflow-x-auto max-w-full min-w-0`.
+        - **La `<Table>`** use solo `w-full min-w-full` (o elimina `min-w-full` si no lo necesitas).
+
+4. **Verificación**  
+   - En un viewport de 375 px–768 px, abre la pestaña “Clasificación”.
+   - Comprueba que:
+     - Las **tabs** (el `<TabsList>`) se mantienen a lo ancho del contenedor sin desplazarse ni ensancharse.
+     - Solo el **contenido** (la tabla) muestra scroll horizontal dentro de su propio contenedor.
+     - No aparece scroll horizontal en todo el body.
+
+Implementa estos cambios, vuelve a compilar y pruébalo en móvil. Así lograrás que únicamente la tabla de clasificación se desplace, mientras las pestañas permanecen fijas y no se ensanchan.```

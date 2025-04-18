@@ -840,9 +840,9 @@ export default function MatchesPage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      <div className="flex-1 ml-0 md:ml-64 z-30">
+      <div className="flex-1 ml-0 md:ml-64 z-30 min-w-0">
         <Header title="Matches" />
-        <main className="flex-1 p-4 md:p-6 space-y-4 pb-16">
+        <main className="flex-1 p-4 md:p-6 space-y-4 pb-16 overflow-x-hidden">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">{t("matches.matches")}</h1>
             {canManage && (
@@ -945,7 +945,7 @@ export default function MatchesPage() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="overflow-x-auto max-w-full">
+                <CardContent className="overflow-x-auto max-w-full min-w-0">
                   {classifications && classifications.length > 0 ? (
                     <Table className="w-full min-w-full">
                       <TableHeader>
