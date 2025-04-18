@@ -345,7 +345,7 @@ export const esES = {
     uploadAndProcess: "Subir y Procesar",
     leagueTable: "Tabla de la Liga",
     standings: "Clasificación",
-    leagueClassification: "Clasificación",
+    leagueClassification: "Liga",
     addClassification: "Añadir Clasificación",
     editClassification: "Editar Clasificación",
     deleteClassification: "Eliminar Clasificación",
