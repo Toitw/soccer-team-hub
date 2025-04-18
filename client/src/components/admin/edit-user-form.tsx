@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema, User } from "@shared/schema";
@@ -59,6 +60,7 @@ type EditUserFormProps = {
 
 export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.profilePicture);
   const [changePassword, setChangePassword] = useState(false);
 
@@ -90,7 +92,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
 
   // Update user mutation
   const mutation = useMutation({
-    mutationFn: (values: EditUserFormValues) => {
+    mutationFn: async (values: EditUserFormValues) => {
       // Process form data
       const { confirmPassword, changePassword, ...userData } = values;
       
@@ -101,7 +103,8 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       
       console.log('Sending update request for user:', user.id, userData);
       
-      return apiRequest(`/api/admin/users/${user.id}`, {
+      // Use apiRequest for consistency
+      return await apiRequest(`/api/admin/users/${user.id}`, {
         method: 'PUT',
         data: userData,
       });
@@ -112,6 +115,8 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
         title: 'User Updated',
         description: `Successfully updated user ${data.fullName}.`,
       });
+      // Invalidate users query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       onSuccess();
     },
     onError: (error) => {
@@ -135,31 +140,8 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       isValid: form.formState.isValid
     });
     
-    // Direct API call for testing
-    const { confirmPassword, changePassword, ...userData } = values;
-    if (!changePassword) {
-      delete userData.password;
-    }
-    
-    console.log('Calling API directly...');
-    fetch(`/api/admin/users/${user.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-      credentials: 'include'
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log('API response:', data);
-      alert('Usuario actualizado correctamente');
-    })
-    .catch(err => {
-      console.error('API error:', err);
-      alert('Error al actualizar usuario');
-    });
-    
-    // Original mutation approach - commenting out temporarily
-    // mutation.mutate(values);
+    // Use the mutation to update the user
+    mutation.mutate(values);
   };
 
   // Handle avatar preview
@@ -400,10 +382,6 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           <Button 
             type="submit" 
             disabled={mutation.isPending}
-            onClick={(e) => {
-              console.log('Submit button clicked');
-              // No necesitamos preventDefault ya que el formulario manejará el evento de envío
-            }}
           >
             {mutation.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
