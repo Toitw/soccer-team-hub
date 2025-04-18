@@ -81,12 +81,30 @@ export default function UsersPanel() {
   const deleteMutation = useMutation({
     mutationFn: (userId: number) => apiRequest(`/api/admin/users/${userId}`, { method: 'DELETE' }),
     onSuccess: () => {
+      // 1) Invalidate admin users list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      
+      // 2) Invalidate all team-related queries
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/teams')
+      });
+      
+      // 3) Invalidate any individual user queries
+      queryClient.invalidateQueries({
+        predicate: query => 
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === 'string' &&
+          query.queryKey[0].startsWith('/api/users')
+      });
+      
       toast({
         title: 'User deleted',
         description: 'The user has been deleted successfully.',
       });
       setIsDeleteDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error) => {
       toast({
