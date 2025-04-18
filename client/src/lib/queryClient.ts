@@ -34,6 +34,8 @@ export async function apiRequest<T = any>(
     }
   }
   
+  console.log(`API Request: ${method} ${url}`, requestData);
+  
   const res = await fetch(url, {
     method,
     headers: requestData ? { "Content-Type": "application/json" } : {},
