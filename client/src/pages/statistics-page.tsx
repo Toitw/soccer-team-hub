@@ -258,18 +258,18 @@ export default function StatisticsPage() {
                 <h1 className="text-2xl font-bold hidden md:block">
                   {t("statistics.teamStats")}
                 </h1>
-                <TabsList className="w-full md:w-auto">
-                  <TabsTrigger value="team">
-                    {t("statistics.team")}
+                <TabsList className="w-full md:w-auto grid grid-cols-4 max-w-full">
+                  <TabsTrigger value="team" className="px-1 sm:px-2">
+                    <span className="text-xs sm:text-sm">{t("statistics.team")}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="players">
-                    {t("statistics.players")}
+                  <TabsTrigger value="players" className="px-1 sm:px-2">
+                    <span className="text-xs sm:text-sm">{t("statistics.players")}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="performance">
-                    {t("statistics.performance")}
+                  <TabsTrigger value="performance" className="px-1 sm:px-2">
+                    <span className="text-xs sm:text-sm">{t("statistics.performance")}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="league">
-                    {t("statistics.league")}
+                  <TabsTrigger value="league" className="px-1 sm:px-2">
+                    <span className="text-xs sm:text-sm">{t("statistics.league")}</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
