@@ -123,6 +123,15 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           query.queryKey[0].startsWith('/api/teams')
       });
       
+      // 2.1) Specifically target team members lists to ensure role updates are reflected
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === "string" &&
+          query.queryKey[0].startsWith("/api/teams") &&
+          query.queryKey[0].includes("/members")
+      });
+      
       // 3) Invalidate current user data if the updated user is the logged-in user
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
@@ -132,6 +141,14 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
           Array.isArray(query.queryKey) &&
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/users')
+      });
+      
+      // 4.1) Specifically target user-by-ID queries
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          typeof query.queryKey[0] === "string" &&
+          query.queryKey[0].startsWith("/api/users/")
       });
       
       // 5) Invalidate auth context
