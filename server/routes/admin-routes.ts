@@ -113,11 +113,38 @@ export function createAdminRouter(storage: IStorage) {
       validData.password = await hashPassword(validData.password);
     }
     
+    // Check if role is being updated
+    const isRoleChanged = validData.role && validData.role !== existingUser.role;
+    
     // Update user
     const updatedUser = await storage.updateUser(id, validData);
     
     if (!updatedUser) {
       return errorResponse(res, 'Failed to update user');
+    }
+    
+    // If role changed, also update the user's team memberships to match the new role
+    // Only for coach and player roles (admin roles in teams should be managed separately)
+    if (isRoleChanged && (validData.role === 'player' || validData.role === 'coach')) {
+      try {
+        // Get all team memberships for this user
+        const userTeamMemberships = await storage.getTeamMembersByUserId(id);
+        
+        // Update each team membership to match the new user role
+        // Only update team roles that are player or coach (leave admin team memberships as is)
+        await Promise.all(
+          userTeamMemberships
+            .filter(member => member.role === 'player' || member.role === 'coach')
+            .map(member => 
+              storage.updateTeamMember(member.id, { role: validData.role as 'player' | 'coach' })
+            )
+        );
+        
+        console.log(`Updated team memberships for user ${id} to role: ${validData.role}`);
+      } catch (error) {
+        console.error(`Error updating team memberships for user ${id}:`, error);
+        // Don't fail the request if membership updates fail
+      }
     }
     
     return jsonResponse(res, {
