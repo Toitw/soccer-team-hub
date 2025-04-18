@@ -75,6 +75,8 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  // Keep track of the currently selected team ID
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -90,8 +92,8 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
       // Also invalidate team members to ensure they are refreshed
-      if (selectedTeam) {
-        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      if (selectedTeamId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
       }
       
       toast({
@@ -112,10 +114,10 @@ export default function SettingsPage() {
   });
   
   const handleRegenerateJoinCode = () => {
-    if (!selectedTeam) return;
+    if (!selectedTeamId) return;
     
     setIsGeneratingJoinCode(true);
-    regenerateJoinCodeMutation.mutate(selectedTeam.id);
+    regenerateJoinCodeMutation.mutate(selectedTeamId);
   };
   
   const copyJoinCodeToClipboard = () => {
@@ -138,12 +140,21 @@ export default function SettingsPage() {
       });
   };
 
-  // Select the first team by default
-  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+  // Find the selected team from teams data
+  const selectedTeam = teams?.find(team => team.id === selectedTeamId) || 
+                       (teams && teams.length > 0 ? teams[0] : null);
+  
+  // Set the selected team ID when teams data is loaded
+  useEffect(() => {
+    if (teams && teams.length > 0 && !selectedTeamId) {
+      setSelectedTeamId(teams[0].id);
+    }
+  }, [teams, selectedTeamId]);
 
+  // Use the selected team ID for members query to maintain consistency
   const { data: teamMembers, isLoading: membersLoading } = useQuery<(TeamMember & { user: any })[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "members"],
-    enabled: !!selectedTeam,
+    queryKey: ["/api/teams", selectedTeamId, "members"],
+    enabled: !!selectedTeamId,
   });
 
   const isLoading = teamsLoading || membersLoading;
@@ -177,16 +188,16 @@ export default function SettingsPage() {
   // Mutation for updating team settings
   const updateTeamMutation = useMutation({
     mutationFn: async (data: TeamSettingsFormData) => {
-      if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest("PATCH", `/api/teams/${selectedTeam.id}`, data);
+      if (!selectedTeamId) throw new Error("No team selected");
+      return apiRequest("PATCH", `/api/teams/${selectedTeamId}`, data);
     },
     onSuccess: () => {
       // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
       // Also invalidate team members to ensure they are refreshed
-      if (selectedTeam) {
-        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      if (selectedTeamId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
       }
       
       toast({
@@ -207,13 +218,13 @@ export default function SettingsPage() {
   // Mutation for deleting team members
   const deleteTeamMemberMutation = useMutation({
     mutationFn: async (memberId: number) => {
-      if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest("DELETE", `/api/teams/${selectedTeam.id}/members/${memberId}`, {});
+      if (!selectedTeamId) throw new Error("No team selected");
+      return apiRequest("DELETE", `/api/teams/${selectedTeamId}/members/${memberId}`, {});
     },
     onSuccess: () => {
       setIsDeleteDialogOpen(false);
       setMemberToDelete(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
       toast({
         title: "Member removed",
         description: "Team member has been removed successfully.",
@@ -242,8 +253,8 @@ export default function SettingsPage() {
   // Upload logo mutation
   const uploadLogoMutation = useMutation({
     mutationFn: async (imageData: string) => {
-      if (!selectedTeam) throw new Error("No team selected");
-      return apiRequest("POST", `/api/teams/${selectedTeam.id}/logo`, { imageData });
+      if (!selectedTeamId) throw new Error("No team selected");
+      return apiRequest("POST", `/api/teams/${selectedTeamId}/logo`, { imageData });
     },
     onSuccess: (data) => {
       // Update team logo in the form and invalidate queries
@@ -253,8 +264,8 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       
       // Also invalidate team members to ensure they are refreshed
-      if (selectedTeam) {
-        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam.id, "members"] });
+      if (selectedTeamId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
       }
       
       toast({
