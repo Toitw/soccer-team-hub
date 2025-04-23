@@ -2,10 +2,11 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import * as argon2 from "argon2";
 
 declare global {
   namespace Express {
@@ -13,40 +14,76 @@ declare global {
   }
 }
 
-const scryptAsync = promisify(scrypt);
-
-export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  // Use the same format as shared/auth-utils.ts: salt:hash
-  return `${salt}:${buf.toString("hex")}`;
+/**
+ * Hash a password using Argon2id (recommended for password hashing)
+ * @param password - The plain password to hash
+ * @returns The hashed password string with Argon2 parameters
+ */
+export async function hashPassword(password: string): Promise<string> {
+  try {
+    // Using Argon2id which offers a balanced approach of resistance against side-channel and GPU attacks
+    // - memory: 65536 KB (64 MB) - increases memory cost
+    // - parallelism: 4 - number of parallel threads
+    // - timeCost: 3 - iterations count
+    const hash = await argon2.hash(password, {
+      type: argon2.argon2id,
+      memoryCost: 65536,  // 64 MB
+      parallelism: 4,
+      timeCost: 3,
+    });
+    
+    return hash; // Argon2 hashes are self-contained with algorithm parameters and salt
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    throw new Error("Password hashing failed");
+  }
 }
 
-export async function comparePasswords(supplied: string, stored: string | undefined) {
+/**
+ * Compare a plain password with a stored hash
+ * @param supplied - The supplied plain password
+ * @param stored - The stored password hash
+ * @returns Boolean indicating whether passwords match
+ */
+export async function comparePasswords(supplied: string, stored: string | undefined): Promise<boolean> {
   // Handle case where stored password is undefined or empty
   if (!stored) return false;
   
   try {
-    // Support both old and new formats
-    if (stored.includes('.')) {
-      // Old format with dot separator (hash.salt)
-      const [hashed, salt] = stored.split(".");
-      if (!hashed || !salt) return false;
+    // Support legacy formats with custom separators (for backward compatibility)
+    if (stored.includes('.') || stored.includes(':')) {
+      // Extract parts based on separator
+      const separator = stored.includes('.') ? '.' : ':';
+      const [firstPart, secondPart] = stored.split(separator);
       
-      const hashedBuf = Buffer.from(hashed, "hex");
-      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-      return timingSafeEqual(hashedBuf, suppliedBuf);
-    } else if (stored.includes(':')) {
-      // New format with colon separator (salt:hash)
-      const [salt, hash] = stored.split(":");
-      if (!salt || !hash) return false;
-    
-      const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-      const storedHashBuf = Buffer.from(hash, 'hex');
+      if (!firstPart || !secondPart) return false;
       
-      return timingSafeEqual(storedHashBuf, suppliedBuf);
-    } 
+      if (stored.includes('.')) {
+        // Old format with dot separator (hash.salt)
+        const [hash, salt] = stored.split(".");
+        // Fallback to old verification using crypto scrypt
+        const scryptAsync = promisify(require('crypto').scrypt);
+        const hashedBuf = Buffer.from(hash, "hex");
+        const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+        return timingSafeEqual(hashedBuf, suppliedBuf);
+      } else {
+        // Format with colon separator (salt:hash)
+        const [salt, hash] = stored.split(":");
+        // Fallback to old verification using crypto scrypt
+        const scryptAsync = promisify(require('crypto').scrypt);
+        const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+        const storedHashBuf = Buffer.from(hash, 'hex');
+        return timingSafeEqual(storedHashBuf, suppliedBuf);
+      }
+    }
     
+    // For Argon2 hashes (standard format that begins with $argon2id$)
+    if (stored.startsWith('$argon2')) {
+      return await argon2.verify(stored, supplied);
+    }
+    
+    // Unknown format
+    console.warn("Unknown password hash format encountered");
     return false;
   } catch (error) {
     console.error("Error comparing passwords:", error);
