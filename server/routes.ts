@@ -7,6 +7,7 @@ import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
 import { logger, logInfo, logError, logApiRequest, logUserAction } from "./logger";
+import { env } from "./env";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -2035,7 +2036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mock data creation for demo
   app.post("/api/mock-data", async (req, res) => {
-    if (process.env.NODE_ENV === "production") {
+    if (env.NODE_ENV === "production") {
       return res.status(403).json({ error: "Mock data creation not allowed in production" });
     }
 
