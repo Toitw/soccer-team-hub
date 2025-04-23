@@ -6,6 +6,7 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
+import { logger, logInfo, logError, logApiRequest, logUserAction } from "./logger";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -92,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         joinCode,
       });
 
-      console.log(`Created new team: ${team.name} (ID: ${team.id})`);
+      logUserAction(req.user.id, 'team_created', { teamId: team.id, teamName: team.name });
 
       // Always add the current user as admin of the new team
       await storage.createTeamMember({
