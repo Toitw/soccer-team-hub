@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -44,7 +44,9 @@ export const teams = pgTable("teams", {
   logo: text("logo").default("/default-team-logo.png"),
   division: text("division"),
   seasonYear: text("season_year"),
-  createdById: integer("created_by_id").notNull(),
+  createdById: integer("created_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   joinCode: text("join_code").unique(), // Unique join code for team registration
 });
 
@@ -60,10 +62,18 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
 // TeamMembers table for player-team relationship
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
-  userId: integer("user_id").notNull(),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
   role: text("role", { enum: ["admin", "coach", "player"] }).notNull().default("player"),
+}, (table) => {
+  return {
+    teamUserUnique: uniqueIndex("team_members_team_id_user_id_unique").on(table.teamId, table.userId)
+  };
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
@@ -75,7 +85,9 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
 // Matches table
 export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   opponentName: text("opponent_name").notNull(),
   opponentLogo: text("opponent_logo"),
   matchDate: timestamp("match_date").notNull(),
@@ -86,6 +98,10 @@ export const matches = pgTable("matches", {
   status: text("status", { enum: ["scheduled", "completed", "cancelled"] }).notNull().default("scheduled"),
   matchType: text("match_type", { enum: ["league", "copa", "friendly"] }).notNull().default("friendly"),
   notes: text("notes"),
+}, (table) => {
+  return {
+    teamMatchDateIdx: index("matches_team_id_match_date_idx").on(table.teamId, table.matchDate),
+  };
 });
 
 export const insertMatchSchema = createInsertSchema(matches).pick({
@@ -105,14 +121,22 @@ export const insertMatchSchema = createInsertSchema(matches).pick({
 // Events table for trainings and other team events
 export const events = pgTable("events", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   type: text("type", { enum: ["training", "match", "meeting", "other"] }).notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location").notNull(),
   description: text("description"),
-  createdById: integer("created_by_id").notNull(),
+  createdById: integer("created_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+}, (table) => {
+  return {
+    teamStartTimeIdx: index("events_team_id_start_time_idx").on(table.teamId, table.startTime),
+  };
 });
 
 export const insertEventSchema = createInsertSchema(events).pick({
@@ -129,9 +153,17 @@ export const insertEventSchema = createInsertSchema(events).pick({
 // Attendance table for tracking who attended events
 export const attendance = pgTable("attendance", {
   id: serial("id").primaryKey(),
-  eventId: integer("event_id").notNull(),
-  userId: integer("user_id").notNull(),
+  eventId: integer("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   status: text("status", { enum: ["confirmed", "declined", "pending"] }).notNull().default("pending"),
+}, (table) => {
+  return {
+    eventUserUnique: uniqueIndex("attendance_event_id_user_id_unique").on(table.eventId, table.userId)
+  };
 });
 
 export const insertAttendanceSchema = createInsertSchema(attendance).pick({
@@ -143,14 +175,22 @@ export const insertAttendanceSchema = createInsertSchema(attendance).pick({
 // PlayerStats table for tracking individual player statistics
 export const playerStats = pgTable("player_stats", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  matchId: integer("match_id").notNull(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
   goals: integer("goals").default(0),
   assists: integer("assists").default(0),
   yellowCards: integer("yellow_cards").default(0),
   redCards: integer("red_cards").default(0),
   minutesPlayed: integer("minutes_played"),
   performance: integer("performance").default(0), // Rating 1-10
+}, (table) => {
+  return {
+    matchUserUnique: uniqueIndex("player_stats_match_id_user_id_unique").on(table.matchId, table.userId)
+  };
 });
 
 export const insertPlayerStatSchema = createInsertSchema(playerStats).pick({
@@ -167,11 +207,19 @@ export const insertPlayerStatSchema = createInsertSchema(playerStats).pick({
 // Announcements table
 export const announcements = pgTable("announcements", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   content: text("content").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdById: integer("created_by_id").notNull(),
+  createdById: integer("created_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+}, (table) => {
+  return {
+    teamCreatedAtIdx: index("announcements_team_id_created_at_idx").on(table.teamId, table.createdAt),
+  };
 });
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
@@ -184,12 +232,20 @@ export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
 // Invitations table for team invites
 export const invitations = pgTable("invitations", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   role: text("role", { enum: ["admin", "coach", "player"] }).notNull().default("player"),
   status: text("status", { enum: ["pending", "accepted", "declined"] }).notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  createdById: integer("created_by_id").notNull(),
+  createdById: integer("created_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+}, (table) => {
+  return {
+    teamEmailUnique: uniqueIndex("invitations_team_id_email_unique").on(table.teamId, table.email)
+  };
 });
 
 export const insertInvitationSchema = createInsertSchema(invitations).pick({
