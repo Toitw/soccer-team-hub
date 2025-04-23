@@ -108,9 +108,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           info: "You can add members manually from the team page."
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating team:", error);
-      res.status(500).json({ error: "Failed to create team" });
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Conflict: Record already exists" 
+        });
+      }
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create team" 
+      });
     }
   });
 
@@ -147,8 +155,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(team);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create team" });
+    } catch (error: any) {
+      console.error("Error creating team:", error);
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Conflict: Record already exists" 
+        });
+      }
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create team" 
+      });
     }
   });
   
@@ -625,8 +642,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(newTeamMember);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to add team member" });
+    } catch (error: any) {
+      console.error("Error adding team member:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        if (error.name === "ConflictError") {
+          return res.status(409).json({ 
+            error: error.message || "User is already a member of this team" 
+          });
+        } else if (error.name === "ForeignKeyError") {
+          return res.status(409).json({ 
+            error: error.message || "Referenced user or team does not exist" 
+          });
+        } else {
+          return res.status(409).json({ 
+            error: error.message || "Integrity constraint violation" 
+          });
+        }
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to add team member" 
+      });
     }
   });
 

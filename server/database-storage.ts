@@ -40,27 +40,75 @@ export class DatabaseStorage implements IStorage {
 
   /**
    * Check for integrity constraint violations and return appropriate error
+   * Returns 409 Conflict for integrity constraint violations
    */
   private handleDatabaseError(error: any): never {
     console.error("Database error:", error);
     
     // PostgreSQL error codes
-    if (error instanceof PostgresError || (error.code && error.code.startsWith('23'))) {
+    if (error instanceof PostgresError || (error.code && typeof error.code === 'string')) {
       // Check for specific error types
       if (error.code === '23505') { // Unique violation
-        const err = new Error("Conflict: Record already exists");
+        let message = "Conflict: Record already exists";
+        
+        // Extract more detail about which constraint was violated when available
+        if (error.detail) {
+          if (error.detail.includes("team_members_team_id_user_id_unique")) {
+            message = "Conflict: User is already a member of this team";
+          } else if (error.detail.includes("attendance_event_id_user_id_unique")) {
+            message = "Conflict: User already has attendance record for this event";
+          } else if (error.detail.includes("player_stats_match_id_user_id_unique")) {
+            message = "Conflict: Player already has stats for this match";
+          } else if (error.detail.includes("invitations_team_id_email_unique")) {
+            message = "Conflict: This email has already been invited to the team";
+          } else if (error.detail.includes("league_classification_team_id_ext_team_unique")) {
+            message = "Conflict: This team classification already exists";
+          } else if (error.detail.includes("team_lineups_team_id_key")) {
+            message = "Conflict: Team already has a default lineup";
+          } else if (error.detail.includes("teams_join_code_key")) {
+            message = "Conflict: Team with this join code already exists";
+          }
+        }
+        
+        const err = new Error(message);
         err.name = "ConflictError";
         (err as any).status = 409;
         throw err;
       } else if (error.code === '23503') { // Foreign key violation
-        const err = new Error("Foreign key constraint violation");
+        let message = "Reference integrity violation: Referenced record does not exist";
+
+        // Extract more detail about which constraint was violated when available
+        if (error.detail) {
+          if (error.detail.includes("team_id")) {
+            message = "Team does not exist or has been deleted";
+          } else if (error.detail.includes("user_id") || error.detail.includes("player_id")) {
+            message = "User does not exist or has been deleted";
+          } else if (error.detail.includes("match_id")) {
+            message = "Match does not exist or has been deleted";
+          } else if (error.detail.includes("event_id")) {
+            message = "Event does not exist or has been deleted";
+          }
+        }
+        
+        const err = new Error(message);
         err.name = "ForeignKeyError";
         (err as any).status = 409;
         throw err;
       } else if (error.code === '23502') { // Not null violation
-        const err = new Error("Required field missing");
+        let message = "Required field missing";
+        
+        if (error.column) {
+          message = `Required field missing: ${error.column}`;
+        }
+        
+        const err = new Error(message);
         err.name = "NotNullError";
         (err as any).status = 400;
+        throw err;
+      } else if (error.code.startsWith('23')) { // Other integrity constraints
+        const err = new Error("Data integrity constraint violation");
+        err.name = "IntegrityError";
+        (err as any).status = 409;
         throw err;
       }
     }
