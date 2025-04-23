@@ -46,7 +46,7 @@ export default function AuthPage() {
               <circle cx="12" cy="12" r="10" />
               <polygon points="10 8 16 12 10 16 10 8" />
             </svg>
-            <h1 className="text-2xl font-bold text-primary">{t('common.teamKick')}</h1>
+            <h1 className="text-2xl font-bold text-primary">Cancha+</h1>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
