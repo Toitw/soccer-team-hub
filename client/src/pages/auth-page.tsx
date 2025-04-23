@@ -42,12 +42,17 @@ export default function AuthPage() {
         {/* Left Side - Form */}
         <div className="w-full lg:w-1/2 p-6">
           <div className="mb-6 flex items-center justify-center lg:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polygon points="10 8 16 12 10 16 10 8" />
-            </svg>
-            <h1 className="text-2xl font-bold text-primary">
-              Cancha <span className="inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-6 h-6 ml-1 transform rotate-0 hover:rotate-45 transition-transform duration-300">+</span>
+            <h1 className="text-2xl font-bold text-primary flex items-center">
+              Cancha 
+              <span className="relative ml-2 inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-6 h-6 hover:animate-spin transition-all duration-300">
+                <span className="absolute inset-0 rounded-full border-2 border-primary-foreground"></span>
+                <span className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
+                <span className="absolute top-1/2 left-1/2 w-0.5 h-4 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
+                <span className="absolute top-1/2 left-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
+                <span className="absolute top-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
+                <span className="absolute top-1/2 right-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
+                <span className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
+              </span>
             </h1>
           </div>
 
