@@ -258,8 +258,12 @@ export const insertInvitationSchema = createInsertSchema(invitations).pick({
 // MatchLineups table for initial lineups
 export const matchLineups = pgTable("match_lineups", {
   id: serial("id").primaryKey(),
-  matchId: integer("match_id").notNull(),
-  teamId: integer("team_id").notNull(),
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   playerIds: integer("player_ids").array().notNull(), // Array of player IDs in the lineup
   benchPlayerIds: integer("bench_player_ids").array(), // Array of player IDs on the bench
   formation: text("formation"), // e.g., "4-4-2", "4-3-3"
@@ -279,9 +283,15 @@ export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
 // MatchSubstitutions table for player changes
 export const matchSubstitutions = pgTable("match_substitutions", {
   id: serial("id").primaryKey(),
-  matchId: integer("match_id").notNull(),
-  playerInId: integer("player_in_id").notNull(),
-  playerOutId: integer("player_out_id").notNull(),
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  playerInId: integer("player_in_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  playerOutId: integer("player_out_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   minute: integer("minute").notNull(),
   reason: text("reason"),
 });
@@ -297,9 +307,14 @@ export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutio
 // MatchGoals table for detailed goal information
 export const matchGoals = pgTable("match_goals", {
   id: serial("id").primaryKey(),
-  matchId: integer("match_id").notNull(),
-  scorerId: integer("scorer_id").notNull(),
-  assistId: integer("assist_id"), // Optional, not all goals have assists
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  scorerId: integer("scorer_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  assistId: integer("assist_id")
+    .references(() => users.id, { onDelete: "set null" }), // Optional, not all goals have assists
   minute: integer("minute").notNull(),
   type: text("type", { enum: ["regular", "penalty", "free_kick", "own_goal"] }).default("regular"),
   description: text("description"),
@@ -317,8 +332,12 @@ export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
 // MatchCards table for yellow and red cards
 export const matchCards = pgTable("match_cards", {
   id: serial("id").primaryKey(),
-  matchId: integer("match_id").notNull(),
-  playerId: integer("player_id").notNull(),
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
+  playerId: integer("player_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   type: text("type", { enum: ["yellow", "red", "second_yellow"] }).notNull(),
   minute: integer("minute").notNull(),
   reason: text("reason"),
@@ -335,11 +354,15 @@ export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
 // MatchPhotos table for storing match photos
 export const matchPhotos = pgTable("match_photos", {
   id: serial("id").primaryKey(),
-  matchId: integer("match_id").notNull(),
+  matchId: integer("match_id")
+    .notNull()
+    .references(() => matches.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   caption: text("caption"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
-  uploadedById: integer("uploaded_by_id").notNull(),
+  uploadedById: integer("uploaded_by_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 });
 
 export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
@@ -352,7 +375,10 @@ export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
 // Team Lineups table for storing default team formations
 export const teamLineups = pgTable("team_lineups", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull().unique(), // One lineup per team
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" })
+    .unique(), // One lineup per team
   formation: text("formation").notNull(), // e.g., "4-4-2", "4-3-3"
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -414,7 +440,9 @@ export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
 // League Classification table
 export const leagueClassification = pgTable("league_classification", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(), // Reference to the team this classification belongs to
+  teamId: integer("team_id")
+    .notNull()
+    .references(() => teams.id, { onDelete: "cascade" }),
   externalTeamName: text("external_team_name").notNull(), // Name of the external team in the league
   points: integer("points").notNull().default(0),
   position: integer("position"),
@@ -426,6 +454,10 @@ export const leagueClassification = pgTable("league_classification", {
   goalsAgainst: integer("goals_against").default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    teamExternalTeamUnique: uniqueIndex("league_classification_team_id_ext_team_unique").on(table.teamId, table.externalTeamName)
+  };
 });
 
 export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({

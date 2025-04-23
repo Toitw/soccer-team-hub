@@ -139,6 +139,12 @@ export async function up(db: any) {
     REFERENCES "users" ("id") 
     ON DELETE CASCADE;
   `);
+  
+  // Create unique index on invitations(teamId, email) to prevent duplicates
+  await db.run(sql`
+    CREATE UNIQUE INDEX "invitations_team_id_email_unique" 
+    ON "invitations" ("team_id", "email");
+  `);
 
   // 12. Add ON DELETE CASCADE to matchLineups foreign keys
   await db.run(sql`
@@ -260,6 +266,12 @@ export async function up(db: any) {
     ON DELETE CASCADE;
   `);
 
+  // Create unique index on leagueClassification(teamId, externalTeamName) to prevent duplicates
+  await db.run(sql`
+    CREATE UNIQUE INDEX "league_classification_team_id_ext_team_unique" 
+    ON "league_classification" ("team_id", "external_team_name");
+  `);
+
   // 19. Create index on teams.joinCode for faster lookups
   await db.run(sql`
     CREATE INDEX "teams_join_code_idx" 
@@ -319,6 +331,7 @@ export async function down(db: any) {
   // 8. Remove foreign keys from invitations
   await db.run(sql`ALTER TABLE "invitations" DROP CONSTRAINT IF EXISTS "invitations_team_id_fkey";`);
   await db.run(sql`ALTER TABLE "invitations" DROP CONSTRAINT IF EXISTS "invitations_created_by_id_fkey";`);
+  await db.run(sql`DROP INDEX IF EXISTS "invitations_team_id_email_unique";`);
 
   // 9. Remove foreign keys from matchLineups
   await db.run(sql`ALTER TABLE "match_lineups" DROP CONSTRAINT IF EXISTS "match_lineups_match_id_fkey";`);
@@ -347,6 +360,7 @@ export async function down(db: any) {
 
   // 15. Remove foreign key from leagueClassification
   await db.run(sql`ALTER TABLE "league_classification" DROP CONSTRAINT IF EXISTS "league_classification_team_id_fkey";`);
+  await db.run(sql`DROP INDEX IF EXISTS "league_classification_team_id_ext_team_unique";`);
 
   // 16. Remove additional indexes
   await db.run(sql`DROP INDEX IF EXISTS "teams_join_code_idx";`);
