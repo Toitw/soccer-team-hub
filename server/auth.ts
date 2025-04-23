@@ -2,11 +2,13 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import { randomBytes, timingSafeEqual } from "crypto";
+import { randomBytes, timingSafeEqual, scrypt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import * as argon2 from "argon2";
+
+const scryptAsync = promisify(scrypt);
 
 declare global {
   namespace Express {
@@ -58,11 +60,12 @@ export async function comparePasswords(supplied: string, stored: string | undefi
       
       if (!firstPart || !secondPart) return false;
       
+      // scryptAsync ya está definido a nivel de módulo
+      
       if (stored.includes('.')) {
         // Old format with dot separator (hash.salt)
         const [hash, salt] = stored.split(".");
         // Fallback to old verification using crypto scrypt
-        const scryptAsync = promisify(require('crypto').scrypt);
         const hashedBuf = Buffer.from(hash, "hex");
         const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
         return timingSafeEqual(hashedBuf, suppliedBuf);
@@ -70,7 +73,6 @@ export async function comparePasswords(supplied: string, stored: string | undefi
         // Format with colon separator (salt:hash)
         const [salt, hash] = stored.split(":");
         // Fallback to old verification using crypto scrypt
-        const scryptAsync = promisify(require('crypto').scrypt);
         const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
         const storedHashBuf = Buffer.from(hash, 'hex');
         return timingSafeEqual(storedHashBuf, suppliedBuf);

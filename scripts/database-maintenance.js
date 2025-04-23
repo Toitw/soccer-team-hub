@@ -1,5 +1,6 @@
 import { storage } from "../server/storage.js";
 import { hashPassword, isMockUsername } from "../shared/js-utils.js";
+// La función hashPassword ya fue actualizada para usar Argon2id en shared/js-utils.js
 
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "admin123";
