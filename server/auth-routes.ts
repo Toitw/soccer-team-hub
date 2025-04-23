@@ -7,6 +7,7 @@ import { generateVerificationToken, generateTokenExpiry, comparePasswords, hashP
 import { isAuthenticated } from "./auth-middleware";
 import { generateVerificationEmail, generatePasswordResetEmail, sendEmail } from "@shared/email-utils";
 import csrf from "csurf";
+import { env } from "./env";
 
 // Create a router
 const router = Router();
@@ -16,7 +17,7 @@ const csrfProtection = csrf({
   cookie: {
     key: 'csrf-token',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     sameSite: 'lax'
   }
 });
