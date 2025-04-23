@@ -1,14 +1,19 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupVite, serveStatic } from "./vite";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import csrf from "csurf";
 import cookieParser from "cookie-parser";
 import seedDatabase from "./seed";
+import { logger, httpLogger, logError } from "./logger";
 
 const app = express();
+
+// Add HTTP request logging middleware (before any other middlewares)
+app.use(httpLogger);
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser()); // Necesario para CSRF con cookies
@@ -69,6 +74,20 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 // Error handler para errores de CSRF
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err.code === 'EBADCSRFTOKEN') {
+    // Log the CSRF attack attempt with structured data
+    logger.warn({
+      type: 'security_event',
+      event: 'csrf_attack_attempt',
+      path: req.path,
+      method: req.method,
+      ip: req.ip,
+      headers: {
+        'user-agent': req.headers['user-agent'],
+        'host': req.headers['host'],
+        'referer': req.headers['referer']
+      }
+    });
+    
     // Error de CSRF
     return res.status(403).json({ 
       error: 'Solicitud rechazada: posible ataque CSRF detectado' 
@@ -78,30 +97,25 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
+// Track response times and format for structured logging
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+      // Log relevant information without sensitive data
+      logger.info({
+        type: 'api_response',
+        method: req.method,
+        path: path,
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+        contentType: res.getHeader('content-type'),
+        contentLength: res.getHeader('content-length'),
+        userId: (req as any).user?.id
+      });
     }
   });
 
@@ -111,18 +125,28 @@ app.use((req, res, next) => {
 // Run database seed function to ensure admin user exists
 // This is idempotent and safe to run on every startup
 seedDatabase().catch(error => {
-  console.error('Error seeding database:', error);
+  logError('Error seeding database', { error: error.message, stack: error.stack });
 });
 
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Log the error with structured context
+    logger.error({
+      type: 'error_handler',
+      path: req.path,
+      method: req.method,
+      statusCode: status,
+      errorMessage: message,
+      stack: err.stack,
+      userId: (req as any).user?.id
+    });
+
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
@@ -142,6 +166,6 @@ seedDatabase().catch(error => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    logger.info(`serving on port ${port}`);
   });
 })();
