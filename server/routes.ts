@@ -765,8 +765,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(match);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create match" });
+    } catch (error: any) {
+      console.error("Error creating match:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating match" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create match" 
+      });
     }
   });
 
@@ -888,8 +899,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(event);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create event" });
+    } catch (error: any) {
+      console.error("Error creating event:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating event" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create event" 
+      });
     }
   });
 
@@ -1132,8 +1154,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.status(201).json(announcementWithCreator);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create announcement" });
+    } catch (error: any) {
+      console.error("Error creating announcement:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating announcement" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create announcement" 
+      });
     }
   });
 
@@ -1362,9 +1395,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(lineup);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating/updating lineup:", error);
-      res.status(500).json({ error: "Failed to create match lineup" });
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating/updating lineup" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create match lineup" 
+      });
     }
   });
 
@@ -1641,8 +1684,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(goal);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create match goal" });
+    } catch (error: any) {
+      console.error("Error creating match goal:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating match goal" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create match goal" 
+      });
     }
   });
 
@@ -1751,8 +1805,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(card);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create match card" });
+    } catch (error: any) {
+      console.error("Error creating match card:", error);
+      
+      // Check for specific error types (including integrity constraint errors)
+      if (error.status === 409) {
+        return res.status(409).json({ 
+          error: error.message || "Integrity constraint violation when creating match card" 
+        });
+      }
+      
+      res.status(error.status || 500).json({ 
+        error: error.message || "Failed to create match card" 
+      });
     }
   });
 
