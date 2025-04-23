@@ -42,11 +42,18 @@ export default function AuthPage() {
         {/* Left Side - Form */}
         <div className="w-full lg:w-1/2 p-6">
           <div className="mb-6 flex items-center justify-center lg:justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polygon points="10 8 16 12 10 16 10 8" />
-            </svg>
-            <h1 className="text-2xl font-bold text-primary">{t('common.teamKick')}</h1>
+            <h1 className="text-2xl font-bold text-primary flex items-center">
+              Cancha 
+              <span className="relative ml-2 inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-6 h-6 hover:animate-spin transition-all duration-300">
+                <span className="absolute inset-0 rounded-full border-2 border-primary-foreground"></span>
+                <span className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
+                <span className="absolute top-1/2 left-1/2 w-0.5 h-4 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
+                <span className="absolute top-1/2 left-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
+                <span className="absolute top-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
+                <span className="absolute top-1/2 right-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
+                <span className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
+              </span>
+            </h1>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -70,7 +77,7 @@ export default function AuthPage() {
           <div className="h-full flex flex-col justify-center">
             <h2 className="text-3xl font-bold mb-4">{t('landingPage.heroTitle')}</h2>
             <p className="mb-6">{t('landingPage.heroSubtitle')}</p>
-            
+
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
@@ -86,7 +93,7 @@ export default function AuthPage() {
                   <p className="text-sm opacity-80">{t('landingPage.teamManagementDesc')}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +105,7 @@ export default function AuthPage() {
                   <p className="text-sm opacity-80">{t('landingPage.performanceTrackingDesc')}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -124,7 +131,7 @@ export default function AuthPage() {
 function LoginForm() {
   const { loginMutation } = useAuth();
   const { t } = useLanguage();
-  
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -201,7 +208,7 @@ function RegisterForm() {
   const { t } = useLanguage();
   const [joinCodeStatus, setJoinCodeStatus] = useState<{ valid: boolean; teamName?: string } | null>(null);
   const [isCheckingJoinCode, setIsCheckingJoinCode] = useState(false);
-  
+
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -223,12 +230,12 @@ function RegisterForm() {
       setJoinCodeStatus(null);
       return;
     }
-    
+
     setIsCheckingJoinCode(true);
     try {
       const response = await fetch(`/api/validate-join-code/${code}`);
       const data = await response.json();
-      
+
       setJoinCodeStatus({
         valid: data.valid,
         teamName: data.team?.name
@@ -240,7 +247,7 @@ function RegisterForm() {
       setIsCheckingJoinCode(false);
     }
   };
-  
+
   // Watch for join code changes
   useEffect(() => {
     const subscription = form.watch((value: any, { name }: { name: string }) => {
@@ -255,7 +262,7 @@ function RegisterForm() {
         }
       }
     });
-    
+
     return () => {
       if (subscription && typeof subscription.unsubscribe === 'function') {
         subscription.unsubscribe();
@@ -443,14 +450,14 @@ function RegisterForm() {
                 </FormItem>
               )}
             />
-            
+
             <Alert variant="destructive" className="mt-4 mb-2">
               <AlertTriangle className="h-4 w-4 mr-2" />
               <AlertDescription>
                 {t('auth.emailVerification')}
               </AlertDescription>
             </Alert>
-            
+
             <Button 
               type="submit" 
               className="w-full bg-primary hover:bg-primary/90"
