@@ -67,7 +67,7 @@ export const enUS = {
     leagueDataInstruction: "Add league classification data from the Matches page"
   },
   common: {
-    teamKick: "Cancha+",
+    teamKick: "TeamKick",
     submit: "Submit",
     cancel: "Cancel",
     save: "Save",
