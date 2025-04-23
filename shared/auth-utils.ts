@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { promisify } from 'util';
 import { z } from 'zod';
+import * as argon2 from 'argon2';
 
 // Password strength requirements
 const MIN_PASSWORD_LENGTH = 8;
@@ -11,7 +12,6 @@ const REQUIRE_SPECIAL_CHAR = true;
 
 // Promisify crypto functions
 const randomBytes = promisify(crypto.randomBytes);
-const scrypt = promisify(crypto.scrypt);
 
 /**
  * Generate a secure random salt
@@ -23,33 +23,66 @@ export async function generateSalt(): Promise<string> {
 }
 
 /**
- * Hash a password using scrypt (more secure than bcrypt)
+ * Hash a password using Argon2id (recommended for password hashing)
  * @param password - The plain password to hash
- * @returns A string containing the salt and hash, separated by a colon
+ * @returns The hashed password string with Argon2 parameters
  */
 export async function hashPassword(password: string): Promise<string> {
-  const salt = await generateSalt();
-  const derivedKey = await scrypt(password, salt, 64) as Buffer;
-  return `${salt}:${derivedKey.toString('hex')}`;
+  try {
+    // Using Argon2id which offers a balanced approach of resistance against side-channel and GPU attacks
+    // - memory: 65536 KB (64 MB) - increases memory cost
+    // - parallelism: 4 - number of parallel threads
+    // - timeCost: 3 - iterations count
+    const hash = await argon2.hash(password, {
+      type: argon2.argon2id,
+      memoryCost: 65536,  // 64 MB
+      parallelism: 4,
+      timeCost: 3,
+    });
+    
+    return hash; // Argon2 hashes are self-contained with algorithm parameters and salt
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    throw new Error("Password hashing failed");
+  }
 }
 
 /**
  * Compare a plain password with a stored hash
  * @param plainPassword - The plain password to compare
- * @param storedHash - The stored hash (salt:hash format)
+ * @param storedHash - The stored hash
  * @returns True if the password matches, false otherwise
  */
 export async function comparePasswords(plainPassword: string, storedHash: string | undefined): Promise<boolean> {
   if (!storedHash) return false;
 
-  const [salt, hash] = storedHash.split(':');
-  if (!salt || !hash) return false;
+  try {
+    // Handle legacy format (salt:hash)
+    if (storedHash.includes(':')) {
+      const [salt, hash] = storedHash.split(':');
+      if (!salt || !hash) return false;
 
-  const derivedKey = await scrypt(plainPassword, salt, 64) as Buffer;
-  return crypto.timingSafeEqual(
-    Buffer.from(hash, 'hex'),
-    derivedKey
-  );
+      // Legacy verification for old password hashes
+      const scrypt = promisify(crypto.scrypt);
+      const derivedKey = await scrypt(plainPassword, salt, 64) as Buffer;
+      return crypto.timingSafeEqual(
+        Buffer.from(hash, 'hex'),
+        derivedKey
+      );
+    }
+    
+    // For Argon2 hashes (standard format that begins with $argon2id$)
+    if (storedHash.startsWith('$argon2')) {
+      return await argon2.verify(storedHash, plainPassword);
+    }
+    
+    // Unknown format
+    console.warn("Unknown password hash format encountered");
+    return false;
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    return false;
+  }
 }
 
 /**
