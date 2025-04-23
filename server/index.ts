@@ -2,10 +2,57 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
+import csrf from "csurf";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Security middleware
+// 1. Helmet for securing HTTP headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Needed for development
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"],
+    },
+  },
+}));
+
+// 2. CORS - restricted to the frontend domain (allow all in development)
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL || 'https://teamkick.replit.app' 
+    : true,
+  credentials: true,
+}));
+
+// 3. Rate limiting - 100 requests per 15 minutes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: "Too many requests from this IP, please try again after 15 minutes"
+});
+
+// Apply rate limiting to API routes only
+app.use("/api", apiLimiter);
+
+// 4. CSRF protection - only for non-JWT routes
+const csrfProtection = csrf({ cookie: true });
+
+// We'll apply CSRF selectively to routes that need it
 
 app.use((req, res, next) => {
   const start = Date.now();
