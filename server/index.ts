@@ -1,12 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { exec } from "child_process";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import csrf from "csurf";
 import cookieParser from "cookie-parser";
+import seedDatabase from "./seed";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -108,13 +108,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Run admin initialization script before starting the server
-exec('node initialize-admin.js', (error, stdout, stderr) => {
-  if (error) {
-    console.error('Error initializing admin account:', error);
-  } else {
-    console.log('Admin initialization output:', stdout);
-  }
+// Run database seed function to ensure admin user exists
+// This is idempotent and safe to run on every startup
+seedDatabase().catch(error => {
+  console.error('Error seeding database:', error);
 });
 
 (async () => {
