@@ -6,15 +6,26 @@ import { storage } from "./storage";
 import { generateVerificationToken, generateTokenExpiry, comparePasswords, hashPassword } from "@shared/auth-utils";
 import { isAuthenticated } from "./auth-middleware";
 import { generateVerificationEmail, generatePasswordResetEmail, sendEmail } from "@shared/email-utils";
+import csrf from "csurf";
 
 // Create a router
 const router = Router();
+
+// CSRF protection middleware
+const csrfProtection = csrf({ 
+  cookie: {
+    key: 'csrf-token',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  }
+});
 
 /**
  * Route to request email verification
  * POST /api/auth/verify-email/request
  */
-router.post("/verify-email/request", isAuthenticated, async (req: Request, res: Response) => {
+router.post("/verify-email/request", csrfProtection, isAuthenticated, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -106,7 +117,7 @@ router.get("/verify-email/:token", async (req: Request, res: Response) => {
  * Route to request password reset
  * POST /api/auth/reset-password/request
  */
-router.post("/reset-password/request", async (req: Request, res: Response) => {
+router.post("/reset-password/request", csrfProtection, async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     
@@ -166,7 +177,7 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
  * Route to reset password with token
  * POST /api/auth/reset-password
  */
-router.post("/reset-password", async (req: Request, res: Response) => {
+router.post("/reset-password", csrfProtection, async (req: Request, res: Response) => {
   try {
     const { token, password } = req.body;
     

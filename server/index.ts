@@ -6,10 +6,12 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import csrf from "csurf";
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(cookieParser()); // Necesario para CSRF con cookies
 
 // Security middleware
 // 1. Helmet for securing HTTP headers
@@ -49,10 +51,32 @@ const apiLimiter = rateLimit({
 // Apply rate limiting to API routes only
 app.use("/api", apiLimiter);
 
-// 4. CSRF protection - only for non-JWT routes
-const csrfProtection = csrf({ cookie: true });
+// 4. CSRF protection - para rutas mutativas que no usan JWT
+const csrfProtection = csrf({ 
+  cookie: {
+    key: 'csrf-token',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+    sameSite: 'lax' // Protección contra CSRF en navegadores modernos
+  }
+});
 
-// We'll apply CSRF selectively to routes that need it
+// Ruta para obtener el token CSRF
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Error handler para errores de CSRF
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    // Error de CSRF
+    return res.status(403).json({ 
+      error: 'Solicitud rechazada: posible ataque CSRF detectado' 
+    });
+  }
+  // Pasa otros errores al siguiente middleware
+  next(err);
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
