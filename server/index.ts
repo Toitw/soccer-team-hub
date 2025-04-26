@@ -1,53 +1,31 @@
-// Import bootstrap-env before all other imports to ensure environment is loaded
-import './bootstrap-env';
-
-import express, { Request, Response, NextFunction } from "express";
-import passport from "passport";
-import path from "path";
-import cors from "cors";
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic } from "./vite";
 import helmet from "helmet";
+import cors from "cors";
 import rateLimit from "express-rate-limit";
-import bodyParser from "body-parser";
-import { setupAuth, createCsrfProtection, hashPassword, comparePasswords } from "./auth";
-import { storage } from "./storage";
-import { performHealthCheck } from "./db";
-import pinoHttp from "pino-http";
-import pino from "pino";
-import { env } from "./bootstrap-env";
-import { setupVite } from "./vite";
-import { fileURLToPath } from "node:url";
-import http from 'http';
+import csrf from "csurf";
+import cookieParser from "cookie-parser";
+import seedDatabase from "./seed";
+import { logger, httpLogger, logError } from "./logger";
+import { env } from "./env";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Create logger for structured logging
-const logger = pino({
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-    },
-  },
-});
-
-const logError = (message: string, context: Record<string, any> = {}) => {
-  logger.error({ ...context, message });
-};
-
-// Initialize Express app
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
-const server = http.createServer(app);
 
-// Add HTTP request logging
-app.use(pinoHttp({ logger }));
+// Add HTTP request logging middleware (before any other middlewares)
+app.use(httpLogger);
 
-// Standard security middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(cookieParser()); // Necesario para CSRF con cookies
+
+// Security middleware
+// 1. Helmet for securing HTTP headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Needed for development
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
@@ -55,222 +33,140 @@ app.use(helmet({
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'self'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      frameAncestors: ["'self'"],
-      scriptSrcAttr: ["'none'"],
-      upgradeInsecureRequests: [],
     },
   },
 }));
 
-// CORS configuration
+// 2. CORS - restricted to the frontend domain (allow all in development)
 app.use(cors({
-  origin: true,
+  origin: env.NODE_ENV === 'production' 
+    ? env.FRONTEND_URL || 'https://teamkick.replit.app' 
+    : true,
   credentials: true,
 }));
 
-// Request parsing middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Rate limiting
+// 3. Rate limiting - 100 requests per 15 minutes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: "Too many requests from this IP, please try again after 15 minutes"
 });
-app.use('/api/', apiLimiter);
 
-// Health check endpoint for uptime monitoring
-app.get('/healthz', async (req, res) => {
-  const dbStatus = await performHealthCheck();
-  if (dbStatus) {
-    res.status(200).json({ ok: true, database: 'connected' });
-  } else {
-    res.status(500).json({ ok: false, database: 'error' });
+// Apply rate limiting to API routes only
+app.use("/api", apiLimiter);
+
+// 4. CSRF protection - para rutas mutativas que no usan JWT
+const csrfProtection = csrf({ 
+  cookie: {
+    key: 'csrf-token',
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production', // Solo HTTPS en producción
+    sameSite: 'lax' // Protección contra CSRF en navegadores modernos
   }
 });
 
-// Set up authentication (this initializes passport and session handling)
-(async () => {
-  try {
-    await setupAuth(app);
-    
-    // CSRF protection for API routes
-    const csrfProtection = createCsrfProtection();
-    
-    // Route to get a new CSRF token
-    app.get('/api/csrf-token', csrfProtection, (req, res) => {
-      res.json({ csrfToken: req.csrfToken() });
-    });
-    
-    // API routes
-    // Test endpoint to create a test user (for development only)
-    app.post("/api/test/create-user", async (req, res) => {
-      try {
-        // Check if a test user already exists
-        const existingUser = await storage.getUserByUsername('testuser');
-        
-        if (existingUser) {
-          return res.status(200).json({ 
-            message: 'Test user already exists',
-            user: { id: existingUser.id, username: existingUser.username }
-          });
-        }
-        
-        // Create a test user
-        const hashedPassword = await hashPassword('password123');
-        // Only include the minimum required fields
-        const newUser = await storage.createUser({
-          username: 'testuser',
-          password: hashedPassword,
-          fullName: 'Test User',
-          role: 'player'
-        });
-        
-        // Return success without the password
-        const { password, ...userWithoutPassword } = newUser;
-        res.status(201).json({ 
-          message: 'Test user created successfully',
-          user: userWithoutPassword
-        });
-      } catch (error) {
-        console.error('Error creating test user:', error);
-        res.status(500).json({ error: 'Failed to create test user' });
+// Ruta para obtener el token CSRF
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Error handler para errores de CSRF
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    // Log the CSRF attack attempt with structured data
+    logger.warn({
+      type: 'security_event',
+      event: 'csrf_attack_attempt',
+      path: req.path,
+      method: req.method,
+      ip: req.ip,
+      headers: {
+        'user-agent': req.headers['user-agent'],
+        'host': req.headers['host'],
+        'referer': req.headers['referer']
       }
     });
     
-    // User login - Custom handling for better error reporting
-    app.post("/api/login", async (req, res, next) => {
-      try {
-        // Extract credentials from request body
-        const { username, password } = req.body;
-        
-        if (!username || !password) {
-          return res.status(400).json({ error: "Username and password are required" });
-        }
-        
-        // Find the user
-        const user = await storage.getUserByUsername(username);
-        
-        if (!user) {
-          return res.status(401).json({ error: "Invalid username or password" });
-        }
-        
-        // Verify password
-        const isPasswordValid = await comparePasswords(password, user.password);
-        console.log('Password verification result:', isPasswordValid);
-        console.log('Stored password hash format:', user.password);
-        
-        if (!isPasswordValid) {
-          return res.status(401).json({ error: "Invalid username or password" });
-        }
-        
-        // Complete login by manually establishing the session
-        req.login(user, (err) => {
-          if (err) {
-            console.error("Login session error:", err);
-            return res.status(500).json({ error: "Failed to establish session" });
-          }
-          
-          // Don't send the password to the client
-          const { password, ...userWithoutPassword } = user;
-          res.status(200).json(userWithoutPassword);
-        });
-      } catch (error) {
-        console.error("Error during login:", error);
-        res.status(500).json({ error: "Internal server error during authentication" });
-      }
+    // Error de CSRF
+    return res.status(403).json({ 
+      error: 'Solicitud rechazada: posible ataque CSRF detectado' 
     });
-    
-    // User logout
-    app.post("/api/logout", (req, res, next) => {
-      req.logout((err) => {
-        if (err) return next(err);
-        
-        req.session.destroy((sessionErr) => {
-          if (sessionErr) {
-            console.error("Error destroying session:", sessionErr);
-          }
-          
-          res.clearCookie('app.sid');
-          res.sendStatus(200);
-        });
-      });
-    });
-    
-    // Get current user
-    app.get("/api/user", async (req, res) => {
-      if (!req.isAuthenticated()) {
-        return res.sendStatus(401);
-      }
-      
-      try {
-        const user = req.user;
-        const { password, ...userWithoutPassword } = user;
-        res.json(userWithoutPassword);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        res.status(500).json({ error: "Failed to fetch user data" });
-      }
-    });
-    
-    // Error handler for CSRF errors
-    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-      if (err.code === 'EBADCSRFTOKEN') {
-        logger.warn({
-          type: 'security_event',
-          event: 'csrf_attack_attempt',
-          path: req.path,
-          method: req.method,
-          ip: req.ip,
-        });
-        
-        return res.status(403).json({ 
-          error: 'Request rejected: possible CSRF attack detected' 
-        });
-      }
-      
-      next(err);
-    });
-    
-    // Global error handler
-    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      
-      logger.error({
-        type: 'error_handler',
-        path: req.path,
+  }
+  // Pasa otros errores al siguiente middleware
+  next(err);
+});
+
+// Track response times and format for structured logging
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      // Log relevant information without sensitive data
+      logger.info({
+        type: 'api_response',
         method: req.method,
-        statusCode: status,
-        errorMessage: message,
-        stack: err.stack,
+        path: path,
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+        contentType: res.getHeader('content-type'),
+        contentLength: res.getHeader('content-length'),
         userId: (req as any).user?.id
       });
-      
-      res.status(status).json({ error: message });
+    }
+  });
+
+  next();
+});
+
+// Run database seed function to ensure admin user exists
+// This is idempotent and safe to run on every startup
+seedDatabase().catch(error => {
+  logError('Error seeding database', { error: error.message, stack: error.stack });
+});
+
+(async () => {
+  const server = await registerRoutes(app);
+
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    // Log the error with structured context
+    logger.error({
+      type: 'error_handler',
+      path: req.path,
+      method: req.method,
+      statusCode: status,
+      errorMessage: message,
+      stack: err.stack,
+      userId: (req as any).user?.id
     });
 
-    // Serve frontend depending on the environment
-    if (env.NODE_ENV === "development") {
-      await setupVite(app, server);        // <-- Vite dev-middleware
-    } else {
-      const staticDir = path.join(__dirname, "..", "client", "dist");
-      app.use(express.static(staticDir));
-      app.get("*", (_, res) =>
-        res.sendFile(path.join(staticDir, "index.html"))
-      );
-    }
-    
-    // Start the server
-    server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
+    res.status(status).json({ message });
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (env.NODE_ENV === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
   }
+
+  // Serve the app on the configured port (defaults to 5000)
+  // This serves both the API and the client
+  const port = env.PORT;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
+  });
 })();
