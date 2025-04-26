@@ -38,12 +38,41 @@ app.use(helmet({
 }));
 
 // 2. CORS - restricted to the frontend domain (allow all in development)
-app.use(cors({
-  origin: env.NODE_ENV === 'production' 
-    ? env.FRONTEND_URL || 'https://teamkick.replit.app' 
-    : true,
-  credentials: true,
-}));
+// In production, strictly limit to our domain and use secure settings
+if (env.NODE_ENV === 'production') {
+  // Get allowed origins (either from env var or use our replit app domain as default)
+  const allowedOrigins = [
+    env.FRONTEND_URL || 'https://teamkick.replit.app',
+    'https://' + (process.env.REPL_SLUG || 'teamkick') + '.replit.app'
+  ].filter(Boolean);
+  
+  console.log('CORS allowed origins in production:', allowedOrigins);
+
+  app.use(cors({
+    origin: function(origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // Log blocked origins for debugging
+        console.warn(`CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    maxAge: 86400 // 24 hours
+  }));
+} else {
+  // In development, allow all origins
+  app.use(cors({
+    origin: true,
+    credentials: true
+  }));
+}
 
 // 3. Rate limiting - 100 requests per 15 minutes
 const apiLimiter = rateLimit({
