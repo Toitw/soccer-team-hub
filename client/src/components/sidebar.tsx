@@ -1,186 +1,155 @@
-import React from 'react';
-import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/hooks/use-auth';
-import { useTeam } from '@/hooks/use-team';
-import { useLanguage } from '@/hooks/use-language';
-import Logo from '@/components/logo';
-import {
-  HomeIcon,
-  Trophy,
-  Calendar,
-  Shirt,
-  BarChart,
-  MessageSquare,
-  Settings,
-  LogOut,
-  ChevronDown,
-} from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
+import { Button } from "@/components/ui/button";
+import { useMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { Team } from "@shared/schema";
+import LanguageSelector from "./language-selector";
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
-  const { selectedTeam, teams, setSelectedTeam } = useTeam();
+  const { user, logoutMutation } = useAuth();
   const { t } = useLanguage();
+  const isMobile = useMobile();
 
-  // Get user initials from fullName
-  const getInitials = (fullName: string) => {
-    return fullName
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase();
-  };
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+  });
 
-  // Nav item component
-  const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) => {
-    const isActive = location === href;
-    return (
-      <Link href={href}>
-        <div className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm ${
-          isActive 
-            ? 'bg-primary/10 text-primary font-medium' 
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-        }`}>
-          {icon}
-          <span>{label}</span>
-        </div>
-      </Link>
-    );
-  };
+  if (isMobile) return null;
 
   return (
-    <div className="hidden border-r h-screen bg-background lg:block w-64 fixed">
-      <div className="flex flex-col h-full">
-        {/* Top section with logo and team selection */}
-        <div className="py-4 px-6">
-          <div className="flex items-center gap-2">
-            <Logo className="text-primary" size={32} />
-            <h1 className="text-xl font-bold">TeamKick</h1>
-          </div>
-          
-          {/* Team selector */}
-          {selectedTeam && (
-            <div className="mt-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span className="truncate">{selectedTeam.name}</span>
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  <DropdownMenuLabel>{t('common.teams')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {teams.map((team) => (
-                    <DropdownMenuItem 
-                      key={team.id}
-                      onClick={() => setSelectedTeam(team)}
-                      className={selectedTeam.id === team.id ? 'bg-primary/10 text-primary' : ''}
-                    >
-                      {team.name}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+    <div className="w-64 bg-primary text-white h-screen fixed left-0 top-0 z-40">
+      <div className="p-4 flex items-center space-x-2">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polygon points="10 8 16 12 10 16 10 8" />
+        </svg>
+        <h1 className="text-xl font-semibold">TeamKick</h1>
+      </div>
+
+      <div className="mt-8">
+        <div className="px-4 mb-8">
+          <div className="flex items-center space-x-3 mb-3">
+            <img 
+              src={user?.profilePicture || "https://ui-avatars.com/api/?name=User&background=0D47A1&color=fff"} 
+              alt="User profile" 
+              className="w-10 h-10 rounded-full" 
+            />
+            <div>
+              <p className="text-sm font-medium">{user?.fullName || "User"}</p>
+              <p className="text-xs opacity-70">{user?.role || "Role"}</p>
             </div>
-          )}
+          </div>
+          <Button variant="outline" className="mt-2 w-full py-1.5 px-3 text-sm bg-white/10 text-white border-white/20 hover:bg-white/20">
+            {t("common.switchTeam")}
+          </Button>
         </div>
 
-        {/* Navigation items */}
-        <div className="flex-1 overflow-auto py-2 px-3">
-          <nav className="space-y-1">
-            <NavItem 
-              href="/" 
-              icon={<HomeIcon className="h-5 w-5" />} 
-              label={t('navigation.dashboard')} 
-            />
-            <NavItem 
-              href="/matches" 
-              icon={<Trophy className="h-5 w-5" />} 
-              label={t('navigation.matches')} 
-            />
-            <NavItem 
-              href="/events" 
-              icon={<Calendar className="h-5 w-5" />} 
-              label={t('navigation.events')} 
-            />
-            <NavItem 
-              href="/players" 
-              icon={<Shirt className="h-5 w-5" />} 
-              label={t('navigation.players')} 
-            />
-            <NavItem 
-              href="/statistics" 
-              icon={<BarChart className="h-5 w-5" />} 
-              label={t('navigation.statistics')} 
-            />
-            <NavItem 
-              href="/announcements" 
-              icon={<MessageSquare className="h-5 w-5" />} 
-              label={t('navigation.announcements')} 
-            />
-            
-            {/* Admin-only pages */}
-            {user && (user.role === 'admin' || user.role === 'superuser') && (
-              <NavItem 
-                href="/settings" 
-                icon={<Settings className="h-5 w-5" />} 
-                label={t('navigation.settings')} 
-              />
-            )}
-            
-            {/* Superuser-only pages */}
-            {user && user.role === 'superuser' && (
-              <NavItem 
-                href="/admin" 
-                icon={<Settings className="h-5 w-5" />} 
-                label={t('navigation.admin')} 
-              />
-            )}
-          </nav>
-        </div>
-        
-        {/* User profile at bottom */}
-        <div className="border-t p-4">
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start p-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.profilePicture || undefined} />
-                      <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start">
-                      <span className="text-sm font-medium">{user.fullName}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
-                    </div>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{t('auth.profile')}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/profile">{t('auth.editProfile')}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  {t('auth.logout')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <nav>
+          <Link href="/">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>{t("navigation.dashboard")}</span>
+            </div>
+          </Link>
+          <Link href="/team">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/team' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>{t("navigation.team")}</span>
+            </div>
+          </Link>
+          <Link href="/matches">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/matches' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18.5 4l2 6h-13l2-6"></path>
+                <path d="M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"></path>
+                <path d="M6 14v4"></path>
+                <path d="M12 14v4"></path>
+                <path d="M18 14v4"></path>
+              </svg>
+              <span>{t("navigation.matches")}</span>
+            </div>
+          </Link>
+          <Link href="/events">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/events' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                <line x1="4" y1="22" x2="4" y2="15"></line>
+              </svg>
+              <span>{t("navigation.events")}</span>
+            </div>
+          </Link>
+          <Link href="/statistics">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/statistics' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              <span>{t("navigation.statistics")}</span>
+            </div>
+          </Link>
+          <Link href="/announcements">
+            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/announcements' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span>{t("navigation.announcements")}</span>
+            </div>
+          </Link>
+          {/* Only admin users can access settings */}
+          {user?.role === "admin" && (
+            <Link href="/settings">
+              <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/settings' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1 1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>{t("navigation.settings")}</span>
+              </div>
+            </Link>
           )}
+          
+          {/* Only superusers can access admin panel */}
+          {user?.role === "superuser" && (
+            <Link href="/admin">
+              <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/admin' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l3 6.5l7 .5l-5 4.5l2 7l-7-4l-7 4l2-7l-5-4.5l7-.5z" />
+                </svg>
+                <span>Admin Panel</span>
+              </div>
+            </Link>
+          )}
+          <button 
+            onClick={() => logoutMutation.mutate()}
+            className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/10 text-left"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>{t("common.logout")}</span>
+          </button>
+        </nav>
+        
+        <div className="mt-6 mb-4">
+          <LanguageSelector variant="sidebar" />
         </div>
       </div>
     </div>
