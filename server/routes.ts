@@ -8,6 +8,8 @@ import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
 import { logger, logInfo, logError, logApiRequest, logUserAction } from "./logger";
 import { env } from "./env";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -61,6 +63,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Attach admin router to main app
   app.use('/api', adminRouter);
+
+  // Add comprehensive health check endpoint for monitoring and diagnostics
+  app.get('/api/health', async (req, res) => {
+    try {
+      // Database health check
+      const dbStatus = await db.execute(sql`SELECT 1 as health_check`).then(() => 'connected').catch(err => {
+        logger.error('Health check database error', { error: err.message });
+        return 'disconnected';
+      });
+      
+      // System information
+      const healthStatus = {
+        status: 'ok',
+        environment: env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        memory: {
+          rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB',
+          heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB',
+          heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB'
+        },
+        database: {
+          status: dbStatus
+        }
+      };
+      
+      res.json(healthStatus);
+    } catch (error) {
+      logger.error('Health check error', { error: (error as Error).message });
+      res.status(500).json({ status: 'error', error: 'Health check failed' });
+    }
+  });
 
   const httpServer = createServer(app);
 
