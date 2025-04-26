@@ -13,6 +13,12 @@ import { storage } from "./storage";
 import { performHealthCheck } from "./db";
 import pinoHttp from "pino-http";
 import pino from "pino";
+import { env } from "./bootstrap-env";
+import { setupVite } from "./vite";
+import { fileURLToPath } from "node:url";
+import http from 'http';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Create logger for structured logging
 const logger = pino({
@@ -31,6 +37,7 @@ const logError = (message: string, context: Record<string, any> = {}) => {
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+const server = http.createServer(app);
 
 // Add HTTP request logging
 app.use(pinoHttp({ logger }));
@@ -229,15 +236,6 @@ app.get('/healthz', async (req, res) => {
       next(err);
     });
     
-    // Add a root route for testing API functionality
-    app.get('/', (req, res) => {
-      res.status(200).json({ 
-        message: 'API server is running',
-        auth: req.isAuthenticated() ? 'Authenticated' : 'Not authenticated',
-        user: req.user ? { id: req.user.id, role: req.user.role } : null
-      });
-    });
-    
     // Global error handler
     app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -255,9 +253,20 @@ app.get('/healthz', async (req, res) => {
       
       res.status(status).json({ error: message });
     });
+
+    // Serve frontend depending on the environment
+    if (env.NODE_ENV === "development") {
+      await setupVite(app, server);        // <-- Vite dev-middleware
+    } else {
+      const staticDir = path.join(__dirname, "..", "client", "dist");
+      app.use(express.static(staticDir));
+      app.get("*", (_, res) =>
+        res.sendFile(path.join(staticDir, "index.html"))
+      );
+    }
     
     // Start the server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
