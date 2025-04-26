@@ -1,85 +1,39 @@
-import { Bell, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/hooks/use-translation";
+import { useLanguage } from "@/hooks/use-language";
+import { Menu, BellIcon, Search } from "lucide-react";
 
 interface HeaderProps {
   title: string;
-  translationKey?: string;
 }
 
-export default function Header({ title, translationKey }: HeaderProps) {
-  const { user, logoutMutation } = useAuth();
-  const { toast } = useToast();
-  const { t } = useTranslation();
-
-  const handleLogout = () => {
-    logoutMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out.",
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to log out",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
+export default function Header({ title }: HeaderProps) {
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  
   return (
-    <header className="bg-white shadow-sm">
-      <div className="px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-primary">
-          {translationKey ? t(translationKey) : title}
-        </h1>
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" className="text-sm text-primary hover:text-primary/80 relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs bg-accent text-white rounded-full">3</span>
-          </Button>
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center space-x-2 lg:hidden">
+          <Menu className="h-6 w-6" />
+        </div>
+        
+        <h1 className="ml-2 text-xl font-semibold">{title}</h1>
+        
+        <div className="ml-auto flex items-center space-x-4">
+          <div className="relative hidden md:block">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder={t("common.search")}
+              className="rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
+            />
+          </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="md:block hidden cursor-pointer">
-                <img 
-                  src={user?.profilePicture || "https://ui-avatars.com/api/?name=User&background=0D47A1&color=fff"} 
-                  alt="User profile" 
-                  className="w-10 h-10 rounded-full border-2 border-primary" 
-                />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{user?.fullName || "User"}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {/* Mobile logout button */}
-          <Button 
-            variant="ghost" 
-            onClick={handleLogout} 
-            className="md:hidden text-sm text-red-500 hover:text-red-600"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <button className="relative rounded-full p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+            <BellIcon className="h-5 w-5" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
+          </button>
         </div>
       </div>
     </header>
