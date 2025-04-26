@@ -1,166 +1,196 @@
-import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-} from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient, clearCsrfToken } from "../lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { User } from '@shared/schema';
 
-type AuthContextType = {
-  user: SelectUser | null;
-  isLoading: boolean;
-  error: Error | null;
+// Define the context shape
+interface AuthContextType {
+  user: User | null;
   isAuthenticated: boolean;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
-  requestVerificationEmail: UseMutationResult<void, Error, void>;
-};
+  isLoading: boolean;
+  login: (username: string, password: string, remember?: boolean) => Promise<User>;
+  logout: () => Promise<void>;
+  register: (userData: RegisterData) => Promise<User>;
+  updateProfile: (userData: Partial<User>) => Promise<User>;
+}
 
-type LoginData = Pick<InsertUser, "username" | "password">;
+// Register data validation schema
+export const registerSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string(),
+  email: z.string().email('Invalid email address'),
+  fullName: z.string().min(2, 'Full name is required'),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+export type RegisterData = z.infer<typeof registerSchema>;
+
+// Create the context
+const AuthContext = createContext<AuthContextType | null>(null);
+
+// Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const {
-    data: user,
-    error,
-    isLoading,
-  } = useQuery<SelectUser | undefined, Error>({
-    queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+
+  // Get current user session
+  const { data: userData, isLoading: isSessionLoading } = useQuery<User>({
+    queryKey: ['/api/user'],
+    retry: false,
+    onError: () => {
+      setIsLoading(false);
+    },
+    onSuccess: (data) => {
+      setUser(data);
+      setIsLoading(false);
+    }
   });
 
+  // Update user when data changes
+  useEffect(() => {
+    if (userData) {
+      setUser(userData);
+    }
+  }, [userData]);
+
+  // Login mutation
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      // First clear any stale data
-      queryClient.clear();
-      
-      // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("/api/login", { 
-        method: "POST", 
-        data: credentials 
+    mutationFn: async ({ username, password, remember }: { username: string; password: string; remember?: boolean }) => {
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password, remember }),
       });
+      return response.json();
     },
-    onSuccess: (user: SelectUser) => {
-      // Set the user data
-      queryClient.setQueryData(["/api/user"], user);
-      
-      // Invalidate all team-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      
+    onSuccess: (data: User) => {
+      setUser(data);
+      queryClient.setQueryData(['/api/user'], data);
       toast({
-        titleKey: "toasts.loginSuccess",
-        descriptionKey: "toasts.welcomeBack",
-        descriptionParams: { name: user.fullName },
+        title: 'Success',
+        titleKey: 'toasts.loginSuccess',
+        description: `Welcome back, ${data.fullName}!`,
+        descriptionKey: 'toasts.welcomeBack',
+        descriptionParams: { name: data.fullName },
       });
     },
     onError: (error: Error) => {
       toast({
-        titleKey: "toasts.loginFailed",
-        description: error.message,
-        variant: "destructive",
+        title: 'Error',
+        titleKey: 'toasts.error',
+        description: error.message || 'Login failed. Please check your credentials.',
+        descriptionKey: 'toasts.loginFailed',
+        variant: 'destructive',
       });
-    },
+    }
   });
 
+  // Register mutation
   const registerMutation = useMutation({
-    mutationFn: async (credentials: InsertUser) => {
-      // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("/api/register", {
-        method: "POST",
-        data: credentials
+    mutationFn: async (userData: RegisterData) => {
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData),
       });
+      return response.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-      
-      // Invalidate all team-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      
+    onSuccess: (data: User) => {
+      setUser(data);
+      queryClient.setQueryData(['/api/user'], data);
       toast({
-        titleKey: "toasts.registrationSuccess",
-        descriptionKey: "toasts.welcomeToTeamKick",
-        descriptionParams: { name: user.fullName },
+        title: 'Success',
+        titleKey: 'toasts.registrationSuccess',
+        description: `Welcome to TeamKick, ${data.fullName}!`,
+        descriptionKey: 'toasts.welcomeToTeamKick',
+        descriptionParams: { name: data.fullName },
       });
     },
     onError: (error: Error) => {
       toast({
-        titleKey: "toasts.registrationFailed",
-        description: error.message,
-        variant: "destructive",
+        title: 'Error',
+        titleKey: 'toasts.error',
+        description: error.message || 'Registration failed.',
+        descriptionKey: 'toasts.registrationFailed',
+        variant: 'destructive',
       });
-    },
+    }
   });
 
+  // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("/api/logout", { method: "POST" });
+      const response = await apiRequest('/api/auth/logout', {
+        method: 'POST',
+      });
+      return response.json();
     },
     onSuccess: () => {
-      // Limpiar el token CSRF almacenado
-      clearCsrfToken();
-      
-      // Clear all cached queries to ensure fresh data on login
-      queryClient.clear();
-      
-      // Set the user to null
-      queryClient.setQueryData(["/api/user"], null);
-      
-      // Force reload the window to ensure a clean state
-      window.location.href = "/auth";
-      
+      setUser(null);
+      queryClient.setQueryData(['/api/user'], null);
+      queryClient.invalidateQueries();
       toast({
-        titleKey: "toasts.logoutSuccess",
-        descriptionKey: "toasts.logoutSuccess",
+        title: 'Success',
+        titleKey: 'toasts.logoutSuccess',
+        description: 'You have been logged out successfully.',
       });
-    },
-    onError: (error: Error) => {
-      toast({
-        titleKey: "toasts.error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    }
   });
 
-  // Email verification mutation
-  const requestVerificationEmail = useMutation({
-    mutationFn: async () => {
-      await apiRequest("/api/auth/verify-email/request", { method: "POST" });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Verification email sent",
-        description: "Please check your inbox for the verification email",
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (userData: Partial<User>) => {
+      const response = await apiRequest('/api/user/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(userData),
       });
+      return response.json();
     },
-    onError: (error: Error) => {
+    onSuccess: (data: User) => {
+      setUser(data);
+      queryClient.setQueryData(['/api/user'], data);
       toast({
-        title: "Failed to send verification email",
-        description: error.message,
-        variant: "destructive",
+        title: 'Success',
+        description: 'Your profile has been updated successfully.',
       });
-    },
+    }
   });
+
+  // Login function
+  const login = async (username: string, password: string, remember?: boolean) => {
+    return loginMutation.mutateAsync({ username, password, remember });
+  };
+
+  // Logout function
+  const logout = async () => {
+    await logoutMutation.mutateAsync();
+  };
+
+  // Register function
+  const register = async (userData: RegisterData) => {
+    return registerMutation.mutateAsync(userData);
+  };
+
+  // Update profile function
+  const updateProfile = async (userData: Partial<User>) => {
+    return updateProfileMutation.mutateAsync(userData);
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        user: user ?? null,
-        isLoading,
-        error,
+        user,
         isAuthenticated: !!user,
-        loginMutation,
-        logoutMutation,
-        registerMutation,
-        requestVerificationEmail,
+        isLoading: isSessionLoading,
+        login,
+        logout,
+        register,
+        updateProfile,
       }}
     >
       {children}
@@ -168,10 +198,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }

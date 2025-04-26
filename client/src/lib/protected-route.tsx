@@ -1,56 +1,51 @@
-import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
-import { Redirect, Route } from "wouter";
+import React from 'react';
+import { useLocation, Redirect } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { Route, RouteProps } from 'wouter';
 
-// Define props type for the protected component
-interface ComponentWithReadOnly {
-  readOnly?: boolean;
-}
-
-export function ProtectedRoute({
-  path,
-  component: Component,
-  requiredRole,
-  allowedRoles = ["admin", "coach", "player"],
-  readOnly = false,
-}: {
-  path: string;
-  component: React.ComponentType<ComponentWithReadOnly>;
+interface ProtectedRouteProps extends RouteProps {
   requiredRole?: string;
   allowedRoles?: string[];
-  readOnly?: boolean;
-}) {
-  const { user, isLoading } = useAuth();
+}
 
-  const hasRequiredRole = () => {
-    // If a specific role is required, check only that role
-    if (requiredRole) {
-      return user?.role === requiredRole;
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  component,
+  requiredRole,
+  allowedRoles,
+  ...rest
+}) => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  // While checking authentication status, return nothing (or a loading spinner)
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+
+  // Create a wrapper component that will check auth and roles
+  const WrappedComponent = (props: any) => {
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      // Use Redirect component from wouter for navigation
+      return <Redirect to="/auth" />;
     }
-    
-    // Otherwise, check if user's role is in the allowed roles list
-    return user?.role ? allowedRoles.includes(user.role) : false;
+
+    // If roles are required, check if user has the necessary role
+    if (requiredRole && user?.role !== requiredRole) {
+      // If user doesn't have the exact required role, check if they have one of the allowed roles
+      if (allowedRoles && user?.role && allowedRoles.includes(user.role)) {
+        // User has one of the allowed roles, render the component
+        return React.createElement(component, props);
+      }
+      
+      // Otherwise redirect to dashboard (or unauthorized page)
+      return <Redirect to="/" />;
+    }
+
+    // If no role requirements or user has the right role, render the component
+    return React.createElement(component, props);
   };
 
-  // Create a special property to pass to components for read-only mode
-  // This is particularly useful for player role which can only view data
-  const isReadOnly = readOnly || (user?.role === "player");
-  
-  return (
-    <Route path={path}>
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : user ? (
-        hasRequiredRole() ? (
-          <Component readOnly={isReadOnly} />
-        ) : (
-          <Redirect to="/" />
-        )
-      ) : (
-        <Redirect to="/auth" />
-      )}
-    </Route>
-  );
-}
+  // Return the Route with our wrapped component
+  return <Route component={WrappedComponent} {...rest} />;
+};

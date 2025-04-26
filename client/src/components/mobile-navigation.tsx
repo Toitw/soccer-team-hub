@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
@@ -14,7 +14,7 @@ import {
 
 export default function MobileNavigation() {
   const [location] = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const { t } = useLanguage();
 
   if (!isMobile) return null;
