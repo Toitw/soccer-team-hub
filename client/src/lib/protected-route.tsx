@@ -1,51 +1,55 @@
-import React from 'react';
-import { useLocation, Redirect } from 'wouter';
+import React, { ComponentType } from 'react';
+import { Redirect, useLocation, RouteComponentProps } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
-import { Route, RouteProps } from 'wouter';
 
-interface ProtectedRouteProps extends RouteProps {
-  requiredRole?: string;
-  allowedRoles?: string[];
+interface ProtectedRouteProps {
+  component: ComponentType<any>;
+  requiredRoles?: string[];
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  component,
-  requiredRole,
-  allowedRoles,
-  ...rest
-}) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const [, setLocation] = useLocation();
+/**
+ * A higher-order component that protects routes requiring authentication
+ * @param component - The component to render if authenticated
+ * @param requiredRoles - Optional array of roles required to access the route
+ */
+function ProtectedRoute({ 
+  component: Component,
+  requiredRoles = []
+}: ProtectedRouteProps) {
+  return function ProtectedComponent(props: RouteComponentProps) {
+    const { user, isAuthenticated, isLoading } = useAuth();
+    const [, setLocation] = useLocation();
 
-  // While checking authentication status, return nothing (or a loading spinner)
-  if (isLoading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  }
+    // Show loading state while checking authentication
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      );
+    }
 
-  // Create a wrapper component that will check auth and roles
-  const WrappedComponent = (props: any) => {
-    // If not authenticated, redirect to login
+    // Redirect to login if not authenticated
     if (!isAuthenticated) {
-      // Use Redirect component from wouter for navigation
-      return <Redirect to="/auth" />;
+      return <Redirect to="/?redirect=true" />;
     }
 
-    // If roles are required, check if user has the necessary role
-    if (requiredRole && user?.role !== requiredRole) {
-      // If user doesn't have the exact required role, check if they have one of the allowed roles
-      if (allowedRoles && user?.role && allowedRoles.includes(user.role)) {
-        // User has one of the allowed roles, render the component
-        return React.createElement(component, props);
-      }
+    // Check role permissions if required
+    if (requiredRoles.length > 0) {
+      const hasRequiredRole = requiredRoles.includes(user?.role as string);
       
-      // Otherwise redirect to dashboard (or unauthorized page)
-      return <Redirect to="/" />;
+      if (!hasRequiredRole) {
+        // User is authenticated but doesn't have the required role
+        return <Redirect to="/dashboard" />;
+      }
     }
 
-    // If no role requirements or user has the right role, render the component
-    return React.createElement(component, props);
+    // Render the protected component
+    return <Component {...props} />;
   };
+}
 
-  // Return the Route with our wrapped component
-  return <Route component={WrappedComponent} {...rest} />;
-};
+export default ProtectedRoute;
