@@ -1,30 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-// Hook to detect if the current device is mobile
-export function useMobile(): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+export function useMobile() {
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Consider devices with width < 768px as mobile
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
 
-    // Check on initial load
-    checkIfMobile();
-
-    // Add event listener for window resize
-    window.addEventListener('resize', checkIfMobile);
-    
-    // Cleanup
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
     return () => {
-      window.removeEventListener('resize', checkIfMobile);
+      window.removeEventListener("resize", checkIsMobile);
     };
   }, []);
 
   return isMobile;
 }
-
-// Alias for useIsMobile (used in some components)
-export const useIsMobile = useMobile;
-
-export default useMobile;

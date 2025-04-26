@@ -2,43 +2,75 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import DashboardPage from "@/pages/dashboard-page";
 import AuthPage from "@/pages/auth-page";
+import DashboardPage from "@/pages/dashboard-page";
+import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page-v2";
-import PlayersPage from "@/pages/players-page";
-import StatisticsPage from "@/pages/statistics-page";
-import AnnouncementsPage from "@/pages/announcements-page";
 import EventPage from "@/pages/event-page";
+import PlayerProfilePage from "@/pages/player-profile-page";
+import AnnouncementsPage from "@/pages/announcements-page";
+import StatisticsPage from "@/pages/statistics-page";
 import SettingsPage from "@/pages/settings-page";
 import AdminPage from "@/pages/admin-page";
-import PlayerProfilePage from "@/pages/player-profile-page";
-import TeamPage from "@/pages/team-page";
-import ForgotPasswordPage from "@/pages/forgot-password-page";
-import ResetPasswordPage from "@/pages/reset-password-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
+import { AuthProvider } from "./hooks/use-auth";
+import { LanguageProvider } from "./hooks/use-language";
+import { TeamProvider } from "./hooks/use-team";
+import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={DashboardPage} />
       <Route path="/auth" component={AuthPage} />
-      <Route path="/matches" component={MatchesPage} />
-      <Route path="/players" component={PlayersPage} />
-      <Route path="/statistics" component={StatisticsPage} />
-      <Route path="/announcements" component={AnnouncementsPage} />
-      <Route path="/events" component={EventPage} />
-      <Route path="/settings" component={SettingsPage} />
-      <Route path="/admin" component={AdminPage} />
-      <Route path="/players/:id" component={PlayerProfilePage} />
-      <Route path="/teams/:id" component={TeamPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
-      <Route path="/verify-email/:token" component={VerifyEmailPage} />
+      
+      {/* Dashboard accessible to all authenticated users */}
+      <ProtectedRoute path="/" component={DashboardPage} />
+      
+      {/* Team management - accessible to all but players are read-only */}
+      <ProtectedRoute path="/team" component={TeamPage} />
+      
+      {/* Match-related pages - accessible to all but players are read-only */}
+      <ProtectedRoute path="/matches" component={MatchesPage} />
+      <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
+      
+      {/* Events page - accessible to all but players are read-only */}
+      <ProtectedRoute path="/events" component={EventPage} />
+      
+      {/* Announcements - accessible to all but players are read-only */}
+      <ProtectedRoute 
+        path="/announcements" 
+        component={AnnouncementsPage} 
+      />
+      
+      {/* Statistics - accessible to all but players are read-only */}
+      <ProtectedRoute
+        path="/statistics"
+        component={StatisticsPage}
+      />
+      
+      {/* Settings - restricted to admin only */}
+      <ProtectedRoute 
+        path="/settings" 
+        component={SettingsPage} 
+        requiredRole="admin" 
+        allowedRoles={["admin"]} 
+      />
+
+      {/* Admin panel - restricted to superuser only */}
+      <ProtectedRoute 
+        path="/admin" 
+        component={AdminPage} 
+        requiredRole="superuser" 
+        allowedRoles={["superuser"]} 
+      />
+      
+      {/* 404 Page */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -47,12 +79,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <TeamProvider>
+            <Router />
+            <Toaster />
+          </TeamProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
