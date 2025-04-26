@@ -1,11 +1,21 @@
+import React from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
-import { Button } from "@/components/ui/button";
+import { 
+  HomeIcon, 
+  Calendar, 
+  User2, 
+  Users, 
+  BarChart, 
+  Settings, 
+  LogOut,
+  MessageSquare,
+  ShieldAlert,
+  Trophy
+} from "lucide-react";
 import { useMobile } from "@/hooks/use-mobile";
-import { useQuery } from "@tanstack/react-query";
-import { Team } from "@shared/schema";
-import LanguageSelector from "./language-selector";
+import Logo from "@/components/logo";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -13,144 +23,153 @@ export default function Sidebar() {
   const { t } = useLanguage();
   const isMobile = useMobile();
 
-  const { data: teams } = useQuery<Team[]>({
-    queryKey: ["/api/teams"],
-  });
-
   if (isMobile) return null;
 
+  // Function to determine if a link is active
+  const isActive = (path: string) => location.startsWith(path);
+
+  // Get initials from user's name if available
+  const getInitials = () => {
+    if (!user) return "U";
+    
+    const nameParts = [
+      user.firstName || "", 
+      user.lastName || ""
+    ].filter(Boolean);
+    
+    // If we have parts, get first letter of each
+    if (nameParts.length > 0) {
+      return nameParts.map(part => part.charAt(0)).join("");
+    }
+    
+    // Fallback to first letter of username
+    return user.username ? user.username.charAt(0).toUpperCase() : "U";
+  };
+
   return (
-    <div className="w-64 bg-primary text-white h-screen fixed left-0 top-0 z-40">
-      <div className="p-4 flex items-center space-x-2">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <polygon points="10 8 16 12 10 16 10 8" />
-        </svg>
-        <h1 className="text-xl font-semibold">TeamKick</h1>
+    <div className="hidden md:flex flex-col w-64 fixed inset-y-0 bg-background border-r border-border">
+      {/* Logo and header */}
+      <div className="h-16 flex items-center px-6 border-b border-border">
+        <Link href="/dashboard">
+          <div className="flex items-center cursor-pointer">
+            <Logo size={30} />
+            <div className="ml-2 text-lg font-semibold text-primary">TeamKick</div>
+          </div>
+        </Link>
       </div>
 
-      <div className="mt-8">
-        <div className="px-4 mb-8">
-          <div className="flex items-center space-x-3 mb-3">
-            <img 
-              src={user?.profilePicture || "https://ui-avatars.com/api/?name=User&background=0D47A1&color=fff"} 
-              alt="User profile" 
-              className="w-10 h-10 rounded-full" 
-            />
-            <div>
-              <p className="text-sm font-medium">{user?.fullName || "User"}</p>
-              <p className="text-xs opacity-70">{user?.role || "Role"}</p>
-            </div>
+      {/* Navigation Links */}
+      <div className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
+        <Link href="/dashboard">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/dashboard") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <HomeIcon className="h-5 w-5 mr-3" />
+            <span>{t("navigation.dashboard")}</span>
           </div>
-          <Button variant="outline" className="mt-2 w-full py-1.5 px-3 text-sm bg-white/10 text-white border-white/20 hover:bg-white/20">
-            {t("common.switchTeam")}
-          </Button>
-        </div>
+        </Link>
 
-        <nav>
-          <Link href="/">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-              <span>{t("navigation.dashboard")}</span>
+        <Link href="/matches">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/matches") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <Trophy className="h-5 w-5 mr-3" />
+            <span>{t("navigation.matches")}</span>
+          </div>
+        </Link>
+
+        <Link href="/events">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/events") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <Calendar className="h-5 w-5 mr-3" />
+            <span>{t("navigation.events")}</span>
+          </div>
+        </Link>
+
+        <Link href="/players">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/players") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <Users className="h-5 w-5 mr-3" />
+            <span>{t("navigation.players")}</span>
+          </div>
+        </Link>
+
+        <Link href="/statistics">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/statistics") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <BarChart className="h-5 w-5 mr-3" />
+            <span>{t("navigation.statistics")}</span>
+          </div>
+        </Link>
+
+        <Link href="/announcements">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/announcements") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <MessageSquare className="h-5 w-5 mr-3" />
+            <span>{t("navigation.announcements")}</span>
+          </div>
+        </Link>
+
+        {user?.role === "admin" && (
+          <Link href="/admin">
+            <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+              isActive("/admin") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+            }`}>
+              <ShieldAlert className="h-5 w-5 mr-3" />
+              <span>{t("navigation.admin")}</span>
             </div>
           </Link>
-          <Link href="/team">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/team' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>{t("navigation.team")}</span>
-            </div>
-          </Link>
-          <Link href="/matches">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/matches' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18.5 4l2 6h-13l2-6"></path>
-                <path d="M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"></path>
-                <path d="M6 14v4"></path>
-                <path d="M12 14v4"></path>
-                <path d="M18 14v4"></path>
-              </svg>
-              <span>{t("navigation.matches")}</span>
-            </div>
-          </Link>
-          <Link href="/events">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/events' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                <line x1="4" y1="22" x2="4" y2="15"></line>
-              </svg>
-              <span>{t("navigation.events")}</span>
-            </div>
-          </Link>
-          <Link href="/statistics">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/statistics' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-              </svg>
-              <span>{t("navigation.statistics")}</span>
-            </div>
-          </Link>
-          <Link href="/announcements">
-            <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/announcements' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                <line x1="12" y1="9" x2="12" y2="13"></line>
-                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-              </svg>
-              <span>{t("navigation.announcements")}</span>
-            </div>
-          </Link>
-          {/* Only admin users can access settings */}
-          {user?.role === "admin" && (
-            <Link href="/settings">
-              <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/settings' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3"></circle>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1 1.51V3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-                <span>{t("navigation.settings")}</span>
+        )}
+      </div>
+
+      {/* User Menu and Settings */}
+      <div className="p-4 border-t border-border">
+        <Link href="/settings">
+          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
+            isActive("/settings") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+          }`}>
+            <Settings className="h-5 w-5 mr-3" />
+            <span>{t("navigation.settings")}</span>
+          </div>
+        </Link>
+
+        {user && (
+          <>
+            <div className="flex items-center mt-4 px-3 py-2">
+              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center mr-3">
+                {user.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt={user.username} 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="font-medium text-sm">{getInitials()}</span>
+                )}
               </div>
-            </Link>
-          )}
-          
-          {/* Only superusers can access admin panel */}
-          {user?.role === "superuser" && (
-            <Link href="/admin">
-              <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/admin' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l3 6.5l7 .5l-5 4.5l2 7l-7-4l-7 4l2-7l-5-4.5l7-.5z" />
-                </svg>
-                <span>Admin Panel</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}`
+                    : user.username}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
               </div>
-            </Link>
-          )}
-          <button 
-            onClick={() => logoutMutation.mutate()}
-            className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-white/10 text-left"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>{t("common.logout")}</span>
-          </button>
-        </nav>
-        
-        <div className="mt-6 mb-4">
-          <LanguageSelector variant="sidebar" />
-        </div>
+            </div>
+
+            <div 
+              className="flex items-center px-3 py-2 mt-2 rounded-md cursor-pointer text-red-500 hover:bg-red-500/10"
+              onClick={() => logoutMutation.mutate()}
+            >
+              <LogOut className="h-5 w-5 mr-3" />
+              <span>{t("auth.logout")}</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
