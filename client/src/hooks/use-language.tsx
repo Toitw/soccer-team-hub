@@ -1,249 +1,305 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { es } from 'date-fns/locale';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-// Default translations
+// Define all available languages
+const languages = {
+  en: 'English',
+  es: 'Español',
+};
+
+// Define all translation keys
 const translations = {
   en: {
     navigation: {
-      dashboard: "Dashboard",
-      matches: "Matches",
-      events: "Events",
-      players: "Players",
-      statistics: "Statistics",
-      settings: "Settings",
-      announcements: "Announcements",
-      admin: "Admin"
+      dashboard: 'Dashboard',
+      matches: 'Matches',
+      events: 'Events',
+      players: 'Players',
+      statistics: 'Statistics',
+      settings: 'Settings',
+      announcements: 'Announcements',
+      admin: 'Admin',
     },
     common: {
-      viewAll: "View all",
-      home: "Home",
-      away: "Away",
-      locationNotSet: "Location not set",
-      minutes: "min"
+      viewAll: 'View All',
+      home: 'Home',
+      away: 'Away',
+      locationNotSet: 'Location not set',
+      minutes: 'min',
+      loading: 'Loading...',
+      more: 'More',
     },
     dashboard: {
-      teamSummary: "Team Summary",
-      upcomingEvents: "Upcoming Events",
-      nextMatch: "Next Match",
-      recentAnnouncements: "Announcements",
-      players: "Players",
-      matches: "Matches",
-      wins: "Wins",
-      goals: "Goals",
-      season: "Season",
-      noUpcomingEvents: "No upcoming events",
-      addNewEvent: "Add new event",
-      noRecentAnnouncements: "No recent announcements",
-      addAnnouncement: "Add announcement",
-      noNextMatch: "No upcoming match",
-      noRecentMatches: "No recent matches",
-      teamOfTheWeek: "Team of the week"
+      players: 'Players',
+      matches: 'Matches',
+      wins: 'Wins',
+      goals: 'Goals',
+      nextMatch: 'Next Match',
+      upcomingEvents: 'Upcoming Events',
+      recentAnnouncements: 'Recent Announcements',
+      season: 'Season',
+      noNextMatch: 'No upcoming matches scheduled',
+      scheduleMatch: 'Schedule Match',
+      noUpcomingEvents: 'No upcoming events',
+      addNewEvent: 'Add New Event',
+      noRecentAnnouncements: 'No recent announcements',
+      addAnnouncement: 'Add Announcement',
     },
     auth: {
-      login: "Login",
-      register: "Register",
-      logout: "Logout",
-      forgotPassword: "Forgot password?",
-      resetPassword: "Reset password",
-      verifyEmail: "Verify email",
-      username: "Username",
-      password: "Password",
-      confirmPassword: "Confirm password",
-      email: "Email",
-      firstName: "First name",
-      lastName: "Last name",
-      rememberMe: "Remember me",
-      alreadyHaveAccount: "Already have an account?",
+      login: 'Login',
+      register: 'Register',
+      username: 'Username',
+      password: 'Password',
+      forgotPassword: 'Forgot Password?',
+      confirmPassword: 'Confirm Password',
+      fullName: 'Full Name',
+      email: 'Email',
+      phoneNumber: 'Phone Number',
+      position: 'Position',
+      jerseyNumber: 'Jersey Number',
+      signIn: 'Sign In',
+      signUp: 'Sign Up',
+      rememberMe: 'Remember Me',
+      alreadyHaveAccount: 'Already have an account?',
       dontHaveAccount: "Don't have an account?",
-      signInWith: "Sign in with",
-      or: "or"
+      resetPassword: 'Reset Password',
+      verifyEmail: 'Verify Email',
+      resendVerification: 'Resend Verification',
     },
     errors: {
-      somethingWentWrong: "Something went wrong",
-      pageNotFound: "Page not found",
-      unauthorized: "Unauthorized",
-      forbidden: "Forbidden",
-      serverError: "Server error"
+      invalidCredentials: 'Invalid username or password',
+      usernameTaken: 'Username is already taken',
+      emailTaken: 'Email is already in use',
+      passwordMismatch: 'Passwords do not match',
+      serverError: 'Server error. Please try again later.',
+      unauthorizedAccess: 'You do not have permission to access this resource',
+      invalidToken: 'Invalid or expired token',
+      requiredField: 'This field is required',
     },
-    toasts: {
-      loginSuccess: "Login successful",
-      loginFailed: "Login failed",
-      registrationSuccess: "Registration successful",
-      registrationFailed: "Registration failed",
-      logoutSuccess: "Logout successful",
-      welcomeBack: "Welcome back, {{name}}!",
-      welcomeToTeamKick: "Welcome to TeamKick, {{name}}!",
-      error: "Error"
-    }
+    matches: {
+      createMatch: 'Create Match',
+      editMatch: 'Edit Match',
+      opponentName: 'Opponent Name',
+      matchDate: 'Match Date',
+      matchTime: 'Match Time',
+      location: 'Location',
+      isHome: 'Home Match',
+      awayMatch: 'Away Match',
+      matchType: 'Match Type',
+      league: 'League',
+      copa: 'Cup',
+      friendly: 'Friendly',
+      matchStatus: 'Match Status',
+      scheduled: 'Scheduled',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      result: 'Result',
+      lineup: 'Lineup',
+      stats: 'Stats',
+      goalsScored: 'Goals Scored',
+      goalsConceded: 'Goals Conceded',
+      scorers: 'Scorers',
+      assisters: 'Assists',
+      cards: 'Cards',
+      yellowCards: 'Yellow Cards',
+      redCards: 'Red Cards',
+    },
+    events: {
+      createEvent: 'Create Event',
+      editEvent: 'Edit Event',
+      title: 'Title',
+      description: 'Description',
+      eventDate: 'Event Date',
+      startTime: 'Start Time',
+      endTime: 'End Time',
+      eventType: 'Event Type',
+      location: 'Location',
+      training: 'Training',
+      meeting: 'Meeting',
+      match: 'Match',
+      other: 'Other',
+      attendance: 'Attendance',
+      confirm: 'Confirm',
+      decline: 'Decline',
+      pending: 'Pending',
+      attendees: 'Attendees',
+      attendanceStatus: 'Attendance Status',
+      noEventsScheduled: 'No events scheduled',
+      createFirst: 'Create your first event',
+    },
+    players: {
+      addPlayer: 'Add Player',
+      editPlayer: 'Edit Player',
+      profile: 'Player Profile',
+      stats: 'Player Stats',
+      position: 'Position',
+      jerseyNumber: 'Jersey Number',
+      contactInfo: 'Contact Information',
+      emergencyContact: 'Emergency Contact',
+      role: 'Role',
+      invitePlayer: 'Invite Player',
+      noPlayers: 'No players in the team',
+      addFirst: 'Add your first player',
+    },
+    team: {
+      settings: 'Team Settings',
+      name: 'Team Name',
+      logo: 'Team Logo',
+      colors: 'Team Colors',
+      primaryColor: 'Primary Color',
+      secondaryColor: 'Secondary Color',
+      joinCode: 'Join Code',
+      visibility: 'Team Visibility',
+      public: 'Public',
+      private: 'Private',
+      members: 'Team Members',
+      invitations: 'Pending Invitations',
+      inviteMembers: 'Invite Members',
+      deleteTeam: 'Delete Team',
+      leaveTeam: 'Leave Team',
+      createTeam: 'Create Team',
+      joinTeam: 'Join Team',
+    },
+    settings: {
+      account: 'Account Settings',
+      profile: 'Profile Settings',
+      notifications: 'Notifications',
+      language: 'Language',
+      theme: 'Theme',
+      darkMode: 'Dark Mode',
+      lightMode: 'Light Mode',
+      systemMode: 'System Mode',
+      security: 'Security',
+      changePassword: 'Change Password',
+      twoFactorAuth: 'Two-Factor Authentication',
+      enableTwoFactor: 'Enable Two-Factor Authentication',
+      disableTwoFactor: 'Disable Two-Factor Authentication',
+    },
   },
   es: {
     navigation: {
-      dashboard: "Inicio",
-      matches: "Partidos",
-      events: "Eventos",
-      players: "Jugadores",
-      statistics: "Estadísticas",
-      settings: "Configuración",
-      announcements: "Anuncios",
-      admin: "Admin"
+      dashboard: 'Panel de Control',
+      matches: 'Partidos',
+      events: 'Eventos',
+      players: 'Jugadores',
+      statistics: 'Estadísticas',
+      settings: 'Ajustes',
+      announcements: 'Anuncios',
+      admin: 'Administrador',
     },
     common: {
-      viewAll: "Ver todos",
-      home: "Local",
-      away: "Visitante",
-      locationNotSet: "Ubicación no establecida",
-      minutes: "min"
+      viewAll: 'Ver Todo',
+      home: 'Local',
+      away: 'Visitante',
+      locationNotSet: 'Ubicación no establecida',
+      minutes: 'min',
+      loading: 'Cargando...',
+      more: 'Más',
     },
     dashboard: {
-      teamSummary: "Resumen del Equipo",
-      upcomingEvents: "Próximos Eventos",
-      nextMatch: "Próximo Partido",
-      recentAnnouncements: "Anuncios",
-      players: "Jugadores",
-      matches: "Partidos",
-      wins: "Victorias",
-      goals: "Goles",
-      season: "Temporada",
-      noUpcomingEvents: "No hay eventos próximos",
-      addNewEvent: "Añadir nuevo evento",
-      noRecentAnnouncements: "No hay anuncios recientes",
-      addAnnouncement: "Añadir anuncio",
-      noNextMatch: "No hay próximo partido",
-      noRecentMatches: "No hay partidos recientes",
-      teamOfTheWeek: "Equipo de la semana"
+      players: 'Jugadores',
+      matches: 'Partidos',
+      wins: 'Victorias',
+      goals: 'Goles',
+      nextMatch: 'Próximo Partido',
+      upcomingEvents: 'Próximos Eventos',
+      recentAnnouncements: 'Anuncios Recientes',
+      season: 'Temporada',
+      noNextMatch: 'No hay partidos programados',
+      scheduleMatch: 'Programar Partido',
+      noUpcomingEvents: 'No hay eventos próximos',
+      addNewEvent: 'Añadir Nuevo Evento',
+      noRecentAnnouncements: 'No hay anuncios recientes',
+      addAnnouncement: 'Añadir Anuncio',
     },
     auth: {
-      login: "Iniciar sesión",
-      register: "Registrarse",
-      logout: "Cerrar sesión",
-      forgotPassword: "¿Olvidaste tu contraseña?",
-      resetPassword: "Restablecer contraseña",
-      verifyEmail: "Verificar email",
-      username: "Nombre de usuario",
-      password: "Contraseña",
-      confirmPassword: "Confirmar contraseña",
-      email: "Correo electrónico",
-      firstName: "Nombre",
-      lastName: "Apellido",
-      rememberMe: "Recordarme",
-      alreadyHaveAccount: "¿Ya tienes una cuenta?",
-      dontHaveAccount: "¿No tienes una cuenta?",
-      signInWith: "Iniciar sesión con",
-      or: "o"
+      login: 'Iniciar Sesión',
+      register: 'Registro',
+      username: 'Nombre de Usuario',
+      password: 'Contraseña',
+      forgotPassword: '¿Olvidó la Contraseña?',
+      confirmPassword: 'Confirmar Contraseña',
+      fullName: 'Nombre Completo',
+      email: 'Correo Electrónico',
+      phoneNumber: 'Número de Teléfono',
+      position: 'Posición',
+      jerseyNumber: 'Número de Camiseta',
+      signIn: 'Iniciar Sesión',
+      signUp: 'Registrarse',
+      rememberMe: 'Recordarme',
+      alreadyHaveAccount: '¿Ya tiene una cuenta?',
+      dontHaveAccount: "¿No tiene una cuenta?",
+      resetPassword: 'Restablecer Contraseña',
+      verifyEmail: 'Verificar Correo',
+      resendVerification: 'Reenviar Verificación',
     },
-    errors: {
-      somethingWentWrong: "Algo salió mal",
-      pageNotFound: "Página no encontrada",
-      unauthorized: "No autorizado",
-      forbidden: "Prohibido",
-      serverError: "Error del servidor"
-    },
-    toasts: {
-      loginSuccess: "Inicio de sesión exitoso",
-      loginFailed: "Error al iniciar sesión",
-      registrationSuccess: "Registro exitoso",
-      registrationFailed: "Error al registrarse",
-      logoutSuccess: "Cierre de sesión exitoso",
-      welcomeBack: "¡Bienvenido de nuevo, {{name}}!",
-      welcomeToTeamKick: "¡Bienvenido a TeamKick, {{name}}!",
-      error: "Error"
-    }
-  }
+    // Other translations here...
+  },
 };
 
-// Types
-type Language = 'en' | 'es';
-type TranslationKey = string;
-type Translations = typeof translations;
-type TranslationParams = Record<string, string | number>;
+// Type definitions
+type LanguageCode = keyof typeof languages;
+type TranslationKeys = typeof translations.en;
 
 interface LanguageContextType {
-  currentLanguage: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey, params?: TranslationParams) => string;
+  currentLanguage: LanguageCode;
+  changeLanguage: (language: LanguageCode) => void;
+  t: (key: string) => string;
+  availableLanguages: typeof languages;
 }
 
 // Create context
-const LanguageContext = createContext<LanguageContextType | null>(null);
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 // Provider component
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
 
-  // Initialize language from localStorage or navigator
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && ['en', 'es'].includes(savedLanguage)) {
-      setCurrentLanguage(savedLanguage);
-    } else {
-      // Try to get from browser
-      const browserLang = navigator.language.split('-')[0] as Language;
-      if (browserLang === 'es') {
-        setCurrentLanguage('es');
-      }
+  // Function to change language
+  const changeLanguage = (language: LanguageCode) => {
+    if (languages[language]) {
+      setCurrentLanguage(language);
+      localStorage.setItem('language', language);
     }
-  }, []);
-
-  // Save language preference to localStorage
-  const setLanguage = (lang: Language) => {
-    setCurrentLanguage(lang);
-    localStorage.setItem('language', lang);
   };
 
   // Translation function
-  const t = (key: TranslationKey, params?: TranslationParams): string => {
-    // Split the key by dots to access nested objects
-    const keyParts = key.split('.');
-    
-    // Start with the current language's translations
-    let translation: any = translations[currentLanguage];
-    
-    // Navigate through the key parts
-    for (const part of keyParts) {
-      if (translation && typeof translation === 'object' && part in translation) {
-        translation = translation[part];
-      } else {
-        // If key not found, try English as fallback
-        if (currentLanguage !== 'en') {
-          let engTranslation = translations['en'];
-          for (const engPart of keyParts) {
-            if (engTranslation && typeof engTranslation === 'object' && engPart in engTranslation) {
-              engTranslation = engTranslation[engPart];
-            } else {
-              return key; // Return the key itself if not found in English either
-            }
-          }
-          translation = engTranslation;
-        } else {
-          return key; // Return the key itself if not found
+  const t = (key: string): string => {
+    const keys = key.split('.');
+    try {
+      let result: any = translations[currentLanguage];
+      for (const k of keys) {
+        if (result[k] === undefined) {
+          console.warn(`Translation key not found: ${key}`);
+          return key;
         }
+        result = result[k];
       }
+      return result || key;
+    } catch (error) {
+      console.warn(`Error getting translation for key: ${key}`, error);
+      return key;
     }
-    
-    // Replace parameters if they exist
-    if (params && typeof translation === 'string') {
-      return Object.entries(params).reduce((str, [paramKey, paramValue]) => {
-        return str.replace(new RegExp(`{{${paramKey}}}`, 'g'), String(paramValue));
-      }, translation);
-    }
-    
-    return translation || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ currentLanguage, setLanguage, t }}>
+    <LanguageContext.Provider
+      value={{
+        currentLanguage,
+        changeLanguage,
+        t,
+        availableLanguages: languages,
+      }}
+    >
       {children}
     </LanguageContext.Provider>
   );
 }
 
-// Custom hook to use the language context
+// Hook for using the language context
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 }
-
-export default useLanguage;

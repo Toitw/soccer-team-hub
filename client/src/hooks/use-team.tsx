@@ -1,79 +1,80 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Team } from '@shared/schema';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Team } from '@shared/schema';
 import { useAuth } from './use-auth';
 
 interface TeamContextType {
-  selectedTeam: Team | null;
-  setSelectedTeam: (team: Team | null) => void;
   teams: Team[];
+  selectedTeam: Team | null;
+  selectTeam: (teamId: number) => void;
   isLoading: boolean;
-  error: Error | null;
 }
 
-// Create context
-const TeamContext = createContext<TeamContextType | null>(null);
+const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
-// Provider component
 export function TeamProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
 
-  // Fetch user teams
-  const { 
-    data: teams = [], 
+  // Fetch user's teams
+  const {
+    data: teams = [],
     isLoading,
-    error 
-  } = useQuery<Team[]>({
+    refetch,
+  } = useQuery({
     queryKey: ['/api/teams'],
-    enabled: !!isAuthenticated,
+    enabled: isAuthenticated,
   });
 
-  // Set the first team as selected if none is selected and teams are loaded
-  useEffect(() => {
-    if (teams?.length > 0 && !selectedTeam) {
-      setSelectedTeam(teams[0]);
-    }
-  }, [teams, selectedTeam]);
+  // Find the selected team in the list
+  const selectedTeam = teams.find((team) => team.id === selectedTeamId) || null;
 
-  // Get from localStorage on initial load
+  // Select a team by ID
+  const selectTeam = (teamId: number) => {
+    setSelectedTeamId(teamId);
+    localStorage.setItem('selectedTeamId', teamId.toString());
+  };
+
+  // Load selected team from local storage on initial render
   useEffect(() => {
-    const savedTeamId = localStorage.getItem('selectedTeamId');
-    if (savedTeamId && teams?.length > 0) {
-      const team = teams.find(t => t.id === parseInt(savedTeamId));
-      if (team) {
-        setSelectedTeam(team);
+    if (teams.length > 0) {
+      const savedTeamId = localStorage.getItem('selectedTeamId');
+      
+      if (savedTeamId && teams.some(team => team.id === parseInt(savedTeamId))) {
+        setSelectedTeamId(parseInt(savedTeamId));
+      } else {
+        // Default to first team if saved team not found
+        setSelectedTeamId(teams[0].id);
+        localStorage.setItem('selectedTeamId', teams[0].id.toString());
       }
     }
   }, [teams]);
 
-  // Save to localStorage when selection changes
+  // Refetch teams when user changes
   useEffect(() => {
-    if (selectedTeam) {
-      localStorage.setItem('selectedTeamId', selectedTeam.id.toString());
+    if (isAuthenticated) {
+      refetch();
     }
-  }, [selectedTeam]);
+  }, [isAuthenticated, refetch]);
 
   return (
-    <TeamContext.Provider value={{ 
-      selectedTeam, 
-      setSelectedTeam, 
-      teams: teams || [], 
-      isLoading, 
-      error 
-    }}>
+    <TeamContext.Provider
+      value={{
+        teams,
+        selectedTeam,
+        selectTeam,
+        isLoading,
+      }}
+    >
       {children}
     </TeamContext.Provider>
   );
 }
 
-// Custom hook to use the team context
 export function useTeam() {
   const context = useContext(TeamContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useTeam must be used within a TeamProvider');
   }
   return context;
 }
-
-export default useTeam;
