@@ -1,175 +1,187 @@
-import React from "react";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { useLanguage } from "@/hooks/use-language";
-import { 
-  HomeIcon, 
-  Calendar, 
-  User2, 
-  Users, 
-  BarChart, 
-  Settings, 
-  LogOut,
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+import { useTeam } from '@/hooks/use-team';
+import { useLanguage } from '@/hooks/use-language';
+import Logo from '@/components/logo';
+import {
+  HomeIcon,
+  Trophy,
+  Calendar,
+  Shirt,
+  BarChart,
   MessageSquare,
-  ShieldAlert,
-  Trophy
-} from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
-import Logo from "@/components/logo";
+  Settings,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth();
+  const { selectedTeam, teams, setSelectedTeam } = useTeam();
   const { t } = useLanguage();
-  const isMobile = useMobile();
 
-  if (isMobile) return null;
+  // Get user initials from fullName
+  const getInitials = (fullName: string) => {
+    return fullName
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
-  // Function to determine if a link is active
-  const isActive = (path: string) => location.startsWith(path);
-
-  // Get initials from user's name if available
-  const getInitials = () => {
-    if (!user) return "U";
-    
-    const nameParts = [
-      user.firstName || "", 
-      user.lastName || ""
-    ].filter(Boolean);
-    
-    // If we have parts, get first letter of each
-    if (nameParts.length > 0) {
-      return nameParts.map(part => part.charAt(0)).join("");
-    }
-    
-    // Fallback to first letter of username
-    return user.username ? user.username.charAt(0).toUpperCase() : "U";
+  // Nav item component
+  const NavItem = ({ href, icon, label }: { href: string, icon: React.ReactNode, label: string }) => {
+    const isActive = location === href;
+    return (
+      <Link href={href}>
+        <div className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm ${
+          isActive 
+            ? 'bg-primary/10 text-primary font-medium' 
+            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+        }`}>
+          {icon}
+          <span>{label}</span>
+        </div>
+      </Link>
+    );
   };
 
   return (
-    <div className="hidden md:flex flex-col w-64 fixed inset-y-0 bg-background border-r border-border">
-      {/* Logo and header */}
-      <div className="h-16 flex items-center px-6 border-b border-border">
-        <Link href="/dashboard">
-          <div className="flex items-center cursor-pointer">
-            <Logo size={30} />
-            <div className="ml-2 text-lg font-semibold text-primary">TeamKick</div>
+    <div className="hidden border-r h-screen bg-background lg:block w-64 fixed">
+      <div className="flex flex-col h-full">
+        {/* Top section with logo and team selection */}
+        <div className="py-4 px-6">
+          <div className="flex items-center gap-2">
+            <Logo className="text-primary" size={32} />
+            <h1 className="text-xl font-bold">TeamKick</h1>
           </div>
-        </Link>
-      </div>
-
-      {/* Navigation Links */}
-      <div className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
-        <Link href="/dashboard">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/dashboard") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <HomeIcon className="h-5 w-5 mr-3" />
-            <span>{t("navigation.dashboard")}</span>
-          </div>
-        </Link>
-
-        <Link href="/matches">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/matches") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <Trophy className="h-5 w-5 mr-3" />
-            <span>{t("navigation.matches")}</span>
-          </div>
-        </Link>
-
-        <Link href="/events">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/events") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <Calendar className="h-5 w-5 mr-3" />
-            <span>{t("navigation.events")}</span>
-          </div>
-        </Link>
-
-        <Link href="/players">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/players") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <Users className="h-5 w-5 mr-3" />
-            <span>{t("navigation.players")}</span>
-          </div>
-        </Link>
-
-        <Link href="/statistics">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/statistics") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <BarChart className="h-5 w-5 mr-3" />
-            <span>{t("navigation.statistics")}</span>
-          </div>
-        </Link>
-
-        <Link href="/announcements">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/announcements") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <MessageSquare className="h-5 w-5 mr-3" />
-            <span>{t("navigation.announcements")}</span>
-          </div>
-        </Link>
-
-        {user?.role === "admin" && (
-          <Link href="/admin">
-            <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-              isActive("/admin") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-            }`}>
-              <ShieldAlert className="h-5 w-5 mr-3" />
-              <span>{t("navigation.admin")}</span>
+          
+          {/* Team selector */}
+          {selectedTeam && (
+            <div className="mt-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span className="truncate">{selectedTeam.name}</span>
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuLabel>{t('common.teams')}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {teams.map((team) => (
+                    <DropdownMenuItem 
+                      key={team.id}
+                      onClick={() => setSelectedTeam(team)}
+                      className={selectedTeam.id === team.id ? 'bg-primary/10 text-primary' : ''}
+                    >
+                      {team.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </Link>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* User Menu and Settings */}
-      <div className="p-4 border-t border-border">
-        <Link href="/settings">
-          <div className={`flex items-center px-3 py-2 rounded-md cursor-pointer ${
-            isActive("/settings") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-          }`}>
-            <Settings className="h-5 w-5 mr-3" />
-            <span>{t("navigation.settings")}</span>
-          </div>
-        </Link>
-
-        {user && (
-          <>
-            <div className="flex items-center mt-4 px-3 py-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center mr-3">
-                {user.avatarUrl ? (
-                  <img 
-                    src={user.avatarUrl} 
-                    alt={user.username} 
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="font-medium text-sm">{getInitials()}</span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {user.firstName && user.lastName 
-                    ? `${user.firstName} ${user.lastName}`
-                    : user.username}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </div>
-            </div>
-
-            <div 
-              className="flex items-center px-3 py-2 mt-2 rounded-md cursor-pointer text-red-500 hover:bg-red-500/10"
-              onClick={() => logoutMutation.mutate()}
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              <span>{t("auth.logout")}</span>
-            </div>
-          </>
-        )}
+        {/* Navigation items */}
+        <div className="flex-1 overflow-auto py-2 px-3">
+          <nav className="space-y-1">
+            <NavItem 
+              href="/" 
+              icon={<HomeIcon className="h-5 w-5" />} 
+              label={t('navigation.dashboard')} 
+            />
+            <NavItem 
+              href="/matches" 
+              icon={<Trophy className="h-5 w-5" />} 
+              label={t('navigation.matches')} 
+            />
+            <NavItem 
+              href="/events" 
+              icon={<Calendar className="h-5 w-5" />} 
+              label={t('navigation.events')} 
+            />
+            <NavItem 
+              href="/players" 
+              icon={<Shirt className="h-5 w-5" />} 
+              label={t('navigation.players')} 
+            />
+            <NavItem 
+              href="/statistics" 
+              icon={<BarChart className="h-5 w-5" />} 
+              label={t('navigation.statistics')} 
+            />
+            <NavItem 
+              href="/announcements" 
+              icon={<MessageSquare className="h-5 w-5" />} 
+              label={t('navigation.announcements')} 
+            />
+            
+            {/* Admin-only pages */}
+            {user && (user.role === 'admin' || user.role === 'superuser') && (
+              <NavItem 
+                href="/settings" 
+                icon={<Settings className="h-5 w-5" />} 
+                label={t('navigation.settings')} 
+              />
+            )}
+            
+            {/* Superuser-only pages */}
+            {user && user.role === 'superuser' && (
+              <NavItem 
+                href="/admin" 
+                icon={<Settings className="h-5 w-5" />} 
+                label={t('navigation.admin')} 
+              />
+            )}
+          </nav>
+        </div>
+        
+        {/* User profile at bottom */}
+        <div className="border-t p-4">
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start p-2">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.profilePicture || undefined} />
+                      <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium">{user.fullName}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                    </div>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{t('auth.profile')}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/profile">{t('auth.editProfile')}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t('auth.logout')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </div>
   );
