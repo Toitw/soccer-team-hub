@@ -8,19 +8,40 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+  options?: RequestInit
+): Promise<any> {
   const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    ...options,
+    headers: {
+      ...(options?.headers || {}),
+      "Content-Type": "application/json",
+    },
     credentials: "include",
   });
 
   await throwIfResNotOk(res);
-  return res;
+  
+  // For some endpoints, the response might be empty
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch (e) {
+    return text;
+  }
+}
+
+// CSRF token handling
+export function clearCsrfToken() {
+  localStorage.removeItem('csrfToken');
+}
+
+export function setCsrfToken(token: string) {
+  localStorage.setItem('csrfToken', token);
+}
+
+export function getCsrfToken(): string | null {
+  return localStorage.getItem('csrfToken');
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
