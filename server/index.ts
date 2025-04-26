@@ -8,7 +8,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import bodyParser from "body-parser";
-import { setupAuth, createCsrfProtection, hashPassword } from "./auth";
+import { setupAuth, createCsrfProtection, hashPassword, comparePasswords } from "./auth";
 import { storage } from "./storage";
 import { performHealthCheck } from "./db";
 import pinoHttp from "pino-http";
@@ -115,25 +115,12 @@ app.get('/healthz', async (req, res) => {
         
         // Create a test user
         const hashedPassword = await hashPassword('password123');
+        // Only include the minimum required fields
         const newUser = await storage.createUser({
           username: 'testuser',
           password: hashedPassword,
           fullName: 'Test User',
-          role: 'player',
-          profilePicture: null,
-          position: null,
-          jerseyNumber: null,
-          email: 'test@example.com',
-          phoneNumber: null,
-          bio: null,
-          verificationToken: null,
-          verificationTokenExpiry: null,
-          verified: true,
-          resetPasswordToken: null,
-          resetPasswordTokenExpiry: null,
-          lastLoginAt: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date()
+          role: 'player'
         });
         
         // Return success without the password
@@ -148,25 +135,46 @@ app.get('/healthz', async (req, res) => {
       }
     });
     
-    // User login
-    app.post("/api/login", passport.authenticate("local"), async (req, res) => {
+    // User login - Custom handling for better error reporting
+    app.post("/api/login", async (req, res, next) => {
       try {
-        if (!req.user) {
-          return res.status(401).json({ error: "Authentication failed" });
+        // Extract credentials from request body
+        const { username, password } = req.body;
+        
+        if (!username || !password) {
+          return res.status(400).json({ error: "Username and password are required" });
         }
         
-        const freshUser = await storage.getUser(req.user.id);
+        // Find the user
+        const user = await storage.getUserByUsername(username);
         
-        if (!freshUser) {
-          return res.status(404).json({ error: "User not found" });
+        if (!user) {
+          return res.status(401).json({ error: "Invalid username or password" });
         }
         
-        // Don't send the password to the client
-        const { password, ...userWithoutPassword } = freshUser;
-        res.status(200).json(userWithoutPassword);
+        // Verify password
+        const isPasswordValid = await comparePasswords(password, user.password);
+        console.log('Password verification result:', isPasswordValid);
+        console.log('Stored password hash format:', user.password);
+        
+        if (!isPasswordValid) {
+          return res.status(401).json({ error: "Invalid username or password" });
+        }
+        
+        // Complete login by manually establishing the session
+        req.login(user, (err) => {
+          if (err) {
+            console.error("Login session error:", err);
+            return res.status(500).json({ error: "Failed to establish session" });
+          }
+          
+          // Don't send the password to the client
+          const { password, ...userWithoutPassword } = user;
+          res.status(200).json(userWithoutPassword);
+        });
       } catch (error) {
-        console.error("Error fetching fresh user data on login:", error);
-        res.status(500).json({ error: "Failed to retrieve user data" });
+        console.error("Error during login:", error);
+        res.status(500).json({ error: "Internal server error during authentication" });
       }
     });
     
