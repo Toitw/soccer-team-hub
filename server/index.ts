@@ -136,18 +136,43 @@ seedDatabase().catch(error => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    // Log the error with structured context
+    // Enhanced error logging for troubleshooting
     logger.error({
       type: 'error_handler',
       path: req.path,
       method: req.method,
       statusCode: status,
       errorMessage: message,
+      errorName: err.name,
+      errorCode: err.code,
       stack: err.stack,
-      userId: (req as any).user?.id
+      userId: (req as any).user?.id,
+      query: req.query,
+      originalUrl: req.originalUrl,
+      headers: {
+        host: req.headers.host,
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        'user-agent': req.headers['user-agent']
+      }
     });
 
-    res.status(status).json({ message });
+    // In production, don't expose error details to clients
+    if (env.NODE_ENV === 'production') {
+      // Generic error message and status code for clients
+      res.status(status).json({ 
+        message: status === 500 ? 'Internal Server Error' : message,
+        status: status
+      });
+    } else {
+      // In development, provide more error details
+      res.status(status).json({ 
+        message,
+        error: err.name || 'Error',
+        stack: err.stack,
+        status: status
+      });
+    }
   });
 
   // importantly only setup vite in development and after
