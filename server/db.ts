@@ -48,17 +48,58 @@ export async function checkDatabaseConnection() {
 // Create drizzle ORM instance
 export const db = drizzle({ client: pool, schema });
 
-// For production, immediately verify the database connection
+// Connection retry mechanism for production environments
 if (env.NODE_ENV === 'production') {
-  checkDatabaseConnection()
-    .then(isConnected => {
+  // Retry connection with exponential backoff
+  const MAX_RETRIES = 5;
+  const INITIAL_RETRY_DELAY = 1000; // 1 second
+  
+  async function tryConnectWithRetry(retryCount = 0, delay = INITIAL_RETRY_DELAY) {
+    try {
+      const isConnected = await checkDatabaseConnection();
+      
       if (isConnected) {
         logger.info('Successfully connected to the database');
+        return true;
+      } else if (retryCount < MAX_RETRIES) {
+        const nextDelay = delay * 2; // Exponential backoff
+        const nextRetryCount = retryCount + 1;
+        
+        logger.warn(`Database connection attempt failed, retrying in ${delay}ms (attempt ${nextRetryCount}/${MAX_RETRIES})`);
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return tryConnectWithRetry(nextRetryCount, nextDelay);
       } else {
-        logger.error('Failed to connect to the database');
+        logger.error(`Failed to connect to database after ${MAX_RETRIES} attempts`);
+        return false;
       }
-    })
-    .catch(error => {
-      logger.error('Error checking database connection', { error: error.message });
-    });
+    } catch (error) {
+      logger.error('Error during database connection retry', { 
+        error: (error as Error).message,
+        retryCount,
+        maxRetries: MAX_RETRIES 
+      });
+      
+      if (retryCount < MAX_RETRIES) {
+        const nextDelay = delay * 2;
+        const nextRetryCount = retryCount + 1;
+        
+        logger.warn(`Database connection error, retrying in ${delay}ms (attempt ${nextRetryCount}/${MAX_RETRIES})`);
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return tryConnectWithRetry(nextRetryCount, nextDelay);
+      }
+      
+      return false;
+    }
+  }
+  
+  // Start the connection retry process
+  tryConnectWithRetry().then(success => {
+    if (!success) {
+      logger.warn('Server will continue running despite database connection issues');
+    }
+  });
 }

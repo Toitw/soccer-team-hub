@@ -102,13 +102,12 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      // Temporarily set secure to auto-detect based on request in production
-      // This will use HTTPS when available but allow HTTP for troubleshooting
-      secure: env.NODE_ENV === 'production' ? 'auto' : false, 
+      // In production, use a more permissive setting for troubleshooting
+      secure: false, // Temporarily allow non-HTTPS cookies for troubleshooting
       httpOnly: true, // Prevents client-side JS from reading the cookie
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
       sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax' // Use 'none' in production to allow cross-site cookies
-    }
+    } as session.CookieOptions
   };
 
   app.set("trust proxy", 1);
@@ -156,7 +155,7 @@ export function setupAuth(app: Express) {
     cookie: {
       key: 'csrf-token',
       httpOnly: true,
-      secure: env.NODE_ENV === 'production' ? 'auto' : false,
+      secure: false, // Temporarily disable secure requirement for troubleshooting
       sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
   });
