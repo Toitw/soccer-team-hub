@@ -17,7 +17,7 @@ The application provides the following health check endpoints:
 
 | Endpoint | Purpose | Status Codes |
 |----------|---------|--------------|
-| `/` | Root health check (used by Cloud Run) | 200 OK |
+| `/_health` | Production health check (use this for Cloud Run) | 200 OK |
 | `/healthz` | Standard Kubernetes health check | 200 OK |
 | `/api/health` | Detailed application health information | 200 OK / 500 Error |
 
@@ -49,7 +49,7 @@ For Cloud Run deployments, configure the health check to use the `/` endpoint:
 
 ```yaml
 health_check:
-  path: "/"
+  path: "/_health"
   timeout_seconds: 5
   initial_delay_seconds: 10
 ```
@@ -64,7 +64,7 @@ The application automatically ensures that required database tables (like the se
 
 If you encounter 5XX errors in production, check the following:
 
-1. **Health Check Failures**: Ensure that the health check endpoints (`/` or `/healthz`) return 200 status codes.
+1. **Health Check Failures**: Ensure that the health check endpoints (`/_health` or `/healthz`) return 200 status codes.
 2. **Database Connection Issues**: Check the database connection string and ensure the database is accessible from the deployed environment.
 3. **Sessions Table Issues**: Verify the sessions table exists in the database.
 4. **Memory/Resource Constraints**: Check if the application is hitting resource limits on the hosting platform.
