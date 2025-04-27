@@ -41,11 +41,8 @@ const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match_photos.json');
 const LEAGUE_CLASSIFICATION_FILE = path.join(DATA_DIR, 'league_classification.json');
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 
-// Import Store type from express-session for proper typing
-import { Store } from "express-session";
-
 // Define SessionStore type explicitly
-type SessionStoreType = Store;
+type SessionStoreType = ReturnType<typeof createMemoryStore>;
 
 // Separate password hashing logic since auth.ts imports this file
 const scryptAsync = promisify(scrypt);
@@ -256,10 +253,8 @@ export class MemStorage implements IStorage {
     this.matchPhotoCurrentId = 1;
     this.leagueClassificationCurrentId = 1;
     
-    // Create a memory store instance that implements the Store interface
-    const MemoryStoreConstructor = createMemoryStore(session);
-    this.sessionStore = new MemoryStoreConstructor({
-      checkPeriod: 86400000, // Clear expired sessions every 24 hours
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000,
     });
     
     // Load persisted data from files
