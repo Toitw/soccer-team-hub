@@ -269,6 +269,30 @@ seedDatabase().catch(error => {
       serveStatic(app);
     }
 
+    // Root health endpoint for health checks (required by Cloud Run and other deployment platforms)
+    // Use /healthz as it's a common convention for health check endpoints and less likely to conflict
+    app.get('/healthz', (req, res) => {
+      res.status(200).json({
+        status: 'ok',
+        service: 'team-management-app',
+        environment: env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+        message: 'Application is running'
+      });
+    });
+    
+    // Also handle root path for production deployments
+    if (env.NODE_ENV === 'production') {
+      app.get('/', (req, res) => {
+        res.status(200).json({
+          status: 'ok',
+          service: 'team-management-app',
+          environment: env.NODE_ENV,
+          message: 'Application is running in production'
+        });
+      });
+    }
+
     // Add a catch-all route handler for unmatched API routes
     app.use('/api/*', (req, res) => {
       logger.warn(`Unmatched API route requested: ${req.originalUrl}`);
@@ -351,6 +375,28 @@ seedDatabase().catch(error => {
             message: (err as Error).message,
             stack: (err as Error).stack
           }
+        });
+      });
+      
+      // Root endpoint for health checks (required for deployment platforms)
+      emergencyApp.get('/', (req, res) => {
+        res.status(200).json({
+          status: 'degraded',
+          service: 'team-management-app',
+          environment: env.NODE_ENV,
+          timestamp: new Date().toISOString(),
+          message: 'Application is in emergency mode'
+        });
+      });
+      
+      // Add health check endpoint with standard name for Kubernetes/Cloud Run
+      emergencyApp.get('/healthz', (req, res) => {
+        res.status(200).json({
+          status: 'degraded',
+          service: 'team-management-app',
+          environment: env.NODE_ENV,
+          timestamp: new Date().toISOString(),
+          message: 'Application is in emergency mode'
         });
       });
       
