@@ -102,10 +102,12 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      secure: env.NODE_ENV === 'production', // Require HTTPS in production
+      // Temporarily set secure to auto-detect based on request in production
+      // This will use HTTPS when available but allow HTTP for troubleshooting
+      secure: env.NODE_ENV === 'production' ? 'auto' : false, 
       httpOnly: true, // Prevents client-side JS from reading the cookie
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
-      sameSite: 'lax' // Protects against CSRF in modern browsers
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax' // Use 'none' in production to allow cross-site cookies
     }
   };
 
@@ -149,12 +151,13 @@ export function setupAuth(app: Express) {
   });
 
   // Importar csrfProtection desde index.ts
+  // More permissive CSRF settings for troubleshooting production issues
   const csrfProtection = csrf({ 
     cookie: {
       key: 'csrf-token',
       httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      secure: env.NODE_ENV === 'production' ? 'auto' : false,
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax'
     }
   });
 
