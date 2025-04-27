@@ -106,7 +106,7 @@ const csrfProtection = csrf({
   cookie: {
     key: 'csrf-token',
     httpOnly: true,
-    secure: env.NODE_ENV === 'production' ? 'auto' : false, // Auto-detect HTTPS in production
+    secure: false, // Temporarily disable secure requirement for troubleshooting
     sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax' // More permissive for production
   }
 });
