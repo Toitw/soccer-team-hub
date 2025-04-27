@@ -374,7 +374,7 @@ seedDatabase().catch(error => {
       });
       
       // Health check endpoint using the standard /healthz convention
-      emergencyHealthRouter.get('/healthz', (req, res) => {
+      emergencyHealthRouter.get('/healthz', (req: Request, res: Response) => {
         res.status(200).json({
           status: 'degraded',
           service: 'team-management-app',
@@ -388,7 +388,7 @@ seedDatabase().catch(error => {
       emergencyApp.use('/', emergencyHealthRouter);
       
       // Default response for all other routes
-      emergencyApp.use('*', (req, res) => {
+      emergencyApp.use('*', (req: Request, res: Response) => {
         res.status(500).send('Server is temporarily unavailable. Please try again later.');
       });
       
