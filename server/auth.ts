@@ -1,7 +1,8 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
+import { Store } from "express-session";
 import { randomBytes, timingSafeEqual, scrypt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
@@ -9,6 +10,7 @@ import { User as SelectUser } from "@shared/schema";
 import * as argon2 from "argon2";
 import csrf from "csurf";
 import { env } from "./env";
+import { logger } from "./logger";
 
 const scryptAsync = promisify(scrypt);
 
