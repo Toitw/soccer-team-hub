@@ -10,6 +10,7 @@ import seedDatabase from "./seed";
 import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
 import { pool } from "./db";
+import { setupGlobalErrorHandlers, addDiagnosticEndpoints, recordError, checkForRecordedErrors } from "./error-diagnosis";
 
 const app = express();
 
@@ -167,6 +168,12 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize the global error handlers to catch unhandled errors
+setupGlobalErrorHandlers();
+
+// Add diagnostic endpoints (only in production)
+addDiagnosticEndpoints(app);
+
 // Run database seed function to ensure admin user exists
 // This is idempotent and safe to run on every startup
 seedDatabase().catch(error => {
@@ -290,17 +297,24 @@ seedDatabase().catch(error => {
     
     // Handle server errors
     server.on('error', (err) => {
-      logger.error('Server error occurred', { error: (err as Error).message, stack: (err as Error).stack });
+      // Use the diagnostic error recording
+      recordError('Server runtime error', err as Error, {
+        environment: env.NODE_ENV,
+        processMemoryUsage: process.memoryUsage(),
+        errorContext: 'server_runtime'
+      });
+      
       // Don't exit in production to allow for recovery
       if (env.NODE_ENV !== 'production') {
         process.exit(1);
       }
     });
   } catch (err) {
-    // Log the error and exit process in development, but keep running in production
-    logger.error('Fatal server initialization error', { 
-      error: (err as Error).message, 
-      stack: (err as Error).stack
+    // Log the error using our enhanced diagnostic tools
+    recordError('Fatal server initialization error', err as Error, {
+      environment: env.NODE_ENV,
+      processMemoryUsage: process.memoryUsage(),
+      errorContext: 'server_startup'
     });
     
     if (env.NODE_ENV !== 'production') {
@@ -310,16 +324,42 @@ seedDatabase().catch(error => {
       // and doesn't just crash immediately
       const emergencyApp = express();
       emergencyApp.use(express.json());
+      
+      // Add a health check that reports the error
       emergencyApp.get('/api/health', (req, res) => {
         res.status(500).json({
           status: 'error',
           message: 'Server in emergency mode due to initialization error',
+          error: {
+            type: (err as Error).name,
+            message: (err as Error).message
+          },
           timestamp: new Date().toISOString()
         });
       });
+      
+      // Add diagnostic endpoint to help troubleshoot in production
+      emergencyApp.get('/api/diagnostic', (req, res) => {
+        const errors = checkForRecordedErrors();
+        res.json({
+          timestamp: new Date().toISOString(),
+          environment: env.NODE_ENV,
+          errorCount: errors.length,
+          errors: errors.slice(-10), // Return the most recent 10 errors
+          currentError: {
+            name: (err as Error).name,
+            message: (err as Error).message,
+            stack: (err as Error).stack
+          }
+        });
+      });
+      
+      // Default response for all other routes
       emergencyApp.use('*', (req, res) => {
         res.status(500).send('Server is temporarily unavailable. Please try again later.');
       });
+      
+      // Start the emergency server
       emergencyApp.listen(env.PORT, '0.0.0.0', () => {
         logger.info(`Emergency server running on port ${env.PORT}`);
       });
