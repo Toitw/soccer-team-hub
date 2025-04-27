@@ -51,25 +51,8 @@ async function generateHealthResponse() {
   };
 }
 
-// Root endpoint for Cloud Run and other deployment health checks
-healthRouter.get('/', async (req, res) => {
-  try {
-    const healthData = await generateHealthResponse();
-    res.status(200).json(healthData);
-  } catch (error) {
-    logger.error('Error generating health check response', { 
-      error: (error as Error).message 
-    });
-    
-    res.status(200).json({
-      status: 'degraded',
-      service: 'team-management-app',
-      environment: env.NODE_ENV,
-      timestamp: new Date().toISOString(),
-      message: 'Health check service is experiencing issues'
-    });
-  }
-});
+// Note: We're removing the root endpoint handler from the health router
+// Root health checks will be handled conditionally in index.ts
 
 // Health check endpoint using the standard /healthz convention
 healthRouter.get('/healthz', async (req, res) => {

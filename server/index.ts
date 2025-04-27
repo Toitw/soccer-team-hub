@@ -261,9 +261,46 @@ seedDatabase().catch(error => {
       }
     });
 
-    // Mount health check endpoints BEFORE vite setup
-    // This ensures these routes take precedence over vite in development
-    app.use('/', healthRouter);
+    // Mount health check endpoints EXCEPT root ('/')
+    // This ensures health checks are available but don't interfere with the frontend
+    app.use('/healthz', healthRouter);
+    app.use('/api/health', healthRouter);
+    
+    // Only in production, add a special handler for root health checks
+    // In development, let Vite handle the root path
+    if (env.NODE_ENV === 'production') {
+      app.get('/_health', async (req: Request, res: Response) => {
+        try {
+          // Reuse the same health check logic
+          const pool = await import('./db').then(m => m.pool);
+          let dbStatus: 'connected' | 'disconnected' = 'disconnected';
+          try {
+            const result = await pool.query('SELECT 1');
+            if (result && result.rows && result.rows.length > 0) {
+              dbStatus = 'connected';
+            }
+          } catch (error) {
+            logger.error('Database health check failed', { 
+              error: (error as Error).message 
+            });
+          }
+          
+          res.status(200).json({
+            status: dbStatus === 'connected' ? 'ok' : 'degraded',
+            service: 'team-management-app',
+            environment: env.NODE_ENV,
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          res.status(200).json({
+            status: 'degraded',
+            service: 'team-management-app',
+            environment: env.NODE_ENV,
+            timestamp: new Date().toISOString()
+          });
+        }
+      });
+    }
     
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
