@@ -1,111 +1,103 @@
 # Production Deployment Guide
 
-This guide provides step-by-step instructions for deploying the application to production environments while avoiding common issues that cause 5XX errors.
+This document outlines the steps to deploy the application to production environments and details the solutions implemented to address common deployment issues.
 
-## Pre-Deployment Checklist
+## Deployment Process
 
-Before deploying to production, ensure the following:
+1. Ensure all code is committed to version control
+2. Run database migrations using `npm run db:push`
+3. Build the client application using `npm run build`
+4. Deploy to the hosting platform (Cloud Run, etc.)
 
-1. **Database Configuration**
-   - Ensure the PostgreSQL database is properly set up and accessible
-   - Verify the `DATABASE_URL` environment variable is correctly set in your production environment
-   - Run `scripts/prepare-for-deploy.sh` to verify database connection and set up required tables
+## Health Check Configuration
 
-2. **Environment Variables**
-   - Set `NODE_ENV=production` in your production environment
-   - Configure any API keys or secrets required by the application
-   - Ensure all required environment variables are defined
+### Health Check Endpoints
 
-3. **Build Process**
-   - Run `npm run build` to create production-optimized builds of both client and server
-   - Verify the build process completes without errors
+The application provides the following health check endpoints:
 
-## Deployment Steps
+| Endpoint | Purpose | Status Codes |
+|----------|---------|--------------|
+| `/` | Root health check (used by Cloud Run) | 200 OK |
+| `/healthz` | Standard Kubernetes health check | 200 OK |
+| `/api/health` | Detailed application health information | 200 OK / 500 Error |
 
-Follow these steps to deploy the application to production:
+### Health Response
 
-1. **Run Pre-Deployment Script**
-   ```bash
-   ./scripts/prepare-for-deploy.sh
-   ```
-   This script will:
-   - Verify database connection
-   - Create required tables (sessions)
-   - Build the application for production
-   - Run basic verification checks
+All health endpoints return a JSON response that includes:
 
-2. **Start the Production Server**
-   ```bash
-   NODE_ENV=production node dist/index.js
-   ```
+```json
+{
+  "status": "ok",
+  "service": "team-management-app",
+  "environment": "production",
+  "timestamp": "2025-04-27T19:37:33.105Z",
+  "uptime": 25,
+  "database": {
+    "status": "connected"
+  },
+  "memory": {
+    "rss": "198MB",
+    "heapTotal": "75MB",
+    "heapUsed": "72MB"
+  }
+}
+```
 
-3. **Verify Deployment**
-   - Check the server logs for any startup errors
-   - Visit the application URL and verify it loads correctly
-   - Test the `/api/health` endpoint to ensure all systems are operational
+## Cloud Run Configuration
 
-## Troubleshooting 5XX Errors
+For Cloud Run deployments, configure the health check to use the `/` endpoint:
 
-If you encounter 5XX errors in production, follow these troubleshooting steps:
+```yaml
+health_check:
+  path: "/"
+  timeout_seconds: 5
+  initial_delay_seconds: 10
+```
 
-1. **Check Server Logs**
-   - Review the server logs for any error messages or exceptions
-   - Look for logs in the `logs/production-errors.log` file
-   
-2. **Verify Database Connection**
-   - Ensure the database is accessible from your production environment
-   - Check that the database connection string is correct
-   - Verify the database user has the necessary permissions
+## Database Preparation
 
-3. **Check Application Health**
-   - Visit the `/api/health` endpoint to get diagnostic information
-   - For detailed diagnostics, check the `/api/diagnostic` endpoint
+The application automatically ensures that required database tables (like the sessions table) exist in production environments. This is handled during server startup.
 
-4. **Common Issues and Solutions**
+## Common Issues and Solutions
 
-   | Problem | Solution |
-   |---------|----------|
-   | Database connection failures | Verify DATABASE_URL and network connectivity |
-   | Session persistence issues | Ensure the sessions table exists in the database |
-   | Memory leaks | Check for increasing memory usage in the health endpoint |
-   | Server startup failures | Check logs for initialization errors |
-   | Client-side 5XX errors | Verify the server is running and accessible |
+### 5XX Server Errors
 
-5. **Recovery Process**
+If you encounter 5XX errors in production, check the following:
 
-   If the application is in a broken state:
-   
-   - Stop the current process
-   - Run the database check script: `node scripts/ensure-sessions-table.js`
-   - Restart the application: `NODE_ENV=production node dist/index.js`
+1. **Health Check Failures**: Ensure that the health check endpoints (`/` or `/healthz`) return 200 status codes.
+2. **Database Connection Issues**: Check the database connection string and ensure the database is accessible from the deployed environment.
+3. **Sessions Table Issues**: Verify the sessions table exists in the database.
+4. **Memory/Resource Constraints**: Check if the application is hitting resource limits on the hosting platform.
 
-## Security Considerations for Production
+### CORS Issues
 
-1. **CORS Configuration**
-   - Once the application is stable, update the CORS settings in `server/index.ts` to use a stricter configuration
-   - Uncomment the stricter CORS configuration and specify allowed origins
+The application is configured with flexible CORS settings for troubleshooting production issues. Once the application is stable, you should tighten these settings in `server/index.ts`.
 
-2. **Cookie Security**
-   - Update cookie settings to use `secure: true` for all cookies in production
-   - Set appropriate `sameSite` cookie policy
+### SSL/TLS Issues
 
-3. **Rate Limiting**
-   - Adjust rate limiting settings in `server/index.ts` based on your expected traffic
+If using custom domains, ensure that SSL certificates are properly configured on the hosting platform.
 
-## Monitoring in Production
+## Debugging Production Issues
 
-1. **Health Checks**
-   - Set up regular monitoring of the `/api/health` endpoint
-   - Configure alerts for any critical failures
+The application includes built-in diagnostic tools:
 
-2. **Error Tracking**
-   - Review `logs/production-errors.log` regularly
-   - Set up log rotation to prevent disk space issues
+1. **Error Logging**: Detailed error logs are captured and stored.
+2. **Diagnostic Endpoint**: Access `/api/diagnostic` in production to view recent errors and system state.
+3. **Emergency Mode**: If the server fails to start normally, it launches in emergency mode with a minimal server that can report errors.
 
-3. **Database Monitoring**
-   - Monitor database connection pool health
-   - Check for slow queries or connection issues
+## Deployment Checklist
 
----
+- [ ] Database connection is configured with proper credentials
+- [ ] Environment variables are set correctly
+- [ ] Database tables and schema are up-to-date
+- [ ] Static assets are built and included
+- [ ] Health check endpoints are working
+- [ ] CORS is configured appropriately
+- [ ] Rate limiting is configured
+- [ ] Session storage is working
 
-By following this guide, you should be able to deploy the application to production while avoiding common issues that cause 5XX errors.
+## Performance Considerations
+
+- The application is configured to use PostgreSQL for session storage in production
+- Express server is configured to handle high traffic with appropriate timeouts and error handling
+- The server binds to `0.0.0.0` to ensure it's accessible in containerized environments
