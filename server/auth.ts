@@ -1,16 +1,13 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express, Request, Response, NextFunction } from "express";
+import { Express } from "express";
 import session from "express-session";
-import { Store } from "express-session";
 import { randomBytes, timingSafeEqual, scrypt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import * as argon2 from "argon2";
 import csrf from "csurf";
-import { env } from "./env";
-import { logger } from "./logger";
 
 const scryptAsync = promisify(scrypt);
 
@@ -99,17 +96,10 @@ export async function comparePasswords(supplied: string, stored: string | undefi
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "teamkick-soccer-platform-secret",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
-    cookie: {
-      // In production, use a more permissive setting for troubleshooting
-      secure: false, // Temporarily allow non-HTTPS cookies for troubleshooting
-      httpOnly: true, // Prevents client-side JS from reading the cookie
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
-      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax' // Use 'none' in production to allow cross-site cookies
-    } as session.CookieOptions
   };
 
   app.set("trust proxy", 1);
@@ -152,13 +142,12 @@ export function setupAuth(app: Express) {
   });
 
   // Importar csrfProtection desde index.ts
-  // More permissive CSRF settings for troubleshooting production issues
   const csrfProtection = csrf({ 
     cookie: {
       key: 'csrf-token',
       httpOnly: true,
-      secure: false, // Temporarily disable secure requirement for troubleshooting
-      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
     }
   });
 

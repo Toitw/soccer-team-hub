@@ -22,13 +22,9 @@ import { eq, and, desc, or, sql, isNull } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 import { PostgresError } from "postgres";
-import pgSession from "connect-pg-simple";
-import { env } from "./env";
-import { pool } from "./db";
 
 const MemoryStore = createMemoryStore(session);
-const PgStore = pgSession(session);
-type SessionStoreType = ReturnType<typeof createMemoryStore> | ReturnType<typeof pgSession>;
+type SessionStoreType = ReturnType<typeof createMemoryStore>;
 
 /**
  * Database storage implementation using Drizzle ORM
@@ -37,20 +33,9 @@ export class DatabaseStorage implements IStorage {
   sessionStore: SessionStoreType;
 
   constructor() {
-    // Use PostgreSQL session store in production, memory store in development
-    if (env.NODE_ENV === 'production') {
-      this.sessionStore = new PgStore({
-        pool: pool,
-        tableName: 'sessions',
-        createTableIfMissing: true
-      });
-      console.log('Using PostgreSQL session store for production');
-    } else {
-      this.sessionStore = new MemoryStore({
-        checkPeriod: 86400000,
-      });
-      console.log('Using Memory session store for development');
-    }
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000,
+    });
   }
 
   /**

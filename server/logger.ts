@@ -1,9 +1,8 @@
 import pino from 'pino';
 import pinoHttp from 'pino-http';
-import { NODE_ENV, IS_PRODUCTION } from './config';
 
 // Configure the log level (INFO in production, DEBUG in development)
-const logLevel = IS_PRODUCTION ? 'info' : 'info';
+const logLevel = process.env.NODE_ENV === 'production' ? 'info' : 'info';
 
 // Define sensitive fields to redact in logs
 const redactOptions = {
@@ -33,7 +32,7 @@ export const logger = pino({
     },
   },
   redact: redactOptions,
-  transport: !IS_PRODUCTION
+  transport: process.env.NODE_ENV !== 'production' 
     ? {
         target: 'pino-pretty',
         options: {
