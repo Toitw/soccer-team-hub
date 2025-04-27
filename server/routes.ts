@@ -41,33 +41,28 @@ function generateJoinCode(): string {
   const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding 0, 1, I, O
   const codeLength = 6;
   let joinCode = '';
-
+  
   // Generate random characters
   const randomBytesBuffer = randomBytes(codeLength);
   for (let i = 0; i < codeLength; i++) {
     joinCode += characters[randomBytesBuffer[i] % characters.length];
   }
-
+  
   return joinCode;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
-
+  
   // Register our custom auth routes for email verification and password reset
   app.use('/api/auth', authRoutes);
-
+  
   // Register admin routes using the imported admin router that has our fixes
   const adminRouter = createAdminRouter(storage);
-
+  
   // Attach admin router to main app
   app.use('/api', adminRouter);
-
-  // Root route handler for deployment health checks
-  app.get('/', (req, res) => {
-    res.status(200).send('OK');
-  });
 
   // Add comprehensive health check endpoint for monitoring and diagnostics
   app.get('/api/health', async (req, res) => {
@@ -77,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logger.error('Health check database error', { error: err.message });
         return 'disconnected';
       });
-
+      
       // System information
       const healthStatus = {
         status: 'ok',
@@ -93,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: dbStatus
         }
       };
-
+      
       res.json(healthStatus);
     } catch (error) {
       logger.error('Health check error', { error: (error as Error).message });
@@ -122,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate a join code for the team
       const joinCode = generateJoinCode();
-
+      
       // Create a basic empty team specifically for this user
       const team = await storage.createTeam({
         name: "My Team",
@@ -181,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Generate a join code for the team
       const joinCode = generateJoinCode();
-
+      
       const team = await storage.createTeam({
         ...req.body,
         createdById: req.user.id,
@@ -209,29 +204,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
+  
   // Generate a new join code for a team
   app.post("/api/teams/:id/join-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
       const teamId = parseInt(req.params.id);
-
+      
       // Check if user has admin role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Not authorized to generate join code for this team" });
       }
-
+      
       // Generate a new unique join code
       const joinCode = generateJoinCode();
-
+      
       // Update the team with the new join code
       const updatedTeam = await storage.updateTeam(teamId, { joinCode });
       if (!updatedTeam) {
         return res.status(404).json({ error: "Team not found" });
       }
-
+      
       res.json({ 
         message: "Join code generated successfully", 
         joinCode: updatedTeam.joinCode 
@@ -246,10 +241,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/validate-join-code/:code", async (req, res) => {
     try {
       const joinCode = req.params.code;
-
+      
       // Get the team with this join code, if any
       const team = await storage.getTeamByJoinCode(joinCode);
-
+      
       if (team) {
         // Return minimal team info to avoid exposing sensitive team details
         return res.json({ 
@@ -291,42 +286,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch team" });
     }
   });
-
+  
   // Upload team logo (base64)
   app.post("/api/teams/:id/logo", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     try {
       const teamId = parseInt(req.params.id);
-
+      
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-
+      
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-
+      
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can update team logo" });
       }
-
+      
       // Get base64 data from request body
       const { imageData } = req.body;
-
+      
       if (!imageData) {
         return res.status(400).json({ error: "No image data provided" });
       }
-
+      
       // Update the team with the new logo (base64 data)
       const updatedTeam = await storage.updateTeam(teamId, {
         logo: imageData
       });
-
+      
       res.json({ success: true, logo: imageData });
     } catch (error) {
       console.error("Error uploading team logo:", error);
@@ -337,29 +332,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update team settings
   app.patch("/api/teams/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     try {
       const teamId = parseInt(req.params.id);
-
+      
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-
+      
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-
+      
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can update team settings" });
       }
-
+      
       // Get update data from request body
       const { name, division, seasonYear, logo } = req.body;
-
+      
       // Update the team
       const updatedTeam = await storage.updateTeam(teamId, {
         name,
@@ -367,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         seasonYear,
         logo
       });
-
+      
       res.json(updatedTeam);
     } catch (error) {
       console.error("Error updating team:", error);
@@ -378,34 +373,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Regenerate team join code
   app.post("/api/teams/:id/regenerate-join-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     try {
       const teamId = parseInt(req.params.id);
-
+      
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-
+      
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-
+      
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can regenerate join codes" });
       }
-
+      
       // Generate new join code
       const newJoinCode = generateJoinCode();
-
+      
       // Update the team with new join code
       const updatedTeam = await storage.updateTeam(teamId, {
         joinCode: newJoinCode
       });
-
+      
       res.json({ joinCode: newJoinCode });
     } catch (error) {
       console.error("Error regenerating join code:", error);
@@ -746,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newTeamMember);
     } catch (error: any) {
       console.error("Error adding team member:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         if (error.name === "ConflictError") {
@@ -763,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to add team member" 
       });
@@ -869,14 +864,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(match);
     } catch (error: any) {
       console.error("Error creating match:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating match" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create match" 
       });
@@ -888,7 +883,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      ```javascript
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
 
@@ -1004,14 +998,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(event);
     } catch (error: any) {
       console.error("Error creating event:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating event" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create event" 
       });
@@ -1098,10 +1092,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const attendance = await storage.getAttendance(eventId);
-
+      
       // Get count of confirmed attendees
       const confirmedCount = attendance.filter(a => a.status === "confirmed").length;
-
+      
       res.json({
         total: attendance.length,
         confirmed: confirmedCount,
@@ -1259,14 +1253,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(announcementWithCreator);
     } catch (error: any) {
       console.error("Error creating announcement:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating announcement" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create announcement" 
       });
@@ -1429,7 +1423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return userWithoutPassword;
         })
       );
-
+      
       // Get player details for bench players if they exist
       let benchPlayersDetails: any[] = [];
       if (lineup.benchPlayerIds && lineup.benchPlayerIds.length > 0) {
@@ -1500,14 +1494,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(lineup);
     } catch (error: any) {
       console.error("Error creating/updating lineup:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating/updating lineup" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create match lineup" 
       });
@@ -1789,14 +1783,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(goal);
     } catch (error: any) {
       console.error("Error creating match goal:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating match goal" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create match goal" 
       });
@@ -1910,14 +1904,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(card);
     } catch (error: any) {
       console.error("Error creating match card:", error);
-
+      
       // Check for specific error types (including integrity constraint errors)
       if (error.status === 409) {
         return res.status(409).json({ 
           error: error.message || "Integrity constraint violation when creating match card" 
         });
       }
-
+      
       res.status(error.status || 500).json({ 
         error: error.message || "Failed to create match card" 
       });
@@ -2043,13 +2037,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
-
+      
       // Get the photo
       const photo = await storage.getMatchPhoto(photoId);
       if (!photo) {
         return res.status(404).json({ error: "Photo not found" });
       }
-
+      
       // Allow deletion only for admin/coach or the original uploader
       if (!teamMember || 
           ((teamMember.role !== "admin" && teamMember.role !== "coach") && 
@@ -2262,16 +2256,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all league classifications for a team
   app.get('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const teamId = parseInt(req.params.teamId);
-
+    
     try {
       // Check if user is a member of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to view this team's classification" });
       }
-
+      
       const classifications = await storage.getLeagueClassifications(teamId);
       res.json(classifications);
     } catch (error) {
@@ -2279,81 +2273,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch league classifications" });
     }
   });
-
+  
   // Add a new league classification entry
   app.post('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const teamId = parseInt(req.params.teamId);
-
+    
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to add classification for this team" });
       }
-
+      
       const classification = await storage.createLeagueClassification({
         ...req.body,
         teamId
       });
-
+      
       res.status(201).json(classification);
     } catch (error) {
       console.error("Error creating classification:", error);
       res.status(500).json({ error: "Failed to create league classification entry" });
     }
   });
-
+  
   // Update a league classification entry
   app.put('/api/classification/:id', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const classificationId = parseInt(req.params.id);
-
+    
     try {
       // Get the classification to check team ownership
       const classification = await storage.getLeagueClassification(classificationId);
       if (!classification) {
         return res.status(404).json({ error: "Classification entry not found" });
       }
-
+      
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to update classification for this team" });
       }
-
+      
       const updatedClassification = await storage.updateLeagueClassification(classificationId, req.body);
-
+      
       res.json(updatedClassification);
     } catch (error) {
       console.error("Error updating classification:", error);
       res.status(500).json({ error: "Failed to update league classification entry" });
     }
   });
-
+  
   // Delete a league classification entry
   app.delete('/api/classification/:id', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const classificationId = parseInt(req.params.id);
-
+    
     try {
       // Get the classification to check team ownership
       const classification = await storage.getLeagueClassification(classificationId);
       if (!classification) {
         return res.status(404).json({ error: "Classification entry not found" });
       }
-
+      
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to delete classification for this team" });
       }
-
+      
       const deleted = await storage.deleteLeagueClassification(classificationId);
-
+      
       if (deleted) {
         res.json({ message: "Classification entry deleted successfully" });
       } else {
@@ -2364,22 +2358,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete league classification entry" });
     }
   });
-
+  
   // Delete all classification entries for a team
   app.delete('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const teamId = parseInt(req.params.teamId);
-
+    
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to delete classifications for this team" });
       }
-
+      
       const deleted = await storage.deleteAllTeamClassifications(teamId);
-
+      
       if (deleted) {
         res.json({ message: "All classification entries deleted successfully" });
       } else {
@@ -2390,40 +2384,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete league classification entries" });
     }
   });
-
+  
   // Bulk create league classification entries from CSV
   app.post('/api/teams/:teamId/classification/bulk', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const teamId = parseInt(req.params.teamId);
-
+    
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to add classifications for this team" });
       }
-
+      
       const { classifications } = req.body;
-
+      
       if (!Array.isArray(classifications) || classifications.length === 0) {
         return res.status(400).json({ error: "Invalid or empty classifications data" });
       }
-
+      
       // Delete all existing classifications for this team before adding new ones
       const existingClassifications = await storage.getLeagueClassifications(teamId);
       for (const classification of existingClassifications) {
         await storage.deleteLeagueClassification(classification.id);
       }
-
+      
       // Add teamId to each classification
       const classificationsWithTeamId = classifications.map(c => ({
         ...c,
         teamId
       }));
-
+      
       const createdClassifications = await storage.bulkCreateLeagueClassifications(classificationsWithTeamId);
-
+      
       res.status(201).json({
         message: `Created ${createdClassifications.length} classification entries`,
         classifications: createdClassifications
@@ -2437,9 +2431,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get player statistics for a team
   app.get('/api/teams/:teamId/player-stats', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     const teamId = parseInt(req.params.teamId);
-
+    
     try {
       // Verify team exists
       const team = await storage.getTeam(teamId);
@@ -2450,18 +2444,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all team members who are players
       const teamMembers = await storage.getTeamMembers(teamId);
       const playerMembers = teamMembers.filter(member => member.role === 'player');
-
+      
       // Get all matches for the team
       const matches = await storage.getMatches(teamId);
       const completedMatches = matches.filter(match => match.status === 'completed');
       const matchIds = completedMatches.map(match => match.id);
-
+      
       // For each player, collect their statistics across all matches
       const playerStatsPromises = playerMembers.map(async (member) => {
         // Get user details
         const user = await storage.getUser(member.userId);
         if (!user) return null;
-
+        
         // Initialize player summary
         const playerSummary = {
           id: user.id,
@@ -2475,13 +2469,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redCards: 0,
           image: user.profilePicture || "/default-avatar.png"
         };
-
+        
         // For each player, get their stats from all matches
         for (const matchId of matchIds) {
           // Check match stats
           const matchStats = await storage.getMatchPlayerStats(matchId);
           const playerStat = matchStats.find(stat => stat.userId === user.id);
-
+          
           if (playerStat) {
             playerSummary.matchesPlayed++;
             playerSummary.goals += playerStat.goals || 0;
@@ -2490,20 +2484,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             playerSummary.redCards += playerStat.redCards || 0;
             playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
           }
-
+          
           // Check for goals in match goals table (ensures we catch everything)
           const matchGoals = await storage.getMatchGoals(matchId);
           // Count goals scored by this player
           const goalsScored = matchGoals.filter(goal => goal.scorerId === user.id).length;
           // Count assists by this player
           const assistsProvided = matchGoals.filter(goal => goal.assistId === user.id).length;
-
+          
           if (goalsScored > 0 || assistsProvided > 0) {
             playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
             playerSummary.goals += goalsScored;
             playerSummary.assists += assistsProvided;
           }
-
+          
           // Check for cards in match cards
           const matchCards = await storage.getMatchCards(matchId);
           const yellowCards = matchCards.filter(card => 
@@ -2512,17 +2506,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const redCards = matchCards.filter(card => 
             card.playerId === user.id && card.type === 'red'
           ).length;
-
+          
           if (yellowCards > 0 || redCards > 0) {
             playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
             playerSummary.yellowCards += yellowCards;
             playerSummary.redCards += redCards;
           }
         }
-
+        
         return playerSummary;
       });
-
+      
       const playerStats = (await Promise.all(playerStatsPromises)).filter(Boolean);
       res.json(playerStats);
     } catch (error) {
