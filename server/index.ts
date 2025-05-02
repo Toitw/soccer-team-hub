@@ -121,10 +121,11 @@ seedDatabase().catch(error => {
 (async () => {
   const server = await registerRoutes(app);
   
-  // Register health check routes
+  // Register health check routes at /api/health*
   app.use('/api', healthCheckRoutes);
   
   // Add root health check endpoint (required for deployment)
+  // This should come AFTER the API routes but BEFORE the static file handling
   app.get('/', (req, res) => {
     res.status(200).json({
       status: 'ok',
@@ -133,20 +134,49 @@ seedDatabase().catch(error => {
     });
   });
   
+  // Static file handling should come before error handlers in production
+  // This ensures that static files are served properly
+  if (env.NODE_ENV === "development") {
+    // In development, all routes go through Vite
+    await setupVite(app, server);
+  } else {
+    // In production, serve built static files
+    serveStatic(app);
+  }
+  
   // Use the 404 handler for API routes
   app.use(notFoundHandler);
   
+  // Add a special error handler for frontend routes in production
+  // This helps prevent 500 errors when static files can't be found
+  if (env.NODE_ENV === 'production') {
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      // If this is a static file request but the file wasn't found
+      if (!req.path.startsWith('/api/') && err.code === 'ENOENT') {
+        logger.warn({
+          type: 'frontend_file_not_found',
+          path: req.path,
+          error: err.message
+        });
+        
+        // Instead of a 500 error, serve the index.html
+        // This allows the client-side router to handle the route
+        try {
+          const indexPath = path.resolve(__dirname, '..', 'dist', 'public', 'index.html');
+          return res.sendFile(indexPath);
+        } catch (e) {
+          // If we can't even serve the index.html, proceed to the regular error handler
+          next(err);
+        }
+      }
+      
+      // Pass other errors to the regular error handler
+      next(err);
+    });
+  }
+  
   // Use the enhanced error handler
   app.use(errorHandler);
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
 
   // Serve the app on the configured port (defaults to 5000)
   // This serves both the API and the client
