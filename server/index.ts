@@ -133,13 +133,27 @@ seedDatabase().catch(error => {
   // middleware in production catch all routes
   app.use('/health-check', replitHealthCheckRouter);
 
-  // Add explicit root path handler for Replit health checks
+  // Add explicit high-priority root path handler for Replit health checks
+  // This must be registered early enough to ensure it's not blocked by other middleware
   app.get('/', (req, res) => {
+    // Set no-cache headers to ensure fresh responses
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     res.status(200).json({
       status: 'ok',
       message: 'TeamKick API is running',
       environment: env.NODE_ENV,
       timestamp: new Date().toISOString()
+    });
+    
+    // Log the successful health check
+    logger.info({
+      type: 'health_check',
+      path: '/',
+      userAgent: req.headers['user-agent'] || 'unknown',
+      source: 'express_root_handler'
     });
   });
 
@@ -175,13 +189,14 @@ seedDatabase().catch(error => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
     });
   } else {
-    // In production, we use a completely different approach
-    // Serve static files for all routes EXCEPT the root
-    serveStatic(app);
-
-    // Create a special health check server for Replit deployments
+    // In production, we use a different approach
+    // First create a special health check server for Replit deployments
     // that intercepts the root path requests before Express
     const healthServer = setupReplitHealthServer(app);
+    
+    // Then serve static files for all routes EXCEPT those specifically handled by API
+    // This order is important - we need our health checks to work before static serving
+    serveStatic(app);
 
     // Serve the app on the configured port
     const port = env.PORT;

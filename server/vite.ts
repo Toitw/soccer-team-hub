@@ -79,10 +79,28 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Serve static files but exclude critical API paths
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  // Special case for root path to ensure health checks work
+  // This is needed because the catch-all below would otherwise intercept all requests
+  app.get('/', (req, res, next) => {
+    // If there's already a handler for this (our health check handler),
+    // the static middleware will be skipped, so we need to call next()
+    next();
+  });
+
+  // Fall through to index.html for client-side routing, but skip API and health check routes
+  app.use("*", (req, res, next) => {
+    const path = req.originalUrl;
+    
+    // Skip API routes and health check routes
+    if (path.startsWith('/api') || 
+        path === '/health' || 
+        path === '/health-check') {
+      return next();
+    }
+    
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
