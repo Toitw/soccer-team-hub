@@ -124,8 +124,9 @@ seedDatabase().catch(error => {
   // Register health check routes
   app.use('/api', healthCheckRoutes);
   
-  // Add root health check endpoint (required for deployment)
-  app.get('/', (req, res) => {
+  // For Replit Deployments, we need a root health check
+  // We need to register this before the notFoundHandler
+  app.get('/health-check', (req, res) => {
     res.status(200).json({
       status: 'ok',
       message: 'TeamKick API is running',
