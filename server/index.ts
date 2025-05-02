@@ -204,8 +204,8 @@ seedDatabase().catch(error => {
     // Serve static files for all routes EXCEPT those specifically handled by API
     serveStatic(app);
 
-    // Serve the app on the configured port
-    const port = env.PORT || 7777; // Use port 7777 in production (for root-health-handler.js)
+    // In production, always listen on port 7777 for the proxy to connect to
+    const port = 7777; // Use fixed port 7777 in production (for root-health-handler.js)
     server.listen(port, "0.0.0.0", () => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
     });
