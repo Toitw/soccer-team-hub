@@ -1,88 +1,88 @@
 /**
- * Health check endpoints for monitoring the application in production
+ * Health check endpoints for the TeamKick application
+ * 
+ * These endpoints provide system monitoring capabilities:
+ * 1. Basic health check at /api/health
+ * 2. Detailed health check at /api/health/detailed
  */
-import { Router, Request, Response } from 'express';
-import { db } from './db';
-import { logger } from './logger';
+
+import express from 'express';
+import { pool } from './db';
+import { version } from '../package.json';
 import { env } from './env';
+import os from 'os';
+import { logger } from './logger';
 
-// Create a router
-const router = Router();
+const router = express.Router();
 
-// Basic health check endpoint - returns 200 OK if the server is running
-router.get('/health', (req: Request, res: Response) => {
+// Basic health check endpoint
+router.get('/health', async (req, res) => {
   res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
-    version: process.env.npm_package_version || '1.0.0',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Define health check response type
-interface HealthCheckResponse {
-  status: string;
-  timestamp: string;
-  environment: string;
-  version: string;
-  uptime: number;
-  memoryUsage: NodeJS.MemoryUsage;
-  services: {
-    database: {
-      status: string;
-      responseTime?: string;
-      message?: string;
-    };
-    email: {
-      status: string;
-    };
-  };
-}
-
-// Detailed health check - checks database connectivity and other dependencies
-router.get('/health/detailed', async (req: Request, res: Response) => {
-  const startTime = Date.now();
-  const health: HealthCheckResponse = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
-    version: process.env.npm_package_version || '1.0.0',
-    uptime: process.uptime(),
-    memoryUsage: process.memoryUsage(),
-    services: {
-      database: { status: 'checking' },
-      email: { status: env.SENDGRID_API_KEY ? 'configured' : 'not_configured' }
-    }
-  };
-
+// Detailed health check endpoint for system monitoring
+router.get('/health/detailed', async (req, res) => {
+  let databaseStatus = 'unknown';
+  let databaseResponseTime = 0;
+  let databaseError = null;
+  
+  // Check database connection
+  const dbCheckStart = Date.now();
   try {
-    // Check database connectivity with a simple query
-    const result = await db.execute('SELECT 1 AS db_check');
-    health.services.database = {
-      status: 'connected',
-      responseTime: `${Date.now() - startTime}ms`
-    };
-  } catch (error) {
-    health.status = 'degraded';
-    health.services.database = {
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown database error',
-      responseTime: `${Date.now() - startTime}ms`
-    };
-    
+    const result = await pool.query('SELECT 1 AS db_check');
+    databaseStatus = result.rows[0].db_check === 1 ? 'connected' : 'error';
+    databaseResponseTime = Date.now() - dbCheckStart;
+  } catch (error: any) {
+    databaseStatus = 'error';
+    databaseResponseTime = Date.now() - dbCheckStart;
+    databaseError = error.message;
     logger.error({
-      type: 'health_check',
+      type: 'health_check_error',
       component: 'database',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      error: error.message
     });
   }
-
-  // Return appropriate status code based on health
-  const statusCode = health.status === 'ok' ? 200 : 
-                     health.status === 'degraded' ? 200 : 500;
-                     
-  res.status(statusCode).json(health);
+  
+  // System information
+  const systemInfo = {
+    platform: process.platform,
+    nodeVersion: process.version,
+    uptime: Math.floor(process.uptime()),
+    memoryUsage: process.memoryUsage(),
+    cpuUsage: process.cpuUsage(),
+    totalMemory: os.totalmem(),
+    freeMemory: os.freemem(),
+    loadAverage: os.loadavg(),
+    cpuCount: os.cpus().length
+  };
+  
+  // Generate health status report
+  const healthStatus = {
+    status: databaseStatus === 'connected' ? 'healthy' : 'degraded',
+    version,
+    environment: env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    upSince: new Date(Date.now() - (process.uptime() * 1000)).toISOString(),
+    database: {
+      status: databaseStatus,
+      responseTime: `${databaseResponseTime}ms`,
+      error: databaseError
+    },
+    system: systemInfo
+  };
+  
+  // Log detailed health check for monitoring
+  logger.info({
+    type: 'health_check',
+    status: healthStatus.status,
+    databaseStatus: databaseStatus,
+    databaseResponseTime: databaseResponseTime
+  });
+  
+  res.status(databaseStatus === 'connected' ? 200 : 500).json(healthStatus);
 });
 
 export default router;

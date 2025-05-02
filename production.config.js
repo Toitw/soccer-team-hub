@@ -6,28 +6,41 @@
 module.exports = {
   apps: [
     {
-      name: "teamkick-app",
-      script: "dist/index.js",
-      instances: "max",
-      exec_mode: "cluster",
+      name: 'teamkick',
+      script: 'dist/index.js',
+      instances: 'max', // Use maximum available CPU cores
+      exec_mode: 'cluster', // Run in cluster mode for load balancing
       env: {
-        NODE_ENV: "production",
+        NODE_ENV: 'production',
         PORT: 5000
       },
-      max_memory_restart: "512M",
-      node_args: "--max-old-space-size=512",
-      exp_backoff_restart_delay: 100,
-      // Health check settings
-      wait_ready: true,
-      listen_timeout: 10000,
-      // Error handling
+      // Configuration for high availability
+      autorestart: true,
       max_restarts: 10,
-      restart_delay: 1000,
-      // Logging
-      error_file: "logs/error.log",
-      out_file: "logs/output.log",
-      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
-      merge_logs: true
+      restart_delay: 3000,
+      wait_ready: true,
+      kill_timeout: 5000,
+      // Graceful shutdown
+      shutdown_with_message: true,
+      // Merge logs
+      merge_logs: true,
+      // Error file path
+      error_file: './logs/error.log',
+      // Log file configuration
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
+      // HTTP server monitoring
+      max_memory_restart: '1G',
+      // Monitoring metrics
+      metrics: {
+        http: 9209 // Expose metrics on this port
+      },
+      // Node.js specific flags
+      node_args: [
+        '--max-old-space-size=768', // Memory limit (adjust based on available memory)
+        '--max-http-header-size=16384', // Increase header size for larger cookies
+        '--no-warnings', // Suppress Node.js warnings
+        '--enable-source-maps' // Enable source maps for better error tracing
+      ]
     }
   ]
 };
