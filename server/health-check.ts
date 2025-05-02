@@ -16,8 +16,8 @@ import { logger } from './logger';
 
 const router = express.Router();
 
-// Root health check endpoint (required for deployment)
-router.get('/', (req, res) => {
+// Special health check endpoint for deployment services
+router.get('/deployment-health-check', (req, res) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString()
