@@ -2,8 +2,9 @@
  * Health check endpoints for the TeamKick application
  * 
  * These endpoints provide system monitoring capabilities:
- * 1. Basic health check at /api/health
- * 2. Detailed health check at /api/health/detailed
+ * 1. Root health check at / (required for deployment)
+ * 2. Basic health check at /api/health
+ * 3. Detailed health check at /api/health/detailed
  */
 
 import express from 'express';
@@ -14,6 +15,14 @@ import os from 'os';
 import { logger } from './logger';
 
 const router = express.Router();
+
+// Root health check endpoint (required for deployment)
+router.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Basic health check endpoint
 router.get('/health', async (req, res) => {
