@@ -10,6 +10,11 @@ import seedDatabase from "./seed";
 import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
 
+process.on('unhandledRejection', err => {
+  // eslint-disable-next-line no-console
+  console.error('UNHANDLED PROMISE REJECTION:', err);
+});
+
 const app = express();
 
 // Add HTTP request logging middleware (before any other middlewares)
