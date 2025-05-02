@@ -17,7 +17,7 @@ import {
   leagueClassification, type LeagueClassification, type InsertLeagueClassification
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { db } from "./db";
+import { pool, db, reconnectDatabase } from "./db";
 import { eq, and, desc, or, sql, isNull } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import session from "express-session";
@@ -44,13 +44,13 @@ export class DatabaseStorage implements IStorage {
    */
   private handleDatabaseError(error: any): never {
     console.error("Database error:", error);
-    
+
     // PostgreSQL error codes
     if (error instanceof PostgresError || (error.code && typeof error.code === 'string')) {
       // Check for specific error types
       if (error.code === '23505') { // Unique violation
         let message = "Conflict: Record already exists";
-        
+
         // Extract more detail about which constraint was violated when available
         if (error.detail) {
           if (error.detail.includes("team_members_team_id_user_id_unique")) {
@@ -69,7 +69,7 @@ export class DatabaseStorage implements IStorage {
             message = "Conflict: Team with this join code already exists";
           }
         }
-        
+
         const err = new Error(message);
         err.name = "ConflictError";
         (err as any).status = 409;
@@ -89,18 +89,18 @@ export class DatabaseStorage implements IStorage {
             message = "Event does not exist or has been deleted";
           }
         }
-        
+
         const err = new Error(message);
         err.name = "ForeignKeyError";
         (err as any).status = 409;
         throw err;
       } else if (error.code === '23502') { // Not null violation
         let message = "Required field missing";
-        
+
         if (error.column) {
           message = `Required field missing: ${error.column}`;
         }
-        
+
         const err = new Error(message);
         err.name = "NotNullError";
         (err as any).status = 400;
@@ -112,7 +112,7 @@ export class DatabaseStorage implements IStorage {
         throw err;
       }
     }
-    
+
     // Default error handling
     const err = new Error("Database operation failed");
     err.name = "DatabaseError";
@@ -204,11 +204,11 @@ export class DatabaseStorage implements IStorage {
       })
       .from(teamMembers)
       .where(eq(teamMembers.userId, userId));
-      
+
       if (memberTeams.length === 0) {
         return [];
       }
-      
+
       const teamIds = memberTeams.map(mt => mt.teamId);
       return await db.select().from(teams).where(sql`${teams.id} IN ${teamIds}`);
     } catch (error) {
@@ -1008,7 +1008,7 @@ export class DatabaseStorage implements IStorage {
       ...classificationData,
       teamId,
     } as InsertLeagueClassification;
-    
+
     return this.createLeagueClassification(fullData);
   }
 
@@ -1019,4 +1019,51 @@ export class DatabaseStorage implements IStorage {
   async deleteClassification(id: number): Promise<boolean> {
     return this.deleteLeagueClassification(id);
   }
+}
+
+// Max number of retries for database operations
+const MAX_DB_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
+export async function query(text: string, params: any[] = []): Promise<any> {
+  let retries = 0;
+  let lastError;
+
+  while (retries < MAX_DB_RETRIES) {
+    try {
+      const client = await pool.connect();
+      try {
+        const result = await client.query(text, params);
+        return result;
+      } finally {
+        client.release();
+      }
+    } catch (error: any) {
+      lastError = error;
+
+      // If this is a connection termination error, try to reconnect
+      if (error.code === '57P01') {
+        logger.warn(`Database connection terminated, attempt ${retries + 1}/${MAX_DB_RETRIES} to reconnect`);
+        await reconnectDatabase();
+      } else {
+        logger.error('Database query error', { 
+          query: text, 
+          error: error.message, 
+          code: error.code,
+          retryAttempt: retries + 1
+        });
+      }
+
+      // Wait before retry
+      if (retries < MAX_DB_RETRIES - 1) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * (retries + 1)));
+      }
+
+      retries++;
+    }
+  }
+
+  // If we've exhausted retries, throw the last error
+  logError('Database query failed after retries', { query: text, error: lastError, retries });
+  throw lastError;
 }
