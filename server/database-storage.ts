@@ -994,7 +994,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Aliases for classification methods that match our API endpoints
+  // Classification API methods that delegate to the League Classification methods
   async getTeamClassifications(teamId: number): Promise<LeagueClassification[]> {
     return this.getLeagueClassifications(teamId);
   }

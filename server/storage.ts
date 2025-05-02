@@ -164,7 +164,7 @@ export interface IStorage {
   bulkCreateLeagueClassifications(classifications: InsertLeagueClassification[]): Promise<LeagueClassification[]>;
   deleteAllTeamClassifications(teamId: number): Promise<boolean>;
   
-  // Aliases for classification methods that match our API endpoints
+  // Classification API methods (these delegate to the League Classification methods)
   getTeamClassifications(teamId: number): Promise<LeagueClassification[]>;
   findClassificationById(id: number): Promise<LeagueClassification | undefined>;
   createClassification(teamId: number, classification: Partial<InsertLeagueClassification>): Promise<LeagueClassification>;
@@ -1835,7 +1835,7 @@ export class MemStorage implements IStorage {
     return updatedInvitation;
   }
 
-  // Aliases for classification methods that match our API endpoints
+  // Classification API methods that delegate to the League Classification methods
   async getTeamClassifications(teamId: number): Promise<LeagueClassification[]> {
     return this.getLeagueClassifications(teamId);
   }
