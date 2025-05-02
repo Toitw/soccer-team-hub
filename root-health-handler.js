@@ -3,8 +3,8 @@
  * Standalone root path health check handler for Replit deployments
  */
 
-const http = require('http');
-const { spawn } = require('child_process');
+import http from 'http';
+import { spawn } from 'child_process';
 
 // Configuration
 const PORT = process.env.PORT || 5000;
