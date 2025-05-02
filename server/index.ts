@@ -12,6 +12,7 @@ import { env } from "./env";
 import healthCheckRoutes from './health-check';
 import { errorHandler, notFoundHandler } from './error-handler';
 import { getSecurityHeaders } from './security-headers';
+import path from 'path';
 
 const app = express();
 

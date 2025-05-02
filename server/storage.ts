@@ -23,7 +23,66 @@ import { promisify } from "util";
 import fs from "fs";
 import path from "path";
 
-const MemoryStore = createMemoryStore(session);
+// Create a minimal session store that works with express-session
+// This is a simplified version that satisfies the Store interface
+class SimpleMemoryStore extends session.Store {
+  private sessions: Map<string, any>;
+  private timer: NodeJS.Timeout | null;
+
+  constructor(options: any = {}) {
+    super();
+    this.sessions = new Map();
+    this.timer = null;
+    
+    // Set up periodic cleanup if checkPeriod is specified
+    if (options.checkPeriod && typeof options.checkPeriod === 'number') {
+      this.timer = setInterval(() => this.clearExpiredSessions(), options.checkPeriod);
+      // Prevent keeping the process alive
+      if (this.timer.unref) this.timer.unref();
+    }
+  }
+
+  clearExpiredSessions() {
+    const now = Date.now();
+    for (const [sid, session] of this.sessions.entries()) {
+      if (session && session.cookie && session.cookie.expires) {
+        const expires = new Date(session.cookie.expires).getTime();
+        if (expires < now) {
+          this.sessions.delete(sid);
+        }
+      }
+    }
+  }
+
+  get(sid: string, callback: (err: any, session?: any) => void) {
+    const session = this.sessions.get(sid);
+    callback(null, session);
+  }
+
+  set(sid: string, session: any, callback?: (err?: any) => void) {
+    this.sessions.set(sid, session);
+    if (callback) callback();
+  }
+
+  destroy(sid: string, callback?: (err?: any) => void) {
+    this.sessions.delete(sid);
+    if (callback) callback();
+  }
+
+  all(callback: (err: any, sessions?: any[]) => void) {
+    const sessions = Array.from(this.sessions.values());
+    callback(null, sessions);
+  }
+
+  length(callback: (err: any, length?: number) => void) {
+    callback(null, this.sessions.size);
+  }
+
+  clear(callback?: (err?: any) => void) {
+    this.sessions.clear();
+    if (callback) callback();
+  }
+}
 
 // File paths for data persistence
 const DATA_DIR = './data';
@@ -42,7 +101,7 @@ const LEAGUE_CLASSIFICATION_FILE = path.join(DATA_DIR, 'league_classification.js
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 
 // Define SessionStore type explicitly
-type SessionStoreType = ReturnType<typeof createMemoryStore>;
+type SessionStoreType = any; // Using 'any' temporarily to avoid TypeScript errors
 
 // Separate password hashing logic since auth.ts imports this file
 const scryptAsync = promisify(scrypt);
@@ -253,7 +312,8 @@ export class MemStorage implements IStorage {
     this.matchPhotoCurrentId = 1;
     this.leagueClassificationCurrentId = 1;
     
-    this.sessionStore = new MemoryStore({
+    // Create a properly instantiated SimpleMemoryStore instance
+    this.sessionStore = new SimpleMemoryStore({
       checkPeriod: 86400000,
     });
     
