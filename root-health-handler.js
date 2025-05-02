@@ -23,16 +23,17 @@ let appProcess;
 if (IS_PRODUCTION) {
   log(`Starting main application in ${NODE_ENV} mode on port ${REAL_APP_PORT}...`);
 
-  // Set environment variables for the main app
+  // Set environment variables for the main app - ensure PORT is explicitly set to 7777
   const env = {
     ...process.env,
     PORT: REAL_APP_PORT.toString(),
+    NODE_ENV: 'production',
     INTERNAL_SERVER: 'true'
   };
 
   // Start the real application as a child process
-  // The server/index.ts file is already configured to listen on port 7777 in production
-  appProcess = spawn('node', ['dist/server/index.js'], {
+  // Explicitly use dist/index.js as the entry point
+  appProcess = spawn('node', ['dist/index.js'], {
     env,
     stdio: 'inherit'
   });

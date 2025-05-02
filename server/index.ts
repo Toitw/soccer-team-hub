@@ -205,9 +205,10 @@ seedDatabase().catch(error => {
     serveStatic(app);
 
     // In production, always listen on port 7777 for the proxy to connect to
-    const port = 7777; // Use fixed port 7777 in production (for root-health-handler.js)
+    const port = process.env.PORT || 7777; // Use fixed port 7777 in production (for root-health-handler.js)
     server.listen(port, "0.0.0.0", () => {
       logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
+      logger.info(`Application is ready to handle requests`);
     });
   }
 })();
