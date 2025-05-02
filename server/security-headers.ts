@@ -62,7 +62,7 @@ export function getSecurityHeaders() {
     
     // X-Frame protection
     frameguard: {
-      action: 'sameorigin'
+      action: 'sameorigin' as const
     },
     
     // Enable DNS prefetching for better performance
@@ -93,10 +93,9 @@ export function getSecurityHeaders() {
     // X-XSS-Protection is deprecated but kept for older browsers
     xssFilter: true,
     
-    // Referrer policy
-    referrerPolicy: {
-      policy: 'no-referrer'
-    },
+    // Referrer policy - strict value to prevent referrer leakage
+    referrerPolicy: false, // Disable helmet's built-in referrer policy
+    // Add it manually in the middleware if needed
     
     // Cross-Origin settings
     crossOriginEmbedderPolicy: false, // Set to false to avoid issues with third-party resources
