@@ -213,17 +213,22 @@ export async function sendEmail(
         success: true,
         message: `Email sent to ${to}`
       };
-    } catch (sendError) {
+    } catch (error) {
       // More detailed error handling for SendGrid errors
-      console.error('SendGrid email sending error:', sendError);
+      console.error('SendGrid email sending error:', error);
       
       // Extract more information if available
       let errorDetail = 'Unknown error';
-      if (sendError.response && sendError.response.body) {
-        try {
-          errorDetail = JSON.stringify(sendError.response.body);
-        } catch (e) {
-          errorDetail = 'Error parsing response body';
+      
+      // Type guard to check if error is an object with response property
+      if (error && typeof error === 'object' && 'response' in error) {
+        const sendError = error as { response?: { body?: any } };
+        if (sendError.response && sendError.response.body) {
+          try {
+            errorDetail = JSON.stringify(sendError.response.body);
+          } catch (e) {
+            errorDetail = 'Error parsing response body';
+          }
         }
       }
       
