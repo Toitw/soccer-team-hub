@@ -1,53 +1,89 @@
+
 /**
- * Standalone health check server for Replit deployments
+ * Specialized health check interceptor for Replit deployments
  * 
- * This server runs on the same port as the main application but only intercepts
- * the root path (/) requests, answering with a simple 200 OK response.
- * 
- * The express middleware chain will handle all other routes.
+ * This module creates a TCP server that intercepts requests before they reach Express
+ * and responds directly to root path health check requests from Replit.
  */
 
 import http from 'http';
-import { Express } from 'express';
 import { logger } from './logger';
+import express, { type Express } from 'express';
+import path from 'path';
+import fs from 'fs';
 
 /**
- * Setup a health check server interceptor specifically for Replit deployments
- * @param app The Express application to wrap
- * @returns A server instance that handles health checks
+ * Sets up a specialized HTTP server that handles health checks for Replit deployments
+ * The health check server intercepts root path requests and returns 200 responses
+ * All other requests are proxied to the Express app
  */
 export function setupReplitHealthServer(app: Express): http.Server {
-  // Create an HTTP server that will intercept requests before Express
-  const server = http.createServer((req, res) => {
-    // Only intercept requests to the root path (/)
-    if (req.url === '/') {
-      // Log this health check request
+  const healthServer = http.createServer((req, res) => {
+    // Handle only root path requests as health checks
+    if (req.url === '/' || req.url === '/health-check') {
       logger.info({
-        type: 'replit_root_health_check',
-        method: req.method,
+        type: 'health_check',
         path: req.url,
-        userAgent: req.headers['user-agent'] || 'unknown'
+        method: req.method,
+        status: 200,
+        headers: {
+          'user-agent': req.headers['user-agent']
+        }
       });
       
-      // Return a simple 200 OK response
-      res.writeHead(200, {
-        'Content-Type': 'application/json',
-        'X-Health-Check': 'replit-deployment'
-      });
-      
-      // Write a JSON response with current timestamp
-      res.end(JSON.stringify({
-        status: 'ok',
-        message: 'TeamKick API is running',
-        timestamp: new Date().toISOString()
-      }));
-      
+      // Check if client prefers HTML (browser)
+      const acceptHeader = req.headers.accept || '';
+      if (acceptHeader.includes('text/html')) {
+        try {
+          // Send static HTML for health check
+          const healthCheckHtml = path.resolve('./public/health-check.html');
+          
+          if (fs.existsSync(healthCheckHtml)) {
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            const htmlContent = fs.readFileSync(healthCheckHtml);
+            res.end(htmlContent);
+          } else {
+            // Fallback HTML
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>TeamKick - Health Check</title>
+                  <style>
+                    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+                    .status { color: #4CAF50; font-size: 24px; margin: 20px 0; }
+                    .info { color: #666; font-size: 14px; }
+                  </style>
+                </head>
+                <body>
+                  <h1>TeamKick Soccer Platform</h1>
+                  <div class="status">✅ System is healthy</div>
+                  <p class="info">Server is running normally</p>
+                </body>
+              </html>
+            `);
+          }
+        } catch (error) {
+          // Even if there's an error reading the file, return 200 for health check
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          res.end('Health check OK');
+        }
+      } else {
+        // API/JSON response for programmatic health checks
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          status: 'healthy',
+          service: 'TeamKick',
+          timestamp: new Date().toISOString()
+        }));
+      }
       return;
     }
     
-    // For all other requests, let the Express app handle them
+    // For all other paths, proxy to the Express app
     app(req, res);
   });
   
-  return server;
+  return healthServer;
 }
