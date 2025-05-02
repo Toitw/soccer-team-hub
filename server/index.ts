@@ -11,15 +11,13 @@ import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
 import healthCheckRoutes from './health-check';
 import replitHealthCheckRouter from './replit-health-check';
+import productionRootHandler from './production-root-handler';
 import { errorHandler, notFoundHandler } from './error-handler';
 import { getSecurityHeaders } from './security-headers';
-import { replitRootHandler } from './replit-root-handler';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
-
-// Special Replit root path handler for health checks
-// This MUST be the first middleware to intercept root path requests in production
-app.use(replitRootHandler);
 
 // Add HTTP request logging middleware (before any other middlewares)
 app.use(httpLogger);
@@ -147,6 +145,12 @@ seedDatabase().catch(error => {
   if (env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
+    // In production, register a special root handler for Replit deployments
+    // IMPORTANT: This must be registered BEFORE the static middleware so it can
+    // intercept the root path for health checks
+    app.use('/', productionRootHandler);
+    
+    // Then serve static files for all other routes
     serveStatic(app);
   }
 
