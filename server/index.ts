@@ -13,8 +13,13 @@ import healthCheckRoutes from './health-check';
 import replitHealthCheckRouter from './replit-health-check';
 import { errorHandler, notFoundHandler } from './error-handler';
 import { getSecurityHeaders } from './security-headers';
+import { replitRootHandler } from './replit-root-handler';
 
 const app = express();
+
+// Special Replit root path handler for health checks
+// This MUST be the first middleware to intercept root path requests in production
+app.use(replitRootHandler);
 
 // Add HTTP request logging middleware (before any other middlewares)
 app.use(httpLogger);
