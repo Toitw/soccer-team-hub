@@ -9,6 +9,9 @@ import cookieParser from "cookie-parser";
 import seedDatabase from "./seed";
 import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
+import healthCheckRoutes from './health-check';
+import { errorHandler, notFoundHandler } from './error-handler';
+import { getSecurityHeaders } from './security-headers';
 
 const app = express();
 
@@ -20,22 +23,8 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser()); // Necesario para CSRF con cookies
 
 // Security middleware
-// 1. Helmet for securing HTTP headers
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Needed for development
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'self'"],
-    },
-  },
-}));
+// 1. Helmet for securing HTTP headers with enhanced configuration
+app.use(helmet(getSecurityHeaders()));
 
 // 2. CORS - restricted to the frontend domain (allow all in development)
 app.use(cors({
@@ -131,24 +120,15 @@ seedDatabase().catch(error => {
 
 (async () => {
   const server = await registerRoutes(app);
-
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    // Log the error with structured context
-    logger.error({
-      type: 'error_handler',
-      path: req.path,
-      method: req.method,
-      statusCode: status,
-      errorMessage: message,
-      stack: err.stack,
-      userId: (req as any).user?.id
-    });
-
-    res.status(status).json({ message });
-  });
+  
+  // Register health check routes
+  app.use('/api', healthCheckRoutes);
+  
+  // Use the 404 handler for API routes
+  app.use(notFoundHandler);
+  
+  // Use the enhanced error handler
+  app.use(errorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
