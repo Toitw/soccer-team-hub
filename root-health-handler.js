@@ -61,10 +61,10 @@ if (IS_PRODUCTION) {
   });
 }
 
-// Create a simple health check server
-const server = http.createServer((req, res) => {
-  // Only handle requests to the root path
-  if (req.url === '/' || req.url === '/health' || req.url === '/health-check') {
+// Create an HTTP proxy to forward requests to the main application
+const proxy = http.createServer((req, res) => {
+  // Special case for health checks
+  if (req.url === '/' && isHealthCheck(req)) {
     log(`Health check request received: ${req.method} ${req.url} (User-Agent: ${req.headers['user-agent'] || 'Unknown'})`);
 
     // Set headers to prevent caching
@@ -80,22 +80,59 @@ const server = http.createServer((req, res) => {
       environment: NODE_ENV,
       timestamp: new Date().toISOString()
     }));
-  } else {
-    // For all other paths, return a 404
-    res.writeHead(404, { 'Content-Type': 'application/json' });
+    return;
+  }
+
+  // For all other requests, proxy to the main application
+  const options = {
+    hostname: '127.0.0.1',
+    port: REAL_APP_PORT,
+    path: req.url,
+    method: req.method,
+    headers: req.headers
+  };
+
+  log(`Proxying request: ${req.method} ${req.url} to main application`);
+  
+  // Create the proxy request
+  const proxyReq = http.request(options, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res, { end: true });
+  });
+
+  // Handle proxy errors
+  proxyReq.on('error', (e) => {
+    log(`Proxy error: ${e.message}`);
+    res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       status: 'error',
-      message: 'Not found',
-      path: req.url
+      message: 'Error proxying to main application',
+      error: e.message
     }));
+  });
+
+  // If there's request data, pipe it to the proxy request
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+    req.pipe(proxyReq, { end: true });
+  } else {
+    proxyReq.end();
   }
 });
 
-// Start the health check server
-server.listen(PORT, '0.0.0.0', () => {
-  log(`Health check server listening on port ${PORT}`);
+// Helper function to determine if a request is a health check
+function isHealthCheck(req) {
+  const userAgent = req.headers['user-agent'] || '';
+  return userAgent.toLowerCase().includes('health') || 
+         userAgent.includes('curl') || 
+         (req.headers['accept'] && !req.headers['accept'].includes('text/html'));
+}
+
+// Start the proxy server
+proxy.listen(PORT, '0.0.0.0', () => {
+  log(`Proxy server listening on port ${PORT}`);
   if (IS_PRODUCTION) {
     log(`Main application running on internal port ${REAL_APP_PORT}`);
+    log(`All requests will be proxied to the main application except for health checks`);
   } else {
     log(`DEVELOPMENT MODE: Only the health check endpoint is available`);
   }
