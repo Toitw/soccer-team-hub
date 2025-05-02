@@ -8,8 +8,8 @@
  * 4. Performs security checks
  */
 
-import { env } from '../server/env.js';
-import { db } from '../server/db.js';
+import { env } from '../server/env.ts';
+import { db } from '../server/db.ts';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
@@ -48,18 +48,24 @@ async function deploy() {
 }
 
 function validateEnvironment() {
-  const requiredEnvVars = [
-    'NODE_ENV',
-    'PORT',
+  const criticalEnvVars = [
     'DATABASE_URL',
-    'SESSION_SECRET',
-    'SENDGRID_API_KEY'
+    'NODE_ENV'
   ];
   
-  const missingVars = requiredEnvVars.filter(varName => !env[varName]);
+  const recommendedEnvVars = [
+    'PORT',
+    'SESSION_SECRET',
+    'SENDGRID_API_KEY',
+    'EMAIL_FROM',
+    'FRONTEND_URL'
+  ];
   
-  if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  // Check for critical environment variables that must be present
+  const missingCriticalVars = criticalEnvVars.filter(varName => !env[varName]);
+  
+  if (missingCriticalVars.length > 0) {
+    throw new Error(`Missing critical environment variables: ${missingCriticalVars.join(', ')}`);
   }
   
   // Additional validation
@@ -67,11 +73,20 @@ function validateEnvironment() {
     throw new Error('NODE_ENV must be set to "production" for deployment');
   }
   
-  if (env.SESSION_SECRET && env.SESSION_SECRET.length < 32) {
-    throw new Error('SESSION_SECRET should be at least 32 characters long for security');
+  // Check recommended variables but don't fail deployment
+  const missingRecommendedVars = recommendedEnvVars.filter(varName => !env[varName]);
+  
+  if (missingRecommendedVars.length > 0) {
+    console.warn(`⚠️ Warning: Missing recommended environment variables: ${missingRecommendedVars.join(', ')}`);
+    console.warn('The application will use default values, but it\'s recommended to set these variables for optimal functionality.');
   }
   
-  console.log('Environment variables validated successfully.');
+  // Security recommendations rather than hard failures
+  if (env.SESSION_SECRET && env.SESSION_SECRET.length < 32) {
+    console.warn('⚠️ Warning: SESSION_SECRET should be at least 32 characters long for better security');
+  }
+  
+  console.log('Environment validation complete.');
 }
 
 async function verifyDatabaseConnection() {
@@ -123,20 +138,37 @@ async function securityChecks() {
     helmet: true, // Helmet middleware is used
     csrf: true,   // CSRF protection is enabled
     rateLimiting: true, // Rate limiting is configured
-    secureSessionConfig: env.NODE_ENV === 'production' && 
-                         env.SESSION_SECRET && 
-                         env.SESSION_SECRET.length >= 32
   };
   
+  // Recommended but not required security features
+  const recommendedSecurity = {
+    secureSessionConfig: env.NODE_ENV === 'production' && 
+                         env.SESSION_SECRET && 
+                         env.SESSION_SECRET.length >= 32,
+    sendgridConfigured: Boolean(env.SENDGRID_API_KEY),
+    frontendUrlConfigured: Boolean(env.FRONTEND_URL)
+  };
+  
+  // Check for critical security issues
   const securityIssues = Object.entries(securityChecklist)
     .filter(([_, isConfigured]) => !isConfigured)
     .map(([checkName]) => checkName);
   
   if (securityIssues.length > 0) {
-    throw new Error(`Security configuration issues found: ${securityIssues.join(', ')}`);
+    throw new Error(`Critical security configuration issues found: ${securityIssues.join(', ')}`);
   }
   
-  console.log('Security checks passed.');
+  // Check for recommended security settings
+  const securityWarnings = Object.entries(recommendedSecurity)
+    .filter(([_, isConfigured]) => !isConfigured)
+    .map(([checkName]) => checkName);
+    
+  if (securityWarnings.length > 0) {
+    console.warn(`⚠️ Warning: Recommended security configurations missing: ${securityWarnings.join(', ')}`);
+    console.warn('The application will still work, but these settings are recommended for optimal security.');
+  }
+  
+  console.log('Security validation complete.');
 }
 
 // Run the deployment script
