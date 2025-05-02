@@ -10,6 +10,7 @@ import seedDatabase from "./seed";
 import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
 import healthCheckRoutes from './health-check';
+import replitHealthCheckRouter from './replit-health-check';
 import { errorHandler, notFoundHandler } from './error-handler';
 import { getSecurityHeaders } from './security-headers';
 
@@ -124,15 +125,10 @@ seedDatabase().catch(error => {
   // Register health check routes
   app.use('/api', healthCheckRoutes);
   
-  // For Replit Deployments, we need a root health check
-  // We need to register this before the notFoundHandler
-  app.get('/health-check', (req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      message: 'TeamKick API is running',
-      timestamp: new Date().toISOString()
-    });
-  });
+  // For Replit Deployments, we need dedicated health check endpoints
+  // This is necessary because the Vite middleware in development and the static 
+  // middleware in production catch all routes
+  app.use('/health-check', replitHealthCheckRouter);
   
   // Use the 404 handler for API routes
   app.use(notFoundHandler);
