@@ -1,15 +1,10 @@
 
 /**
  * Standalone root path health check handler for Replit deployments
- * 
- * This script handles root path health checks required by Replit Deployments
- * and starts the main application as a child process.
  */
 
-import http from 'http';
-import { spawn } from 'child_process';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const http = require('http');
+const { spawn } = require('child_process');
 
 // Configuration
 const PORT = process.env.PORT || 5000;
@@ -23,7 +18,8 @@ function log(message) {
   console.log(`[${timestamp}] ${message}`);
 }
 
-// Start the actual application server on a different port
+// Start the actual application server on the internal port
+let appProcess;
 if (IS_PRODUCTION) {
   log(`Starting main application in ${NODE_ENV} mode on port ${REAL_APP_PORT}...`);
 
@@ -35,28 +31,36 @@ if (IS_PRODUCTION) {
   };
 
   // Start the real application as a child process
-  const appProcess = spawn('node', ['--no-warnings', 'dist/index.js'], {
+  // The server/index.ts file is already configured to listen on port 7777 in production
+  appProcess = spawn('node', ['dist/server/index.js'], {
     env,
     stdio: 'inherit'
   });
 
   appProcess.on('close', (code) => {
     log(`Main application process exited with code ${code}`);
-    // Exit the health check server if the main app crashes
     if (code !== 0) {
-      process.exit(code);
+      log('Attempting to restart main application...');
+      setTimeout(() => {
+        if (appProcess) appProcess.kill();
+        // Try to restart the application
+        appProcess = spawn('node', ['dist/server/index.js'], {
+          env,
+          stdio: 'inherit'
+        });
+      }, 5000);
     }
   });
 
   process.on('SIGTERM', () => {
     log('Received SIGTERM, shutting down gracefully');
-    appProcess.kill('SIGTERM');
+    if (appProcess) appProcess.kill('SIGTERM');
     setTimeout(() => process.exit(0), 1000);
   });
 
   process.on('SIGINT', () => {
     log('Received SIGINT, shutting down gracefully');
-    appProcess.kill('SIGINT');
+    if (appProcess) appProcess.kill('SIGINT');
     setTimeout(() => process.exit(0), 1000);
   });
 }
