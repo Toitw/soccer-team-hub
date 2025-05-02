@@ -17,7 +17,9 @@ export const serverEnvSchema = z.object({
   // Server configuration
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   FRONTEND_URL: z.string().url("FRONTEND_URL must be a valid URL").optional(),
-  PORT: z.coerce.number().default(5000),
+  PORT: z.coerce.number().optional().transform(p =>
+    typeof p === 'number' && !Number.isNaN(p) ? p : (process.env.PORT ? Number(process.env.PORT) : 5000)
+  ),
 });
 
 /**
