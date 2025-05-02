@@ -7,13 +7,6 @@
     "joinedAt": "2025-03-14T14:56:41.252Z"
   },
   {
-    "teamId": 2,
-    "userId": 32,
-    "role": "admin",
-    "id": 3,
-    "joinedAt": "2025-03-14T14:57:57.700Z"
-  },
-  {
     "teamId": 1,
     "userId": 68,
     "role": "player",
