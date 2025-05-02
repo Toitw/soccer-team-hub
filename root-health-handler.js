@@ -1,3 +1,4 @@
+
 /**
  * Standalone root path health check handler for Replit deployments
  * 
@@ -5,9 +6,10 @@
  * and starts the main application as a child process.
  */
 
-const http = require('http');
-const { spawn } = require('child_process');
-const path = require('path');
+import http from 'http';
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Configuration
 const PORT = process.env.PORT || 5000;
