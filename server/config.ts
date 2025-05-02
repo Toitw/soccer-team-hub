@@ -12,6 +12,7 @@ dotenv.config();
 export const NODE_ENV = (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development';
 
 // Default port for the server
+// In Cloud Run, this will use the dynamically assigned port
 export const PORT = parseInt(process.env.PORT || '5000', 10);
 
 // Is production environment?
