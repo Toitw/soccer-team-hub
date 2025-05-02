@@ -1,0 +1,35 @@
+# TeamKick Soccer Management Platform - robots.txt
+# This file controls how search engines index the site
+
+User-agent: *
+# Allow indexing of public pages
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /terms-of-service
+
+# Disallow indexing of private/sensitive pages
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /teams/
+Disallow: /matches/
+Disallow: /events/
+Disallow: /users/
+Disallow: /profile/
+Disallow: /reset-password/
+
+# Do not index authentication and system pages
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /404
+Disallow: /500
+
+# Crawl delay to avoid overloading the server
+Crawl-delay: 10
+
+# Sitemap location for public content
+Sitemap: https://teamkick.replit.app/sitemap.xml

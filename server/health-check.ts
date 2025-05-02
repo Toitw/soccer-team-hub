@@ -19,10 +19,30 @@ router.get('/health', (req: Request, res: Response) => {
   });
 });
 
+// Define health check response type
+interface HealthCheckResponse {
+  status: string;
+  timestamp: string;
+  environment: string;
+  version: string;
+  uptime: number;
+  memoryUsage: NodeJS.MemoryUsage;
+  services: {
+    database: {
+      status: string;
+      responseTime?: string;
+      message?: string;
+    };
+    email: {
+      status: string;
+    };
+  };
+}
+
 // Detailed health check - checks database connectivity and other dependencies
 router.get('/health/detailed', async (req: Request, res: Response) => {
   const startTime = Date.now();
-  const health = {
+  const health: HealthCheckResponse = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
