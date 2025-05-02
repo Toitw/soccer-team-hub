@@ -11,7 +11,7 @@ import { logger, httpLogger, logError } from "./logger";
 import { env } from "./env";
 import healthCheckRoutes from './health-check';
 import replitHealthCheckRouter from './replit-health-check';
-import productionRootHandler from './production-root-handler';
+import { setupReplitHealthServer } from './replit-health-server';
 import { errorHandler, notFoundHandler } from './error-handler';
 import { getSecurityHeaders } from './security-headers';
 import path from 'path';
@@ -144,24 +144,30 @@ seedDatabase().catch(error => {
   // doesn't interfere with the other routes
   if (env.NODE_ENV === "development") {
     await setupVite(app, server);
-  } else {
-    // In production, register a special root handler for Replit deployments
-    // IMPORTANT: This must be registered BEFORE the static middleware so it can
-    // intercept the root path for health checks
-    app.use('/', productionRootHandler);
     
-    // Then serve static files for all other routes
+    // Serve the app on the configured port (defaults to 5000)
+    // This serves both the API and the client
+    const port = env.PORT;
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
+    });
+  } else {
+    // In production, we use a completely different approach
+    // Serve static files for all routes EXCEPT the root
     serveStatic(app);
+    
+    // Create a special health check server for Replit deployments
+    // that intercepts the root path requests before Express
+    const healthServer = setupReplitHealthServer(app);
+    
+    // Serve the app on the configured port
+    const port = env.PORT;
+    healthServer.listen(port, "0.0.0.0", () => {
+      logger.info(`Server running in ${env.NODE_ENV} mode on port ${port} with health check interceptor`);
+    });
   }
-
-  // Serve the app on the configured port (defaults to 5000)
-  // This serves both the API and the client
-  const port = env.PORT;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
-  });
 })();
