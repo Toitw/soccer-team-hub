@@ -133,9 +133,20 @@ seedDatabase().catch(error => {
   // middleware in production catch all routes
   app.use('/health-check', replitHealthCheckRouter);
 
-  // Add explicit high-priority root path handler for Replit health checks
-  // This must be registered early enough to ensure it's not blocked by other middleware
-  app.get('/', (req, res) => {
+  // Add explicit health check handler but only intercept in production or for specific user agents
+  app.get('/', (req, res, next) => {
+    const userAgent = req.headers['user-agent'] || '';
+    const isHealthCheck = 
+      userAgent.toLowerCase().includes('health') || 
+      userAgent.includes('curl') || 
+      req.query.health === 'check' ||
+      env.NODE_ENV === 'production';
+    
+    // In development, only intercept health checks, let other requests pass through to Vite
+    if (env.NODE_ENV === 'development' && !isHealthCheck) {
+      return next();
+    }
+    
     // Set no-cache headers to ensure fresh responses
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');

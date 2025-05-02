@@ -43,11 +43,21 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
+  // Use Vite's middlewares first - this includes static file serving and HMR
   app.use(vite.middlewares);
+  
+  // This catch-all route will serve the React application
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    // Skip API routes
+    if (url.startsWith('/api')) {
+      return next();
+    }
 
     try {
+      log(`Serving client app for URL: ${url}`);
+      
       const clientTemplate = path.resolve(
         __dirname,
         "..",
@@ -62,7 +72,10 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      res.status(200).set({ 
+        "Content-Type": "text/html",
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
       next(e);
