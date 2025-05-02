@@ -1,29 +1,19 @@
 /**
  * Standalone root path health check handler for Replit deployments
  * 
- * This is a specialized server that:
- * 1. Responds to root path (/) with 200 OK for Replit deployment health checks
- * 2. Handles API requests by forwarding them to the main application server
- * 
- * IMPORTANT: Run this in production with:
- * NODE_ENV=production node root-health-handler.js
+ * This script handles root path health checks required by Replit Deployments
+ * and starts the main application as a child process.
  */
 
-import http from 'http';
-import { spawn } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Convert ESM __dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const http = require('http');
+const { spawn } = require('child_process');
+const path = require('path');
 
 // Configuration
 const PORT = process.env.PORT || 5000;
+const REAL_APP_PORT = 7777; // Internal port for the actual application
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
-const REAL_APP_PORT = 7777; // Internal port for the actual application
 
 // Logging function
 function log(message) {
@@ -34,20 +24,20 @@ function log(message) {
 // Start the actual application server on a different port
 if (IS_PRODUCTION) {
   log(`Starting main application in ${NODE_ENV} mode on port ${REAL_APP_PORT}...`);
-  
+
   // Set environment variables for the main app
   const env = {
     ...process.env,
     PORT: REAL_APP_PORT.toString(),
     INTERNAL_SERVER: 'true'
   };
-  
-  // Start the real application server as a child process
-  const appProcess = spawn('node', ['--no-warnings', '--experimental-specifier-resolution=node', 'server/index.js'], {
+
+  // Start the real application as a child process
+  const appProcess = spawn('node', ['--no-warnings', 'dist/index.js'], {
     env,
     stdio: 'inherit'
   });
-  
+
   appProcess.on('close', (code) => {
     log(`Main application process exited with code ${code}`);
     // Exit the health check server if the main app crashes
@@ -55,13 +45,13 @@ if (IS_PRODUCTION) {
       process.exit(code);
     }
   });
-  
+
   process.on('SIGTERM', () => {
     log('Received SIGTERM, shutting down gracefully');
     appProcess.kill('SIGTERM');
     setTimeout(() => process.exit(0), 1000);
   });
-  
+
   process.on('SIGINT', () => {
     log('Received SIGINT, shutting down gracefully');
     appProcess.kill('SIGINT');
@@ -69,44 +59,39 @@ if (IS_PRODUCTION) {
   });
 }
 
-// Simple health check server that only handles root path requests
+// Create a simple health check server
 const server = http.createServer((req, res) => {
-  const reqUrl = req.url || '/';
-  
-  // Handle health check requests to the root path
-  if (reqUrl === '/' || reqUrl === '') {
-    log(`Health check request from: ${req.headers['user-agent'] || 'unknown'}`);
-    
-    // Send a 200 OK response to satisfy Replit's health checks
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'X-Health-Check': 'replit-deployment'
-    });
-    
+  // Only handle requests to the root path
+  if (req.url === '/' || req.url === '/health' || req.url === '/health-check') {
+    log(`Health check request received: ${req.method} ${req.url} (User-Agent: ${req.headers['user-agent'] || 'Unknown'})`);
+
+    // Set headers to prevent caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Return a 200 response
+    res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       status: 'ok',
       message: 'TeamKick API is running',
       environment: NODE_ENV,
       timestamp: new Date().toISOString()
     }));
-    return;
-  } 
-  
-  // All other requests return 404 for simplicity
-  // In a real deployment, you would proxy these to the actual application
-  res.writeHead(404);
-  res.end(JSON.stringify({
-    status: 'error',
-    message: 'Not Found',
-    note: 'This is a health check server that only responds to the root path'
-  }));
+  } else {
+    // For all other paths, return a 404
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'error',
+      message: 'Not found',
+      path: req.url
+    }));
+  }
 });
 
 // Start the health check server
 server.listen(PORT, '0.0.0.0', () => {
-  log(`Health check server running on port ${PORT} in ${NODE_ENV} mode`);
-  log(`Replit health checks will pass for requests to the root path (/)`);
-  
+  log(`Health check server listening on port ${PORT}`);
   if (IS_PRODUCTION) {
     log(`Main application running on internal port ${REAL_APP_PORT}`);
   } else {

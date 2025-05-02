@@ -201,18 +201,13 @@ seedDatabase().catch(error => {
     });
   } else {
     // In production, we use a different approach
-    // First create a special health check server for Replit deployments
-    // that intercepts the root path requests before Express
-    const healthServer = setupReplitHealthServer(app);
-
-    // Then serve static files for all routes EXCEPT those specifically handled by API
-    // This order is important - we need our health checks to work before static serving
+    // Serve static files for all routes EXCEPT those specifically handled by API
     serveStatic(app);
 
     // Serve the app on the configured port
-    const port = env.PORT;
-    healthServer.listen(port, "0.0.0.0", () => {
-      logger.info(`Server running in ${env.NODE_ENV} mode on port ${port} with health check interceptor`);
+    const port = env.PORT || 7777; // Use port 7777 in production (for root-health-handler.js)
+    server.listen(port, "0.0.0.0", () => {
+      logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
     });
   }
 })();
