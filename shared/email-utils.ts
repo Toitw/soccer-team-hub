@@ -1,6 +1,7 @@
 /**
  * Email utilities for creating and sending verification and password reset emails
  */
+import { env } from '../server/env';
 
 /**
  * Interface for return type of email sending functions
@@ -155,9 +156,11 @@ export async function sendEmail(
     // Import SendGrid dynamically to avoid server-side only code in client bundle
     const sgMail = await import('@sendgrid/mail');
     
-    // Get SendGrid API key from environment variables
-    const apiKey = process.env.SENDGRID_API_KEY;
+    // Get SendGrid API key from validated environment variables
+    const apiKey = env.SENDGRID_API_KEY;
     
+    // Note: This check should never occur since Zod validation would fail at startup,
+    // but we keep it as a safeguard
     if (!apiKey) {
       console.error('SendGrid API key not configured. Please set SENDGRID_API_KEY environment variable.');
       return {
@@ -169,8 +172,8 @@ export async function sendEmail(
     // Set the API key
     sgMail.default.setApiKey(apiKey);
     
-    // Set the sender email
-    const fromEmail = "canchaplusapp@gmail.com";
+    // Set the sender email from environment or use default
+    const fromEmail = env.EMAIL_FROM;
     
     // Log that we're attempting to send an email
     console.log(`Sending email to ${to} with subject "${subject}"`);

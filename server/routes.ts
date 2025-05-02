@@ -7,6 +7,7 @@ import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
 import { logger, logInfo, logError, logApiRequest, logUserAction } from "./logger";
+import { env } from "./env";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -406,24 +407,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      console.log(`GET /api/teams/${teamId}/members - Request from user: ${req.user.id}`);
+      logApiRequest('GET', `/api/teams/${teamId}/members`, req.user.id);
 
       // Check if user is a member of the team
       const userTeamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!userTeamMember) {
-        console.log(`User ${req.user.id} is not authorized to access team ${teamId}`);
+        logger.warn({
+          event: 'access_denied',
+          userId: req.user.id,
+          teamId: teamId,
+          reason: 'not_team_member'
+        });
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
       const teamMembers = await storage.getTeamMembers(teamId);
-      console.log(`Found ${teamMembers.length} team members for team ${teamId}`);
+      logger.info({
+        event: 'team_members_retrieved',
+        teamId,
+        count: teamMembers.length,
+        userId: req.user.id
+      });
 
       // Get user details for each team member
       const teamMembersWithUserDetails = await Promise.all(
         teamMembers.map(async (member) => {
           const user = await storage.getUser(member.userId);
           if (!user) {
-            console.log(`No user found for team member with userId: ${member.userId}`);
+            logger.warn({
+              event: 'user_not_found',
+              userId: member.userId,
+              teamId
+            });
             return null;
           }
 
@@ -445,11 +460,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const filteredMembers = teamMembersWithUserDetails.filter(Boolean);
-      console.log(`Returning ${filteredMembers.length} team members with user details for team ${teamId}`);
+      logger.info({
+        event: 'team_members_returned',
+        teamId,
+        count: filteredMembers.length,
+        userId: req.user.id
+      });
       res.json(filteredMembers);
     } catch (error) {
-      console.error(`Error fetching team members for team ${req.params.id}:`, error);
-      console.error("Error fetching team members:", error);
+      logger.error({
+        event: 'team_members_error',
+        teamId: parseInt(req.params.id),
+        userId: req.user.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       res.status(500).json({ error: "Failed to fetch team members" });
     }
   });
@@ -479,7 +504,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Team member not found" });
       }
 
-      console.log(`Updating team member ID: ${memberId} for user ID: ${teamMember.userId}`);
+      logger.info({
+        event: 'team_member_update',
+        teamId,
+        memberId,
+        userId: teamMember.userId,
+        updatedBy: req.user.id,
+        newRole: role
+      });
 
       // Update the team member role
       const updatedTeamMember = await storage.updateTeamMember(memberId, {
@@ -489,10 +521,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the user's profile data (position, jerseyNumber, profilePicture)
       const user = await storage.getUser(teamMember.userId);
       if (user) {
-        console.log(`Updating user ${user.fullName} (ID: ${user.id}) with new data:`, {
-          position,
-          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
-          profilePicture: profilePicture ? "..." : "no change"
+        logger.info({
+          event: 'user_profile_update',
+          userId: user.id,
+          teamId,
+          updatedBy: req.user.id,
+          fields: {
+            position: position || null,
+            jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+            profilePictureUpdated: profilePicture ? true : false
+          }
         });
 
         // Handle empty profile picture values
@@ -521,16 +559,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
 
-          console.log("Sending updated team member response:", JSON.stringify(response, null, 2));
+          logger.info({
+            event: 'team_member_updated_response',
+            teamId,
+            memberId,
+            userId: updatedUser.id,
+            success: true
+          });
           res.json(response);
         } else {
+          logger.error({
+            event: 'user_update_failed',
+            teamId,
+            memberId,
+            userId: user.id
+          });
           res.status(500).json({ error: "Failed to update user" });
         }
       } else {
+        logger.warn({
+          event: 'user_not_found',
+          teamId,
+          userId: teamMember.userId
+        });
         res.status(404).json({ error: "User not found" });
       }
     } catch (error) {
-      console.error("Error updating team member:", error);
+      logger.error({
+        event: 'team_member_update_error',
+        teamId,
+        memberId: parseInt(req.params.memberId),
+        userId: req.user.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       res.status(500).json({ error: "Failed to update team member" });
     }
   });
@@ -1974,7 +2036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mock data creation for demo
   app.post("/api/mock-data", async (req, res) => {
-    if (process.env.NODE_ENV === "production") {
+    if (env.NODE_ENV === "production") {
       return res.status(403).json({ error: "Mock data creation not allowed in production" });
     }
 

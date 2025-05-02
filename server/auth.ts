@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import * as argon2 from "argon2";
 import csrf from "csurf";
+import { env } from "./env";
 
 const scryptAsync = promisify(scrypt);
 
@@ -96,7 +97,7 @@ export async function comparePasswords(supplied: string, stored: string | undefi
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "teamkick-soccer-platform-secret",
+    secret: env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -146,7 +147,7 @@ export function setupAuth(app: Express) {
     cookie: {
       key: 'csrf-token',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'lax'
     }
   });

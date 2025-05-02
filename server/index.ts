@@ -8,6 +8,7 @@ import csrf from "csurf";
 import cookieParser from "cookie-parser";
 import seedDatabase from "./seed";
 import { logger, httpLogger, logError } from "./logger";
+import { env } from "./env";
 
 const app = express();
 
@@ -38,8 +39,8 @@ app.use(helmet({
 
 // 2. CORS - restricted to the frontend domain (allow all in development)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL || 'https://teamkick.replit.app' 
+  origin: env.NODE_ENV === 'production' 
+    ? env.FRONTEND_URL || 'https://teamkick.replit.app' 
     : true,
   credentials: true,
 }));
@@ -61,7 +62,7 @@ const csrfProtection = csrf({
   cookie: {
     key: 'csrf-token',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+    secure: env.NODE_ENV === 'production', // Solo HTTPS en producción
     sameSite: 'lax' // Protección contra CSRF en navegadores modernos
   }
 });
@@ -152,20 +153,20 @@ seedDatabase().catch(error => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  if (env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
-  const port = 5000;
+  // Serve the app on the configured port (defaults to 5000)
+  // This serves both the API and the client
+  const port = env.PORT;
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    logger.info(`serving on port ${port}`);
+    logger.info(`Server running in ${env.NODE_ENV} mode on port ${port}`);
   });
 })();
