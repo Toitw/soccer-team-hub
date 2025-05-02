@@ -8,8 +8,8 @@
  * 4. Performs security checks
  */
 
-import { env } from '../server/env.ts';
-import { db } from '../server/db.ts';
+import { env } from '../server/env';
+import { db } from '../server/db';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';

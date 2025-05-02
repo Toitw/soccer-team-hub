@@ -171,9 +171,26 @@ You will see warnings about missing environment variables but the deployment wil
 ### Changes to Deployment Script Files
 
 - Renamed `scripts/deploy.js` to `scripts/deploy.ts`
+- Renamed `scripts/validate-env.js` to `scripts/validate-env.ts`
 - Updated imports to use TypeScript (.ts) files
 - Relaxed validation rules for environment variables
 - Improved error messages and warnings
+
+### New Quick Verification Script
+
+We've added a new script to quickly verify the environment configuration without running the full deployment process:
+
+```bash
+NODE_ENV=production npx tsx scripts/verify-env.ts
+```
+
+This script will:
+- Check if critical environment variables are set
+- Verify that recommended variables are present
+- Display warnings for missing variables
+- Confirm if the environment is valid for production
+
+Use this script before deployment to quickly check if your environment is properly configured.
 
 ## Troubleshooting
 
