@@ -5,7 +5,7 @@
  * and properly configured for production deployment.
  */
 
-import { env } from '../server/env.js';
+import { env } from '../server/env';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -25,46 +25,59 @@ function validateEnvironment() {
     console.warn('   For production deployment, NODE_ENV should be "production"');
   }
   
+  // Define types for variables
+  interface EnvVarInfo {
+    name: string;
+    description: string;
+    minLength?: number;
+  }
+  
+  interface EnvVarIssue extends EnvVarInfo {
+    issue: string;
+  }
+  
   // Essential environment variables for production
-  const requiredVars = [
+  const requiredVars: EnvVarInfo[] = [
     { name: 'DATABASE_URL', description: 'PostgreSQL database connection string' },
     { name: 'SESSION_SECRET', description: 'Secret for session encryption (min 32 chars)', minLength: 32 },
     { name: 'SENDGRID_API_KEY', description: 'SendGrid API key for sending emails' },
     { name: 'PORT', description: 'Port number for the server to listen on' },
   ];
   
-  let missingVars = [];
-  let insecureVars = [];
+  let missingVars: EnvVarInfo[] = [];
+  let insecureVars: EnvVarIssue[] = [];
   
   // Check each required variable
   for (const varInfo of requiredVars) {
-    if (!env[varInfo.name]) {
+    if (!env[varInfo.name as keyof typeof env]) {
       missingVars.push(varInfo);
-    } else if (varInfo.minLength && env[varInfo.name].length < varInfo.minLength) {
+    } else if (varInfo.minLength && 
+              typeof env[varInfo.name as keyof typeof env] === 'string' && 
+              (env[varInfo.name as keyof typeof env] as string).length < varInfo.minLength) {
       insecureVars.push({
         ...varInfo,
-        issue: `Too short (${env[varInfo.name].length} chars, minimum ${varInfo.minLength})`
+        issue: `Too short (${(env[varInfo.name as keyof typeof env] as string).length} chars, minimum ${varInfo.minLength})`
       });
     }
   }
   
   // Optional but recommended for production
-  const recommendedVars = [
+  const recommendedVars: EnvVarInfo[] = [
     { name: 'FRONTEND_URL', description: 'Frontend URL for CORS configuration' },
     { name: 'EMAIL_FROM', description: 'Email address used as the sender for all emails' },
   ];
   
-  let missingRecommendedVars = [];
+  let missingRecommendedVars: EnvVarInfo[] = [];
   
   // Check each recommended variable
   for (const varInfo of recommendedVars) {
-    if (!env[varInfo.name]) {
+    if (!env[varInfo.name as keyof typeof env]) {
       missingRecommendedVars.push(varInfo);
     }
   }
   
   // Database URL validation (ensure it's a proper PostgreSQL URL)
-  if (env.DATABASE_URL && !env.DATABASE_URL.startsWith('postgres')) {
+  if (env.DATABASE_URL && typeof env.DATABASE_URL === 'string' && !env.DATABASE_URL.startsWith('postgres')) {
     insecureVars.push({
       name: 'DATABASE_URL',
       description: 'PostgreSQL database connection string',
