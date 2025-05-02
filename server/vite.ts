@@ -50,10 +50,14 @@ export async function setupVite(app: Express, server: Server) {
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     
-    // Skip API routes
-    if (url.startsWith('/api')) {
+    // Skip API routes and health check routes
+    if (url.startsWith('/api') || 
+        url === '/health-check' || 
+        url === '/health') {
       return next();
     }
+    
+    log(`Serving client app for URL: ${url}`);
 
     try {
       log(`Serving client app for URL: ${url}`);

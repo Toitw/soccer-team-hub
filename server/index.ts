@@ -141,24 +141,24 @@ seedDatabase().catch(error => {
       userAgent.includes('curl') || 
       req.query.health === 'check' ||
       env.NODE_ENV === 'production';
-    
+
     // In development, only intercept health checks, let other requests pass through to Vite
     if (env.NODE_ENV === 'development' && !isHealthCheck) {
       return next();
     }
-    
+
     // Set no-cache headers to ensure fresh responses
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    
+
     res.status(200).json({
       status: 'ok',
       message: 'TeamKick API is running',
       environment: env.NODE_ENV,
       timestamp: new Date().toISOString()
     });
-    
+
     // Log the successful health check
     logger.info({
       type: 'health_check',
@@ -171,14 +171,14 @@ seedDatabase().catch(error => {
   // Use the 404 handler for API routes
   app.use(notFoundHandler);
 
-  // Use the enhanced error handler
+  // Use the error handler
   app.use(errorHandler);
 
-  // Add catch-all handler to ensure requests get a response
-  app.use('*', (req, res) => {
+  // Add catch-all handler only for API routes
+  app.use('/api/*', (req, res) => {
     res.status(404).json({
       status: 'error',
-      message: 'Not found',
+      message: 'API endpoint not found',
       path: req.originalUrl
     });
   });
@@ -204,7 +204,7 @@ seedDatabase().catch(error => {
     // First create a special health check server for Replit deployments
     // that intercepts the root path requests before Express
     const healthServer = setupReplitHealthServer(app);
-    
+
     // Then serve static files for all routes EXCEPT those specifically handled by API
     // This order is important - we need our health checks to work before static serving
     serveStatic(app);
