@@ -159,9 +159,8 @@ export async function sendEmail(
     // Get SendGrid API key from validated environment variables
     const apiKey = env.SENDGRID_API_KEY;
     
-    // Note: This check should never occur since Zod validation would fail at startup,
-    // but we keep it as a safeguard
-    if (!apiKey) {
+    // More robust check for API key existence
+    if (!apiKey || apiKey.trim() === '') {
       console.error('SendGrid API key not configured. Please set SENDGRID_API_KEY environment variable.');
       return {
         success: false,
@@ -169,14 +168,31 @@ export async function sendEmail(
       };
     }
     
-    // Set the API key
-    sgMail.default.setApiKey(apiKey);
+    // Set the API key - Wrap this in try/catch to handle potential API key format issues
+    try {
+      sgMail.default.setApiKey(apiKey);
+    } catch (apiError) {
+      console.error('Invalid SendGrid API key format:', apiError);
+      return {
+        success: false,
+        message: 'Email configuration error: Invalid SendGrid API key format'
+      };
+    }
     
-    // Set the sender email from environment or use default
-    const fromEmail = env.EMAIL_FROM;
+    // Set the sender email from environment or use default with fallback
+    const fromEmail = env.EMAIL_FROM || 'canchaplusapp@gmail.com';
+    
+    // Basic validation of email format
+    if (!fromEmail.includes('@')) {
+      console.error(`Invalid sender email format: ${fromEmail}`);
+      return {
+        success: false, 
+        message: 'Email configuration error: Invalid sender email format'
+      };
+    }
     
     // Log that we're attempting to send an email
-    console.log(`Sending email to ${to} with subject "${subject}"`);
+    console.log(`Sending email to ${to} with subject "${subject}" from ${fromEmail}`);
     
     // Define email message
     const msg = {
@@ -187,15 +203,35 @@ export async function sendEmail(
       html
     };
     
-    // Send the email
-    const response = await sgMail.default.send(msg);
-    
-    console.log(`Email sent successfully with status code: ${response[0].statusCode}`);
-    
-    return {
-      success: true,
-      message: `Email sent to ${to}`
-    };
+    // Send the email with additional error handling
+    let response;
+    try {
+      response = await sgMail.default.send(msg);
+      console.log(`Email sent successfully with status code: ${response[0].statusCode}`);
+      
+      return {
+        success: true,
+        message: `Email sent to ${to}`
+      };
+    } catch (sendError) {
+      // More detailed error handling for SendGrid errors
+      console.error('SendGrid email sending error:', sendError);
+      
+      // Extract more information if available
+      let errorDetail = 'Unknown error';
+      if (sendError.response && sendError.response.body) {
+        try {
+          errorDetail = JSON.stringify(sendError.response.body);
+        } catch (e) {
+          errorDetail = 'Error parsing response body';
+        }
+      }
+      
+      return {
+        success: false,
+        message: `Failed to send email: ${errorDetail}`
+      };
+    }
   } catch (error) {
     // Log the full error for debugging
     console.error('Error sending email with SendGrid:', error);
