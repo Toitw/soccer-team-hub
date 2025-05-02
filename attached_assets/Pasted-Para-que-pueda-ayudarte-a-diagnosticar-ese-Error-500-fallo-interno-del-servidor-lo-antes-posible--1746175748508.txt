@@ -1,0 +1,37 @@
+Para que pueda ayudarte a diagnosticar ese Error 500 (fallo interno del servidor) lo antes posible, lo ideal es revisar tanto la configuración de despliegue como los registros y el código que realmente se ejecuta en producción. Estos son los archivos y datos que normalmente resultan más útiles:
+
+Tipo de información	Archivos / datos concretos	Para qué sirve
+Punto de entrada de la aplicación	main.py, app.py, index.js, server.js, etc.	Ver cómo se inicializa el servidor y qué rutas expone.
+Gestor de dependencias	requirements.txt (Python) o package.json + package-lock.json/pnpm-lock.yaml (Node)	Comprobar versiones y conflictos de librerías.
+Archivos de configuración de Replit	.replit y/o replit.nix	Revelan el comando de arranque y el entorno (runtime, puertos, etc.).
+Config. de despliegue/servicio	Procfile, Dockerfile, fly.toml, render.yaml, etc. (si usas alguno)	Aseguran que el servicio se inicia con los parámetros correctos.
+Variables de entorno	Copia (en texto) de tus claves y valores sin exponer datos sensibles (<REDACTED> en tokens)	Los errores 500 suelen deberse a variables faltantes o mal formateadas.
+Registros (logs)	- Salida completa de la consola en Replit
+- Logs del servicio en producción (stdout/stderr)	El stack trace es, con diferencia, lo más revelador.
+Rutas estáticas / build	Carpeta build/ o public/ si la app sirve archivos estáticos	Detectar problemas de rutas o permisos.
+Base de datos / migraciones	models.py, schema.sql, archivos de migración, conexión DB en el código	Las consultas fallidas también devuelven 500.
+Archivo de ruta	routes.py, urls.py, router.ts, etc.	Ver si la ruta que da 500 tiene alguna lógica especial.
+
+Cómo enviarlos
+Crea un archivo ZIP con todos los elementos anteriores (o los que existan en tu proyecto).
+
+Elimina o enmascara credenciales sensibles en .env, secrets, tokens o claves API.
+
+Sube el ZIP aquí o arrastra cada archivo relevante individualmente.
+
+Si no puedes compartir el proyecto completo, al menos proporciona:
+
+Stack trace completo del error (lo que veas en la consola de Replit o los registros del proveedor).
+
+El archivo .replit y el punto de entrada.
+
+El gestor de dependencias (requirements.txt o package.json).
+
+Información adicional que me ayudaría
+Tecnología principal (¿Python + Flask/FastAPI?, ¿Node + Express?, ¿Django?, etc.).
+
+URL o endpoint exacto que devuelve el 500.
+
+Pasos para reproducir el fallo (si es una ruta protegida, si requiere datos POST, etc.).
+
+Con todo eso podré buscar llamadas problemáticas, dependencias incompatibles o configuraciones incorrectas y darte una guía precisa para solucionarlo. ¡Quedo pendiente de los archivos!
