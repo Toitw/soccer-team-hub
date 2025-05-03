@@ -1,40 +1,54 @@
 #!/bin/bash
 
-# Migration script for database conversion
-# Author: TeamKick Development Team
-# Date: May 3rd, 2025
-
-# Define colors for better readability
-RED='\033[0;31m'
+# Color definitions for output formatting
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}=== TeamKick Soccer Manager - Database Migration Tool ===${NC}"
-echo -e "${YELLOW}This tool will migrate your data from the file-based storage to PostgreSQL.${NC}"
-echo -e "${YELLOW}A backup of your data will be created before migration.${NC}"
+echo -e "This tool will migrate your data from the file-based storage to PostgreSQL."
+echo -e "A backup of your data will be created before migration."
 echo
 
 # Check if database is accessible before proceeding
 echo -e "${BLUE}Checking database connection...${NC}"
-if ! DATABASE_URL=$DATABASE_URL node -e "
-const { Pool } = require('@neondatabase/serverless');
+
+# Create a simple Node.js script to test the database connection
+cat > test-db-connection.mjs << 'EOF'
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
+
+// Configure Neon client with WebSocket support for Replit
+neonConfig.webSocketConstructor = ws;
+
+// Use the DATABASE_URL environment variable
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-pool.query('SELECT 1 AS health_check').then(res => {
+
+try {
+  const res = await pool.query('SELECT 1 AS health_check');
   if (res.rows[0].health_check === 1) {
+    console.log('Database connection successful!');
     process.exit(0);
   } else {
+    console.error('Database health check failed');
     process.exit(1);
   }
-}).catch(err => {
+} catch (err) {
   console.error('Database connection failed:', err);
   process.exit(1);
-});" 2>/dev/null; then
+}
+EOF
+
+# Run the test script
+if ! node test-db-connection.mjs; then
   echo -e "${RED}Error: Unable to connect to the database. Please check your DATABASE_URL environment variable.${NC}"
+  rm test-db-connection.mjs
   exit 1
 fi
 
+rm test-db-connection.mjs
 echo -e "${GREEN}Database connection successful!${NC}"
 echo
 

@@ -5,137 +5,103 @@
  * It reads JSON data from the data directory and inserts it into the appropriate database tables.
  * This version uses the execute() method to run SQL directly for migration, which allows preserving IDs.
  */
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { eq } from 'drizzle-orm';
 import * as fs from 'fs';
 import * as path from 'path';
-import { db } from '../server/db';
-import { pool } from '../server/db';
 import * as schema from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import ws from 'ws';
 
-// Constants for data directory and file paths
-const DATA_DIR = path.join(process.cwd(), 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const TEAMS_FILE = path.join(DATA_DIR, 'teams.json');
-const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team-members.json');
-const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
-const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
-const ATTENDANCE_FILE = path.join(DATA_DIR, 'attendance.json');
-const PLAYER_STATS_FILE = path.join(DATA_DIR, 'player-stats.json');
-const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
-const INVITATIONS_FILE = path.join(DATA_DIR, 'invitations.json');
-const MATCH_LINEUPS_FILE = path.join(DATA_DIR, 'match-lineups.json');
-const TEAM_LINEUPS_FILE = path.join(DATA_DIR, 'team-lineups.json');
-const MATCH_SUBSTITUTIONS_FILE = path.join(DATA_DIR, 'match-substitutions.json');
-const MATCH_GOALS_FILE = path.join(DATA_DIR, 'match-goals.json');
-const MATCH_CARDS_FILE = path.join(DATA_DIR, 'match-cards.json');
-const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match-photos.json');
-const LEAGUE_CLASSIFICATIONS_FILE = path.join(DATA_DIR, 'league-classifications.json');
+// Configure Neon client with WebSocket support for Replit
+neonConfig.webSocketConstructor = ws;
 
-// Create backup directory
-const BACKUP_DIR = path.join(process.cwd(), 'data-backup', `migration-${Date.now()}`);
-if (!fs.existsSync(BACKUP_DIR)) {
-  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+// Path to data backup directory
+const BACKUP_DIR = `data-backup/pre-migration_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+
+// Create database connection
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// Utility to read JSON files from the data directory
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema });
+
+// Function to read JSON files from the data directory
 function readJsonFile(filePath: string): any[] {
   try {
-    if (!fs.existsSync(filePath)) {
-      console.log(`File not found: ${filePath}`);
-      return [];
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf8');
+      return JSON.parse(data);
     }
-    
-    const content = fs.readFileSync(filePath, 'utf8');
-    // Create a backup
-    const fileName = path.basename(filePath);
-    fs.writeFileSync(path.join(BACKUP_DIR, fileName), content);
-    
-    return JSON.parse(content);
+    return [];
   } catch (error) {
     console.error(`Error reading file ${filePath}:`, error);
     return [];
   }
 }
 
-// Process date strings to Date objects
+// Function to process date strings into Date objects
 function processDates(obj: any): any {
+  if (!obj) return obj;
+  
+  const newObj = { ...obj };
+  
   const dateFields = [
-    'createdAt', 'created_at', 'updatedAt', 'updated_at', 'joinedAt', 'joined_at',
-    'matchDate', 'match_date', 'startTime', 'start_time', 'endTime', 'end_time',
-    'lastLoginAt', 'last_login_at', 'verificationTokenExpiry', 'verification_token_expiry',
-    'resetPasswordTokenExpiry', 'reset_password_token_expiry', 'expiryDate', 'expiry_date',
-    'uploadedAt', 'uploaded_at'
+    'createdAt', 'updatedAt', 'matchDate', 'startTime', 'endTime', 
+    'verificationTokenExpiry', 'resetPasswordTokenExpiry', 'joinedAt',
+    'lastLoginAt', 'uploadedAt'
   ];
-
-  for (const key in obj) {
-    if (typeof obj[key] === 'string' && dateFields.includes(key)) {
-      try {
-        obj[key] = new Date(obj[key]);
-      } catch (e) {
-        console.warn(`Failed to parse date ${key}: ${obj[key]}`);
-      }
-    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-      obj[key] = processDates(obj[key]);
+  
+  for (const key of Object.keys(newObj)) {
+    if (dateFields.includes(key) && typeof newObj[key] === 'string') {
+      newObj[key] = new Date(newObj[key]);
+    } else if (typeof newObj[key] === 'object' && newObj[key] !== null) {
+      newObj[key] = processDates(newObj[key]);
     }
   }
-
-  return obj;
+  
+  return newObj;
 }
 
-// Helper function to run SQL directly (this preserves IDs)
+// Function to insert data using raw SQL
 async function sqlInsert(tableName: string, data: any) {
-  if (!data || Object.keys(data).length === 0) {
-    return null;
-  }
+  const columns = Object.keys(data).join(', ');
+  const valuePlaceholders = Object.keys(data).map((_, i) => `$${i + 1}`).join(', ');
+  const values = Object.values(data);
 
-  const columns = Object.keys(data);
-  const values = Object.values(data).map(val => {
-    if (val === null) return 'NULL';
-    if (val instanceof Date) return `'${val.toISOString()}'`;
-    if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;
-    if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "''")}'`;
-    return val;
-  });
-
-  const sql = `INSERT INTO ${tableName} (${columns.join(', ')}) 
-               VALUES (${values.join(', ')})
-               ON CONFLICT (id) DO NOTHING
-               RETURNING *`;
-
+  const query = `INSERT INTO ${tableName} (${columns}) VALUES (${valuePlaceholders}) ON CONFLICT (id) DO NOTHING RETURNING id`;
+  
   try {
-    const result = await pool.query(sql);
-    return result.rows[0];
+    const result = await pool.query(query, values);
+    return result.rows[0]?.id;
   } catch (error) {
-    console.error(`Error executing SQL for ${tableName}:`, error);
-    return null;
+    console.error(`Error inserting into ${tableName}:`, error);
+    throw error;
   }
 }
 
 // Migrate users
 async function migrateUsers() {
-  const usersData = readJsonFile(USERS_FILE);
-  if (usersData.length === 0) {
-    console.log('No users data found, skipping migration');
-    return;
-  }
-
+  const usersData = readJsonFile('data/users.json');
   console.log(`Found ${usersData.length} users to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const user of usersData) {
     try {
       // Check if user already exists
       const existingUser = await db.select({ id: schema.users.id })
         .from(schema.users)
-        .where(eq(schema.users.username, user.username))
+        .where(eq(schema.users.id, user.id))
         .limit(1);
       
       if (existingUser.length > 0) {
-        console.log(`User ${user.username} already exists, skipping`);
+        console.log(`User ${user.id} already exists, skipping`);
         continue;
       }
       
-      // Process dates in user object
+      // Process dates
       const processedUser = processDates(user);
       
       // Insert user with direct SQL
@@ -150,20 +116,18 @@ async function migrateUsers() {
         jerseyNumber: processedUser.jerseyNumber,
         email: processedUser.email,
         phoneNumber: processedUser.phoneNumber,
-        bio: processedUser.bio,
         verificationToken: processedUser.verificationToken,
         verificationTokenExpiry: processedUser.verificationTokenExpiry,
-        isEmailVerified: processedUser.isEmailVerified || false,
+        verified: processedUser.verified || false,
         resetPasswordToken: processedUser.resetPasswordToken,
         resetPasswordTokenExpiry: processedUser.resetPasswordTokenExpiry,
-        lastLoginAt: processedUser.lastLoginAt,
-        createdAt: processedUser.createdAt || new Date()
+        lastLoginAt: processedUser.lastLoginAt || null
       };
       
       await sqlInsert('users', userData);
       migratedCount++;
     } catch (error) {
-      console.error(`Error migrating user ${user.username}:`, error);
+      console.error(`Error migrating user ${user.id}:`, error);
     }
   }
   
@@ -172,15 +136,11 @@ async function migrateUsers() {
 
 // Migrate teams
 async function migrateTeams() {
-  const teamsData = readJsonFile(TEAMS_FILE);
-  if (teamsData.length === 0) {
-    console.log('No teams data found, skipping migration');
-    return;
-  }
-
+  const teamsData = readJsonFile('data/teams.json');
   console.log(`Found ${teamsData.length} teams to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const team of teamsData) {
     try {
       // Check if team already exists
@@ -190,7 +150,7 @@ async function migrateTeams() {
         .limit(1);
       
       if (existingTeam.length > 0) {
-        console.log(`Team ${team.name} already exists, skipping`);
+        console.log(`Team ${team.id} already exists, skipping`);
         continue;
       }
       
@@ -201,8 +161,8 @@ async function migrateTeams() {
       const teamData = {
         id: processedTeam.id,
         name: processedTeam.name,
-        createdById: processedTeam.createdById,
         logo: processedTeam.logo,
+        createdById: processedTeam.createdById,
         division: processedTeam.division,
         seasonYear: processedTeam.seasonYear,
         joinCode: processedTeam.joinCode
@@ -211,7 +171,7 @@ async function migrateTeams() {
       await sqlInsert('teams', teamData);
       migratedCount++;
     } catch (error) {
-      console.error(`Error migrating team ${team.name}:`, error);
+      console.error(`Error migrating team ${team.id}:`, error);
     }
   }
   
@@ -220,15 +180,11 @@ async function migrateTeams() {
 
 // Migrate team members
 async function migrateTeamMembers() {
-  const teamMembersData = readJsonFile(TEAM_MEMBERS_FILE);
-  if (teamMembersData.length === 0) {
-    console.log('No team members data found, skipping migration');
-    return;
-  }
-
+  const teamMembersData = readJsonFile('data/team_members.json');
   console.log(`Found ${teamMembersData.length} team members to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const member of teamMembersData) {
     try {
       // Check if team member already exists
@@ -266,15 +222,11 @@ async function migrateTeamMembers() {
 
 // Migrate matches
 async function migrateMatches() {
-  const matchesData = readJsonFile(MATCHES_FILE);
-  if (matchesData.length === 0) {
-    console.log('No matches data found, skipping migration');
-    return;
-  }
-
+  const matchesData = readJsonFile('data/matches.json');
   console.log(`Found ${matchesData.length} matches to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const match of matchesData) {
     try {
       // Check if match already exists
@@ -291,7 +243,7 @@ async function migrateMatches() {
       // Process dates
       const processedMatch = processDates(match);
       
-      // Insert match with direct SQL (matchType is required, so default to 'friendly')
+      // Insert match with direct SQL
       const matchData = {
         id: processedMatch.id,
         teamId: processedMatch.teamId,
@@ -300,7 +252,7 @@ async function migrateMatches() {
         matchDate: processedMatch.matchDate,
         location: processedMatch.location,
         isHome: processedMatch.isHome,
-        status: processedMatch.status || 'scheduled',
+        status: processedMatch.status,
         goalsScored: processedMatch.goalsScored,
         goalsConceded: processedMatch.goalsConceded,
         matchType: processedMatch.matchType || 'friendly',
@@ -319,15 +271,11 @@ async function migrateMatches() {
 
 // Migrate events
 async function migrateEvents() {
-  const eventsData = readJsonFile(EVENTS_FILE);
-  if (eventsData.length === 0) {
-    console.log('No events data found, skipping migration');
-    return;
-  }
-
+  const eventsData = readJsonFile('data/events.json');
   console.log(`Found ${eventsData.length} events to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const event of eventsData) {
     try {
       // Check if event already exists
@@ -350,11 +298,11 @@ async function migrateEvents() {
         teamId: processedEvent.teamId,
         type: processedEvent.type,
         title: processedEvent.title,
+        description: processedEvent.description,
+        location: processedEvent.location,
         startTime: processedEvent.startTime,
         endTime: processedEvent.endTime,
-        location: processedEvent.location,
-        description: processedEvent.description,
-        isRequired: processedEvent.isRequired
+        createdById: processedEvent.createdById
       };
       
       await sqlInsert('events', eventData);
@@ -367,96 +315,88 @@ async function migrateEvents() {
   console.log(`Migrated ${migratedCount} events successfully`);
 }
 
-// Migrate attendance records
+// Migrate attendances
 async function migrateAttendances() {
-  const attendanceData = readJsonFile(ATTENDANCE_FILE);
-  if (attendanceData.length === 0) {
-    console.log('No attendance data found, skipping migration');
-    return;
-  }
-
-  console.log(`Found ${attendanceData.length} attendance records to migrate`);
+  const attendancesData = readJsonFile('data/attendances.json');
+  console.log(`Found ${attendancesData.length} attendances to migrate`);
+  
   let migratedCount = 0;
-
-  for (const record of attendanceData) {
+  
+  for (const attendance of attendancesData) {
     try {
-      // Check if attendance record already exists
-      const existingRecord = await db.select({ id: schema.attendance.id })
-        .from(schema.attendance)
-        .where(eq(schema.attendance.id, record.id))
+      // Check if attendance already exists
+      const existingAttendance = await db.select({ id: schema.attendances.id })
+        .from(schema.attendances)
+        .where(eq(schema.attendances.id, attendance.id))
         .limit(1);
       
-      if (existingRecord.length > 0) {
-        console.log(`Attendance record ${record.id} already exists, skipping`);
+      if (existingAttendance.length > 0) {
+        console.log(`Attendance ${attendance.id} already exists, skipping`);
         continue;
       }
       
       // Process dates
-      const processedRecord = processDates(record);
+      const processedAttendance = processDates(attendance);
       
-      // Insert attendance record with direct SQL
+      // Insert attendance with direct SQL
       const attendanceData = {
-        id: processedRecord.id,
-        userId: processedRecord.userId,
-        eventId: processedRecord.eventId,
-        status: processedRecord.status || 'pending'
+        id: processedAttendance.id,
+        userId: processedAttendance.userId,
+        eventId: processedAttendance.eventId,
+        status: processedAttendance.status
       };
       
-      await sqlInsert('attendance', attendanceData);
+      await sqlInsert('attendances', attendanceData);
       migratedCount++;
     } catch (error) {
-      console.error(`Error migrating attendance record ${record.id}:`, error);
+      console.error(`Error migrating attendance ${attendance.id}:`, error);
     }
   }
   
-  console.log(`Migrated ${migratedCount} attendance records successfully`);
+  console.log(`Migrated ${migratedCount} attendances successfully`);
 }
 
 // Migrate player stats
 async function migratePlayerStats() {
-  const playerStatsData = readJsonFile(PLAYER_STATS_FILE);
-  if (playerStatsData.length === 0) {
-    console.log('No player stats data found, skipping migration');
-    return;
-  }
-
+  const playerStatsData = readJsonFile('data/player_stats.json');
   console.log(`Found ${playerStatsData.length} player stats to migrate`);
+  
   let migratedCount = 0;
-
-  for (const stat of playerStatsData) {
+  
+  for (const stats of playerStatsData) {
     try {
-      // Check if player stat already exists
-      const existingStat = await db.select({ id: schema.playerStats.id })
+      // Check if player stats already exists
+      const existingStats = await db.select({ id: schema.playerStats.id })
         .from(schema.playerStats)
-        .where(eq(schema.playerStats.id, stat.id))
+        .where(eq(schema.playerStats.id, stats.id))
         .limit(1);
       
-      if (existingStat.length > 0) {
-        console.log(`Player stat ${stat.id} already exists, skipping`);
+      if (existingStats.length > 0) {
+        console.log(`Player stats ${stats.id} already exists, skipping`);
         continue;
       }
       
       // Process dates
-      const processedStat = processDates(stat);
+      const processedStats = processDates(stats);
       
-      // Insert player stat with direct SQL
-      const statData = {
-        id: processedStat.id,
-        userId: processedStat.userId,
-        matchId: processedStat.matchId,
-        minutesPlayed: processedStat.minutesPlayed,
-        goalsScored: processedStat.goalsScored,
-        assists: processedStat.assists,
-        yellowCards: processedStat.yellowCards,
-        redCards: processedStat.redCards,
-        rating: processedStat.rating,
-        notes: processedStat.notes
+      // Insert player stats with direct SQL
+      const statsData = {
+        id: processedStats.id,
+        userId: processedStats.userId,
+        teamId: processedStats.teamId,
+        gamesPlayed: processedStats.gamesPlayed,
+        goalsScored: processedStats.goalsScored,
+        assists: processedStats.assists,
+        yellowCards: processedStats.yellowCards,
+        redCards: processedStats.redCards,
+        minutesPlayed: processedStats.minutesPlayed,
+        seasonYear: processedStats.seasonYear
       };
       
-      await sqlInsert('player_stats', statData);
+      await sqlInsert('player_stats', statsData);
       migratedCount++;
     } catch (error) {
-      console.error(`Error migrating player stat ${stat.id}:`, error);
+      console.error(`Error migrating player stats ${stats.id}:`, error);
     }
   }
   
@@ -465,15 +405,11 @@ async function migratePlayerStats() {
 
 // Migrate announcements
 async function migrateAnnouncements() {
-  const announcementsData = readJsonFile(ANNOUNCEMENTS_FILE);
-  if (announcementsData.length === 0) {
-    console.log('No announcements data found, skipping migration');
-    return;
-  }
-
+  const announcementsData = readJsonFile('data/announcements.json');
   console.log(`Found ${announcementsData.length} announcements to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const announcement of announcementsData) {
     try {
       // Check if announcement already exists
@@ -512,15 +448,11 @@ async function migrateAnnouncements() {
 
 // Migrate invitations
 async function migrateInvitations() {
-  const invitationsData = readJsonFile(INVITATIONS_FILE);
-  if (invitationsData.length === 0) {
-    console.log('No invitations data found, skipping migration');
-    return;
-  }
-
+  const invitationsData = readJsonFile('data/invitations.json');
   console.log(`Found ${invitationsData.length} invitations to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const invitation of invitationsData) {
     try {
       // Check if invitation already exists
@@ -544,10 +476,9 @@ async function migrateInvitations() {
         email: processedInvitation.email,
         token: processedInvitation.token,
         role: processedInvitation.role || 'player',
-        status: processedInvitation.status || 'pending',
-        invitedById: processedInvitation.invitedById,
         createdAt: processedInvitation.createdAt || new Date(),
-        expiresAt: processedInvitation.expiresAt
+        expiresAt: processedInvitation.expiresAt,
+        status: processedInvitation.status
       };
       
       await sqlInsert('invitations', invitationData);
@@ -562,15 +493,11 @@ async function migrateInvitations() {
 
 // Migrate match lineups
 async function migrateMatchLineups() {
-  const matchLineupsData = readJsonFile(MATCH_LINEUPS_FILE);
-  if (matchLineupsData.length === 0) {
-    console.log('No match lineups data found, skipping migration');
-    return;
-  }
-
+  const matchLineupsData = readJsonFile('data/match_lineups.json');
   console.log(`Found ${matchLineupsData.length} match lineups to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const lineup of matchLineupsData) {
     try {
       // Check if match lineup already exists
@@ -587,19 +514,15 @@ async function migrateMatchLineups() {
       // Process dates
       const processedLineup = processDates(lineup);
       
-      // Handle arrays and JSON
-      const playerIds = Array.isArray(processedLineup.playerIds) ? processedLineup.playerIds : [];
-      const benchPlayerIds = Array.isArray(processedLineup.benchPlayerIds) ? processedLineup.benchPlayerIds : null;
-      
       // Insert match lineup with direct SQL
       const lineupData = {
         id: processedLineup.id,
-        teamId: processedLineup.teamId,
         matchId: processedLineup.matchId,
+        teamId: processedLineup.teamId,
+        playerIds: JSON.stringify(processedLineup.playerIds),
+        benchPlayerIds: processedLineup.benchPlayerIds ? JSON.stringify(processedLineup.benchPlayerIds) : null,
         formation: processedLineup.formation,
-        playerIds: playerIds,
-        benchPlayerIds: benchPlayerIds,
-        positionMapping: processedLineup.positionMapping || null,
+        positionMapping: processedLineup.positionMapping ? JSON.stringify(processedLineup.positionMapping) : null,
         createdAt: processedLineup.createdAt || new Date()
       };
       
@@ -615,15 +538,11 @@ async function migrateMatchLineups() {
 
 // Migrate team lineups
 async function migrateTeamLineups() {
-  const teamLineupsData = readJsonFile(TEAM_LINEUPS_FILE);
-  if (teamLineupsData.length === 0) {
-    console.log('No team lineups data found, skipping migration');
-    return;
-  }
-
+  const teamLineupsData = readJsonFile('data/team_lineups.json');
   console.log(`Found ${teamLineupsData.length} team lineups to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const lineup of teamLineupsData) {
     try {
       // Check if team lineup already exists
@@ -645,7 +564,7 @@ async function migrateTeamLineups() {
         id: processedLineup.id,
         teamId: processedLineup.teamId,
         formation: processedLineup.formation,
-        positionMapping: processedLineup.positionMapping || null,
+        positionMapping: processedLineup.positionMapping ? JSON.stringify(processedLineup.positionMapping) : null,
         createdAt: processedLineup.createdAt || new Date(),
         updatedAt: processedLineup.updatedAt || new Date()
       };
@@ -662,45 +581,41 @@ async function migrateTeamLineups() {
 
 // Migrate match substitutions
 async function migrateMatchSubstitutions() {
-  const substitutionsData = readJsonFile(MATCH_SUBSTITUTIONS_FILE);
-  if (substitutionsData.length === 0) {
-    console.log('No match substitutions data found, skipping migration');
-    return;
-  }
-
+  const substitutionsData = readJsonFile('data/match_substitutions.json');
   console.log(`Found ${substitutionsData.length} match substitutions to migrate`);
+  
   let migratedCount = 0;
-
-  for (const substitution of substitutionsData) {
+  
+  for (const sub of substitutionsData) {
     try {
       // Check if match substitution already exists
-      const existingSubstitution = await db.select({ id: schema.matchSubstitutions.id })
+      const existingSub = await db.select({ id: schema.matchSubstitutions.id })
         .from(schema.matchSubstitutions)
-        .where(eq(schema.matchSubstitutions.id, substitution.id))
+        .where(eq(schema.matchSubstitutions.id, sub.id))
         .limit(1);
       
-      if (existingSubstitution.length > 0) {
-        console.log(`Match substitution ${substitution.id} already exists, skipping`);
+      if (existingSub.length > 0) {
+        console.log(`Match substitution ${sub.id} already exists, skipping`);
         continue;
       }
       
       // Process dates
-      const processedSubstitution = processDates(substitution);
+      const processedSub = processDates(sub);
       
       // Insert match substitution with direct SQL
-      const substitutionData = {
-        id: processedSubstitution.id,
-        matchId: processedSubstitution.matchId,
-        playerOutId: processedSubstitution.playerOutId,
-        playerInId: processedSubstitution.playerInId,
-        minute: processedSubstitution.minute,
-        reason: processedSubstitution.reason
+      const subData = {
+        id: processedSub.id,
+        matchId: processedSub.matchId,
+        playerInId: processedSub.playerInId,
+        playerOutId: processedSub.playerOutId,
+        minute: processedSub.minute,
+        reason: processedSub.reason
       };
       
-      await sqlInsert('match_substitutions', substitutionData);
+      await sqlInsert('match_substitutions', subData);
       migratedCount++;
     } catch (error) {
-      console.error(`Error migrating match substitution ${substitution.id}:`, error);
+      console.error(`Error migrating match substitution ${sub.id}:`, error);
     }
   }
   
@@ -709,15 +624,11 @@ async function migrateMatchSubstitutions() {
 
 // Migrate match goals
 async function migrateMatchGoals() {
-  const goalsData = readJsonFile(MATCH_GOALS_FILE);
-  if (goalsData.length === 0) {
-    console.log('No match goals data found, skipping migration');
-    return;
-  }
-
+  const goalsData = readJsonFile('data/match_goals.json');
   console.log(`Found ${goalsData.length} match goals to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const goal of goalsData) {
     try {
       // Check if match goal already exists
@@ -741,7 +652,8 @@ async function migrateMatchGoals() {
         scorerId: processedGoal.scorerId,
         assistId: processedGoal.assistId,
         minute: processedGoal.minute,
-        type: processedGoal.type || 'regular',
+        isOwnGoal: processedGoal.isOwnGoal || false,
+        isPenalty: processedGoal.isPenalty || false,
         description: processedGoal.description
       };
       
@@ -757,15 +669,11 @@ async function migrateMatchGoals() {
 
 // Migrate match cards
 async function migrateMatchCards() {
-  const cardsData = readJsonFile(MATCH_CARDS_FILE);
-  if (cardsData.length === 0) {
-    console.log('No match cards data found, skipping migration');
-    return;
-  }
-
+  const cardsData = readJsonFile('data/match_cards.json');
   console.log(`Found ${cardsData.length} match cards to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const card of cardsData) {
     try {
       // Check if match card already exists
@@ -787,8 +695,8 @@ async function migrateMatchCards() {
         id: processedCard.id,
         matchId: processedCard.matchId,
         playerId: processedCard.playerId,
-        minute: processedCard.minute,
         type: processedCard.type,
+        minute: processedCard.minute,
         reason: processedCard.reason
       };
       
@@ -804,15 +712,11 @@ async function migrateMatchCards() {
 
 // Migrate match photos
 async function migrateMatchPhotos() {
-  const photosData = readJsonFile(MATCH_PHOTOS_FILE);
-  if (photosData.length === 0) {
-    console.log('No match photos data found, skipping migration');
-    return;
-  }
-
+  const photosData = readJsonFile('data/match_photos.json');
   console.log(`Found ${photosData.length} match photos to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const photo of photosData) {
     try {
       // Check if match photo already exists
@@ -851,15 +755,11 @@ async function migrateMatchPhotos() {
 
 // Migrate league classifications
 async function migrateLeagueClassifications() {
-  const classificationsData = readJsonFile(LEAGUE_CLASSIFICATIONS_FILE);
-  if (classificationsData.length === 0) {
-    console.log('No league classifications data found, skipping migration');
-    return;
-  }
-
+  const classificationsData = readJsonFile('data/league_classifications.json');
   console.log(`Found ${classificationsData.length} league classifications to migrate`);
+  
   let migratedCount = 0;
-
+  
   for (const classification of classificationsData) {
     try {
       // Check if league classification already exists
