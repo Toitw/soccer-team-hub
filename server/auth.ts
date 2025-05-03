@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
+import { Store as SessionStore } from "express-session";
 import { randomBytes, timingSafeEqual, scrypt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-implementation";

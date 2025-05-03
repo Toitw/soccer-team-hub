@@ -195,7 +195,7 @@ export class MemStorage implements IStorage {
   private matchPhotos: Map<number, MatchPhoto>;
   private leagueClassifications: Map<number, LeagueClassification>;
   
-  sessionStore: SessionStoreType;
+  sessionStore: SessionStore;
   
   private userCurrentId: number;
   private teamCurrentId: number;

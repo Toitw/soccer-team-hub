@@ -20,20 +20,18 @@ import { db } from "./db";
 import { eq, and, desc, lte, gte, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 import session from "express-session";
+import { Store as SessionStore } from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { hashPassword } from "@shared/auth-utils";
 
 // Use PostgreSQL for session storage
 const PgStore = connectPgSimple(session);
 
-// Define session store type for flexibility between implementations
-type SessionStoreType = any; // Using 'any' temporarily to resolve type compatibility issues
-
 /**
  * Implementation of IStorage using PostgreSQL database
  */
 export class DatabaseStorage implements IStorage {
-  sessionStore: SessionStoreType;
+  sessionStore: SessionStore;
 
   constructor() {
     // Initialize session store with PostgreSQL
