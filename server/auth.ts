@@ -61,7 +61,7 @@ export async function comparePasswords(supplied: string, stored: string | undefi
       
       if (!firstPart || !secondPart) return false;
       
-      // scryptAsync ya está definido a nivel de módulo
+      // scryptAsync is already defined at the module level
       
       if (stored.includes('.')) {
         // Old format with dot separator (hash.salt)
