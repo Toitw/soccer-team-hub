@@ -250,6 +250,11 @@ export class DatabaseStorage implements IStorage {
     
     return updatedMatch;
   }
+  
+  async deleteMatch(id: number): Promise<boolean> {
+    await db.delete(matches).where(eq(matches.id, id));
+    return true;
+  }
 
   // Event methods
   async getEvent(id: number): Promise<Event | undefined> {
