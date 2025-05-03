@@ -13,7 +13,9 @@ export async function isDatabaseHealthy(): Promise<boolean> {
   try {
     // Simple query to test connection
     const result = await db.execute(sql`SELECT 1 as health_check`);
-    return result.length > 0 && result[0].health_check === 1;
+    // Type assertion to handle the result more safely
+    const rows = result as unknown as Array<{health_check: number}>;
+    return rows.length > 0 && rows[0].health_check === 1;
   } catch (error) {
     console.error('Database health check failed:', error);
     return false;
@@ -46,9 +48,12 @@ export async function getDatabaseStats(): Promise<any> {
       WHERE pg_database.datname = current_database()
     `);
     
+    // Type assertion to safely handle database stats
+    const dbStatsArray = dbStats as unknown as Array<Record<string, any>>;
+    
     return {
       connectionPool: poolStats,
-      database: dbStats[0] || null
+      database: dbStatsArray.length > 0 ? dbStatsArray[0] : null
     };
   } catch (error) {
     console.error('Error getting database stats:', error);
@@ -87,7 +92,9 @@ export async function validateDatabaseSchema(): Promise<any> {
       WHERE table_schema = 'public'
     `);
     
-    const tableNames = tables.map((t: any) => t.table_name);
+    // Type assertion to handle the tables result
+    const tablesArray = tables as unknown as Array<{table_name: string}>;
+    const tableNames = tablesArray.map(t => t.table_name);
     
     const requiredTables = [
       'users', 'teams', 'team_members', 'matches', 'events', 

@@ -48,6 +48,18 @@ exec('node initialize-admin.js', (error, stdout, stderr) => {
 });
 
 (async () => {
+  // Check database health on startup
+  try {
+    const dbHealthy = await isDatabaseHealthy();
+    if (dbHealthy) {
+      console.log('Database connection verified - database is healthy');
+    } else {
+      console.warn('Database health check failed, proceeding with caution');
+    }
+  } catch (error) {
+    console.error('Error checking database health:', error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
