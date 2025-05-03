@@ -1,6 +1,6 @@
 import express, { type Express, Router } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage-implementation";
+import { storage, hashPasswordInStorage } from "./storage-implementation";
 import { hashPassword } from "@shared/auth-utils";
 import { setupAuth } from "./auth";
 import { z } from "zod";
