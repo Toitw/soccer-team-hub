@@ -467,11 +467,11 @@ async function migrateAnnouncements() {
       // Insert announcement with direct SQL
       const announcementData = {
         id: processedAnnouncement.id,
-        teamId: processedAnnouncement.teamId,
-        createdById: processedAnnouncement.createdById,
+        team_id: processedAnnouncement.teamId,
+        created_by_id: processedAnnouncement.createdById,
         title: processedAnnouncement.title,
         content: processedAnnouncement.content,
-        createdAt: processedAnnouncement.createdAt || new Date()
+        created_at: processedAnnouncement.createdAt || new Date()
       };
       
       await directInsert('announcements', announcementData);
@@ -510,13 +510,15 @@ async function migrateInvitations() {
       // Insert invitation with direct SQL
       const invitationData = {
         id: processedInvitation.id,
-        teamId: processedInvitation.teamId,
+        team_id: processedInvitation.teamId,
         email: processedInvitation.email,
         token: processedInvitation.token,
         role: processedInvitation.role || 'player',
-        createdAt: processedInvitation.createdAt || new Date(),
-        expiresAt: processedInvitation.expiresAt,
-        status: processedInvitation.status
+        created_at: processedInvitation.createdAt || new Date(),
+        expires_at: processedInvitation.expiresAt,
+        created_by_id: processedInvitation.createdById || 1,
+        is_accepted: processedInvitation.isAccepted || false,
+        accepted_at: processedInvitation.acceptedAt || null
       };
       
       await directInsert('invitations', invitationData);
@@ -564,13 +566,13 @@ async function migrateMatchLineups() {
       // Insert match lineup with direct SQL
       const lineupData = {
         id: processedLineup.id,
-        matchId: processedLineup.matchId,
-        teamId: processedLineup.teamId,
-        playerIds: playerIdsString,
-        benchPlayerIds: benchPlayerIdsString,
+        match_id: processedLineup.matchId,
+        team_id: processedLineup.teamId,
+        player_ids: playerIdsString,
+        bench_player_ids: benchPlayerIdsString,
         formation: processedLineup.formation,
-        positionMapping: positionMappingString,
-        createdAt: processedLineup.createdAt || new Date()
+        position_mapping: positionMappingString,
+        created_at: processedLineup.createdAt || new Date()
       };
       
       await directInsert('match_lineups', lineupData);
@@ -614,11 +616,11 @@ async function migrateTeamLineups() {
       // Insert team lineup with direct SQL
       const lineupData = {
         id: processedLineup.id,
-        teamId: processedLineup.teamId,
+        team_id: processedLineup.teamId,
         formation: processedLineup.formation,
-        positionMapping: positionMappingString,
-        createdAt: processedLineup.createdAt || new Date(),
-        updatedAt: processedLineup.updatedAt || new Date()
+        position_mapping: positionMappingString,
+        created_at: processedLineup.createdAt || new Date(),
+        updated_at: processedLineup.updatedAt || new Date()
       };
       
       await directInsert('team_lineups', lineupData);
@@ -657,11 +659,11 @@ async function migrateMatchSubstitutions() {
       // Insert match substitution with direct SQL
       const subData = {
         id: processedSub.id,
-        matchId: processedSub.matchId,
-        playerInId: processedSub.playerInId,
-        playerOutId: processedSub.playerOutId,
+        match_id: processedSub.matchId,
+        player_in_id: processedSub.playerInId,
+        player_out_id: processedSub.playerOutId,
         minute: processedSub.minute,
-        reason: processedSub.reason
+        created_at: processedSub.createdAt || new Date()
       };
       
       await directInsert('match_substitutions', subData);
