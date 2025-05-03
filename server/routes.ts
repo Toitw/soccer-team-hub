@@ -7,6 +7,7 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
+import { checkDatabaseHealth } from "./db-health";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -60,6 +61,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Attach admin router to main app
   app.use('/api', adminRouter);
+
+  // Database monitoring endpoints
+  app.get("/api/health", async (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Detailed database health endpoint (for authenticated superusers only)
+  app.get("/api/admin/database/health", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      // Check if user is a superuser
+      if (req.user.role !== 'superuser') {
+        return res.status(403).json({ error: "Not authorized to access database health information" });
+      }
+      
+      // Run the comprehensive database health check
+      const healthData = await checkDatabaseHealth();
+      
+      res.json(healthData);
+    } catch (error) {
+      console.error("Error checking database health:", error);
+      res.status(500).json({ 
+        error: "Failed to check database health",
+        details: String(error)
+      });
+    }
+  });
 
   const httpServer = createServer(app);
 
