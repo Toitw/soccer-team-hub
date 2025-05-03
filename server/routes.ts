@@ -1,6 +1,7 @@
 import express, { type Express, Router } from "express";
 import { createServer, type Server } from "http";
-import { storage, hashPasswordInStorage } from "./storage";
+import { storage } from "./storage-implementation";
+import { hashPassword } from "@shared/auth-utils";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { randomBytes } from "crypto";
@@ -551,7 +552,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const mockUserId = Math.floor(Math.random() * 10000) + 1000;
 
         // Create a password hash for the mock user
-        const password = await hashPasswordInStorage("password123");
+        const password = await hashPassword("password123");
 
         // Handle profile picture (use default avatar if none provided or empty string)
         const profilePicture = user.profilePicture && user.profilePicture.trim() !== '' 

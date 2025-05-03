@@ -172,7 +172,7 @@ export interface IStorage {
   deleteClassification(id: number): Promise<boolean>;
   
   // Session store for authentication
-  sessionStore: SessionStoreType;
+  sessionStore: any; // Using 'any' for flexibility between memory and database storage
 }
 
 export class MemStorage implements IStorage {
