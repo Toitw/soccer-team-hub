@@ -1,26 +1,25 @@
 /**
- * Storage implementation for TeamKick app
- * This file selects the appropriate storage implementation based on environment settings
+ * Storage implementation selector module
+ * This module selects between memory/file-based storage and PostgreSQL database storage
+ * depending on the environment and configuration.
  */
 
 import { IStorage } from "./storage";
 import { MemStorage } from "./storage";
 import { DatabaseStorage } from "./database-storage";
 
-let storageImplementation: IStorage;
+// Check if database URL is available to determine if we should use database storage
+const isDbConfigured = !!process.env.DATABASE_URL;
 
-// Check if we're using database storage or file-based storage
-// For production, always use database storage
-if (process.env.NODE_ENV === 'production' || process.env.USE_DATABASE === 'true') {
+// Initialize the appropriate storage implementation
+let storage: IStorage;
+
+if (isDbConfigured) {
   console.log("Using PostgreSQL database storage");
-  storageImplementation = new DatabaseStorage();
+  storage = new DatabaseStorage();
 } else {
   console.log("Using memory/file-based storage");
-  storageImplementation = new MemStorage();
+  storage = new MemStorage();
 }
 
-// Export the storage instance
-export const storage = storageImplementation;
-
-// Re-export hashPassword for convenience
-export { hashPassword } from "@shared/auth-utils";
+export { storage };
