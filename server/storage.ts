@@ -18,6 +18,7 @@ import {
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
+import { Store as SessionStore } from "express-session";
 import { scrypt, randomBytes } from "crypto";
 import { promisify } from "util";
 import fs from "fs";
@@ -41,8 +42,8 @@ const MATCH_PHOTOS_FILE = path.join(DATA_DIR, 'match_photos.json');
 const LEAGUE_CLASSIFICATION_FILE = path.join(DATA_DIR, 'league_classification.json');
 const EVENTS_FILE = path.join(DATA_DIR, 'events.json');
 
-// Define SessionStore type explicitly
-type SessionStoreType = ReturnType<typeof createMemoryStore>;
+// Use the SessionStore type from express-session for proper compatibility
+type SessionStoreType = SessionStore;
 
 // Separate password hashing logic since auth.ts imports this file
 const scryptAsync = promisify(scrypt);
@@ -173,7 +174,7 @@ export interface IStorage {
   deleteClassification(id: number): Promise<boolean>;
   
   // Session store for authentication
-  sessionStore: any; // Using 'any' for flexibility between memory and database storage
+  sessionStore: SessionStore;
 }
 
 export class MemStorage implements IStorage {
@@ -254,9 +255,13 @@ export class MemStorage implements IStorage {
     this.matchPhotoCurrentId = 1;
     this.leagueClassificationCurrentId = 1;
     
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
+    // Create a memory-based session store with 24-hour check period
+    const store = new MemoryStore({
+      checkPeriod: 86400000, // 24 hours in milliseconds
     });
+    
+    // Assign to sessionStore property (typing handled by interface)
+    this.sessionStore = store;
     
     // Load persisted data from files
     const hasPersistedData = this.loadPersistedData();
