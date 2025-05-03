@@ -893,7 +893,7 @@ async function migrateLeagueClassifications() {
         updatedAt: processedClassification.updatedAt || new Date()
       };
       
-      await sqlInsert('league_classifications', classificationData);
+      await sqlInsert('league_classification', classificationData);
       migratedCount++;
     } catch (error) {
       console.error(`Error migrating league classification ${classification.id}:`, error);
