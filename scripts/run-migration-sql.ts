@@ -702,13 +702,13 @@ async function migrateMatchGoals() {
       // Insert match goal with direct SQL
       const goalData = {
         id: processedGoal.id,
-        matchId: processedGoal.matchId,
-        scorerId: processedGoal.scorerId,
-        assistId: processedGoal.assistId,
+        match_id: processedGoal.matchId,
+        scorer_id: processedGoal.scorerId,
+        assist_id: processedGoal.assistId,
         minute: processedGoal.minute,
-        isOwnGoal: processedGoal.isOwnGoal || false,
-        isPenalty: processedGoal.isPenalty || false,
-        description: processedGoal.description
+        is_own_goal: processedGoal.isOwnGoal || false,
+        is_penalty: processedGoal.isPenalty || false,
+        created_at: processedGoal.createdAt || new Date()
       };
       
       await directInsert('match_goals', goalData);
@@ -745,13 +745,18 @@ async function migrateMatchCards() {
       const processedCard = processDates(card);
       
       // Insert match card with direct SQL
+      // Convert the card type to boolean flags
+      const isYellow = processedCard.type === 'yellow';
+      const isSecondYellow = processedCard.type === 'second_yellow';
+      
       const cardData = {
         id: processedCard.id,
-        matchId: processedCard.matchId,
-        playerId: processedCard.playerId,
-        type: processedCard.type,
+        match_id: processedCard.matchId,
+        player_id: processedCard.playerId,
         minute: processedCard.minute,
-        reason: processedCard.reason
+        is_yellow: isYellow,
+        is_second_yellow: isSecondYellow,
+        created_at: processedCard.createdAt || new Date()
       };
       
       await directInsert('match_cards', cardData);
@@ -790,11 +795,11 @@ async function migrateMatchPhotos() {
       // Insert match photo with direct SQL
       const photoData = {
         id: processedPhoto.id,
-        matchId: processedPhoto.matchId,
+        match_id: processedPhoto.matchId,
         url: processedPhoto.url,
         caption: processedPhoto.caption,
-        uploadedById: processedPhoto.uploadedById,
-        uploadedAt: processedPhoto.uploadedAt || new Date()
+        uploader_id: processedPhoto.uploadedById,
+        created_at: processedPhoto.uploadedAt || new Date()
       };
       
       await directInsert('match_photos', photoData);
@@ -833,18 +838,18 @@ async function migrateLeagueClassifications() {
       // Insert league classification with direct SQL
       const classificationData = {
         id: processedClassification.id,
-        teamId: processedClassification.teamId,
-        externalTeamName: processedClassification.externalTeamName,
+        team_id: processedClassification.teamId,
+        external_team_name: processedClassification.externalTeamName,
         position: processedClassification.position,
         points: processedClassification.points || 0,
-        gamesPlayed: processedClassification.gamesPlayed,
-        gamesWon: processedClassification.gamesWon,
-        gamesDrawn: processedClassification.gamesDrawn,
-        gamesLost: processedClassification.gamesLost,
-        goalsFor: processedClassification.goalsFor,
-        goalsAgainst: processedClassification.goalsAgainst,
-        createdAt: processedClassification.createdAt || new Date(),
-        updatedAt: processedClassification.updatedAt || new Date()
+        games_played: processedClassification.gamesPlayed,
+        games_won: processedClassification.gamesWon,
+        games_drawn: processedClassification.gamesDrawn,
+        games_lost: processedClassification.gamesLost,
+        goals_for: processedClassification.goalsFor,
+        goals_against: processedClassification.goalsAgainst,
+        created_at: processedClassification.createdAt || new Date(),
+        updated_at: processedClassification.updatedAt || new Date()
       };
       
       await directInsert('league_classification', classificationData);
