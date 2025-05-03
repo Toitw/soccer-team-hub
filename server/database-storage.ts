@@ -27,9 +27,7 @@ import { hashPassword } from "@shared/auth-utils";
 const PgStore = connectPgSimple(session);
 
 // Define session store type for flexibility between implementations
-type SessionStoreType = {
-  close: () => void;
-};
+type SessionStoreType = any; // Using 'any' temporarily to resolve type compatibility issues
 
 /**
  * Implementation of IStorage using PostgreSQL database
@@ -39,12 +37,15 @@ export class DatabaseStorage implements IStorage {
 
   constructor() {
     // Initialize session store with PostgreSQL
-    // Use a double cast (unknown then SessionStoreType) to avoid type compatibility issues
-    this.sessionStore = new PgStore({
+    // Create the PostgreSQL session store
+    const pgStore = new PgStore({
       conString: process.env.DATABASE_URL,
       tableName: 'sessions',
       createTableIfMissing: true,
-    }) as unknown as SessionStoreType;
+    });
+    
+    // Assign to sessionStore with appropriate type handling
+    this.sessionStore = pgStore;
   }
 
   // User methods
