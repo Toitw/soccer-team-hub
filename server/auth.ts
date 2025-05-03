@@ -7,8 +7,6 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import * as argon2 from "argon2";
-import csrf from "csurf";
-import { env } from "./env";
 
 const scryptAsync = promisify(scrypt);
 
@@ -97,7 +95,7 @@ export async function comparePasswords(supplied: string, stored: string | undefi
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "teamkick-soccer-platform-secret",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
@@ -142,18 +140,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Importar csrfProtection desde index.ts
-  const csrfProtection = csrf({ 
-    cookie: {
-      key: 'csrf-token',
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    }
-  });
-
-  // Registro con protección CSRF
-  app.post("/api/register", csrfProtection, async (req, res, next) => {
+  app.post("/api/register", async (req, res, next) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -196,7 +183,6 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // El inicio de sesión no necesita CSRF ya que es el punto de entrada
   app.post("/api/login", passport.authenticate("local"), async (req, res) => {
     try {
       if (!req.user) {
@@ -226,8 +212,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Cierre de sesión con protección CSRF
-  app.post("/api/logout", csrfProtection, (req, res, next) => {
+  app.post("/api/logout", (req, res, next) => {
     // First log out the user from passport
     req.logout((err) => {
       if (err) return next(err);
@@ -240,7 +225,6 @@ export function setupAuth(app: Express) {
         
         // Clear the session cookie
         res.clearCookie('connect.sid');
-        res.clearCookie('csrf-token'); // También limpiar la cookie de CSRF
         res.sendStatus(200);
       });
     });

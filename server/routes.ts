@@ -6,8 +6,6 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
-import { logger, logInfo, logError, logApiRequest, logUserAction } from "./logger";
-import { env } from "./env";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -94,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         joinCode,
       });
 
-      logUserAction(req.user.id, 'team_created', { teamId: team.id, teamName: team.name });
+      console.log(`Created new team: ${team.name} (ID: ${team.id})`);
 
       // Always add the current user as admin of the new team
       await storage.createTeamMember({
@@ -110,17 +108,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           info: "You can add members manually from the team page."
         }
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating team:", error);
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Conflict: Record already exists" 
-        });
-      }
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create team" 
-      });
+      res.status(500).json({ error: "Failed to create team" });
     }
   });
 
@@ -157,17 +147,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(team);
-    } catch (error: any) {
-      console.error("Error creating team:", error);
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Conflict: Record already exists" 
-        });
-      }
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create team" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create team" });
     }
   });
   
@@ -407,38 +388,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      logApiRequest('GET', `/api/teams/${teamId}/members`, req.user.id);
+      console.log(`GET /api/teams/${teamId}/members - Request from user: ${req.user.id}`);
 
       // Check if user is a member of the team
       const userTeamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!userTeamMember) {
-        logger.warn({
-          event: 'access_denied',
-          userId: req.user.id,
-          teamId: teamId,
-          reason: 'not_team_member'
-        });
+        console.log(`User ${req.user.id} is not authorized to access team ${teamId}`);
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
       const teamMembers = await storage.getTeamMembers(teamId);
-      logger.info({
-        event: 'team_members_retrieved',
-        teamId,
-        count: teamMembers.length,
-        userId: req.user.id
-      });
+      console.log(`Found ${teamMembers.length} team members for team ${teamId}`);
 
       // Get user details for each team member
       const teamMembersWithUserDetails = await Promise.all(
         teamMembers.map(async (member) => {
           const user = await storage.getUser(member.userId);
           if (!user) {
-            logger.warn({
-              event: 'user_not_found',
-              userId: member.userId,
-              teamId
-            });
+            console.log(`No user found for team member with userId: ${member.userId}`);
             return null;
           }
 
@@ -460,21 +427,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const filteredMembers = teamMembersWithUserDetails.filter(Boolean);
-      logger.info({
-        event: 'team_members_returned',
-        teamId,
-        count: filteredMembers.length,
-        userId: req.user.id
-      });
+      console.log(`Returning ${filteredMembers.length} team members with user details for team ${teamId}`);
       res.json(filteredMembers);
     } catch (error) {
-      logger.error({
-        event: 'team_members_error',
-        teamId: parseInt(req.params.id),
-        userId: req.user.id,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      console.error(`Error fetching team members for team ${req.params.id}:`, error);
+      console.error("Error fetching team members:", error);
       res.status(500).json({ error: "Failed to fetch team members" });
     }
   });
@@ -504,14 +461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Team member not found" });
       }
 
-      logger.info({
-        event: 'team_member_update',
-        teamId,
-        memberId,
-        userId: teamMember.userId,
-        updatedBy: req.user.id,
-        newRole: role
-      });
+      console.log(`Updating team member ID: ${memberId} for user ID: ${teamMember.userId}`);
 
       // Update the team member role
       const updatedTeamMember = await storage.updateTeamMember(memberId, {
@@ -521,16 +471,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the user's profile data (position, jerseyNumber, profilePicture)
       const user = await storage.getUser(teamMember.userId);
       if (user) {
-        logger.info({
-          event: 'user_profile_update',
-          userId: user.id,
-          teamId,
-          updatedBy: req.user.id,
-          fields: {
-            position: position || null,
-            jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
-            profilePictureUpdated: profilePicture ? true : false
-          }
+        console.log(`Updating user ${user.fullName} (ID: ${user.id}) with new data:`, {
+          position,
+          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+          profilePicture: profilePicture ? "..." : "no change"
         });
 
         // Handle empty profile picture values
@@ -559,40 +503,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
 
-          logger.info({
-            event: 'team_member_updated_response',
-            teamId,
-            memberId,
-            userId: updatedUser.id,
-            success: true
-          });
+          console.log("Sending updated team member response:", JSON.stringify(response, null, 2));
           res.json(response);
         } else {
-          logger.error({
-            event: 'user_update_failed',
-            teamId,
-            memberId,
-            userId: user.id
-          });
           res.status(500).json({ error: "Failed to update user" });
         }
       } else {
-        logger.warn({
-          event: 'user_not_found',
-          teamId,
-          userId: teamMember.userId
-        });
         res.status(404).json({ error: "User not found" });
       }
     } catch (error) {
-      logger.error({
-        event: 'team_member_update_error',
-        teamId,
-        memberId: parseInt(req.params.memberId),
-        userId: req.user.id,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      console.error("Error updating team member:", error);
       res.status(500).json({ error: "Failed to update team member" });
     }
   });
@@ -705,29 +625,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(newTeamMember);
-    } catch (error: any) {
-      console.error("Error adding team member:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        if (error.name === "ConflictError") {
-          return res.status(409).json({ 
-            error: error.message || "User is already a member of this team" 
-          });
-        } else if (error.name === "ForeignKeyError") {
-          return res.status(409).json({ 
-            error: error.message || "Referenced user or team does not exist" 
-          });
-        } else {
-          return res.status(409).json({ 
-            error: error.message || "Integrity constraint violation" 
-          });
-        }
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to add team member" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add team member" });
     }
   });
 
@@ -828,19 +727,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(match);
-    } catch (error: any) {
-      console.error("Error creating match:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating match" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create match" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match" });
     }
   });
 
@@ -962,19 +850,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(event);
-    } catch (error: any) {
-      console.error("Error creating event:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating event" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create event" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create event" });
     }
   });
 
@@ -1217,19 +1094,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.status(201).json(announcementWithCreator);
-    } catch (error: any) {
-      console.error("Error creating announcement:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating announcement" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create announcement" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create announcement" });
     }
   });
 
@@ -1458,19 +1324,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(lineup);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating/updating lineup:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating/updating lineup" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create match lineup" 
-      });
+      res.status(500).json({ error: "Failed to create match lineup" });
     }
   });
 
@@ -1747,19 +1603,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(goal);
-    } catch (error: any) {
-      console.error("Error creating match goal:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating match goal" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create match goal" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match goal" });
     }
   });
 
@@ -1868,19 +1713,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       res.status(201).json(card);
-    } catch (error: any) {
-      console.error("Error creating match card:", error);
-      
-      // Check for specific error types (including integrity constraint errors)
-      if (error.status === 409) {
-        return res.status(409).json({ 
-          error: error.message || "Integrity constraint violation when creating match card" 
-        });
-      }
-      
-      res.status(error.status || 500).json({ 
-        error: error.message || "Failed to create match card" 
-      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create match card" });
     }
   });
 
@@ -2036,7 +1870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mock data creation for demo
   app.post("/api/mock-data", async (req, res) => {
-    if (env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "production") {
       return res.status(403).json({ error: "Mock data creation not allowed in production" });
     }
 

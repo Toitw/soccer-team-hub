@@ -26,19 +26,5 @@
     "teamId": 1,
     "id": 8,
     "opponentLogo": null
-  },
-  {
-    "opponentName": "Futuro",
-    "matchDate": "2025-04-27T13:52:00.000Z",
-    "location": "Candas",
-    "isHome": true,
-    "notes": "Check",
-    "status": "scheduled",
-    "matchType": "league",
-    "goalsScored": null,
-    "goalsConceded": null,
-    "teamId": 1,
-    "id": 10,
-    "opponentLogo": null
   }
 ]
