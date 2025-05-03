@@ -1,0 +1,30 @@
+[
+  {
+    "opponentName": "Pomares",
+    "matchDate": "2025-04-10T16:44:00.000Z",
+    "location": "Candas",
+    "isHome": true,
+    "notes": "Prueba",
+    "status": "completed",
+    "matchType": "league",
+    "goalsScored": 4,
+    "goalsConceded": 0,
+    "teamId": 1,
+    "id": 7,
+    "opponentLogo": null
+  },
+  {
+    "opponentName": "Probando contador",
+    "matchDate": "2025-04-09T05:51:00.000Z",
+    "location": "Mata",
+    "isHome": true,
+    "notes": "",
+    "status": "completed",
+    "matchType": "friendly",
+    "goalsScored": 5,
+    "goalsConceded": 0,
+    "teamId": 1,
+    "id": 8,
+    "opponentLogo": null
+  }
+]

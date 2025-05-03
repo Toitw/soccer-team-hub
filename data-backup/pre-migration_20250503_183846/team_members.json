@@ -1,0 +1,107 @@
+[
+  {
+    "teamId": 1,
+    "userId": 33,
+    "role": "admin",
+    "id": 1,
+    "joinedAt": "2025-03-14T14:56:41.252Z"
+  },
+  {
+    "teamId": 2,
+    "userId": 32,
+    "role": "admin",
+    "id": 3,
+    "joinedAt": "2025-03-14T14:57:57.700Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 68,
+    "role": "player",
+    "id": 5,
+    "joinedAt": "2025-04-12T09:37:15.751Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 69,
+    "role": "player",
+    "id": 6,
+    "joinedAt": "2025-04-12T10:23:03.634Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 72,
+    "role": "player",
+    "id": 7,
+    "joinedAt": "2025-04-17T11:46:04.849Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 73,
+    "role": "player",
+    "id": 8,
+    "joinedAt": "2025-04-17T11:53:53.416Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 74,
+    "role": "player",
+    "id": 9,
+    "joinedAt": "2025-04-17T11:54:17.302Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 75,
+    "role": "player",
+    "id": 10,
+    "joinedAt": "2025-04-17T11:54:37.169Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 76,
+    "role": "player",
+    "id": 11,
+    "joinedAt": "2025-04-17T11:54:55.269Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 77,
+    "role": "player",
+    "id": 12,
+    "joinedAt": "2025-04-17T11:56:00.279Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 78,
+    "role": "player",
+    "id": 13,
+    "joinedAt": "2025-04-17T11:56:20.804Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 79,
+    "role": "player",
+    "id": 14,
+    "joinedAt": "2025-04-17T11:56:45.430Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 80,
+    "role": "player",
+    "id": 15,
+    "joinedAt": "2025-04-17T11:57:03.109Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 81,
+    "role": "player",
+    "id": 16,
+    "joinedAt": "2025-04-17T11:57:21.252Z"
+  },
+  {
+    "teamId": 1,
+    "userId": 82,
+    "role": "player",
+    "id": 17,
+    "joinedAt": "2025-04-17T11:57:32.913Z"
+  }
+]

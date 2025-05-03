@@ -1,0 +1,24 @@
+[
+  {
+    "title": "Prueba2",
+    "startTime": "2025-04-24T10:00",
+    "endTime": "2025-04-24T11:30",
+    "location": "prendesz",
+    "description": null,
+    "type": "training",
+    "teamId": 1,
+    "createdById": 33,
+    "id": 3
+  },
+  {
+    "title": "Prueba3",
+    "startTime": "2025-04-25T10:00",
+    "endTime": "2025-04-25T11:30",
+    "location": "Candas",
+    "description": null,
+    "type": "training",
+    "teamId": 1,
+    "createdById": 33,
+    "id": 4
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "matchId": 2,
+    "playerId": 61,
+    "type": "yellow",
+    "minute": 40,
+    "reason": null,
+    "id": 1
+  },
+  {
+    "matchId": 7,
+    "playerId": 69,
+    "type": "yellow",
+    "minute": 5,
+    "reason": null,
+    "id": 2
+  },
+  {
+    "matchId": 7,
+    "playerId": 73,
+    "type": "red",
+    "minute": 4,
+    "reason": null,
+    "id": 3
+  }
+]

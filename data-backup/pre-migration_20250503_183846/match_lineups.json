@@ -1,0 +1,77 @@
+[
+  {
+    "matchId": 2,
+    "teamId": 1,
+    "playerIds": [
+      63,
+      49,
+      60,
+      56,
+      57,
+      58,
+      59,
+      61,
+      62,
+      54,
+      53
+    ],
+    "benchPlayerIds": [
+      50,
+      55
+    ],
+    "formation": "4-4-2",
+    "positionMapping": {
+      "fwd-2": 63,
+      "gk": 49,
+      "fwd-1": 60,
+      "mid-4": 56,
+      "mid-3": 57,
+      "mid-2": 58,
+      "mid-1": 59,
+      "def-1": 61,
+      "def-4": 62,
+      "def-3": 54,
+      "def-2": 53
+    },
+    "id": 1,
+    "createdAt": "2025-03-23T22:07:58.854Z"
+  },
+  {
+    "matchId": 7,
+    "teamId": 1,
+    "playerIds": [
+      69,
+      83,
+      80,
+      74,
+      73,
+      76,
+      72,
+      75,
+      77,
+      78,
+      68
+    ],
+    "benchPlayerIds": [
+      79,
+      81,
+      82
+    ],
+    "formation": "4-4-2",
+    "positionMapping": {
+      "fwd-2": 69,
+      "fwd-1": 83,
+      "mid-1": 80,
+      "mid-3": 74,
+      "mid-2": 73,
+      "mid-4": 76,
+      "def-1": 72,
+      "def-2": 75,
+      "def-3": 77,
+      "def-4": 78,
+      "gk": 68
+    },
+    "id": 2,
+    "createdAt": "2025-04-17T12:03:57.014Z"
+  }
+]
