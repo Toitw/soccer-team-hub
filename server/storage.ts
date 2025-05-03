@@ -85,6 +85,7 @@ export interface IStorage {
   getRecentMatches(teamId: number, limit: number): Promise<Match[]>;
   createMatch(match: InsertMatch): Promise<Match>;
   updateMatch(id: number, matchData: Partial<Match>): Promise<Match | undefined>;
+  deleteMatch(id: number): Promise<boolean>;
   
   // Event methods
   getEvent(id: number): Promise<Event | undefined>;
