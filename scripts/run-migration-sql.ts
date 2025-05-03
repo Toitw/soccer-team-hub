@@ -235,10 +235,11 @@ async function migrateTeamMembers() {
       // Insert team member with direct SQL
       const memberData = {
         id: processedMember.id,
-        teamId: processedMember.teamId,
-        userId: processedMember.userId,
+        team_id: processedMember.teamId,
+        user_id: processedMember.userId,
         role: processedMember.role || 'player',
-        joinedAt: processedMember.joinedAt || new Date()
+        joined_at: processedMember.joinedAt || new Date(),
+        is_active: processedMember.isActive !== undefined ? processedMember.isActive : true
       };
       
       await directInsert('team_members', memberData);
@@ -277,16 +278,16 @@ async function migrateMatches() {
       // Insert match with direct SQL
       const matchData = {
         id: processedMatch.id,
-        teamId: processedMatch.teamId,
-        opponentName: processedMatch.opponentName,
-        opponentLogo: processedMatch.opponentLogo,
-        matchDate: processedMatch.matchDate,
+        team_id: processedMatch.teamId,
+        opponent_name: processedMatch.opponentName,
+        opponent_logo: processedMatch.opponentLogo,
+        match_date: processedMatch.matchDate,
         location: processedMatch.location,
-        isHome: processedMatch.isHome,
+        is_home: processedMatch.isHome,
         status: processedMatch.status,
-        goalsScored: processedMatch.goalsScored,
-        goalsConceded: processedMatch.goalsConceded,
-        matchType: processedMatch.matchType || 'friendly',
+        goals_scored: processedMatch.goalsScored,
+        goals_conceded: processedMatch.goalsConceded,
+        match_type: processedMatch.matchType || 'friendly',
         notes: processedMatch.notes
       };
       
@@ -326,14 +327,15 @@ async function migrateEvents() {
       // Insert event with direct SQL
       const eventData = {
         id: processedEvent.id,
-        teamId: processedEvent.teamId,
-        type: processedEvent.type,
+        team_id: processedEvent.teamId,
+        event_type: processedEvent.type,
         title: processedEvent.title,
         description: processedEvent.description,
         location: processedEvent.location,
-        startTime: processedEvent.startTime,
-        endTime: processedEvent.endTime,
-        createdById: processedEvent.createdById
+        start_time: processedEvent.startTime,
+        end_time: processedEvent.endTime,
+        created_by_id: processedEvent.createdById,
+        created_at: processedEvent.createdAt || new Date()
       };
       
       await directInsert('events', eventData);
@@ -372,9 +374,12 @@ async function migrateAttendances() {
       // Insert attendance with direct SQL
       const attendanceData = {
         id: processedAttendance.id,
-        userId: processedAttendance.userId,
-        eventId: processedAttendance.eventId,
-        status: processedAttendance.status
+        user_id: processedAttendance.userId,
+        event_id: processedAttendance.eventId,
+        status: processedAttendance.status,
+        notes: processedAttendance.notes || null,
+        created_at: processedAttendance.createdAt || new Date(),
+        updated_at: processedAttendance.updatedAt || new Date()
       };
       
       await directInsert('attendance', attendanceData);
@@ -413,15 +418,17 @@ async function migratePlayerStats() {
       // Insert player stats with direct SQL
       const statsData = {
         id: processedStats.id,
-        userId: processedStats.userId,
-        teamId: processedStats.teamId,
-        gamesPlayed: processedStats.gamesPlayed,
-        goalsScored: processedStats.goalsScored,
-        assists: processedStats.assists,
-        yellowCards: processedStats.yellowCards,
-        redCards: processedStats.redCards,
-        minutesPlayed: processedStats.minutesPlayed,
-        seasonYear: processedStats.seasonYear
+        user_id: processedStats.userId,
+        team_id: processedStats.teamId,
+        match_id: processedStats.matchId || null,
+        minutes_played: processedStats.minutesPlayed || null,
+        goals: processedStats.goalsScored || null,
+        assists: processedStats.assists || null,
+        yellow_cards: processedStats.yellowCards || null,
+        red_cards: processedStats.redCards || null,
+        rating: processedStats.rating || null,
+        notes: processedStats.notes || null,
+        created_at: processedStats.createdAt || new Date()
       };
       
       await directInsert('player_stats', statsData);
