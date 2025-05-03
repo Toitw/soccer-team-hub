@@ -1119,7 +1119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { password, ...creatorWithoutPassword } = user;
         announcementWithCreator = {
           ...announcement,
-          creator: creatorWithoutPassword,
+          creator: creatorWithoutPassword as any,
         };
       }
 
@@ -1163,7 +1163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { password, ...creatorWithoutPassword } = user;
           announcementWithCreator = {
             ...updatedAnnouncement,
-            creator: creatorWithoutPassword,
+            creator: creatorWithoutPassword as any,
           };
         }
 
@@ -1917,7 +1917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!admin) {
           adminUser = await storage.createUser({
             username: "admin",
-            password: await hashPasswordInStorage("password"),
+            password: await hashPassword("password"),
             fullName: "Admin User",
             role: "admin",
             profilePicture: "https://i.pravatar.cc/150?u=admin",
@@ -1933,7 +1933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!existingCoach) {
           coachUser = await storage.createUser({
             username: "coach",
-            password: await hashPasswordInStorage("password"),
+            password: await hashPassword("password"),
             fullName: "Erik Ten Hag",
             role: "coach",
             profilePicture: "https://i.pravatar.cc/150?u=coach",
