@@ -1,7 +1,8 @@
 import express, { type Express, Router } from "express";
 import { createServer, type Server } from "http";
-import { storage, hashPasswordInStorage } from "./storage-implementation";
+import { storage } from "./storage-implementation";
 import { hashPassword } from "@shared/auth-utils";
+import { hashPasswordInStorage } from "./optimized-storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { randomBytes } from "crypto";
