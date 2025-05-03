@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
+import { isDatabaseHealthy } from "./db-health";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
