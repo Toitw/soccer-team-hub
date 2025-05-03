@@ -13,9 +13,26 @@ export async function isDatabaseHealthy(): Promise<boolean> {
   try {
     // Simple query to test connection
     const result = await db.execute(sql`SELECT 1 as health_check`);
-    // Type assertion to handle the result more safely
-    const rows = result as unknown as Array<{health_check: number}>;
-    return rows.length > 0 && rows[0].health_check === 1;
+    
+    // Log the result structure to debug
+    console.log('Database health check result:', JSON.stringify(result));
+    
+    // For NeonDB + node-postgres, the result structure is different
+    // Let's handle both common result structures
+    if (Array.isArray(result) && result.length > 0) {
+      // Array-like result (most common with raw SQL)
+      if ('health_check' in result[0]) {
+        return result[0].health_check === 1;
+      }
+    } else if (result && typeof result === 'object') {
+      // Object-like result (some database drivers)
+      if (result.rows && Array.isArray(result.rows) && result.rows.length > 0) {
+        return result.rows[0].health_check === 1;
+      }
+    }
+    
+    // If none of the above, just check if there's any result
+    return !!result;
   } catch (error) {
     console.error('Database health check failed:', error);
     return false;
@@ -48,12 +65,25 @@ export async function getDatabaseStats(): Promise<any> {
       WHERE pg_database.datname = current_database()
     `);
     
-    // Type assertion to safely handle database stats
-    const dbStatsArray = dbStats as unknown as Array<Record<string, any>>;
+    // Log database stats for debugging
+    console.log('Database stats result structure:', JSON.stringify(dbStats));
+    
+    // Parse db stats from different possible result formats
+    let dbStatsObj = null;
+    
+    if (Array.isArray(dbStats) && dbStats.length > 0) {
+      // Array-like result
+      dbStatsObj = dbStats[0];
+    } else if (dbStats && typeof dbStats === 'object') {
+      // Object-like result with rows property
+      if (dbStats.rows && Array.isArray(dbStats.rows) && dbStats.rows.length > 0) {
+        dbStatsObj = dbStats.rows[0];
+      }
+    }
     
     return {
       connectionPool: poolStats,
-      database: dbStatsArray.length > 0 ? dbStatsArray[0] : null
+      database: dbStatsObj
     };
   } catch (error) {
     console.error('Error getting database stats:', error);
@@ -86,15 +116,34 @@ export async function testQueryPerformance(): Promise<any> {
 export async function validateDatabaseSchema(): Promise<any> {
   try {
     // Check if essential tables exist
-    const tables = await db.execute(sql`
+    const tablesResult = await db.execute(sql`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
     
-    // Type assertion to handle the tables result
-    const tablesArray = tables as unknown as Array<{table_name: string}>;
-    const tableNames = tablesArray.map(t => t.table_name);
+    // Log table result for debugging
+    console.log('Tables query result structure:', JSON.stringify(tablesResult));
+    
+    // Handle different result formats safely
+    let tableNames: string[] = [];
+    const emptyArray: string[] = [];
+    
+    if (Array.isArray(tablesResult)) {
+      // First handle array results
+      tableNames = tablesResult.map((row: any) => 
+        row.table_name || row.TABLE_NAME || row['table_name'] || ''
+      ).filter(Boolean);
+    } else if (tablesResult && typeof tablesResult === 'object') {
+      // Then handle object results with rows property
+      if (tablesResult.rows && Array.isArray(tablesResult.rows)) {
+        tableNames = tablesResult.rows.map((row: any) => 
+          row.table_name || row.TABLE_NAME || row['table_name'] || ''
+        ).filter(Boolean);
+      }
+    }
+    
+    console.log('Detected tables:', tableNames);
     
     const requiredTables = [
       'users', 'teams', 'team_members', 'matches', 'events', 
