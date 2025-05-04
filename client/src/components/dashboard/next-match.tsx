@@ -187,7 +187,7 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
                 variant="outline" 
                 size="sm"
                 onClick={() => {
-                  window.location.href = '/onboarding';
+                  window.location.href = '/onboarding?fromMock=true';
                 }}
               >
                 {t("dashboard.createTeamFirst")}

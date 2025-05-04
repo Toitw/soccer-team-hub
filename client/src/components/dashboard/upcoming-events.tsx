@@ -136,7 +136,7 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
             variant="outline" 
             className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary"
             onClick={() => {
-              window.location.href = '/onboarding';
+              window.location.href = '/onboarding?fromMock=true';
             }}
           >
             <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.createTeamFirst")}
