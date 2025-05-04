@@ -9,9 +9,10 @@ import { useLanguage } from "@/hooks/use-language";
 
 interface UpcomingEventsProps {
   events: Event[];
+  isDemoMode?: boolean;
 }
 
-export default function UpcomingEvents({ events }: UpcomingEventsProps) {
+export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingEventsProps) {
   const { t, currentLanguage } = useLanguage();
   const getEventTypeColor = (type: string) => {
     switch(type) {
@@ -129,11 +130,23 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
           </div>
         )}
         
-        <Link href="/events">
-          <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
-            <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.addNewEvent")}
+        {isDemoMode ? (
+          <Button 
+            variant="outline" 
+            className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary"
+            onClick={() => {
+              window.location.href = '/onboarding';
+            }}
+          >
+            <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.createTeamFirst")}
           </Button>
-        </Link>
+        ) : (
+          <Link href="/events">
+            <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
+              <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.addNewEvent")}
+            </Button>
+          </Link>
+        )}
       </CardContent>
     </Card>
   );
