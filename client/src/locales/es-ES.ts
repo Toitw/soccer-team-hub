@@ -692,6 +692,8 @@ export const esES = {
     scheduleMatch: "Programar Partido",
     createAnnouncement: "Crear Anuncio",
     teamSummary: "Resumen del Equipo",
+    createTeam: "Crear Equipo",
+    createTeamFirst: "Crear equipo primero",
     season: "Temporada",
     players: "Jugadores",
     matches: "Partidos",
