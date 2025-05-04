@@ -7,6 +7,7 @@ import AuthPage from "@/pages/auth-page";
 import RegisterPage from "@/pages/register-page";
 import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
+import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page-v2";
 import EventPage from "@/pages/event-page";
@@ -35,6 +36,9 @@ function Router() {
       
       {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
+      
+      {/* Mock page for demonstration */}
+      <ProtectedRoute path="/mock" component={MockPage} />
       
       {/* Team management - accessible to all but players are read-only */}
       <ProtectedRoute path="/team" component={TeamPage} />

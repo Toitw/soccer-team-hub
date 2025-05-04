@@ -119,6 +119,7 @@ export default function OnboardingPage() {
   async function skipOnboarding() {
     setIsSubmitting(true);
     try {
+      // Still mark onboarding as complete in the backend
       const response = await apiRequest("/api/auth/onboarding/complete", {
         method: "POST"
       });
@@ -126,12 +127,12 @@ export default function OnboardingPage() {
       setUser(response);
       
       toast({
-        title: "Onboarding completed",
-        description: "You can join or create a team later from your profile.",
+        title: "Demo Mode Activated",
+        description: "You're now viewing the app in demo mode. Create your team when you're ready!",
       });
 
-      // Redirect to dashboard
-      setLocation("/");
+      // Redirect to mock page instead of dashboard
+      setLocation("/mock");
     } catch (error: any) {
       console.error("Error completing onboarding:", error);
       toast({

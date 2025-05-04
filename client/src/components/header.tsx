@@ -1,4 +1,4 @@
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
+import { Link } from "wouter";
 
 interface HeaderProps {
   title: string;
   translationKey?: string;
+  showCreateTeamButton?: boolean;
 }
 
-export default function Header({ title, translationKey }: HeaderProps) {
+export default function Header({ title, translationKey, showCreateTeamButton = false }: HeaderProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
