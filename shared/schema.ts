@@ -8,11 +8,13 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   role: text("role", { enum: ["superuser", "admin", "coach", "player"] }).notNull().default("player"),
   profilePicture: text("profile_picture").default("/default-avatar.png"),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
-  email: text("email"),
+  email: text("email").unique(),
   phoneNumber: text("phone_number"),
   isEmailVerified: boolean("is_email_verified").default(false),
   verificationToken: text("verification_token"),
@@ -20,12 +22,15 @@ export const users = pgTable("users", {
   resetPasswordToken: text("reset_password_token"),
   resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
   lastLoginAt: timestamp("last_login_at"),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   fullName: true,
+  firstName: true,
+  lastName: true,
   role: true,
   profilePicture: true,
   position: true,
@@ -35,6 +40,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   isEmailVerified: true,
   verificationToken: true,
   verificationTokenExpiry: true,
+  onboardingCompleted: true,
 });
 
 // Teams table
@@ -44,6 +50,8 @@ export const teams = pgTable("teams", {
   logo: text("logo").default("/default-team-logo.png"),
   division: text("division"),
   seasonYear: text("season_year"),
+  category: text("category", { enum: ["PROFESSIONAL", "FEDERATED", "AMATEUR"] }),
+  teamType: text("team_type", { enum: ["11-a-side", "7-a-side", "Futsal"] }),
   createdById: integer("created_by_id").notNull(),
   joinCode: text("join_code").unique(), // Unique join code for team registration
 });
@@ -53,6 +61,8 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
   logo: true,
   division: true,
   seasonYear: true,
+  category: true,
+  teamType: true,
   createdById: true,
   joinCode: true,
 });
