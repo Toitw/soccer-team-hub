@@ -70,11 +70,20 @@ export default function RegisterPage() {
       });
 
       // Redirect based on onboarding status
-      if (response.onboardingCompleted) {
-        setLocation("/");
-      } else {
-        setLocation("/onboarding");
-      }
+      // Adding console logging for debugging
+      console.log("Registration response:", response);
+      console.log("Onboarding status:", response.onboardingCompleted);
+      
+      // Use setTimeout to ensure the state update completes first
+      setTimeout(() => {
+        if (response.onboardingCompleted) {
+          console.log("Redirecting to dashboard");
+          window.location.href = "/";
+        } else {
+          console.log("Redirecting to onboarding");
+          window.location.href = "/onboarding";
+        }
+      }, 100);
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({

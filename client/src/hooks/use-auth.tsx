@@ -85,11 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
       queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
       
-      // Check if the user needs to complete onboarding
-      if (!user.onboardingCompleted) {
-        // Redirect to onboarding page
-        window.location.href = "/onboarding";
-      }
+      // Note: We don't redirect here because the register-page.tsx
+      // component handles the redirection based on onboardingCompleted
+      // This prevents double redirecting and potential race conditions
       
       toast({
         titleKey: "toasts.registrationSuccess",
