@@ -410,7 +410,7 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]),
       division: z.string().optional(),
       seasonYear: z.string().optional(),
-      logo: z.string().optional(),
+      logo: z.string().optional()
     });
     
     const validatedData = teamSchema.parse(req.body);
@@ -418,9 +418,8 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
     // Generate unique join code
     const joinCode = generateRandomCode(6);
     
-    // Create team
-    // Adding more logging for debugging
-    console.log("Creating team with data:", {
+    // Create team data object
+    const teamData = {
       name: validatedData.name,
       category: validatedData.category,
       teamType: validatedData.teamType,
@@ -429,19 +428,13 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       logo: validatedData.logo || null,
       createdById: userId,
       joinCode
-    });
-      
-    const team = await storage.createTeam({
-      name: validatedData.name,
-      category: validatedData.category,
-      teamType: validatedData.teamType,
-      division: validatedData.division || null,
-      seasonYear: validatedData.seasonYear || null,
-      logo: validatedData.logo || null,
-      createdById: userId,
-      joinCode
-    });
+    };
     
+    console.log("Creating team with data:", teamData);
+    
+    // Create team
+    const team = await storage.createTeam(teamData);
+  
     // Add current user as team admin
     await storage.createTeamMember({
       teamId: team.id,
@@ -453,7 +446,7 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
     const updatedUser = await storage.updateUser(userId, { onboardingCompleted: true });
     
     // Return created team with join code
-    return res.status(201).json({ 
+    return res.status(201).json({
       team,
       user: updatedUser
     });
@@ -461,9 +454,9 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
     console.error("Error creating team:", error);
     
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        error: "Validation error", 
-        details: error.errors 
+      return res.status(400).json({
+        error: "Validation error",
+        details: error.errors
       });
     }
     
