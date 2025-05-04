@@ -22,9 +22,10 @@ export default function DashboardPage() {
     queryKey: ["/api/teams"],
   });
 
-  // Create mock data for demonstration if none exists
+  // Create mock data for demonstration if none exists and user has completed onboarding
   useEffect(() => {
-    if (teams && teams.length === 0) {
+    // Only create mock data if user has completed onboarding
+    if (teams && teams.length === 0 && user?.onboardingCompleted) {
       apiRequest("/api/mock-data", {
         method: "POST"
       })
@@ -36,7 +37,13 @@ export default function DashboardPage() {
           console.error("Failed to create mock data:", error);
         });
     }
-  }, [teams]);
+    
+    // If user hasn't completed onboarding, redirect to onboarding page
+    if (user && !user.onboardingCompleted) {
+      console.log("User hasn't completed onboarding, redirecting to onboarding page");
+      window.location.href = "/onboarding";
+    }
+  }, [teams, user]);
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;

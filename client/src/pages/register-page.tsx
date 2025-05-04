@@ -74,16 +74,14 @@ export default function RegisterPage() {
       console.log("Registration response:", response);
       console.log("Onboarding status:", response.onboardingCompleted);
       
-      // Use setTimeout to ensure the state update completes first
+      // Force redirect to onboarding page for more reliability
+      // This ensures the user always goes through onboarding flow
+      console.log("Redirecting new user to onboarding");
+      
+      // Use a direct location change with slight delay to ensure state updates
       setTimeout(() => {
-        if (response.onboardingCompleted) {
-          console.log("Redirecting to dashboard");
-          window.location.href = "/";
-        } else {
-          console.log("Redirecting to onboarding");
-          window.location.href = "/onboarding";
-        }
-      }, 100);
+        window.location.href = "/onboarding";
+      }, 300);
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
