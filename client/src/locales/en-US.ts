@@ -629,6 +629,8 @@ export const enUS = {
     scheduleMatch: "Schedule Match",
     createAnnouncement: "Create Announcement",
     teamSummary: "Team Summary",
+    createTeam: "Create Team",
+    createTeamFirst: "Create team first",
     season: "Season",
     players: "Players",
     matches: "Matches",

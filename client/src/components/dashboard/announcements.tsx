@@ -15,6 +15,7 @@ interface AnnouncementsProps {
   teamId?: number;
   announcements?: (Announcement & { creator?: any })[];
   isDemoMode?: boolean;
+  disableActions?: boolean;
   onCreateClick?: () => void;
 }
 
@@ -22,6 +23,7 @@ export default function Announcements({
   teamId, 
   announcements: propAnnouncements, 
   isDemoMode = false,
+  disableActions = false,
   onCreateClick
 }: AnnouncementsProps) {
   // Use the teamId if provided, otherwise use announcement data passed as props

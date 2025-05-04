@@ -91,7 +91,7 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
         ) : (
           <div className="space-y-4 mb-4">
             {events.map(event => {
-              const dateObj = formatDate(new Date(event.startTime));
+              const dateObj = formatDate(event.startTime || event.startDate);
               return (
                 <div 
                   key={event.id} 
