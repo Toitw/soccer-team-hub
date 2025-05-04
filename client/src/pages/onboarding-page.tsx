@@ -160,7 +160,11 @@ export default function OnboardingPage() {
       return null;
     }
 
-    if (user.onboardingCompleted) {
+    // Only redirect if they didn't come from the mock page
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromMock = urlParams.get('fromMock') === 'true';
+    
+    if (user.onboardingCompleted && !fromMock) {
       console.log("User already completed onboarding, redirecting to dashboard");
       // Use setLocation instead of direct window.location to prevent refresh loops
       setLocation("/");

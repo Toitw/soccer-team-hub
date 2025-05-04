@@ -50,7 +50,7 @@ export default function Header({ title, translationKey, showCreateTeamButton = f
         </h1>
         <div className="flex items-center space-x-4">
           {showCreateTeamButton && (
-            <Link href="/onboarding">
+            <Link href="/onboarding?fromMock=true">
               <Button className="gap-2 bg-green-600 hover:bg-green-700">
                 <Plus className="h-4 w-4" />
                 {t("dashboard.createTeam")}
