@@ -63,7 +63,7 @@ export default function OnboardingPage() {
     try {
       const response = await apiRequest("/api/auth/onboarding/join-team", {
         method: "POST",
-        body: JSON.stringify(values)
+        data: values
       });
 
       setUser(response.user);
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
     try {
       const response = await apiRequest("/api/auth/onboarding/create-team", {
         method: "POST",
-        body: JSON.stringify(values)
+        data: values
       });
 
       setUser(response.user);
