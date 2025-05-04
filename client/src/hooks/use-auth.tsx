@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("/api/register", {
+      return await apiRequest<SelectUser>("/api/auth/register", {
         method: "POST",
         data: credentials
       });
@@ -84,6 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
       queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
+      
+      // Check if the user needs to complete onboarding
+      if (!user.onboardingCompleted) {
+        // Redirect to onboarding page
+        window.location.href = "/onboarding";
+      }
       
       toast({
         titleKey: "toasts.registrationSuccess",
