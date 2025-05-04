@@ -91,7 +91,8 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
         ) : (
           <div className="space-y-4 mb-4">
             {events.map(event => {
-              const dateObj = formatDate(event.startTime || event.startDate);
+              // Handle both field names for compatibility
+              const dateObj = formatDate(event.startTime || (event as any).startDate);
               return (
                 <div 
                   key={event.id} 

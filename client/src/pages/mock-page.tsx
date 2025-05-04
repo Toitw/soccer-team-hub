@@ -36,82 +36,73 @@ export default function MockPage() {
   
   // Mock upcoming events
   const today = new Date();
-  const mockEvents: Event[] = [
+  const mockEvents: any[] = [
     {
       id: 9991,
       teamId: 999,
       title: "Weekly Training",
       description: "Regular training session",
-      startDate: addDays(today, 1).toISOString(),
-      endDate: addDays(today, 1).toISOString(),
+      startTime: addDays(today, 1),
+      endTime: addDays(today, 1),
       location: "Demo Field",
       type: "training",
-      isRecurring: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdById: user?.id || 1
     },
     {
       id: 9992,
       teamId: 999,
       title: "Team Meeting",
       description: "Strategy planning for upcoming matches",
-      startDate: addDays(today, 3).toISOString(),
-      endDate: addDays(today, 3).toISOString(),
+      startTime: addDays(today, 3),
+      endTime: addDays(today, 3),
       location: "Club House",
       type: "meeting",
-      isRecurring: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdById: user?.id || 1
     },
     {
       id: 9993,
       teamId: 999,
       title: "Friendly Match",
       description: "Practice match against local team",
-      startDate: addDays(today, 7).toISOString(),
-      endDate: addDays(today, 7).toISOString(),
+      startTime: addDays(today, 7),
+      endTime: addDays(today, 7),
       location: "Demo Stadium",
       type: "match",
-      isRecurring: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdById: user?.id || 1
     }
   ];
   
   // Mock announcements
-  const mockAnnouncements: Announcement[] = [
+  const mockAnnouncements: any[] = [
     {
       id: 9991,
       teamId: 999,
       title: "Welcome to Cancha+",
       content: "This is a demo version of the app. Create a team to get started with actual data.",
-      authorId: user?.id || 1,
+      createdById: user?.id || 1,
       isImportant: true,
       status: "published",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date()
     },
     {
       id: 9992,
       teamId: 999,
       title: "New Schedule Released",
       content: "The match schedule for the next month has been finalized.",
-      authorId: user?.id || 1,
+      createdById: user?.id || 1,
       isImportant: false,
       status: "published",
-      createdAt: subDays(new Date(), 2).toISOString(),
-      updatedAt: subDays(new Date(), 2).toISOString()
+      createdAt: subDays(new Date(), 2)
     },
     {
       id: 9993,
       teamId: 999,
       title: "Equipment Update",
       content: "New training equipment will be available from next week.",
-      authorId: user?.id || 1,
+      createdById: user?.id || 1,
       isImportant: false,
       status: "published",
-      createdAt: subDays(new Date(), 5).toISOString(),
-      updatedAt: subDays(new Date(), 5).toISOString()
+      createdAt: subDays(new Date(), 5)
     }
   ];
   
