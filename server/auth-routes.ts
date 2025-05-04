@@ -419,6 +419,18 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
     const joinCode = generateRandomCode(6);
     
     // Create team
+    // Adding more logging for debugging
+    console.log("Creating team with data:", {
+      name: validatedData.name,
+      category: validatedData.category,
+      teamType: validatedData.teamType,
+      division: validatedData.division || null,
+      seasonYear: validatedData.seasonYear || null,
+      logo: validatedData.logo || null,
+      createdById: userId,
+      joinCode
+    });
+      
     const team = await storage.createTeam({
       name: validatedData.name,
       category: validatedData.category,
