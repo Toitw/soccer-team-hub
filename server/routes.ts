@@ -9,7 +9,7 @@ import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
 import { checkDatabaseHealth } from "./db-health";
-import { db } from "./db";
+import { db, pool } from "./db";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -115,11 +115,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const joinCode = generateJoinCode();
       
       // Create a basic empty team specifically for this user
-      // Use direct SQL to bypass the schema validation
-      const [team] = await db.execute(
+      // Use direct SQL to bypass the schema validation with pool.query
+      const result = await pool.query(
         `INSERT INTO teams (name, logo, division, season_year, created_by_id, team_type, category, join_code, owner_id, created_at, updated_at) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
-        RETURNING *`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+         RETURNING *`,
         [
           "My Team",
           "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
@@ -132,6 +132,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.user.id // Set owner_id to user's ID
         ]
       );
+      
+      const team = result.rows[0];
 
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
 
@@ -174,8 +176,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a join code for the team
       const joinCode = generateJoinCode();
       
-      // Use direct SQL to create team with owner_id
-      const [team] = await db.execute(
+      // Use direct SQL to create team with owner_id using pool.query
+      const result = await pool.query(
         `INSERT INTO teams (
           name, logo, division, season_year, created_by_id, team_type, 
           category, join_code, owner_id, created_at, updated_at,
@@ -203,6 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.body.isPublic || true
         ]
       );
+      
+      const team = result.rows[0];
 
       // Always add the current user as the admin of the team they create
       await storage.createTeamMember({
