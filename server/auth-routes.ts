@@ -222,12 +222,13 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 // Schema for registration data validation
 const registerSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  username: z.string().min(1, "Username is required"),
+  fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["admin", "coach", "player"]),
-  teamCode: z.string().optional()
+  teamCode: z.string().optional(),
+  agreedToTerms: z.boolean().optional()
 });
 
 /**
@@ -245,16 +246,13 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Email already registered" });
     }
     
-    // Generate username from email (before @ symbol)
-    const username = validatedData.email.split('@')[0];
-    
     // Create the user
     const user = await storage.createUser({
-      username,
+      username: validatedData.username,
       password: validatedData.password, // Will be hashed in storage implementation
-      fullName: `${validatedData.firstName} ${validatedData.lastName}`,
-      firstName: validatedData.firstName,
-      lastName: validatedData.lastName,
+      fullName: validatedData.fullName,
+      firstName: null, // We'll extract these later if needed
+      lastName: null,  // We'll extract these later if needed
       email: validatedData.email,
       role: validatedData.role,
       onboardingCompleted: false
