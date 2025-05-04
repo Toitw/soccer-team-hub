@@ -145,15 +145,24 @@ export default function OnboardingPage() {
   }
 
   // Redirect if user is not logged in or already completed onboarding
+  // Adding logging for debugging
+  console.log("Onboarding page - Current user:", user);
+  
   if (!user) {
-    setLocation("/auth");
+    console.log("No user found, redirecting to auth page");
+    // Use direct window location for more reliable redirect
+    window.location.href = "/auth";
     return null;
   }
 
   if (user.onboardingCompleted) {
-    setLocation("/");
+    console.log("User already completed onboarding, redirecting to dashboard");
+    // Use direct window location for more reliable redirect
+    window.location.href = "/";
     return null;
   }
+  
+  console.log("User needs to complete onboarding, staying on page");
 
   // Show only join tab for non-admins
   const isAdmin = user.role === "admin";
