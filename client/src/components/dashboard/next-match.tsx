@@ -77,9 +77,9 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
   const nextMatch = getNextMatch();
   
   // Calculate days remaining until the match
-  const getDaysRemaining = (matchDate: string) => {
+  const getDaysRemaining = (matchDate: string | Date) => {
     const now = new Date();
-    const match = new Date(matchDate);
+    const match = typeof matchDate === 'string' ? new Date(matchDate) : matchDate;
     const diffTime = Math.abs(match.getTime() - now.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
