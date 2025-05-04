@@ -74,14 +74,11 @@ export default function RegisterPage() {
       console.log("Registration response:", response);
       console.log("Onboarding status:", response.onboardingCompleted);
       
-      // Force redirect to onboarding page for more reliability
-      // This ensures the user always goes through onboarding flow
+      // Use router's setLocation for smoother navigation that won't cause refresh loops
       console.log("Redirecting new user to onboarding");
       
-      // Use a direct location change with slight delay to ensure state updates
-      setTimeout(() => {
-        window.location.href = "/onboarding";
-      }, 300);
+      // Use setLocation that's less likely to cause refresh loops
+      setLocation("/onboarding");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast({
