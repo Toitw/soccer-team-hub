@@ -1156,10 +1156,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (user) {
         const { password, ...creatorWithoutPassword } = user;
+        // Use type assertion to avoid TypeScript error while still adding creator info
         announcementWithCreator = {
           ...announcement,
-          creator: creatorWithoutPassword as any,
-        };
+          // Adding creator info for UI display purposes
+          // This will be removed by TypeScript but will be in the JSON response
+        } as any;
+        (announcementWithCreator as any).creator = creatorWithoutPassword;
       }
 
       res.status(201).json(announcementWithCreator);
@@ -1200,10 +1203,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (user) {
           const { password, ...creatorWithoutPassword } = user;
+          // Use type assertion to avoid TypeScript error while still adding creator info
           announcementWithCreator = {
             ...updatedAnnouncement,
-            creator: creatorWithoutPassword as any,
-          };
+            // Adding creator info for UI display purposes
+          } as any;
+          (announcementWithCreator as any).creator = creatorWithoutPassword;
         }
 
         res.status(200).json(announcementWithCreator);
