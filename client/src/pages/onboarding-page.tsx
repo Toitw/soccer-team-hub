@@ -345,6 +345,29 @@ export default function OnboardingPage() {
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Joining Team..." : "Join Team"}
                 </Button>
+                
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => {
+                      // Complete onboarding and redirect to mock page
+                      apiRequest("/api/auth/onboarding/complete", {
+                        method: "POST"
+                      }).then(() => {
+                        window.location.href = '/mock';
+                      }).catch(error => {
+                        console.error("Error activating demo mode:", error);
+                      });
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Try Demo Mode
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    Explore the app features before creating a team
+                  </p>
+                </div>
               </form>
             </Form>
           )}
