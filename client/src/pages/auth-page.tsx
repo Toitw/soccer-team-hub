@@ -196,6 +196,15 @@ function LoginForm() {
                 </>
               ) : t('auth.login')}
             </Button>
+            
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-500">
+                Don't have an account?{" "}
+                <Link href="/register" className="text-primary hover:underline">
+                  Register here
+                </Link>
+              </p>
+            </div>
           </form>
         </Form>
       </CardContent>
