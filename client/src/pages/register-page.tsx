@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
       const response = await apiRequest("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify(values)
+        data: values
       });
 
       setUser(response);
