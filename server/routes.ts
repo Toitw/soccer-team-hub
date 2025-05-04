@@ -120,6 +120,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         division: "League Division",
         seasonYear: new Date().getFullYear().toString(),
         createdById: req.user.id,
+        teamType: "11-a-side", // Add required teamType
+        category: "AMATEUR",    // Add required category
         joinCode,
       });
 
@@ -164,10 +166,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a join code for the team
       const joinCode = generateJoinCode();
       
+      // Ensure we have all required fields
       const team = await storage.createTeam({
         ...req.body,
         createdById: req.user.id,
         joinCode,
+        // Set defaults for required fields if not provided
+        teamType: req.body.teamType || "11-a-side",
+        category: req.body.category || "AMATEUR",
       });
 
       // Always add the current user as the admin of the team they create
