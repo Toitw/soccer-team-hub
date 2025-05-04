@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
   user: SelectUser | null;
+  setUser: (user: SelectUser | null) => void;
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
@@ -147,10 +148,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Function to set the user data in the query cache
+  const setUser = (userData: SelectUser | null) => {
+    queryClient.setQueryData(["/api/user"], userData);
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user: user ?? null,
+        setUser,
         isLoading,
         error,
         isAuthenticated: !!user,

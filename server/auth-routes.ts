@@ -7,7 +7,20 @@ import { generateVerificationToken, generateTokenExpiry, comparePasswords, hashP
 import { isAuthenticated } from "./auth-middleware";
 import { generateVerificationEmail, generatePasswordResetEmail, sendEmail } from "@shared/email-utils";
 import { z } from "zod";
-import { generateRandomCode } from "./utils";
+import { randomBytes } from "crypto";
+
+// Function to generate a random join code
+function generateRandomCode(length: number): string {
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding 0, 1, I, O
+  let result = '';
+  
+  const randomBytesBuffer = randomBytes(length);
+  for (let i = 0; i < length; i++) {
+    result += characters[randomBytesBuffer[i] % characters.length];
+  }
+  
+  return result;
+}
 
 // Create a router
 const router = Router();
