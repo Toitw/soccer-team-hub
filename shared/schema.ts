@@ -46,6 +46,7 @@ export const teams = pgTable("teams", {
   seasonYear: text("season_year"),
   createdById: integer("created_by_id").notNull(),
   joinCode: text("join_code").unique(), // Unique join code for team registration
+  ownerId: integer("owner_id").notNull(), // The owner of the team (required by database)
 });
 
 export const insertTeamSchema = createInsertSchema(teams).pick({
@@ -55,6 +56,7 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
   seasonYear: true,
   createdById: true,
   joinCode: true,
+  ownerId: true, // Add the owner ID field
 });
 
 // TeamMembers table for player-team relationship

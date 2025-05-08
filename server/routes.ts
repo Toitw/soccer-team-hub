@@ -120,6 +120,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         division: "League Division",
         seasonYear: new Date().getFullYear().toString(),
         createdById: req.user.id,
+        // Add ownerId field that's required by the database
+        ownerId: req.user.id,
         joinCode,
       });
 
@@ -167,6 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const team = await storage.createTeam({
         ...req.body,
         createdById: req.user.id,
+        ownerId: req.user.id, // Add ownerId field that's required by the database
         joinCode,
       });
 
