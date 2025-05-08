@@ -14,9 +14,18 @@ import { useLanguage } from "@/hooks/use-language";
 interface AnnouncementsProps {
   teamId?: number;
   announcements?: (Announcement & { creator?: any })[];
+  isDemoMode?: boolean;
+  disableActions?: boolean;
+  onCreateClick?: () => void;
 }
 
-export default function Announcements({ teamId, announcements: propAnnouncements }: AnnouncementsProps) {
+export default function Announcements({ 
+  teamId, 
+  announcements: propAnnouncements, 
+  isDemoMode = false,
+  disableActions = false,
+  onCreateClick
+}: AnnouncementsProps) {
   // Use the teamId if provided, otherwise use announcement data passed as props
   const useProvidedData = !!propAnnouncements;
   const { toast } = useToast();
@@ -135,11 +144,22 @@ export default function Announcements({ teamId, announcements: propAnnouncements
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-            <Link to="/announcements">
-              <Button variant="ghost" size="icon" className="text-sm text-primary">
+            {isDemoMode ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-sm text-primary"
+                onClick={onCreateClick}
+              >
                 <PlusIcon className="h-5 w-5" />
               </Button>
-            </Link>
+            ) : (
+              <Link to="/announcements">
+                <Button variant="ghost" size="icon" className="text-sm text-primary">
+                  <PlusIcon className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
@@ -185,12 +205,23 @@ export default function Announcements({ teamId, announcements: propAnnouncements
       </CardContent>
       
       <CardFooter className="pt-2">
-        <Link to="/announcements" className="w-full">
-          <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
+        {isDemoMode ? (
+          <Button 
+            variant="ghost" 
+            className="w-full text-xs flex items-center justify-center gap-1 text-primary"
+            onClick={onCreateClick}
+          >
             {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
             <ArrowRight className="h-3 w-3" />
           </Button>
-        </Link>
+        ) : (
+          <Link to="/announcements" className="w-full">
+            <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
+              {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+          </Link>
+        )}
       </CardFooter>
     </Card>
   );

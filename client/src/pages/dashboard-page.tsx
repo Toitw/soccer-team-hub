@@ -18,22 +18,16 @@ import { useLocation } from "wouter";
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
 
-  // Redirect to onboarding if user has no teams
+  // Create mock data for demonstration if none exists and user has completed onboarding
   useEffect(() => {
-    if (teams && teams.length === 0 && !teamsLoading) {
-      setLocation("/onboarding");
-    }
-  }, [teams, teamsLoading, setLocation]);
-
-  // Create mock data for demonstration if none exists
-  useEffect(() => {
-    if (teams && teams.length === 0) {
+    // Only create mock data if user has completed onboarding
+    if (teams && teams.length === 0 && user?.onboardingCompleted) {
       apiRequest("/api/mock-data", {
         method: "POST"
       })
@@ -45,7 +39,15 @@ export default function DashboardPage() {
           console.error("Failed to create mock data:", error);
         });
     }
-  }, [teams]);
+    
+    // If user hasn't completed onboarding, redirect to onboarding page
+    // But only redirect if we're not already on the onboarding page
+    if (user && !user.onboardingCompleted && window.location.pathname !== "/onboarding") {
+      console.log("User hasn't completed onboarding, redirecting to onboarding page");
+      // Use setLocation instead of direct window.location change to prevent refresh loops
+      setLocation("/onboarding");
+    }
+  }, [teams, user, setLocation]);
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;

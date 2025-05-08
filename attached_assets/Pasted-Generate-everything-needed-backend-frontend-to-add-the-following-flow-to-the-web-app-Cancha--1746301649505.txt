@@ -1,0 +1,53 @@
+Generate everything needed (backend + frontend) to add the following flow to the web app “Cancha +”:
+
+### 1. Minimal Sign‑Up
+▪ Single screen with these fields  
+  – firstName, lastName  
+  – email (unique, validated)  
+  – password (hashed)  
+  – role  ["PLAYER", "COACH", "MANAGER"]  
+  – teamCode (optional string)  
+
+Business rules  
+• If teamCode is supplied and exists, the user is linked to that team and the onboarding flag is set to **true**.  
+• Otherwise, create the user without a team and set **onboardingCompleted = false**.
+
+### 2. First‑Login Onboarding Wizard  
+Shown only when onboardingCompleted == false.  
+It offers three mutually exclusive actions:
+
+1. **Join an Existing Team**  
+   • Input teamCode → on success, link user to team and finish onboarding.
+
+2. **Create a New Team**  (visible only for COACH or MANAGER)  
+   • 3‑step sub‑wizard:  
+     a) basic details (teamName, category, optional logo)  
+     b) season settings (seasonName, dates)  
+     c) invite step → generate a short teamCode + shareable inviteLink  
+   • After creation, mark onboardingCompleted = true for the creator.
+
+3. **Skip for Now**  
+   • Takes the user to an empty dashboard with a persistent “Complete your team setup” reminder.
+
+### 3. Data Model (conceptual)
+User  
+  • id, firstName, lastName, email, passwordHash, role, onboardingCompleted (bool), teamId?, timestamps  
+
+Team  
+  • id, name, category, logoUrl?, seasonName, teamCode (unique), createdAt  
+  • users[] (one‑to‑many)
+
+### 4. API Contract (illustrative paths)
+POST /auth/register       → create user, return auth tokens  
+POST /auth/login          → tokens  
+GET  /me                  → profile + onboarding flag  
+POST /teams/join          → body { teamCode }  
+POST /teams               → create new team
+
+### 5. Front‑End Flow (high level)
+• After login/registration, call /me.  
+• If onboardingCompleted == false → redirect to /onboarding wizard.  
+• When the wizard returns success, set the flag locally and send the user to /dashboard.  
+• If the user ever skips, show a reminder banner on the dashboard until a team is selected or created.
+
+### 6. Out of Scope for Now
