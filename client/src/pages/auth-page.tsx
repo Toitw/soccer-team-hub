@@ -199,9 +199,9 @@ function LoginForm() {
             
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-500">
-                {t('auth.dontHaveAccount')}{" "}
+                Don't have an account?{" "}
                 <Link href="/register" className="text-primary hover:underline">
-                  {t('auth.registerHere')}
+                  Register here
                 </Link>
               </p>
             </div>
