@@ -14,18 +14,9 @@ import { useLanguage } from "@/hooks/use-language";
 interface AnnouncementsProps {
   teamId?: number;
   announcements?: (Announcement & { creator?: any })[];
-  isDemoMode?: boolean;
-  disableActions?: boolean;
-  onCreateClick?: () => void;
 }
 
-export default function Announcements({ 
-  teamId, 
-  announcements: propAnnouncements, 
-  isDemoMode = false,
-  disableActions = false,
-  onCreateClick
-}: AnnouncementsProps) {
+export default function Announcements({ teamId, announcements: propAnnouncements }: AnnouncementsProps) {
   // Use the teamId if provided, otherwise use announcement data passed as props
   const useProvidedData = !!propAnnouncements;
   const { toast } = useToast();
@@ -144,22 +135,11 @@ export default function Announcements({
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-            {isDemoMode ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-sm text-primary"
-                onClick={onCreateClick}
-              >
+            <Link to="/announcements">
+              <Button variant="ghost" size="icon" className="text-sm text-primary">
                 <PlusIcon className="h-5 w-5" />
               </Button>
-            ) : (
-              <Link to="/announcements">
-                <Button variant="ghost" size="icon" className="text-sm text-primary">
-                  <PlusIcon className="h-5 w-5" />
-                </Button>
-              </Link>
-            )}
+            </Link>
           </div>
         </CardTitle>
       </CardHeader>
@@ -205,23 +185,12 @@ export default function Announcements({
       </CardContent>
       
       <CardFooter className="pt-2">
-        {isDemoMode ? (
-          <Button 
-            variant="ghost" 
-            className="w-full text-xs flex items-center justify-center gap-1 text-primary"
-            onClick={onCreateClick}
-          >
+        <Link to="/announcements" className="w-full">
+          <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
             {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
             <ArrowRight className="h-3 w-3" />
           </Button>
-        ) : (
-          <Link to="/announcements" className="w-full">
-            <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
-              {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </Link>
-        )}
+        </Link>
       </CardFooter>
     </Card>
   );

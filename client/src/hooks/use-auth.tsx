@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
   user: SelectUser | null;
-  setUser: (user: SelectUser | null) => void;
   isLoading: boolean;
   error: Error | null;
   isAuthenticated: boolean;
@@ -72,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       // apiRequest already returns the parsed JSON response
-      return await apiRequest<SelectUser>("/api/auth/register", {
+      return await apiRequest<SelectUser>("/api/register", {
         method: "POST",
         data: credentials
       });
@@ -84,10 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
       queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      
-      // Note: We don't redirect here because the register-page.tsx
-      // component handles the redirection based on onboardingCompleted
-      // This prevents double redirecting and potential race conditions
       
       toast({
         titleKey: "toasts.registrationSuccess",
@@ -152,16 +147,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Function to set the user data in the query cache
-  const setUser = (userData: SelectUser | null) => {
-    queryClient.setQueryData(["/api/user"], userData);
-  };
-
   return (
     <AuthContext.Provider
       value={{
         user: user ?? null,
-        setUser,
         isLoading,
         error,
         isAuthenticated: !!user,

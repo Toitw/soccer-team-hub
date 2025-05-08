@@ -12,10 +12,9 @@ import { useLanguage } from "@/hooks/use-language";
 
 interface NextMatchProps {
   teamId?: number;
-  isDemoMode?: boolean;
 }
 
-export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps) {
+export default function NextMatch({ teamId }: NextMatchProps) {
   const { t } = useLanguage();
   const { data: teams } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -28,7 +27,7 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
 
   const { data: matches, isLoading } = useQuery<Match[]>({
     queryKey: ["matches", selectedTeam?.id],
-    enabled: !!selectedTeam && !isDemoMode,
+    enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
@@ -39,31 +38,6 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
 
   // Get the next upcoming match (closest match with status "scheduled")
   const getNextMatch = () => {
-    // If we're in demo mode, return a mock match
-    if (isDemoMode) {
-      // Create a date 3 days from now
-      const matchDate = new Date();
-      matchDate.setDate(matchDate.getDate() + 3);
-      
-      return {
-        id: 9991,
-        teamId: 999,
-        opponentName: "Demo FC",
-        opponentLogo: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Football_rough.svg",
-        matchDate: matchDate.toISOString(),
-        location: "Demo Stadium",
-        isHome: true,
-        goalsScored: null,
-        goalsConceded: null,
-        status: "scheduled",
-        matchType: "league",
-        notes: "Important match in demo mode",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-    }
-    
-    // Otherwise proceed with normal match retrieval 
     if (!matches || matches.length === 0) return null;
     
     const now = new Date();
@@ -77,9 +51,9 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
   const nextMatch = getNextMatch();
   
   // Calculate days remaining until the match
-  const getDaysRemaining = (matchDate: string | Date) => {
+  const getDaysRemaining = (matchDate: string) => {
     const now = new Date();
-    const match = typeof matchDate === 'string' ? new Date(matchDate) : matchDate;
+    const match = new Date(matchDate);
     const diffTime = Math.abs(match.getTime() - now.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
@@ -182,23 +156,11 @@ export default function NextMatch({ teamId, isDemoMode = false }: NextMatchProps
           <div className="flex flex-col items-center justify-center py-6">
             <CalendarIcon className="h-12 w-12 text-gray-300 mb-2" />
             <p className="text-gray-500 mb-2">{t("matches.noUpcomingMatches")}</p>
-            {isDemoMode ? (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  window.location.href = '/onboarding?fromMock=true';
-                }}
-              >
-                {t("dashboard.createTeamFirst")}
+            <Link href="/matches">
+              <Button variant="outline" size="sm">
+                {t("matches.scheduleMatch")}
               </Button>
-            ) : (
-              <Link href="/matches">
-                <Button variant="outline" size="sm">
-                  {t("matches.scheduleMatch")}
-                </Button>
-              </Link>
-            )}
+            </Link>
           </div>
         )}
       </CardContent>

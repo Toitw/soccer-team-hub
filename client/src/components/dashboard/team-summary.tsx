@@ -8,15 +8,14 @@ import { useLanguage } from "@/hooks/use-language";
 
 interface TeamSummaryProps {
   team: Team | null;
-  isDemoMode?: boolean;
 }
 
-export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryProps) {
+export default function TeamSummary({ team }: TeamSummaryProps) {
   const { t } = useLanguage();
 
   const { data: matches } = useQuery<Match[]>({
     queryKey: ["/api/teams", team?.id, "matches"],
-    enabled: !!team && !isDemoMode,
+    enabled: !!team,
     queryFn: async () => {
       if (!team?.id) return [];
       console.log(`Dashboard: Fetching matches for team ${team.id}`);
@@ -36,7 +35,7 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
   // Get team members to show accurate player count
   const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
     queryKey: ["/api/teams", team?.id, "members"],
-    enabled: !!team && !isDemoMode,
+    enabled: !!team,
     queryFn: async () => {
       if (!team?.id) return [];
       console.log(`Dashboard: Fetching team members for team ${team.id}`);
@@ -55,23 +54,20 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
 
   if (!team) return null;
 
-  // If in demo mode, use mock counts, otherwise use actual data
-  const playerCount = isDemoMode ? 15 : teamMembers?.length || 0;
-  const matchCount = isDemoMode ? 8 : matches?.length || 0;
-  
-  // Calculate win count
-  const winCount = isDemoMode ? 5 : matches?.filter(m => {
+  const winCount = matches?.filter(m => {
     // Only count completed matches where our team scored more than the opponent
     if (m.status !== "completed") return false;
     if (m.goalsScored === null || m.goalsScored === undefined) return false;
     if (m.goalsConceded === null || m.goalsConceded === undefined) return false;
     return m.goalsScored > m.goalsConceded;
   }).length || 0;
-  
-  // Calculate goal count
-  const goalCount = isDemoMode ? 12 : matches?.reduce((total, match) => 
+
+  const goalCount = matches?.reduce((total, match) => 
     total + (match.goalsScored || 0), 0
   ) || 0;
+
+  const playerCount = teamMembers?.length || 0;
+  const matchCount = matches?.length || 0;
 
   return (
     <Card>

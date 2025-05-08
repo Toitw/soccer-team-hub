@@ -16,7 +16,7 @@ import {
   type MatchPhoto, type InsertMatchPhoto, matchPhotos,
   type LeagueClassification, type InsertLeagueClassification, leagueClassification
 } from "@shared/schema";
-import { db, pool } from "./db";
+import { db } from "./db";
 import { eq, and, desc, lte, gte, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 import session from "express-session";
@@ -54,11 +54,6 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
-  }
-  
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -138,51 +133,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeam(teamData: InsertTeam): Promise<Team> {
-    try {
-      // Check if teamData contains createdById
-      if (!teamData.createdById) {
-        throw new Error("createdById is required for team creation");
-      }
-      
-      // Convert Drizzle ORM insert to raw SQL to set owner_id explicitly
-      const query = `
-        INSERT INTO teams (
-          name, logo, division, season_year, 
-          category, team_type, created_by_id, join_code, 
-          owner_id
-        ) VALUES (
-          $1, $2, $3, $4, 
-          $5, $6, $7, $8,
-          $9
-        ) RETURNING *
-      `;
-      
-      const values = [
-        teamData.name,
-        teamData.logo || null,
-        teamData.division || null,
-        teamData.seasonYear || null,
-        teamData.category || null,
-        teamData.teamType || null,
-        teamData.createdById,
-        teamData.joinCode,
-        teamData.createdById // Set owner_id to createdById
-      ];
-      
-      console.log("Executing SQL with values:", values);
-      
-      // Use the pool directly for this query
-      const result = await pool.query(query, values);
-      
-      if (result.rows && result.rows.length > 0) {
-        return result.rows[0];
-      } else {
-        throw new Error("Failed to create team: No rows returned");
-      }
-    } catch (error) {
-      console.error("Error creating team:", error);
-      throw error;
-    }
+    const [team] = await db.insert(teams).values(teamData).returning();
+    return team;
   }
 
   async updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined> {

@@ -1,4 +1,4 @@
-import { Bell, LogOut, Plus } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -11,15 +11,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
-import { Link } from "wouter";
 
 interface HeaderProps {
   title: string;
   translationKey?: string;
-  showCreateTeamButton?: boolean;
 }
 
-export default function Header({ title, translationKey, showCreateTeamButton = false }: HeaderProps) {
+export default function Header({ title, translationKey }: HeaderProps) {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -49,14 +47,6 @@ export default function Header({ title, translationKey, showCreateTeamButton = f
           {translationKey ? t(translationKey) : title}
         </h1>
         <div className="flex items-center space-x-4">
-          {showCreateTeamButton && (
-            <Link href="/onboarding?fromMock=true">
-              <Button className="gap-2 bg-green-600 hover:bg-green-700">
-                <Plus className="h-4 w-4" />
-                {t("dashboard.createTeam")}
-              </Button>
-            </Link>
-          )}
           <Button variant="ghost" className="text-sm text-primary hover:text-primary/80 relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs bg-accent text-white rounded-full">3</span>

@@ -4,10 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
-import RegisterPage from "@/pages/register-page";
-import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
-import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
 import MatchesPage from "@/pages/matches-page-v2";
 import EventPage from "@/pages/event-page";
@@ -28,17 +25,12 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
-      <Route path="/register" component={RegisterPage} />
-      <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       
       {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
-      
-      {/* Mock page for demonstration */}
-      <ProtectedRoute path="/mock" component={MockPage} />
       
       {/* Team management - accessible to all but players are read-only */}
       <ProtectedRoute path="/team" component={TeamPage} />
