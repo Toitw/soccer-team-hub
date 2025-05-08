@@ -790,13 +790,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to create matches" });
       }
 
-      const match = await storage.createMatch({
+      // Make sure goalsScored and goalsConceded are properly handled
+      const matchData = {
         ...req.body,
         teamId,
-      });
+        // Convert null or empty values to appropriate defaults
+        goalsScored: req.body.goalsScored !== null && req.body.goalsScored !== undefined ? parseInt(req.body.goalsScored) : null,
+        goalsConceded: req.body.goalsConceded !== null && req.body.goalsConceded !== undefined ? parseInt(req.body.goalsConceded) : null
+      };
+
+      console.log("Creating match with data:", matchData);
+      
+      const match = await storage.createMatch(matchData);
 
       res.status(201).json(match);
     } catch (error) {
+      console.error("Error creating match:", error);
       res.status(500).json({ error: "Failed to create match" });
     }
   });
