@@ -42,9 +42,11 @@ export default function Sidebar() {
               <p className="text-xs opacity-70">{user?.role || "Role"}</p>
             </div>
           </div>
+          {/* Button hidden for now - future development
           <Button variant="outline" className="mt-2 w-full py-1.5 px-3 text-sm bg-white/10 text-white border-white/20 hover:bg-white/20">
             {t("common.switchTeam")}
           </Button>
+          */}
         </div>
 
         <nav>

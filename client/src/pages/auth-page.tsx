@@ -197,14 +197,7 @@ function LoginForm() {
               ) : t('auth.login')}
             </Button>
             
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">
-                Don't have an account?{" "}
-                <Link href="/register" className="text-primary hover:underline">
-                  Register here
-                </Link>
-              </p>
-            </div>
+            
           </form>
         </Form>
       </CardContent>
@@ -215,8 +208,7 @@ function LoginForm() {
 function RegisterForm() {
   const { registerMutation } = useAuth();
   const { t } = useLanguage();
-  const [joinCodeStatus, setJoinCodeStatus] = useState<{ valid: boolean; teamName?: string } | null>(null);
-  const [isCheckingJoinCode, setIsCheckingJoinCode] = useState(false);
+  
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -232,52 +224,7 @@ function RegisterForm() {
     },
   });
 
-  // Function to validate join code with debounce
-  const validateJoinCode = async (code: string) => {
-    // Don't validate empty codes
-    if (!code || code.trim() === "") {
-      setJoinCodeStatus(null);
-      return;
-    }
-
-    setIsCheckingJoinCode(true);
-    try {
-      const response = await fetch(`/api/validate-join-code/${code}`);
-      const data = await response.json();
-
-      setJoinCodeStatus({
-        valid: data.valid,
-        teamName: data.team?.name
-      });
-    } catch (error) {
-      console.error("Error validating join code:", error);
-      setJoinCodeStatus({ valid: false });
-    } finally {
-      setIsCheckingJoinCode(false);
-    }
-  };
-
-  // Watch for join code changes
-  useEffect(() => {
-    const subscription = form.watch((value: any, { name }: { name: string }) => {
-      if (name === "joinCode") {
-        const joinCode = value.joinCode as string;
-        if (joinCode && joinCode.length >= 4) {
-          // Add debounce to prevent too many requests as user types
-          const timer = setTimeout(() => validateJoinCode(joinCode), 500);
-          return () => clearTimeout(timer);
-        } else {
-          setJoinCodeStatus(null);
-        }
-      }
-    });
-
-    return () => {
-      if (subscription && typeof subscription.unsubscribe === 'function') {
-        subscription.unsubscribe();
-      }
-    };
-  }, [form]);
+  
 
   const onSubmit = (data: RegisterFormData) => {
     const { confirmPassword, ...registerData } = data;
@@ -390,53 +337,7 @@ function RegisterForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="joinCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('auth.joinCode')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={`${t('auth.joinCodeHelp')}...`} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  {isCheckingJoinCode && (
-                    <div className="flex items-center mt-1">
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      <p className="text-sm text-muted-foreground">{t('auth.checkingJoinCode')}</p>
-                    </div>
-                  )}
-                  {joinCodeStatus && !isCheckingJoinCode && (
-                    <div className={`flex items-center mt-1 ${joinCodeStatus.valid ? "text-green-600" : "text-red-600"}`}>
-                      {joinCodeStatus.valid ? (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <p className="text-sm">
-                            {joinCodeStatus.teamName 
-                              ? t('auth.validJoinCode', { teamName: joinCodeStatus.teamName }) 
-                              : t('auth.validJoinCode', { teamName: 'Unknown' })}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          <p className="text-sm">{t('auth.invalidJoinCode')}</p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  {!joinCodeStatus && !isCheckingJoinCode && (
-                    <p className="text-sm text-muted-foreground">
-                      {t('auth.joinCodeHelp')}
-                    </p>
-                  )}
-                </FormItem>
-              )}
-            />
+            
             <FormField
               control={form.control}
               name="agreedToTerms"
