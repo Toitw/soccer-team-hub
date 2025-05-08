@@ -89,6 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         descriptionKey: "toasts.welcomeToTeamKick",
         descriptionParams: { name: user.fullName },
       });
+      
+      // Redirect to onboarding page after successful registration
+      window.location.href = "/onboarding";
     },
     onError: (error: Error) => {
       toast({

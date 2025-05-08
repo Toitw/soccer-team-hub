@@ -13,14 +13,23 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const [, setLocation] = useLocation();
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
+
+  // Redirect to onboarding if user has no teams
+  useEffect(() => {
+    if (teams && teams.length === 0 && !teamsLoading) {
+      setLocation("/onboarding");
+    }
+  }, [teams, teamsLoading, setLocation]);
 
   // Create mock data for demonstration if none exists
   useEffect(() => {

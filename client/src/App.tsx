@@ -30,6 +30,9 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       
+      {/* Onboarding page for new users */}
+      <ProtectedRoute path="/onboarding" component={OnboardingPage} />
+      
       {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
       
