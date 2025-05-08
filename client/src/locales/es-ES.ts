@@ -278,6 +278,12 @@ export const esES = {
     centerMidfielder: "Centrocampista Central",
     wideMidfielder: "Centrocampista Lateral",
     
+    // Futsal/5-a-side positions
+    futsalPositions: "Posiciones de Fútbol Sala",
+    pivot: "Pívot",
+    winger: "Extremo",
+    universal: "Universal",
+    
     // 11-a-side position translations
     centerBack: "Defensa Central",
     leftBack: "Lateral Izquierdo",

@@ -278,6 +278,12 @@ export const enUS = {
     centerMidfielder: "Center Midfielder",
     wideMidfielder: "Wide Midfielder",
     
+    // Futsal/5-a-side positions
+    futsalPositions: "Futsal Positions",
+    pivot: "Pivot",
+    winger: "Winger",
+    universal: "Universal",
+    
     // 11-a-side position translations
     centerBack: "Center Back",
     leftBack: "Left Back",

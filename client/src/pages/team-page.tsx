@@ -431,8 +431,9 @@ export default function TeamPage() {
       left: number;
     }[] = [];
     
-    // Check if this is a 7-a-side formation
+    // Check formation type by prefix
     const isSevenASide = formation.startsWith("7a-");
+    const isFutsalOrFiveASide = formation.startsWith("5a-");
     
     if (isSevenASide) {
       // 7-a-side formations
@@ -466,6 +467,47 @@ export default function TeamPage() {
       }
       
       // Add forwards - wider spacing for fewer players
+      const forwardWidth = 90 / (forwards + 1); 
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 5 + i * forwardWidth,
+        });
+      }
+    } else if (isFutsalOrFiveASide) {
+      // 5-a-side/Futsal formations
+      // Extract pattern after the "5a-" prefix
+      const pattern = formation.substring(3);
+      const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
+      
+      // Add goalkeeper
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      
+      // Add defenders - wider spacing for even fewer players
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      
+      // Add midfielders - wider spacing for even fewer players
+      const midfielderWidth = 90 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 5 + i * midfielderWidth,
+        });
+      }
+      
+      // Add forwards - wider spacing for even fewer players
       const forwardWidth = 90 / (forwards + 1); 
       for (let i = 1; i <= forwards; i++) {
         positions.push({
@@ -511,22 +553,43 @@ export default function TeamPage() {
     return positions;
   };
 
-  // Add 7-a-side formations with a "7a-" prefix
-  const availableFormations = [
-    // 11-a-side formations
-    "4-3-3",
-    "4-4-2",
-    "3-5-2",
-    "3-4-3",
-    "5-3-2",
-    "4-2-3-1",
-    // 7-a-side formations
-    "7a-2-3-1",
-    "7a-3-2-1",
-    "7a-2-2-2",
-    "7a-3-1-2",
-    "7a-3-3-0",
-  ];
+  // Determine available formations based on team type
+  const getAvailableFormations = (teamType: string | undefined | null) => {
+    switch (teamType) {
+      case "7-a-side":
+        return [
+          // 7-a-side formations
+          "7a-2-3-1",
+          "7a-3-2-1",
+          "7a-2-2-2",
+          "7a-3-1-2",
+          "7a-3-3-0",
+        ];
+      case "Futsal":
+        return [
+          // Futsal/5-a-side formations
+          "5a-1-2-1",
+          "5a-2-1-1",
+          "5a-1-1-2",
+          "5a-2-2-0",
+          "5a-1-3-0",
+        ];
+      case "11-a-side":
+      default:
+        return [
+          // 11-a-side formations
+          "4-3-3",
+          "4-4-2",
+          "3-5-2",
+          "3-4-3",
+          "5-3-2",
+          "4-2-3-1",
+        ];
+    }
+  };
+  
+  // Get available formations based on selected team type
+  const availableFormations = getAvailableFormations(selectedTeam?.teamType);
 
   const handleFormationChange = (formation: string) =>
     setSelectedFormation(formation);
@@ -788,78 +851,103 @@ export default function TeamPage() {
                                   </SelectItem>
                                 </SelectGroup>
                                 
-                                {/* 7-a-side positions */}
-                                <SelectGroup>
-                                  <SelectLabel>{t("team.sevenASidePositions")}</SelectLabel>
-                                  <SelectItem value="7-a-side Center Defender">
-                                    {t("team.centerDefender")} (7-a-side)
-                                  </SelectItem>
-                                  <SelectItem value="7-a-side Wide Defender">
-                                    {t("team.wideDefender")} (7-a-side)
-                                  </SelectItem>
-                                  <SelectItem value="7-a-side Center Midfielder">
-                                    {t("team.centerMidfielder")} (7-a-side)
-                                  </SelectItem>
-                                  <SelectItem value="7-a-side Wide Midfielder">
-                                    {t("team.wideMidfielder")} (7-a-side)
-                                  </SelectItem>
-                                  <SelectItem value="7-a-side Forward">
-                                    {t("team.forward")} (7-a-side)
-                                  </SelectItem>
-                                </SelectGroup>
+                                {/* Show positions based on team type */}
+                                {selectedTeam?.teamType === "7-a-side" && (
+                                  <SelectGroup>
+                                    <SelectLabel>{t("team.sevenASidePositions")}</SelectLabel>
+                                    <SelectItem value="7-a-side Center Defender">
+                                      {t("team.centerDefender")} (7-a-side)
+                                    </SelectItem>
+                                    <SelectItem value="7-a-side Wide Defender">
+                                      {t("team.wideDefender")} (7-a-side)
+                                    </SelectItem>
+                                    <SelectItem value="7-a-side Center Midfielder">
+                                      {t("team.centerMidfielder")} (7-a-side)
+                                    </SelectItem>
+                                    <SelectItem value="7-a-side Wide Midfielder">
+                                      {t("team.wideMidfielder")} (7-a-side)
+                                    </SelectItem>
+                                    <SelectItem value="7-a-side Forward">
+                                      {t("team.forward")} (7-a-side)
+                                    </SelectItem>
+                                  </SelectGroup>
+                                )}
                                 
-                                {/* 11-a-side positions */}
-                                <SelectGroup>
-                                  <SelectLabel>{t("team.defenders")}</SelectLabel>
-                                  <SelectItem value="Center Back">
-                                    {t("team.centerBack")}
-                                  </SelectItem>
-                                  <SelectItem value="Left Back">
-                                    {t("team.leftBack")}
-                                  </SelectItem>
-                                  <SelectItem value="Right Back">
-                                    {t("team.rightBack")}
-                                  </SelectItem>
-                                  <SelectItem value="Wing Back">
-                                    {t("team.wingBack")}
-                                  </SelectItem>
-                                  <SelectItem value="Sweeper">
-                                    {t("team.sweeper")}
-                                  </SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                  <SelectLabel>{t("team.midfielders")}</SelectLabel>
-                                  <SelectItem value="Defensive Midfielder">
-                                    {t("team.defensiveMidfielder")}
-                                  </SelectItem>
-                                  <SelectItem value="Central Midfielder">
-                                    {t("team.centralMidfielder")}
-                                  </SelectItem>
-                                  <SelectItem value="Attacking Midfielder">
-                                    {t("team.attackingMidfielder")}
-                                  </SelectItem>
-                                  <SelectItem value="Left Midfielder">
-                                    {t("team.leftMidfielder")}
-                                  </SelectItem>
-                                  <SelectItem value="Right Midfielder">
-                                    {t("team.rightMidfielder")}
-                                  </SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                  <SelectLabel>{t("team.forwards")}</SelectLabel>
-                                  <SelectItem value="Center Forward">
-                                    {t("team.centerForward")}
-                                  </SelectItem>
-                                  <SelectItem value="Striker">
-                                    {t("team.striker")}
-                                  </SelectItem>
-                                  <SelectItem value="Left Winger">
-                                    {t("team.leftWinger")}
-                                  </SelectItem>
-                                  <SelectItem value="Right Winger">
-                                    {t("team.rightWinger")}
-                                  </SelectItem>
-                                </SelectGroup>
+                                {/* Futsal/5-a-side positions */}
+                                {selectedTeam?.teamType === "Futsal" && (
+                                  <SelectGroup>
+                                    <SelectLabel>{t("team.futsalPositions")}</SelectLabel>
+                                    <SelectItem value="Futsal Defender">
+                                      {t("team.defender")} (Futsal)
+                                    </SelectItem>
+                                    <SelectItem value="Futsal Pivot">
+                                      {t("team.pivot")} (Futsal)
+                                    </SelectItem>
+                                    <SelectItem value="Futsal Winger">
+                                      {t("team.winger")} (Futsal)
+                                    </SelectItem>
+                                    <SelectItem value="Futsal Universal">
+                                      {t("team.universal")} (Futsal)
+                                    </SelectItem>
+                                  </SelectGroup>
+                                )}
+                                
+                                {/* 11-a-side positions, only shown when team type is 11-a-side or not set */}
+                                {(selectedTeam?.teamType === "11-a-side" || !selectedTeam?.teamType) && (
+                                  <>
+                                    <SelectGroup>
+                                      <SelectLabel>{t("team.defenders")}</SelectLabel>
+                                      <SelectItem value="Center Back">
+                                        {t("team.centerBack")}
+                                      </SelectItem>
+                                      <SelectItem value="Left Back">
+                                        {t("team.leftBack")}
+                                      </SelectItem>
+                                      <SelectItem value="Right Back">
+                                        {t("team.rightBack")}
+                                      </SelectItem>
+                                      <SelectItem value="Wing Back">
+                                        {t("team.wingBack")}
+                                      </SelectItem>
+                                      <SelectItem value="Sweeper">
+                                        {t("team.sweeper")}
+                                      </SelectItem>
+                                    </SelectGroup>
+                                    <SelectGroup>
+                                      <SelectLabel>{t("team.midfielders")}</SelectLabel>
+                                      <SelectItem value="Defensive Midfielder">
+                                        {t("team.defensiveMidfielder")}
+                                      </SelectItem>
+                                      <SelectItem value="Central Midfielder">
+                                        {t("team.centralMidfielder")}
+                                      </SelectItem>
+                                      <SelectItem value="Attacking Midfielder">
+                                        {t("team.attackingMidfielder")}
+                                      </SelectItem>
+                                      <SelectItem value="Left Midfielder">
+                                        {t("team.leftMidfielder")}
+                                      </SelectItem>
+                                      <SelectItem value="Right Midfielder">
+                                        {t("team.rightMidfielder")}
+                                      </SelectItem>
+                                    </SelectGroup>
+                                    <SelectGroup>
+                                      <SelectLabel>{t("team.forwards")}</SelectLabel>
+                                      <SelectItem value="Center Forward">
+                                        {t("team.centerForward")}
+                                      </SelectItem>
+                                      <SelectItem value="Striker">
+                                        {t("team.striker")}
+                                      </SelectItem>
+                                      <SelectItem value="Left Winger">
+                                        {t("team.leftWinger")}
+                                      </SelectItem>
+                                      <SelectItem value="Right Winger">
+                                        {t("team.rightWinger")}
+                                      </SelectItem>
+                                    </SelectGroup>
+                                  </>
+                                )}
                                 <SelectItem value="none">{t("team.none")}</SelectItem>
                               </SelectContent>
                             </Select>
@@ -982,6 +1070,19 @@ export default function TeamPage() {
                               7-a-side
                             </div>
                           </>
+                        ) : selectedFormation.startsWith("5a-") ? (
+                          <>
+                            {/* Futsal/5-a-side field markings - even smaller */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-28 h-14 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-20 w-40 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-10 w-20 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-12 bg-white"></div>
+                            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                            {/* 5-a-side specific text indicator */}
+                            <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                              Futsal
+                            </div>
+                          </>
                         ) : (
                           <>
                             {/* 11-a-side field markings - original */}
@@ -990,6 +1091,10 @@ export default function TeamPage() {
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
                             <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                            {/* 11-a-side specific text indicator */}
+                            <div className="absolute top-2 right-2 bg-green-700 text-white text-xs px-2 py-1 rounded-full">
+                              11-a-side
+                            </div>
                           </>
                         )}
                         <div className="absolute top-0 left-0 w-full h-full">
