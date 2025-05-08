@@ -430,45 +430,102 @@ export default function TeamPage() {
       top: number;
       left: number;
     }[] = [];
-    const [defenders, midfielders, forwards] = formation.split("-").map(Number);
-    positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
-    const defenderWidth = 90 / (defenders + 1);
-    for (let i = 1; i <= defenders; i++) {
-      positions.push({
-        id: `def-${i}`,
-        label: "DEF",
-        top: 60,
-        left: 5 + i * defenderWidth,
-      });
+    
+    // Check if this is a 7-a-side formation
+    const isSevenASide = formation.startsWith("7a-");
+    
+    if (isSevenASide) {
+      // 7-a-side formations
+      // Extract pattern after the "7a-" prefix
+      const pattern = formation.substring(3);
+      const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
+      
+      // Add goalkeeper
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      
+      // Add defenders - wider spacing for fewer players
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      
+      // Add midfielders - wider spacing for fewer players
+      const midfielderWidth = 90 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 5 + i * midfielderWidth,
+        });
+      }
+      
+      // Add forwards - wider spacing for fewer players
+      const forwardWidth = 90 / (forwards + 1); 
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 5 + i * forwardWidth,
+        });
+      }
+    } else {
+      // 11-a-side formations (original logic)
+      const [defenders, midfielders, forwards] = formation.split("-").map(Number);
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      const midfielderWidth = 80 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 10 + i * midfielderWidth,
+        });
+      }
+      const forwardWidth = 80 / (forwards + 1);
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 10 + i * forwardWidth,
+        });
+      }
     }
-    const midfielderWidth = 80 / (midfielders + 1);
-    for (let i = 1; i <= midfielders; i++) {
-      positions.push({
-        id: `mid-${i}`,
-        label: "MID",
-        top: 35,
-        left: 10 + i * midfielderWidth,
-      });
-    }
-    const forwardWidth = 80 / (forwards + 1);
-    for (let i = 1; i <= forwards; i++) {
-      positions.push({
-        id: `fwd-${i}`,
-        label: "FWD",
-        top: 10,
-        left: 10 + i * forwardWidth,
-      });
-    }
+    
     return positions;
   };
 
+  // Add 7-a-side formations with a "7a-" prefix
   const availableFormations = [
+    // 11-a-side formations
     "4-3-3",
     "4-4-2",
     "3-5-2",
     "3-4-3",
     "5-3-2",
     "4-2-3-1",
+    // 7-a-side formations
+    "7a-2-3-1",
+    "7a-3-2-1",
+    "7a-2-2-2",
+    "7a-3-1-2",
+    "7a-3-3-0",
   ];
 
   const handleFormationChange = (formation: string) =>
@@ -730,6 +787,28 @@ export default function TeamPage() {
                                     {t("team.goalkeeper")}
                                   </SelectItem>
                                 </SelectGroup>
+                                
+                                {/* 7-a-side positions */}
+                                <SelectGroup>
+                                  <SelectLabel>{t("team.sevenASidePositions")}</SelectLabel>
+                                  <SelectItem value="7-a-side Center Defender">
+                                    {t("team.centerDefender")} (7-a-side)
+                                  </SelectItem>
+                                  <SelectItem value="7-a-side Wide Defender">
+                                    {t("team.wideDefender")} (7-a-side)
+                                  </SelectItem>
+                                  <SelectItem value="7-a-side Center Midfielder">
+                                    {t("team.centerMidfielder")} (7-a-side)
+                                  </SelectItem>
+                                  <SelectItem value="7-a-side Wide Midfielder">
+                                    {t("team.wideMidfielder")} (7-a-side)
+                                  </SelectItem>
+                                  <SelectItem value="7-a-side Forward">
+                                    {t("team.forward")} (7-a-side)
+                                  </SelectItem>
+                                </SelectGroup>
+                                
+                                {/* 11-a-side positions */}
                                 <SelectGroup>
                                   <SelectLabel>{t("team.defenders")}</SelectLabel>
                                   <SelectItem value="Center Back">
@@ -889,11 +968,30 @@ export default function TeamPage() {
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        {/* Different field markings based on format */}
+                        {selectedFormation.startsWith("7a-") ? (
+                          <>
+                            {/* 7-a-side field markings - smaller and simplified */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-24 w-48 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-12 w-24 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-16 bg-white"></div>
+                            <div className="absolute bottom-18 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                            {/* 7-a-side specific text indicator */}
+                            <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                              7-a-side
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* 11-a-side field markings - original */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                          </>
+                        )}
                         <div className="absolute top-0 left-0 w-full h-full">
                           {getPositionsByFormation(selectedFormation).map(
                             (position) => {
