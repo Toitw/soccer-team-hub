@@ -790,13 +790,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to create matches" });
       }
 
-      const match = await storage.createMatch({
+      // Extract and validate match data
+      const matchData = {
         ...req.body,
         teamId,
-      });
-
+      };
+      
+      // Ensure matchDate is a valid Date object
+      if (matchData.matchDate && typeof matchData.matchDate === 'string') {
+        try {
+          const date = new Date(matchData.matchDate);
+          if (isNaN(date.getTime())) {
+            throw new Error("Invalid date format");
+          }
+          // Store as a proper Date instance
+          matchData.matchDate = date;
+        } catch (dateError) {
+          console.error("Error parsing match date:", dateError);
+          return res.status(400).json({ error: "Invalid match date format" });
+        }
+      }
+      
+      console.log("Creating match with data:", matchData);
+      
+      const match = await storage.createMatch(matchData);
+      
       res.status(201).json(match);
     } catch (error) {
+      console.error("Error creating match:", error);
       res.status(500).json({ error: "Failed to create match" });
     }
   });
@@ -820,10 +841,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!match || match.teamId !== teamId) {
         return res.status(404).json({ error: "Match not found" });
       }
+      
+      // Extract and validate match data
+      const matchData = { ...req.body };
+      
+      // Ensure matchDate is a valid Date object
+      if (matchData.matchDate && typeof matchData.matchDate === 'string') {
+        try {
+          const date = new Date(matchData.matchDate);
+          if (isNaN(date.getTime())) {
+            throw new Error("Invalid date format");
+          }
+          // Store as a proper Date instance
+          matchData.matchDate = date;
+        } catch (dateError) {
+          console.error("Error parsing match date:", dateError);
+          return res.status(400).json({ error: "Invalid match date format" });
+        }
+      }
+      
+      console.log("Updating match with data:", matchData);
 
-      const updatedMatch = await storage.updateMatch(matchId, req.body);
+      const updatedMatch = await storage.updateMatch(matchId, matchData);
       res.json(updatedMatch);
     } catch (error) {
+      console.error("Error updating match:", error);
       res.status(500).json({ error: "Failed to update match" });
     }
   });
