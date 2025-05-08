@@ -161,6 +161,8 @@ export const enUS = {
     setNewPasswordPrompt: "Enter your new password",
     passwordSecurityNotice: "Password must be at least 8 characters and include a number, uppercase letter, and special character",
     forgotPassword: "Forgot password?",
+    dontHaveAccount: "Don't have an account?",
+    registerHere: "Register here",
     // Forgot password page
     forgotPasswordTitle: "Forgot Your Password?",
     forgotPasswordDescription: "Enter your email address below and we'll send you a link to reset your password.",
