@@ -271,7 +271,14 @@ export const esES = {
       tryAdjusting: "Intenta ajustar tus filtros",
       addToStart: "Añade miembros al equipo para comenzar"
     },
-    // Position translations
+    // 7-a-side specific positions
+    sevenASidePositions: "Posiciones de Fútbol 7",
+    centerDefender: "Defensa Central",
+    wideDefender: "Defensa Lateral",
+    centerMidfielder: "Centrocampista Central",
+    wideMidfielder: "Centrocampista Lateral",
+    
+    // 11-a-side position translations
     centerBack: "Defensa Central",
     leftBack: "Lateral Izquierdo",
     rightBack: "Lateral Derecho",
