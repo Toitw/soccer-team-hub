@@ -271,7 +271,14 @@ export const enUS = {
       tryAdjusting: "Try adjusting your filters",
       addToStart: "Add team members to get started"
     },
-    // Position translations
+    // 7-a-side specific positions
+    sevenASidePositions: "7-a-side Positions",
+    centerDefender: "Center Defender",
+    wideDefender: "Wide Defender",
+    centerMidfielder: "Center Midfielder",
+    wideMidfielder: "Wide Midfielder",
+    
+    // 11-a-side position translations
     centerBack: "Center Back",
     leftBack: "Left Back",
     rightBack: "Right Back",
