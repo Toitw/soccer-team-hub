@@ -146,6 +146,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create team" });
     }
   });
+  
+  // Endpoint for creating a real team during onboarding
+  app.post("/api/teams/setup", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      // First, get user's current teams to avoid duplicate default teams
+      const existingTeams = await storage.getTeamsByUserId(req.user.id);
+      if (existingTeams.length > 0) {
+        return res.json(existingTeams[0]);
+      }
+
+      // Generate a join code for the team
+      const joinCode = generateJoinCode();
+      
+      // Create a basic team for this user
+      const team = await storage.createTeam({
+        name: "My Team", // Default name that can be changed later
+        logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg", // Default logo
+        division: "Division 1", // Default division
+        seasonYear: new Date().getFullYear().toString(),
+        createdById: req.user.id,
+        ownerId: req.user.id,
+        joinCode,
+      });
+
+      console.log(`Created new team during onboarding: ${team.name} (ID: ${team.id})`);
+
+      // Add the current user as admin of the new team
+      await storage.createTeamMember({
+        teamId: team.id,
+        userId: req.user.id,
+        role: "admin"
+      });
+
+      // Return the team object
+      res.json(team);
+    } catch (error) {
+      console.error("Error creating team during onboarding:", error);
+      res.status(500).json({ error: "Failed to create team" });
+    }
+  });
 
   // Team routes
   app.get("/api/teams", async (req, res) => {
@@ -1955,6 +1997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           division: "Premier League",
           seasonYear: "2023/24",
           createdById: adminUser!.id,
+          ownerId: adminUser!.id,  // Add required ownerId field
         });
 
         // Add members
