@@ -161,6 +161,8 @@ export const esES = {
     setNewPasswordPrompt: "Introduce tu nueva contraseña",
     passwordSecurityNotice: "La contraseña debe tener al menos 8 caracteres e incluir un número, una letra mayúscula y un carácter especial",
     forgotPassword: "¿Olvidaste tu contraseña?",
+    noAccount: "¿No tienes una cuenta?",
+    registerHere: "Regístrate aquí",
     // Página de olvido de contraseña
     forgotPasswordTitle: "¿Olvidaste tu Contraseña?",
     forgotPasswordDescription: "Introduce tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
