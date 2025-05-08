@@ -16,6 +16,7 @@ import AdminPage from "@/pages/admin-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
+import OnboardingPage from "@/pages/onboarding-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { TeamProvider } from "./hooks/use-team";
