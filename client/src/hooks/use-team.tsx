@@ -9,8 +9,6 @@ interface TeamContextType {
   selectedTeam: Team | null;
   setSelectedTeam: (team: Team) => void;
   selectTeamById: (id: number) => void;
-  // Helper property to check if user has any teams
-  activeTeam: Team | null;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -53,8 +51,6 @@ export function TeamProvider({ children }: { children: ReactNode }) {
         selectedTeam,
         setSelectedTeam,
         selectTeamById,
-        // The activeTeam is the first team from the list, or null if there are no teams
-        activeTeam: teams.length > 0 ? teams[0] : null
       }}
     >
       {children}
