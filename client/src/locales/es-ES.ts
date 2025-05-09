@@ -98,7 +98,7 @@ export const esES = {
   navigation: {
     dashboard: "Panel",
     team: "Equipo",
-    matches: "Partidos",
+    matches: "Competición",
     events: "Eventos",
     statistics: "Estadísticas",
     announcements: "Anuncios",
@@ -307,9 +307,9 @@ export const esES = {
     noTeamMembersForLineup: "No hay miembros del equipo disponibles para la alineación",
   },
   matches: {
-    matches: "Partidos",
+    matches: "Competición",
     upcomingMatches: "Próximos",
-    pastMatches: "Pasados",
+    pastMatches: "Jugados",
     allMatches: "Todos los Partidos",
     addMatch: "Añadir Partido",
     editMatch: "Editar Partido",
