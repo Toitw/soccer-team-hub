@@ -2168,6 +2168,227 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Season routes
+  // Get all seasons for a team
+  app.get("/api/teams/:id/seasons", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      const seasons = await storage.getSeasons(teamId);
+      res.json(seasons);
+    } catch (error) {
+      console.error("Error fetching seasons:", error);
+      res.status(500).json({ error: "Failed to fetch seasons" });
+    }
+  });
+
+  // Get active seasons for a team
+  app.get("/api/teams/:id/seasons/active", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      const seasons = await storage.getActiveSeasons(teamId);
+      res.json(seasons);
+    } catch (error) {
+      console.error("Error fetching active seasons:", error);
+      res.status(500).json({ error: "Failed to fetch active seasons" });
+    }
+  });
+
+  // Get a specific season by ID
+  app.get("/api/seasons/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeason(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ error: "Season not found" });
+      }
+      
+      // Check if user is a member of the team that owns this season
+      const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this season" });
+      }
+      
+      res.json(season);
+    } catch (error) {
+      console.error("Error fetching season:", error);
+      res.status(500).json({ error: "Failed to fetch season" });
+    }
+  });
+
+  // Create a new season for a team
+  app.post("/api/teams/:id/seasons", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Check if user is an admin of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can create seasons" });
+      }
+      
+      // Validate request body
+      const { name, startDate } = req.body;
+      if (!name || !startDate) {
+        return res.status(400).json({ error: "Season name and start date are required" });
+      }
+      
+      // Create the season
+      const season = await storage.createSeason({
+        name,
+        startDate: new Date(startDate),
+        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
+        teamId
+      });
+      
+      res.status(201).json(season);
+    } catch (error) {
+      console.error("Error creating season:", error);
+      res.status(500).json({ error: "Failed to create season" });
+    }
+  });
+
+  // Update a season
+  app.patch("/api/seasons/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeason(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ error: "Season not found" });
+      }
+      
+      // Check if user is an admin of the team that owns this season
+      const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can update seasons" });
+      }
+      
+      // Update the season
+      const updatedSeason = await storage.updateSeason(seasonId, req.body);
+      res.json(updatedSeason);
+    } catch (error) {
+      console.error("Error updating season:", error);
+      res.status(500).json({ error: "Failed to update season" });
+    }
+  });
+
+  // Delete a season
+  app.delete("/api/seasons/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeason(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ error: "Season not found" });
+      }
+      
+      // Check if user is an admin of the team that owns this season
+      const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can delete seasons" });
+      }
+      
+      // Delete the season
+      const deleted = await storage.deleteSeason(seasonId);
+      
+      if (deleted) {
+        res.json({ message: "Season deleted successfully" });
+      } else {
+        res.status(400).json({ error: "Cannot delete season as it has related classifications" });
+      }
+    } catch (error) {
+      console.error("Error deleting season:", error);
+      res.status(500).json({ error: "Failed to delete season" });
+    }
+  });
+
+  // Mark a season as finished (set end date and isActive=false)
+  app.post("/api/seasons/:id/finish", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeason(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ error: "Season not found" });
+      }
+      
+      // Check if user is an admin of the team that owns this season
+      const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
+      if (!teamMember || teamMember.role !== "admin") {
+        return res.status(403).json({ error: "Only team administrators can finish seasons" });
+      }
+      
+      // Finish the season
+      const finishedSeason = await storage.finishSeason(seasonId);
+      
+      if (finishedSeason) {
+        res.json(finishedSeason);
+      } else {
+        res.status(500).json({ error: "Failed to finish season" });
+      }
+    } catch (error) {
+      console.error("Error finishing season:", error);
+      res.status(500).json({ error: "Failed to finish season" });
+    }
+  });
+
+  // Get league classifications for a specific season
+  app.get("/api/teams/:teamId/seasons/:seasonId/classifications", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const seasonId = parseInt(req.params.seasonId);
+      
+      // Check if user is a member of the team
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      // Verify the season exists and belongs to this team
+      const season = await storage.getSeason(seasonId);
+      if (!season || season.teamId !== teamId) {
+        return res.status(404).json({ error: "Season not found for this team" });
+      }
+      
+      const classifications = await storage.getLeagueClassificationsBySeason(teamId, seasonId);
+      res.json(classifications);
+    } catch (error) {
+      console.error("Error fetching classifications by season:", error);
+      res.status(500).json({ error: "Failed to fetch classifications" });
+    }
+  });
+
   // League Classification routes
   // Get all league classifications for a team
   app.get('/api/teams/:teamId/classification', async (req, res) => {
@@ -2203,6 +2424,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to add classification for this team" });
       }
       
+      // Check if a seasonId was provided and validate it belongs to the team
+      if (req.body.seasonId) {
+        const season = await storage.getSeason(req.body.seasonId);
+        if (!season || season.teamId !== teamId) {
+          return res.status(400).json({ error: "Invalid season ID provided" });
+        }
+      }
+      
       const classification = await storage.createLeagueClassification({
         ...req.body,
         teamId
@@ -2232,6 +2461,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to update classification for this team" });
+      }
+      
+      // Check if a seasonId was provided and validate it belongs to the team
+      if (req.body.seasonId) {
+        const season = await storage.getSeason(req.body.seasonId);
+        if (!season || season.teamId !== classification.teamId) {
+          return res.status(400).json({ error: "Invalid season ID provided" });
+        }
       }
       
       const updatedClassification = await storage.updateLeagueClassification(classificationId, req.body);
@@ -2320,8 +2557,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid or empty classifications data" });
       }
       
+      // Check if a seasonId was provided for all classifications and validate it belongs to the team
+      const { seasonId } = req.body;
+      if (seasonId) {
+        const season = await storage.getSeason(seasonId);
+        if (!season || season.teamId !== teamId) {
+          return res.status(400).json({ error: "Invalid season ID provided" });
+        }
+      }
+
       // Delete all existing classifications for this team before adding new ones
-      const existingClassifications = await storage.getLeagueClassifications(teamId);
+      let existingClassifications = await storage.getLeagueClassifications(teamId);
+      
+      // If a seasonId is provided, only delete classifications for that season
+      if (seasonId) {
+        existingClassifications = existingClassifications.filter(c => c.seasonId === seasonId);
+      }
+      
       for (const classification of existingClassifications) {
         await storage.deleteLeagueClassification(classification.id);
       }
@@ -2329,7 +2581,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add teamId to each classification
       const classificationsWithTeamId = classifications.map(c => ({
         ...c,
-        teamId
+        teamId,
+        seasonId: seasonId || null
       }));
       
       const createdClassifications = await storage.bulkCreateLeagueClassifications(classificationsWithTeamId);
