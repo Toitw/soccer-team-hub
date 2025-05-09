@@ -175,6 +175,18 @@ export interface IStorage {
   updateClassification(id: number, classificationData: Partial<LeagueClassification>): Promise<LeagueClassification | undefined>;
   deleteClassification(id: number): Promise<boolean>;
   
+  // Season methods
+  getSeasons(teamId: number): Promise<Season[]>;
+  getSeason(id: number): Promise<Season | undefined>;
+  getActiveSeasons(teamId: number): Promise<Season[]>;
+  createSeason(seasonData: InsertSeason): Promise<Season>;
+  updateSeason(id: number, seasonData: Partial<Season>): Promise<Season | undefined>;
+  deleteSeason(id: number): Promise<boolean>;
+  finishSeason(id: number): Promise<Season | undefined>;
+  
+  // Enhanced League Classification methods
+  getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]>;
+  
   // Session store for authentication
   sessionStore: SessionStore;
 }
@@ -196,6 +208,7 @@ export class MemStorage implements IStorage {
   private matchCards: Map<number, MatchCard>;
   private matchPhotos: Map<number, MatchPhoto>;
   private leagueClassifications: Map<number, LeagueClassification>;
+  private seasons: Map<number, Season>;
   
   sessionStore: SessionStore;
   
@@ -215,6 +228,7 @@ export class MemStorage implements IStorage {
   private matchCardCurrentId: number;
   private matchPhotoCurrentId: number;
   private leagueClassificationCurrentId: number;
+  private seasonCurrentId: number;
 
   constructor() {
     // Ensure the data directory exists
@@ -256,6 +270,10 @@ export class MemStorage implements IStorage {
     this.matchCardCurrentId = 1;
     this.matchPhotoCurrentId = 1;
     this.leagueClassificationCurrentId = 1;
+    this.seasonCurrentId = 1;
+
+    // Initialize seasons map
+    this.seasons = new Map();
     
     // Create a memory-based session store with 24-hour check period
     const store = new MemoryStore({
@@ -1883,6 +1901,106 @@ export class MemStorage implements IStorage {
 
   async deleteClassification(id: number): Promise<boolean> {
     return this.deleteLeagueClassification(id);
+  }
+
+  // Season methods
+  async getSeasons(teamId: number): Promise<Season[]> {
+    return Array.from(this.seasons.values()).filter(season => season.teamId === teamId);
+  }
+
+  async getSeason(id: number): Promise<Season | undefined> {
+    return this.seasons.get(id);
+  }
+
+  async getActiveSeasons(teamId: number): Promise<Season[]> {
+    const now = new Date();
+    return Array.from(this.seasons.values()).filter(season => {
+      return season.teamId === teamId && 
+        new Date(season.startDate) <= now &&
+        (!season.endDate || new Date(season.endDate) >= now);
+    });
+  }
+
+  async createSeason(seasonData: InsertSeason): Promise<Season> {
+    const id = this.seasonCurrentId++;
+    const createdAt = new Date();
+    const updatedAt = createdAt;
+    
+    const season: Season = {
+      id,
+      ...seasonData,
+      createdAt,
+      updatedAt,
+      isActive: true
+    };
+    
+    this.seasons.set(id, season);
+    return season;
+  }
+
+  async updateSeason(id: number, seasonData: Partial<Season>): Promise<Season | undefined> {
+    const season = this.seasons.get(id);
+    
+    if (!season) {
+      return undefined;
+    }
+    
+    const updatedSeason: Season = {
+      ...season,
+      ...seasonData,
+      updatedAt: new Date()
+    };
+    
+    this.seasons.set(id, updatedSeason);
+    return updatedSeason;
+  }
+
+  async deleteSeason(id: number): Promise<boolean> {
+    // Check if this season is used in league classifications
+    const hasReferences = Array.from(this.leagueClassifications.values())
+      .some(classification => classification.seasonId === id);
+    
+    if (hasReferences) {
+      // Can't delete a season that's referenced by classifications
+      return false;
+    }
+    
+    return this.seasons.delete(id);
+  }
+
+  async finishSeason(id: number): Promise<Season | undefined> {
+    const season = this.seasons.get(id);
+    
+    if (!season) {
+      return undefined;
+    }
+    
+    // Set endDate to today if not already set
+    const updatedSeason: Season = {
+      ...season,
+      endDate: season.endDate || new Date(),
+      isActive: false,
+      updatedAt: new Date()
+    };
+    
+    this.seasons.set(id, updatedSeason);
+    return updatedSeason;
+  }
+
+  async getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]> {
+    return Array.from(this.leagueClassifications.values())
+      .filter(classification => 
+        classification.teamId === teamId && 
+        classification.seasonId === seasonId
+      )
+      .sort((a, b) => {
+        // Sort by position if available, otherwise by points
+        if (a.position !== null && b.position !== null) {
+          return a.position - b.position;
+        } else {
+          return (b.points || 0) - (a.points || 0);
+        }
+      });
   }
   
   // Team Lineup methods
