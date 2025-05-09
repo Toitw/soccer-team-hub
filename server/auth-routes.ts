@@ -220,6 +220,113 @@ router.post("/reset-password", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Route to request a password change for authenticated users
+ * POST /api/auth/change-password/request
+ */
+router.post("/change-password/request", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    // Get the user
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Generate a reset token
+    const token = generateVerificationToken();
+    const expires = generateTokenExpiry(1); // 1 hour
+
+    // Store the token in the user record
+    await storage.updateUser(userId, {
+      resetPasswordToken: token,
+      resetPasswordTokenExpiry: expires
+    });
+
+    // Generate the reset link
+    const baseUrl = `${req.protocol}://${req.get("host")}/change-password`;
+    
+    // Generate and send password change email
+    const emailContent = generatePasswordResetEmail(
+      user.username,
+      token,
+      baseUrl
+    );
+
+    // Send the email
+    const emailResult = await sendEmail(
+      user.email || '',
+      emailContent.subject,
+      emailContent.html,
+      emailContent.text
+    );
+
+    if (!emailResult.success) {
+      return res.status(500).json({ error: "Failed to send password change email", message: emailResult.message });
+    }
+
+    return res.status(200).json({ success: true, message: "Password change email sent" });
+  } catch (error) {
+    console.error("Password change request error:", error);
+    return res.status(500).json({ error: "Server error", message: "Failed to process password change request" });
+  }
+});
+
+/**
+ * Route to change password with token (similar to reset password but for authenticated users)
+ * POST /api/auth/change-password
+ */
+router.post("/change-password", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required" });
+    }
+
+    // Get the user
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Verify this is the correct token for this user
+    if (user.resetPasswordToken !== token) {
+      return res.status(400).json({ error: "Invalid reset token" });
+    }
+
+    // Check if token is expired
+    const now = new Date();
+    if (user.resetPasswordTokenExpiry && new Date(user.resetPasswordTokenExpiry) < now) {
+      return res.status(400).json({ error: "Reset token expired" });
+    }
+
+    // Update user password and clear reset token
+    // We need to hash the password before updating
+    const hashedPassword = await hashPassword(password);
+    
+    await storage.updateUser(userId, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordTokenExpiry: null
+    });
+
+    return res.status(200).json({ success: true, message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Password change error:", error);
+    return res.status(500).json({ error: "Server error", message: "Failed to change password" });
+  }
+});
+
 // Schema for registration data validation
 const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
