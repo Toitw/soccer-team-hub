@@ -43,12 +43,11 @@ export default function ForgotPasswordPage() {
     },
   });
 
+  const { currentLanguage } = useLanguage();
+  
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
       setRequestState("sending");
-      
-      // Get user's current language preference
-      const { currentLanguage } = useLanguage();
       
       const response = await fetch("/api/auth/reset-password/request", {
         method: "POST",

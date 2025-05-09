@@ -22,6 +22,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/hooks/use-language";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import LanguageSelector from "@/components/language-selector";
 
 // Password reset form schema
 const resetPasswordSchema = z.object({
@@ -71,12 +72,15 @@ export default function ResetPasswordPage() {
     },
   });
 
+  const { currentLanguage } = useLanguage();
+
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept-Language": currentLanguage
         },
         body: JSON.stringify({
           token,
@@ -240,6 +244,9 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <Card className="w-full max-w-md">
         {renderContent()}
         <CardFooter className="flex justify-center border-t pt-6">
