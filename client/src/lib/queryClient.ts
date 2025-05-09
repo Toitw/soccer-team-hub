@@ -36,9 +36,22 @@ export async function apiRequest<T = any>(
   
   console.log(`API Request: ${method} ${url}`, requestData);
   
+  // Get user's language preference
+  const userLanguage = localStorage.getItem("language") || "es";
+  
+  // Prepare headers with language preference
+  const headers: Record<string, string> = {
+    "Accept-Language": userLanguage,
+  };
+  
+  // Add Content-Type for requests with body
+  if (requestData) {
+    headers["Content-Type"] = "application/json";
+  }
+  
   const res = await fetch(url, {
     method,
-    headers: requestData ? { "Content-Type": "application/json" } : {},
+    headers,
     body: requestData ? JSON.stringify(requestData) : undefined,
     credentials: "include",
   });
@@ -86,8 +99,15 @@ export const getQueryFn = <TData = any>({ on401: unauthorizedBehavior }: {
   on401: UnauthorizedBehavior;
 }): QueryFunction<TData> => async ({ queryKey }) => {
   const url = queryKey[0] as string;
+  
+  // Get user's language preference
+  const userLanguage = localStorage.getItem("language") || "es";
+  
   const res = await fetch(url, {
     credentials: "include",
+    headers: {
+      "Accept-Language": userLanguage
+    }
   });
 
   if (unauthorizedBehavior === "returnNull" && res.status === 401) {
