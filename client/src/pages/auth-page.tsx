@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import LanguageSelector from "@/components/language-selector";
 import { 
   loginSchema, 
   registerSchema, 
@@ -41,7 +42,7 @@ export default function AuthPage() {
       <div className="w-full max-w-6xl flex flex-col lg:flex-row overflow-hidden bg-white rounded-lg shadow-lg">
         {/* Left Side - Form */}
         <div className="w-full lg:w-1/2 p-6">
-          <div className="mb-6 flex items-center justify-center lg:justify-start">
+          <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary flex items-center">
               Cancha 
               <span className="relative ml-2 inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-6 h-6 hover:animate-spin transition-all duration-300">
@@ -54,6 +55,7 @@ export default function AuthPage() {
                 <span className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
               </span>
             </h1>
+            <LanguageSelector />
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

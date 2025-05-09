@@ -18,6 +18,7 @@ import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from "@/hooks/use-language";
 import { useToast } from "@/hooks/use-toast";
+import LanguageSelector from "@/components/language-selector";
 
 // Password reset request schema
 const forgotPasswordSchema = z.object({
@@ -46,10 +47,14 @@ export default function ForgotPasswordPage() {
     try {
       setRequestState("sending");
       
+      // Get user's current language preference
+      const { currentLanguage } = useLanguage();
+      
       const response = await fetch("/api/auth/reset-password/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept-Language": currentLanguage
         },
         body: JSON.stringify({
           email: data.email,
@@ -195,6 +200,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <Card className="w-full max-w-md">
         {renderContent()}
         {requestState !== "form" && requestState !== "sending" && (
