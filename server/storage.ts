@@ -14,7 +14,8 @@ import {
   matchGoals, type MatchGoal, type InsertMatchGoal,
   matchCards, type MatchCard, type InsertMatchCard,
   matchPhotos, type MatchPhoto, type InsertMatchPhoto,
-  leagueClassification, type LeagueClassification, type InsertLeagueClassification
+  leagueClassification, type LeagueClassification, type InsertLeagueClassification,
+  seasons, type Season, type InsertSeason
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
