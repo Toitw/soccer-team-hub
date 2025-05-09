@@ -14,7 +14,8 @@ import {
   type MatchGoal, type InsertMatchGoal, matchGoals,
   type MatchCard, type InsertMatchCard, matchCards,
   type MatchPhoto, type InsertMatchPhoto, matchPhotos,
-  type LeagueClassification, type InsertLeagueClassification, leagueClassification
+  type LeagueClassification, type InsertLeagueClassification, leagueClassification,
+  type Season, type InsertSeason, seasons
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and, desc, lte, gte, sql } from "drizzle-orm";
@@ -794,5 +795,83 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClassification(id: number): Promise<boolean> {
     return this.deleteLeagueClassification(id);
+  }
+
+  // Season methods
+  async getSeasons(teamId: number): Promise<Season[]> {
+    return db
+      .select()
+      .from(seasons)
+      .where(eq(seasons.teamId, teamId))
+      .orderBy(desc(seasons.startDate));
+  }
+
+  async getSeason(id: number): Promise<Season | undefined> {
+    const [season] = await db
+      .select()
+      .from(seasons)
+      .where(eq(seasons.id, id));
+    
+    return season;
+  }
+
+  async getActiveSeasons(teamId: number): Promise<Season[]> {
+    return db
+      .select()
+      .from(seasons)
+      .where(
+        and(
+          eq(seasons.teamId, teamId),
+          eq(seasons.isActive, true)
+        )
+      );
+  }
+
+  async createSeason(seasonData: InsertSeason): Promise<Season> {
+    const [season] = await db
+      .insert(seasons)
+      .values(seasonData)
+      .returning();
+    
+    return season;
+  }
+
+  async updateSeason(id: number, seasonData: Partial<Season>): Promise<Season | undefined> {
+    const [updatedSeason] = await db
+      .update(seasons)
+      .set(seasonData)
+      .where(eq(seasons.id, id))
+      .returning();
+    
+    return updatedSeason;
+  }
+
+  async deleteSeason(id: number): Promise<boolean> {
+    await db.delete(seasons).where(eq(seasons.id, id));
+    return true;
+  }
+
+  async finishSeason(id: number): Promise<Season | undefined> {
+    const [updatedSeason] = await db
+      .update(seasons)
+      .set({ isActive: false })
+      .where(eq(seasons.id, id))
+      .returning();
+    
+    return updatedSeason;
+  }
+
+  // Enhanced League Classification methods
+  async getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]> {
+    return db
+      .select()
+      .from(leagueClassification)
+      .where(
+        and(
+          eq(leagueClassification.teamId, teamId),
+          eq(leagueClassification.seasonId, seasonId)
+        )
+      )
+      .orderBy(leagueClassification.position);
   }
 }

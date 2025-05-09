@@ -369,6 +369,7 @@ export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
 export const leagueClassification = pgTable("league_classification", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(), // Reference to the team this classification belongs to
+  seasonId: integer("season_id"), // Reference to the season this classification belongs to (optional for backward compatibility)
   externalTeamName: text("external_team_name").notNull(), // Name of the external team in the league
   points: integer("points").notNull().default(0),
   position: integer("position"),
@@ -384,6 +385,7 @@ export const leagueClassification = pgTable("league_classification", {
 
 export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
   teamId: true,
+  seasonId: true,
   externalTeamName: true,
   points: true,
   position: true,
@@ -397,3 +399,28 @@ export const insertLeagueClassificationSchema = createInsertSchema(leagueClassif
 
 export type LeagueClassification = typeof leagueClassification.$inferSelect;
 export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
+
+// Seasons table
+export const seasons = pgTable("seasons", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull(),
+  name: text("name").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSeasonSchema = createInsertSchema(seasons).pick({
+  teamId: true,
+  name: true,
+  startDate: true,
+  endDate: true,
+  isActive: true,
+  description: true,
+});
+
+export type Season = typeof seasons.$inferSelect;
+export type InsertSeason = z.infer<typeof insertSeasonSchema>;
