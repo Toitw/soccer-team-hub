@@ -7,6 +7,7 @@ import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import MatchDetails from "@/components/match-details";
+import { SeasonManagement } from "@/components/season/season-management";
 import {
   Card,
   CardContent,
@@ -856,7 +857,7 @@ export default function MatchesPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList className="grid w-full grid-cols-3 max-w-full">
+            <TabsList className="grid w-full grid-cols-4 max-w-full">
               <TabsTrigger value="upcoming" className="px-1 sm:px-2">
                 <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.upcomingMatches")}</span>
               </TabsTrigger>
@@ -865,6 +866,9 @@ export default function MatchesPage() {
               </TabsTrigger>
               <TabsTrigger value="classification" className="px-1 sm:px-2">
                 <ListOrdered className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.leagueClassification")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="seasons" className="px-1 sm:px-2">
+                <PlusCircle className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Seasons</span>
               </TabsTrigger>
             </TabsList>
 
@@ -903,6 +907,20 @@ export default function MatchesPage() {
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
                       {t("matches.noMatches")}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="seasons" className="space-y-4">
+              {selectedTeam ? (
+                <SeasonManagement />
+              ) : (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      {t("matches.noTeamSelected")}
                     </p>
                   </CardContent>
                 </Card>
