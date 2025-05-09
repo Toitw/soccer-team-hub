@@ -8,7 +8,8 @@ import {
   MatchGoal,
   MatchCard,
   TeamMember,
-  User
+  User,
+  Team
 } from "@shared/schema";
 import { useLanguage } from "@/hooks/use-language";
 import {
@@ -190,9 +191,15 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         }
       }
     } else {
-      // Reset form for new lineup
+      // Reset form for new lineup with formation based on team type
+      const defaultFormation = teamData?.teamType === "7-a-side" 
+        ? "7a-2-3-1" 
+        : teamData?.teamType === "Futsal"
+          ? "5a-1-2-1"
+          : "4-4-2";
+          
       lineupForm.reset({
-        formation: "4-4-2",
+        formation: defaultFormation,
         playerIds: [],
         benchPlayerIds: []
       });
@@ -203,15 +210,48 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   };
   
   // Forms
-  // Available formations for the soccer field
-  const availableFormations = [
-    "4-3-3",
-    "4-4-2",
-    "3-5-2",
-    "3-4-3",
-    "5-3-2",
-    "4-2-3-1",
-  ];
+  // Function to get available formations based on team type
+  const getAvailableFormations = (teamType: string | undefined | null) => {
+    switch (teamType) {
+      case "7-a-side":
+        return [
+          // 7-a-side formations
+          "7a-2-3-1",
+          "7a-3-2-1",
+          "7a-2-2-2",
+          "7a-3-1-2",
+          "7a-3-3-0",
+        ];
+      case "Futsal":
+        return [
+          // Futsal/5-a-side formations
+          "5a-1-2-1",
+          "5a-2-1-1",
+          "5a-1-1-2",
+          "5a-2-2-0",
+          "5a-1-3-0",
+        ];
+      case "11-a-side":
+      default:
+        return [
+          // 11-a-side formations
+          "4-3-3",
+          "4-4-2",
+          "3-5-2",
+          "3-4-3",
+          "5-3-2",
+          "4-2-3-1",
+        ];
+    }
+  };
+  
+  // Get the team data to determine team type
+  const { data: teamData } = useQuery<Team>({
+    queryKey: [`/api/teams/${teamId}`],
+  });
+
+  // Available formations based on team type
+  const availableFormations = getAvailableFormations(teamData?.teamType);
   
   // State for the soccer field player positioning
   const [lineupPositions, setLineupPositions] = useState<{
@@ -226,42 +266,124 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       top: number;
       left: number;
     }[] = [];
-    const [defenders, midfielders, forwards] = formation.split("-").map(Number);
     
-    // Add goalkeeper
-    positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+    // Check formation type by prefix
+    const isSevenASide = formation.startsWith("7a-");
+    const isFutsalOrFiveASide = formation.startsWith("5a-");
     
-    // Add defenders
-    const defenderWidth = 90 / (defenders + 1);
-    for (let i = 1; i <= defenders; i++) {
-      positions.push({
-        id: `def-${i}`,
-        label: "DEF",
-        top: 60,
-        left: 5 + i * defenderWidth,
-      });
-    }
-    
-    // Add midfielders
-    const midfielderWidth = 80 / (midfielders + 1);
-    for (let i = 1; i <= midfielders; i++) {
-      positions.push({
-        id: `mid-${i}`,
-        label: "MID",
-        top: 35,
-        left: 10 + i * midfielderWidth,
-      });
-    }
-    
-    // Add forwards
-    const forwardWidth = 80 / (forwards + 1);
-    for (let i = 1; i <= forwards; i++) {
-      positions.push({
-        id: `fwd-${i}`,
-        label: "FWD",
-        top: 10,
-        left: 10 + i * forwardWidth,
-      });
+    if (isSevenASide) {
+      // 7-a-side formations
+      // Extract pattern after the "7a-" prefix
+      const pattern = formation.substring(3);
+      const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
+      
+      // Add goalkeeper
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      
+      // Add defenders - wider spacing for fewer players
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      
+      // Add midfielders - wider spacing for fewer players
+      const midfielderWidth = 90 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 5 + i * midfielderWidth,
+        });
+      }
+      
+      // Add forwards - wider spacing for fewer players
+      const forwardWidth = 90 / (forwards + 1);
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 5 + i * forwardWidth,
+        });
+      }
+    } else if (isFutsalOrFiveASide) {
+      // 5-a-side/Futsal formations
+      // Extract pattern after the "5a-" prefix
+      const pattern = formation.substring(3);
+      const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
+      
+      // Add goalkeeper
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      
+      // Add defenders - wider spacing for even fewer players
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      
+      // Add midfielders - wider spacing for even fewer players
+      const midfielderWidth = 90 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 5 + i * midfielderWidth,
+        });
+      }
+      
+      // Add forwards - wider spacing for even fewer players
+      const forwardWidth = 90 / (forwards + 1);
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 5 + i * forwardWidth,
+        });
+      }
+    } else {
+      // 11-a-side formations (original logic)
+      const [defenders, midfielders, forwards] = formation.split("-").map(Number);
+      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      const defenderWidth = 90 / (defenders + 1);
+      for (let i = 1; i <= defenders; i++) {
+        positions.push({
+          id: `def-${i}`,
+          label: "DEF",
+          top: 60,
+          left: 5 + i * defenderWidth,
+        });
+      }
+      const midfielderWidth = 80 / (midfielders + 1);
+      for (let i = 1; i <= midfielders; i++) {
+        positions.push({
+          id: `mid-${i}`,
+          label: "MID",
+          top: 35,
+          left: 10 + i * midfielderWidth,
+        });
+      }
+      const forwardWidth = 80 / (forwards + 1);
+      for (let i = 1; i <= forwards; i++) {
+        positions.push({
+          id: `fwd-${i}`,
+          label: "FWD",
+          top: 10,
+          left: 10 + i * forwardWidth,
+        });
+      }
     }
     
     return positions;
@@ -360,10 +482,21 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     setBenchPlayers(benchPlayers.filter(id => id !== userId));
   };
 
+  // Get default formation based on team type
+  const getDefaultFormation = () => {
+    if (teamData?.teamType === "7-a-side") {
+      return "7a-2-3-1";
+    } else if (teamData?.teamType === "Futsal") {
+      return "5a-1-2-1";
+    } else {
+      return "4-4-2";
+    }
+  };
+
   const lineupForm = useForm<z.infer<typeof lineupSchema>>({
     resolver: zodResolver(lineupSchema),
     defaultValues: {
-      formation: "4-4-2",
+      formation: getDefaultFormation(),
       playerIds: [],
       benchPlayerIds: []
     }
@@ -909,12 +1042,35 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full mx-auto rounded-md flex items-center justify-center overflow-hidden" style={{ height: 'min(80vh, 500px)' }}>
                                   <div className="absolute top-0 left-0 w-full h-full">
                                     <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                                      {/* Soccer field markings */}
-                                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                                      <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                                      {/* Soccer field markings based on team type */}
+                                      {lineupForm.watch("formation").startsWith("7a-") ? (
+                                        <>
+                                          {/* 7-a-side field markings - simplified */}
+                                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-2 border-t-0 border-white rounded-b-full"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-24 w-48 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-12 w-24 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-16 bg-white"></div>
+                                          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                                        </>
+                                      ) : lineupForm.watch("formation").startsWith("5a-") ? (
+                                        <>
+                                          {/* Futsal/5-a-side field markings - more compact */}
+                                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-12 border-2 border-t-0 border-white rounded-b-full"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-20 w-40 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-10 w-20 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-12 bg-white"></div>
+                                          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          {/* 11-a-side field markings - full size */}
+                                          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                                          <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                                        </>
+                                      )}
                                       
                                       {/* Player positions */}
                                       <div className="absolute top-0 left-0 w-full h-full">
@@ -1188,12 +1344,35 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full mx-auto rounded-md flex items-center justify-center overflow-hidden" style={{ height: 'min(80vw, 400px)', maxWidth: '100%' }}>
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                        {/* Soccer field markings */}
-                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
-                        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                        {/* Soccer field markings based on team type */}
+                        {(lineup?.formation?.toString() || "").startsWith("7a-") ? (
+                          <>
+                            {/* 7-a-side field markings - simplified */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-24 w-48 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-12 w-24 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-16 bg-white"></div>
+                            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                          </>
+                        ) : (lineup?.formation?.toString() || "").startsWith("5a-") ? (
+                          <>
+                            {/* Futsal/5-a-side field markings - more compact */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-12 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-20 w-40 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-10 w-20 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-12 bg-white"></div>
+                            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                          </>
+                        ) : (
+                          <>
+                            {/* 11-a-side field markings - full size */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-24 bg-white"></div>
+                            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                          </>
+                        )}
                         
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
