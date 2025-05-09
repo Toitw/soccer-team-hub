@@ -55,8 +55,7 @@ interface Season {
   updatedAt: string;
 }
 
-export function SeasonManagement() {
-  const { id: teamId } = useParams<{ id: string }>();
+export function SeasonManagement({ teamId }: { teamId: number }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeSeason, setActiveSeason] = useState<number | null>(null);
   const { toast } = useToast();
