@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Team, Match, LeagueClassification } from "@shared/schema";
+import { Team, Match, LeagueClassification, Season } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import MatchDetails from "@/components/match-details";
 import { SeasonManagement } from "@/components/season/season-management";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Card,
   CardContent,
@@ -126,7 +127,7 @@ export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState("seasons");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -234,6 +235,16 @@ export default function MatchesPage() {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0,
+  });
+
+  // Fetch seasons for the team
+  const {
+    data: seasons,
+    isLoading: seasonsLoading,
+  } = useQuery({
+    queryKey: ['/api/teams', selectedTeam?.id, 'seasons'],
+    queryFn: () => apiRequest<Season[]>(`/api/teams/${selectedTeam?.id}/seasons`),
+    enabled: !!selectedTeam,
   });
 
   const refetchClassificationsData = async () => {
@@ -858,18 +869,22 @@ export default function MatchesPage() {
             className="space-y-4"
           >
             <TabsList className="grid w-full grid-cols-4 max-w-full">
-              <TabsTrigger value="upcoming" className="px-1 sm:px-2">
-                <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.upcomingMatches")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="past" className="px-1 sm:px-2">
-                <Trophy className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.pastMatches")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="classification" className="px-1 sm:px-2">
-                <ListOrdered className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.leagueClassification")}</span>
-              </TabsTrigger>
               <TabsTrigger value="seasons" className="px-1 sm:px-2">
                 <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Temporadas</span>
               </TabsTrigger>
+              {seasons && seasons.length > 0 && (
+                <>
+                  <TabsTrigger value="upcoming" className="px-1 sm:px-2">
+                    <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.upcomingMatches")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="past" className="px-1 sm:px-2">
+                    <Trophy className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.pastMatches")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="classification" className="px-1 sm:px-2">
+                    <ListOrdered className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.leagueClassification")}</span>
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
 
             <TabsContent value="upcoming" className="space-y-4">
