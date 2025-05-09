@@ -868,7 +868,7 @@ export default function MatchesPage() {
                 <ListOrdered className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">{t("matches.leagueClassification")}</span>
               </TabsTrigger>
               <TabsTrigger value="seasons" className="px-1 sm:px-2">
-                <PlusCircle className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Seasons</span>
+                <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Temporadas</span>
               </TabsTrigger>
             </TabsList>
 
