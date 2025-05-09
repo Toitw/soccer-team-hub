@@ -246,6 +246,13 @@ export default function MatchesPage() {
     queryFn: () => apiRequest<Season[]>(`/api/teams/${selectedTeam?.id}/seasons`),
     enabled: !!selectedTeam,
   });
+  
+  // Ensure we're on the seasons tab when no seasons exist
+  useEffect(() => {
+    if (seasons && seasons.length === 0 && activeTab !== "seasons") {
+      setActiveTab("seasons");
+    }
+  }, [seasons, activeTab]);
 
   const refetchClassificationsData = async () => {
     await queryClient.invalidateQueries({
@@ -868,7 +875,7 @@ export default function MatchesPage() {
             onValueChange={setActiveTab}
             className="space-y-4"
           >
-            <TabsList className="grid w-full grid-cols-4 max-w-full">
+            <TabsList className={`grid w-full ${seasons && seasons.length > 0 ? 'grid-cols-4' : 'grid-cols-1'} max-w-full`}>
               <TabsTrigger value="seasons" className="px-1 sm:px-2">
                 <Calendar className="h-4 w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Temporadas</span>
               </TabsTrigger>
@@ -888,7 +895,22 @@ export default function MatchesPage() {
             </TabsList>
 
             <TabsContent value="upcoming" className="space-y-4">
-              {upcomingMatches && upcomingMatches.length > 0 ? (
+              {seasons && seasons.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      Debe crear primero una temporada para gestionar partidos
+                    </p>
+                    <Button
+                      variant="default"
+                      className="mt-4"
+                      onClick={() => setActiveTab("seasons")}
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : upcomingMatches && upcomingMatches.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                   {upcomingMatches.map((match) => renderMatchCard(match))}
                 </div>
@@ -913,7 +935,22 @@ export default function MatchesPage() {
             </TabsContent>
 
             <TabsContent value="past" className="space-y-4">
-              {pastMatches && pastMatches.length > 0 ? (
+              {seasons && seasons.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      Debe crear primero una temporada para gestionar partidos
+                    </p>
+                    <Button
+                      variant="default"
+                      className="mt-4"
+                      onClick={() => setActiveTab("seasons")}
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : pastMatches && pastMatches.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                   {pastMatches.map((match) => renderMatchCard(match))}
                 </div>
@@ -943,14 +980,30 @@ export default function MatchesPage() {
             </TabsContent>
 
             <TabsContent value="classification" className="space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <div className="hidden sm:block">
-                      <CardTitle>{t("matches.classificationSection.title")}</CardTitle>
-                      <CardDescription>
-                        {t("matches.classificationSection.description")}
-                      </CardDescription>
+              {seasons && seasons.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <p className="text-muted-foreground">
+                      Debe crear primero una temporada para gestionar clasificaciones
+                    </p>
+                    <Button
+                      variant="default"
+                      className="mt-4"
+                      onClick={() => setActiveTab("seasons")}
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <div className="hidden sm:block">
+                        <CardTitle>{t("matches.classificationSection.title")}</CardTitle>
+                        <CardDescription>
+                          {t("matches.classificationSection.description")}
+                        </CardDescription>
                     </div>
                     {canManage && (
                       <>
