@@ -1,0 +1,49 @@
+You are a senior full‑stack engineer working on “Cancha +”.
+
+Goal: add an **in‑app Season management flow** that lives inside the “Matches → League” section, instead of the onboarding wizard.
+
+### User Experience
+
+1. **Entry point**
+   •  The sidebar already has “Matches”.  
+   •  Inside Matches, the user clicks the “League” tab.
+
+2. **If NO active Season exists for the current team**
+   •  Show an empty‑state card with a CTA button: **“New Season”**.  
+   •  Clicking “New Season” opens a modal or wizard (single screen is fine).
+
+3. **Season creation form**
+   Fields:  
+   – Season name (default suggestion “2025‑2026”)  
+   – Start date  
+   – End date  
+   – (Optional) short description or notes  
+   Validation: start < end.
+
+   On submit:  
+   •  Persist the Season (isActive = true).  
+   •  Return to League view, now filtered by that Season.
+
+4. **If an active Season exists**
+   •  The League view shows standings and matches scoped to that Season.  
+   •  Provide a management dropdown or button labeled **“Season finished”**.
+
+5. **Finishing a Season**
+   •  Clicking “Season finished” triggers a confirmation dialog:  
+     “Are you sure you want to close the season? This will lock results and stats.”  
+   •  On confirm:  
+     – Set isActive = false for that Season.  
+     – Keep all associated matches/stats immutable.  
+     – Refresh League view → now shows the empty‑state CTA again.
+
+6. **Permissions**
+   •  Only role === “ADMIN” can create or finish Seasons.  
+   •  Other roles see the League data but no management buttons.
+
+### Notes & Constraints
+•  The Season data model already exists (id, name, startDate, endDate, isActive, teamId).  
+•  No changes to the onboarding flow are needed.  
+•  Mock data should continue to show for users who skipped onboarding and still have no team.  
+•  Analytics hooks are optional—leave TODO comments.
+
+Deliver the UI components, routes, backend endpoints, and minimal tests so this flow works end‑to‑end.
