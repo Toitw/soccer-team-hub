@@ -980,7 +980,7 @@ export default function MatchesPage() {
             </TabsContent>
 
             <TabsContent value="classification" className="space-y-4">
-              {!seasons || seasons.length === 0 ? (
+              {(!seasons || seasons.length === 0) && (
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
@@ -995,7 +995,8 @@ export default function MatchesPage() {
                     </Button>
                   </CardContent>
                 </Card>
-              ) : (
+              )}
+              {seasons && seasons.length > 0 && (
                 <Card>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
@@ -1006,204 +1007,203 @@ export default function MatchesPage() {
                         </CardDescription>
                       </div>
                       {canManage && (
-                        <>
-                          {/* Botones solo con iconos para móvil */}
-                          <div className="flex space-x-1 sm:hidden">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setClassificationDialogOpen(true)}
-                              aria-label={t("matches.classificationSection.addEntry")}
-                            >
-                              <PlusSquare className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setCsvUploadDialogOpen(true)}
-                              aria-label={t("matches.classificationSection.uploadCsv")}
-                            >
-                              <Upload className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={generateSampleCsv}
-                              aria-label={t("matches.classificationSection.sampleCsv")}
-                            >
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          
-                          {/* Botones con texto para tablet/desktop */}
-                          <div className="hidden sm:flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setClassificationDialogOpen(true)}
-                            >
-                              <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.classificationSection.addEntry")}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCsvUploadDialogOpen(true)}
-                            >
-                              <Upload className="h-4 w-4 mr-1" /> {t("matches.classificationSection.uploadCsv")}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={generateSampleCsv}
-                            >
-                              <FileText className="h-4 w-4 mr-1" /> {t("matches.classificationSection.sampleCsv")}
-                            </Button>
-                          </div>
-                        </>
+                      <>
+                        {/* Botones solo con iconos para móvil */}
+                        <div className="flex space-x-1 sm:hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setClassificationDialogOpen(true)}
+                            aria-label={t("matches.classificationSection.addEntry")}
+                          >
+                            <PlusSquare className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                            aria-label={t("matches.classificationSection.uploadCsv")}
+                          >
+                            <Upload className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={generateSampleCsv}
+                            aria-label={t("matches.classificationSection.sampleCsv")}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        {/* Botones con texto para tablet/desktop */}
+                        <div className="hidden sm:flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setClassificationDialogOpen(true)}
+                          >
+                            <PlusSquare className="h-4 w-4 mr-1" /> {t("matches.classificationSection.addEntry")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                          >
+                            <Upload className="h-4 w-4 mr-1" /> {t("matches.classificationSection.uploadCsv")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={generateSampleCsv}
+                          >
+                            <FileText className="h-4 w-4 mr-1" /> {t("matches.classificationSection.sampleCsv")}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="overflow-x-auto max-w-full min-w-0">
+                  {classifications && classifications.length > 0 ? (
+                    <Table className="w-full min-w-full">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12 truncate">{t("matches.classificationSection.position")}</TableHead>
+                          <TableHead className="truncate">{t("matches.classificationSection.team")}</TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.points")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.played")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.won")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.drawn")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.lost")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.goalsFor")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.goalsAgainst")}
+                          </TableHead>
+                          <TableHead className="text-center truncate">
+                            {t("matches.classificationSection.goalDifference")}
+                          </TableHead>
+                          {canManage && (
+                            <TableHead className="truncate">{t("matches.classificationSection.actions")}</TableHead>
+                          )}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {classifications
+                          .sort((a, b) =>
+                            a.position !== null && b.position !== null
+                              ? a.position - b.position
+                              : b.points - a.points,
+                          )
+                          .map((classification) => {
+                            const goalsFor = classification.goalsFor || 0;
+                            const goalsAgainst =
+                              classification.goalsAgainst || 0;
+                            const goalDifference = goalsFor - goalsAgainst;
+                            return (
+                              <TableRow key={classification.id}>
+                                <TableCell className="font-medium truncate">
+                                  {classification.position || "-"}
+                                </TableCell>
+                                <TableCell className="truncate">
+                                  {classification.externalTeamName}
+                                </TableCell>
+                                <TableCell className="text-center font-bold truncate">
+                                  {classification.points}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesPlayed || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesWon || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesDrawn || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.gamesLost || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.goalsFor || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {classification.goalsAgainst || "-"}
+                                </TableCell>
+                                <TableCell className="text-center truncate">
+                                  {goalDifference > 0
+                                    ? `+${goalDifference}`
+                                    : goalDifference}
+                                </TableCell>
+                                {canManage && (
+                                  <TableCell className="truncate">
+                                    <div className="flex space-x-2 justify-center">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          handleEditClassification(
+                                            classification,
+                                          )
+                                        }
+                                      >
+                                        <ClipboardEdit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          confirmDeleteClassification(
+                                            classification,
+                                          )
+                                        }
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                )}
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">
+                        {t("matches.noClassificationData")}
+                      </p>
+                      {canManage && (
+                        <div className="flex flex-col space-y-2 mt-4 max-w-xs mx-auto">
+                          <Button
+                            variant="outline"
+                            onClick={() => setClassificationDialogOpen(true)}
+                          >
+                            <PlusSquare className="h-4 w-4 mr-2" /> {t("matches.addManually")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setCsvUploadDialogOpen(true)}
+                          >
+                            <Upload className="h-4 w-4 mr-2" /> {t("matches.uploadCSV")}
+                          </Button>
+                        </div>
                       )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="overflow-x-auto max-w-full min-w-0">
-                    {classifications && classifications.length > 0 ? (
-                      <Table className="w-full min-w-full">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-12 truncate">{t("matches.classificationSection.position")}</TableHead>
-                            <TableHead className="truncate">{t("matches.classificationSection.team")}</TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.points")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.played")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.won")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.drawn")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.lost")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.goalsFor")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.goalsAgainst")}
-                            </TableHead>
-                            <TableHead className="text-center truncate">
-                              {t("matches.classificationSection.goalDifference")}
-                            </TableHead>
-                            {canManage && (
-                              <TableHead className="truncate">{t("matches.classificationSection.actions")}</TableHead>
-                            )}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {classifications
-                            .sort((a, b) =>
-                              a.position !== null && b.position !== null
-                                ? a.position - b.position
-                                : b.points - a.points,
-                            )
-                            .map((classification) => {
-                              const goalsFor = classification.goalsFor || 0;
-                              const goalsAgainst =
-                                classification.goalsAgainst || 0;
-                              const goalDifference = goalsFor - goalsAgainst;
-                              return (
-                                <TableRow key={classification.id}>
-                                  <TableCell className="font-medium truncate">
-                                    {classification.position || "-"}
-                                  </TableCell>
-                                  <TableCell className="truncate">
-                                    {classification.externalTeamName}
-                                  </TableCell>
-                                  <TableCell className="text-center font-bold truncate">
-                                    {classification.points}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.gamesPlayed || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.gamesWon || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.gamesDrawn || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.gamesLost || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.goalsFor || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {classification.goalsAgainst || "-"}
-                                  </TableCell>
-                                  <TableCell className="text-center truncate">
-                                    {goalDifference > 0
-                                      ? `+${goalDifference}`
-                                      : goalDifference}
-                                  </TableCell>
-                                  {canManage && (
-                                    <TableCell className="truncate">
-                                      <div className="flex space-x-2 justify-center">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            handleEditClassification(
-                                              classification,
-                                            )
-                                          }
-                                        >
-                                          <ClipboardEdit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            confirmDeleteClassification(
-                                              classification,
-                                            )
-                                          }
-                                        >
-                                          <Trash className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  )}
-                                </TableRow>
-                              );
-                            })}
-                        </TableBody>
-                      </Table>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-muted-foreground">
-                          {t("matches.noClassificationData")}
-                        </p>
-                        {canManage && (
-                          <div className="flex flex-col space-y-2 mt-4 max-w-xs mx-auto">
-                            <Button
-                              variant="outline"
-                              onClick={() => setClassificationDialogOpen(true)}
-                            >
-                              <PlusSquare className="h-4 w-4 mr-2" /> {t("matches.addManually")}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => setCsvUploadDialogOpen(true)}
-                            >
-                              <Upload className="h-4 w-4 mr-2" /> {t("matches.uploadCSV")}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
