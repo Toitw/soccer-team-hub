@@ -130,15 +130,7 @@ export default function TeamPage() {
     useState<TeamMemberWithUser | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // Set initial formation based on team type
-  const [selectedFormation, setSelectedFormation] = useState<string>(() => {
-    if (selectedTeam?.teamType === "Futsal") {
-      return "5a-1-2-1"; // Default futsal formation
-    } else if (selectedTeam?.teamType === "7-a-side") {
-      return "7a-2-3-1"; // Default 7-a-side formation
-    }
-    return "4-3-3"; // Default 11-a-side formation
-  });
+  const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
   const [lineup, setLineup] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
