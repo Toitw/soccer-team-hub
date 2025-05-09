@@ -246,7 +246,11 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Email already registered" });
     }
     
-    // Create the user
+    // Generate a verification token and expiry
+    const verificationToken = generateVerificationToken();
+    const verificationTokenExpiry = generateTokenExpiry(24); // 24 hours
+    
+    // Create the user with verification token
     const user = await storage.createUser({
       username: validatedData.username,
       password: validatedData.password, // Will be hashed in storage implementation
@@ -255,7 +259,10 @@ router.post("/register", async (req: Request, res: Response) => {
       lastName: null,  // We'll extract these later if needed
       email: validatedData.email,
       role: validatedData.role,
-      onboardingCompleted: false
+      onboardingCompleted: false,
+      isEmailVerified: false,
+      verificationToken,
+      verificationTokenExpiry
     });
     
     // If teamCode is provided, try to join the team
@@ -278,6 +285,32 @@ router.post("/register", async (req: Request, res: Response) => {
         user.onboardingCompleted = true;
       }
     }
+
+    // Generate the verification link
+    const baseUrl = `${req.protocol}://${req.get("host")}/verify-email`;
+    
+    // Generate and send verification email
+    const emailContent = generateVerificationEmail(
+      user.username,
+      verificationToken,
+      baseUrl
+    );
+
+    // Send the verification email
+    sendEmail(
+      user.email || '',
+      emailContent.subject,
+      emailContent.html,
+      emailContent.text
+    ).then(emailResult => {
+      if (!emailResult.success) {
+        console.error("Failed to send verification email:", emailResult.message);
+      } else {
+        console.log("Verification email sent successfully");
+      }
+    }).catch(err => {
+      console.error("Error sending verification email:", err);
+    });
 
     // Start session
     req.login(user, (err) => {
