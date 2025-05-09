@@ -410,7 +410,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                 <Separator />
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-semibold mb-4">Season Standings</h3>
-                  <SeasonClassifications teamId={parseInt(teamId)} seasonId={season.id} />
+                  <SeasonClassifications teamId={teamId} seasonId={season.id} />
                 </CardContent>
               </Card>
             </TabsContent>
