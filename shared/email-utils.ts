@@ -1,5 +1,6 @@
 /**
  * Email utilities for creating and sending verification and password reset emails
+ * with multilingual support (English and Spanish)
  */
 
 /**
@@ -20,24 +21,17 @@ interface EmailContent {
 }
 
 /**
- * Generate a verification email with a clickable link
- * @param username - The recipient's username
- * @param token - The verification token
- * @param baseUrl - The base URL for the verification link
- * @returns An object containing the email subject, text and HTML content
+ * Type for supported languages
  */
-export function generateVerificationEmail(
-  username: string,
-  token: string,
-  baseUrl: string
-): EmailContent {
-  // Build the verification URL with token as query parameter
-  const verificationUrl = `${baseUrl}?token=${token}`;
-  
-  const subject = "Verify your email address";
-  
-  // Plain text version
-  const text = `
+export type Language = "en" | "es";
+
+/**
+ * Email templates for verification emails in different languages
+ */
+const verificationEmailTemplates = {
+  en: {
+    subject: "Verify your email address",
+    textTemplate: (username: string, verificationUrl: string) => `
     Hello ${username},
     
     Please verify your email address by clicking the link below:
@@ -50,10 +44,8 @@ export function generateVerificationEmail(
     
     Thank you,
     Soccer Team Management System
-  `.trim();
-  
-  // HTML version
-  const html = `
+    `,
+    htmlTemplate: (username: string, verificationUrl: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #4a5568;">Verify Your Email Address</h2>
       <p>Hello ${username},</p>
@@ -73,30 +65,55 @@ export function generateVerificationEmail(
         This is an automated email, please do not reply.
       </p>
     </div>
-  `.trim();
-  
-  return { subject, text, html };
-}
+    `
+  },
+  es: {
+    subject: "Verifica tu dirección de correo electrónico",
+    textTemplate: (username: string, verificationUrl: string) => `
+    Hola ${username},
+    
+    Por favor, verifica tu dirección de correo electrónico haciendo clic en el enlace de abajo:
+    
+    ${verificationUrl}
+    
+    Si no has creado una cuenta, por favor ignora este correo electrónico.
+    
+    Este enlace caducará en 24 horas.
+    
+    Gracias,
+    Sistema de Gestión de Equipos de Fútbol
+    `,
+    htmlTemplate: (username: string, verificationUrl: string) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #4a5568;">Verifica tu Dirección de Correo Electrónico</h2>
+      <p>Hola ${username},</p>
+      <p>Por favor, verifica tu dirección de correo electrónico haciendo clic en el botón de abajo:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verificationUrl}" style="background-color: #4c51bf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+          Verificar Correo Electrónico
+        </a>
+      </div>
+      <p>O copia y pega el siguiente enlace en tu navegador:</p>
+      <p><a href="${verificationUrl}" style="color: #4c51bf; word-break: break-all;">${verificationUrl}</a></p>
+      <p>Si no has creado una cuenta, por favor ignora este correo electrónico.</p>
+      <p><em>Este enlace caducará en 24 horas.</em></p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="color: #718096; font-size: 12px;">
+        Sistema de Gestión de Equipos de Fútbol<br />
+        Este es un correo electrónico automático, por favor no respondas.
+      </p>
+    </div>
+    `
+  }
+};
 
 /**
- * Generate a password reset email with a clickable link
- * @param username - The recipient's username
- * @param token - The reset token
- * @param baseUrl - The base URL for the reset link
- * @returns An object containing the email subject, text and HTML content
+ * Email templates for password reset emails in different languages
  */
-export function generatePasswordResetEmail(
-  username: string,
-  token: string,
-  baseUrl: string
-): EmailContent {
-  // Build the reset URL with token as query parameter
-  const resetUrl = `${baseUrl}?token=${token}`;
-  
-  const subject = "Reset your password";
-  
-  // Plain text version
-  const text = `
+const passwordResetEmailTemplates = {
+  en: {
+    subject: "Reset your password",
+    textTemplate: (username: string, resetUrl: string) => `
     Hello ${username},
     
     We received a request to reset your password. Please click the link below to set a new password:
@@ -109,10 +126,8 @@ export function generatePasswordResetEmail(
     
     Thank you,
     Soccer Team Management System
-  `.trim();
-  
-  // HTML version
-  const html = `
+    `,
+    htmlTemplate: (username: string, resetUrl: string) => `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #4a5568;">Reset Your Password</h2>
       <p>Hello ${username},</p>
@@ -132,7 +147,100 @@ export function generatePasswordResetEmail(
         This is an automated email, please do not reply.
       </p>
     </div>
-  `.trim();
+    `
+  },
+  es: {
+    subject: "Restablece tu contraseña",
+    textTemplate: (username: string, resetUrl: string) => `
+    Hola ${username},
+    
+    Hemos recibido una solicitud para restablecer tu contraseña. Por favor, haz clic en el enlace de abajo para establecer una nueva contraseña:
+    
+    ${resetUrl}
+    
+    Si no has solicitado el restablecimiento de contraseña, por favor ignora este correo electrónico y tu contraseña permanecerá sin cambios.
+    
+    Este enlace caducará en 1 hora.
+    
+    Gracias,
+    Sistema de Gestión de Equipos de Fútbol
+    `,
+    htmlTemplate: (username: string, resetUrl: string) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #4a5568;">Restablece tu Contraseña</h2>
+      <p>Hola ${username},</p>
+      <p>Hemos recibido una solicitud para restablecer tu contraseña. Por favor, haz clic en el botón de abajo para establecer una nueva contraseña:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background-color: #4c51bf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+          Restablecer Contraseña
+        </a>
+      </div>
+      <p>O copia y pega el siguiente enlace en tu navegador:</p>
+      <p><a href="${resetUrl}" style="color: #4c51bf; word-break: break-all;">${resetUrl}</a></p>
+      <p>Si no has solicitado el restablecimiento de contraseña, por favor ignora este correo electrónico y tu contraseña permanecerá sin cambios.</p>
+      <p><em>Este enlace caducará en 1 hora.</em></p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p style="color: #718096; font-size: 12px;">
+        Sistema de Gestión de Equipos de Fútbol<br />
+        Este es un correo electrónico automático, por favor no respondas.
+      </p>
+    </div>
+    `
+  }
+};
+
+/**
+ * Generate a verification email with a clickable link
+ * @param username - The recipient's username
+ * @param token - The verification token
+ * @param baseUrl - The base URL for the verification link
+ * @param language - The language to use (en or es)
+ * @returns An object containing the email subject, text and HTML content
+ */
+export function generateVerificationEmail(
+  username: string,
+  token: string,
+  baseUrl: string,
+  language: Language = "es" // Default to Spanish
+): EmailContent {
+  // Build the verification URL with token as query parameter
+  const verificationUrl = `${baseUrl}?token=${token}`;
+  
+  // Get the template for the specified language (default to English if language not supported)
+  const template = verificationEmailTemplates[language] || verificationEmailTemplates.en;
+  
+  // Generate the email content using the templates
+  const subject = template.subject;
+  const text = template.textTemplate(username, verificationUrl).trim();
+  const html = template.htmlTemplate(username, verificationUrl).trim();
+  
+  return { subject, text, html };
+}
+
+/**
+ * Generate a password reset email with a clickable link
+ * @param username - The recipient's username
+ * @param token - The reset token
+ * @param baseUrl - The base URL for the reset link
+ * @param language - The language to use (en or es)
+ * @returns An object containing the email subject, text and HTML content
+ */
+export function generatePasswordResetEmail(
+  username: string,
+  token: string,
+  baseUrl: string,
+  language: Language = "es" // Default to Spanish
+): EmailContent {
+  // Build the reset URL with token as query parameter
+  const resetUrl = `${baseUrl}?token=${token}`;
+  
+  // Get the template for the specified language (default to English if language not supported)
+  const template = passwordResetEmailTemplates[language] || passwordResetEmailTemplates.en;
+  
+  // Generate the email content using the templates
+  const subject = template.subject;
+  const text = template.textTemplate(username, resetUrl).trim();
+  const html = template.htmlTemplate(username, resetUrl).trim();
   
   return { subject, text, html };
 }

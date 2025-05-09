@@ -55,14 +55,19 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
     // Generate the verification link
     const baseUrl = `${req.protocol}://${req.get("host")}/verify-email`;
     
+    // Get user's language preference from headers (fallback to Spanish)
+    const acceptLanguage = req.get('Accept-Language') || '';
+    const language = acceptLanguage.includes('en') ? 'en' : 'es';
+    
     // Generate and send verification email
     const emailContent = generateVerificationEmail(
       user.username,
       token,
-      baseUrl
+      baseUrl,
+      language
     );
 
-    // Send the email using nodemailer
+    // Send the email using SendGrid
     const emailResult = await sendEmail(
       user.email || '',
       emailContent.subject,
@@ -151,14 +156,19 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
     // Generate the reset link
     const baseUrl = `${req.protocol}://${req.get("host")}/reset-password`;
     
+    // Get user's language preference from headers (fallback to Spanish)
+    const acceptLanguage = req.get('Accept-Language') || '';
+    const language = acceptLanguage.includes('en') ? 'en' : 'es';
+    
     // Generate and send reset email
     const emailContent = generatePasswordResetEmail(
       user.username,
       token,
-      baseUrl
+      baseUrl,
+      language
     );
 
-    // Send the email using nodemailer
+    // Send the email using SendGrid
     const emailResult = await sendEmail(
       user.email || '',
       emailContent.subject,
@@ -250,11 +260,16 @@ router.post("/change-password/request", isAuthenticated, async (req: Request, re
     // Generate the reset link
     const baseUrl = `${req.protocol}://${req.get("host")}/change-password`;
     
+    // Get user's language preference from headers (fallback to Spanish)
+    const acceptLanguage = req.get('Accept-Language') || '';
+    const language = acceptLanguage.includes('en') ? 'en' : 'es';
+    
     // Generate and send password change email
     const emailContent = generatePasswordResetEmail(
       user.username,
       token,
-      baseUrl
+      baseUrl,
+      language
     );
 
     // Send the email
@@ -396,11 +411,16 @@ router.post("/register", async (req: Request, res: Response) => {
     // Generate the verification link
     const baseUrl = `${req.protocol}://${req.get("host")}/verify-email`;
     
+    // Get user's language preference from headers (fallback to Spanish)
+    const acceptLanguage = req.get('Accept-Language') || '';
+    const language = acceptLanguage.includes('en') ? 'en' : 'es';
+    
     // Generate and send verification email
     const emailContent = generateVerificationEmail(
       user.username,
       verificationToken,
-      baseUrl
+      baseUrl,
+      language
     );
 
     // Send the verification email
