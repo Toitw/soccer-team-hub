@@ -9,7 +9,7 @@ import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
 import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
-import MatchesPage from "@/pages/matches-page-v2";
+import MatchesPage from "./pages/matches-page";
 import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
 import AnnouncementsPage from "@/pages/announcements-page";
@@ -33,35 +33,35 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
-      
+
       {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
-      
+
       {/* Mock page for demonstration */}
       <ProtectedRoute path="/mock" component={MockPage} />
-      
+
       {/* Team management - accessible to all but players are read-only */}
       <ProtectedRoute path="/team" component={TeamPage} />
-      
+
       {/* Match-related pages - accessible to all but players are read-only */}
       <ProtectedRoute path="/matches" component={MatchesPage} />
       <ProtectedRoute path="/player/:id" component={PlayerProfilePage} />
-      
+
       {/* Events page - accessible to all but players are read-only */}
       <ProtectedRoute path="/events" component={EventPage} />
-      
+
       {/* Announcements - accessible to all but players are read-only */}
       <ProtectedRoute 
         path="/announcements" 
         component={AnnouncementsPage} 
       />
-      
+
       {/* Statistics - accessible to all but players are read-only */}
       <ProtectedRoute
         path="/statistics"
         component={StatisticsPage}
       />
-      
+
       {/* Settings - restricted to admin only */}
       <ProtectedRoute 
         path="/settings" 
@@ -77,7 +77,7 @@ function Router() {
         requiredRole="superuser" 
         allowedRoles={["superuser"]} 
       />
-      
+
       {/* 404 Page */}
       <Route component={NotFound} />
     </Switch>
