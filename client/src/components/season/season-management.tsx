@@ -178,12 +178,15 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t('seasons.newSeason')}
-            </Button>
-          </DialogTrigger>
+          {/* Only show New Season button if no active season exists */}
+          {!seasons?.some(season => season.isActive) && (
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('seasons.newSeason')}
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t('seasons.createNewSeason')}</DialogTitle>
