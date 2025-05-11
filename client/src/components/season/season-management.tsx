@@ -441,8 +441,6 @@ interface SeasonClassificationsProps {
   seasonId: number;
 }
 
-import { ClassificationTable } from "@/components/classification/classification-table";
-
 // Component to display classifications for a specific season
 function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps) {
   const { data: classifications, isLoading } = useQuery({
