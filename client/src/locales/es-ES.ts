@@ -327,6 +327,7 @@ export const esES = {
     upcomingMatches: "Próximos",
     pastMatches: "Jugados",
     allMatches: "Todos los Partidos",
+    dateFormat: "EEEE, d 'de' MMMM 'de' yyyy",
     addMatch: "Añadir Partido",
     editMatch: "Editar Partido",
     deleteMatch: "Eliminar Partido",
