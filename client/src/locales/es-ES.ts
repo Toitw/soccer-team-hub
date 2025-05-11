@@ -681,7 +681,6 @@ export const esES = {
     createSeasonFirst: "Debe crear primero una temporada para gestionar partidos",
     createSeasonButton: "Crear Temporada"
   },
-  settings: {
     // Settings page
     teamMembers: "Miembros del Equipo",
     administrators: "Administradores",
