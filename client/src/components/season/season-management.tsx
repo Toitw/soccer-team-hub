@@ -458,19 +458,23 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
   
   // Use season-specific classifications if available, otherwise filter team classifications by season
   const filteredClassifications = classifications?.length ? classifications : 
-    teamClassifications?.filter(c => c.seasonId === seasonId) || [];
+    (teamClassifications || []).filter(c => c.seasonId === seasonId);
+  
+  console.log("Season specific classifications:", classifications);
+  console.log("Team classifications:", teamClassifications);
+  console.log("Filtered classifications:", filteredClassifications);
   
   return (
     <ClassificationTable 
       classifications={filteredClassifications} 
       isLoading={isLoading}
       emptyMessage={
-        <span>
+        <div>
           {t('seasons.noStandings')}
-          <span className="block text-sm text-muted-foreground mt-2">
+          <div className="block text-sm text-muted-foreground mt-2">
             {t('seasons.useLeagueTab')}
-          </span>
-        </span>
+          </div>
+        </div>
       }
     />
   );
