@@ -129,7 +129,7 @@ export const esES = {
     joinCodeHelp: "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
     logout: "Cerrar sesión",
     agreeToTerms: "Acepto los Términos y Condiciones",
-
+    
     // Verificación de correo electrónico
     emailVerification: "Verificación de Correo Electrónico",
     verifyEmailPrompt: "Por favor, revisa tu correo electrónico para verificar tu cuenta",
@@ -142,7 +142,7 @@ export const esES = {
     verifyEmailSuccessMessage: "Tu correo electrónico ha sido verificado correctamente. Ahora puedes iniciar sesión en tu cuenta.",
     verifyEmailFailedMessage: "No pudimos verificar tu dirección de correo electrónico. El enlace de verificación puede ser inválido o ha expirado.",
     emailVerificationNotice: "Se enviará un correo de verificación a tu dirección de correo electrónico",
-
+    
     // Restablecimiento de contraseña
     resetPassword: "Restablecer Contraseña",
     resetPasswordPrompt: "Introduce tu correo electrónico para restablecer tu contraseña",
@@ -277,13 +277,13 @@ export const esES = {
     wideDefender: "Defensa Lateral",
     centerMidfielder: "Centrocampista Central",
     wideMidfielder: "Centrocampista Lateral",
-
+    
     // Futsal/5-a-side positions
     futsalPositions: "Posiciones de Fútbol Sala",
     pivot: "Pívot",
     winger: "Extremo",
     universal: "Universal",
-
+    
     // 11-a-side position translations
     centerBack: "Defensa Central",
     leftBack: "Lateral Izquierdo",
@@ -478,7 +478,7 @@ export const esES = {
     selectGoalType: "Seleccionar tipo de gol",
     selectPlayer: "Seleccionar jugador",
     selectCardType: "Seleccionar tipo de tarjeta",
-
+    
     // New entries for match-details.tsx
     noCardsRecorded: "No hay tarjetas registradas para este partido.",
     recordCardsHelp: "Registra tarjetas amarillas y rojas recibidas por tu equipo.",
@@ -532,8 +532,8 @@ export const esES = {
       drawn: "E",
       lost: "P",
       goalsFor: "GF",
-      ga: "GC",
-      gd: "DG",
+      goalsAgainst: "GC",
+      goalDifference: "DG",
       actions: "Acciones",
       addEntry: "Añadir Entrada",
       uploadCsv: "Subir CSV",
@@ -637,7 +637,52 @@ export const esES = {
     newPassword: "Nueva Contraseña",
     confirmNewPassword: "Confirmar Nueva Contraseña",
     profilePictureDescription: "Sube una nueva foto de perfil (déjalo vacío para mantener la actual)",
-    // Team members section
+  },
+  seasons: {
+    title: "Temporadas",
+    description: "Gestiona las temporadas de tu equipo y consulta las clasificaciones específicas de cada temporada",
+    newSeason: "Nueva Temporada",
+    createNewSeason: "Crear Nueva Temporada",
+    seasonName: "Nombre de Temporada",
+    seasonNamePlaceholder: "Temporada 2023-2024",
+    startDate: "Fecha de Inicio",
+    endDate: "Fecha de Fin (Opcional)",
+    endDateOptional: "Fecha de Fin (Opcional)",
+    description: "Descripción (Opcional)",
+    descriptionPlaceholder: "Temporada regular de liga",
+    pickDate: "Selecciona una fecha",
+    creating: "Creando...",
+    createSeason: "Crear Temporada",
+    active: "Activa",
+    markAsFinished: "Marcar como Finalizada",
+    delete: "Eliminar",
+    deleteSeason: "Eliminar Temporada",
+    deleteConfirmation: "¿Estás seguro de que quieres eliminar esta temporada? Esta acción no se puede deshacer.",
+    deleteNote: "Nota: Las temporadas con clasificaciones asociadas no se pueden eliminar. Primero deberás eliminar cualquier entrada de clasificación para esta temporada.",
+    deleting: "Eliminando...",
+    seasonStandings: "Clasificación de Temporada",
+    loading: "Cargando temporadas...",
+    noSeasons: "No se encontraron temporadas para este equipo.",
+    createFirstSeason: "Crear Primera Temporada",
+    loadingStandings: "Cargando clasificación...",
+    noStandings: "Aún no se han añadido clasificaciones para esta temporada.",
+    noStandingsDescription: "Utiliza la pestaña \"Clasificación de Liga\" para añadir equipos a la clasificación de esta temporada.",
+    pos: "Pos",
+    team: "Equipo",
+    p: "J",
+    w: "G",
+    d: "E",
+    l: "P",
+    gf: "GF",
+    ga: "GC",
+    gd: "DG",
+    pts: "Pts",
+    createFirst: "Debe crear primero una temporada para gestionar partidos",
+    createSeasonFirst: "Debe crear primero una temporada para gestionar partidos",
+    createSeasonButton: "Crear Temporada"
+  },
+  settings: {
+    // Settings page
     teamMembers: "Miembros del Equipo",
     administrators: "Administradores",
     administratorsDescription: "Administradores del equipo con acceso completo a la configuración",
@@ -725,7 +770,7 @@ export const esES = {
     error: "Error",
     warning: "Advertencia",
     refreshed: "Actualizado",
-
+    
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
     loginFailed: "Error al iniciar sesión",
@@ -734,7 +779,7 @@ export const esES = {
     registrationFailed: "Error al registrarse",
     welcomeToTeamKick: "Bienvenido a TeamKick, {{name}}",
     logoutSuccess: "Sesión cerrada correctamente",
-
+    
     // Mensajes relacionados con anuncios
     announcementCreated: "Anuncio creado",
     announcementCreatedDesc: "Tu anuncio ha sido publicado",
@@ -745,13 +790,13 @@ export const esES = {
     refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
     failedToRefresh: "Error al actualizar",
-
+    
     // Mensajes generales de acciones
     dataSaved: "Datos guardados",
     changesSaved: "Cambios guardados correctamente",
     actionCompleted: "Acción completada",
     actionFailed: "Error en la acción",
-
+    
     // Mensajes relacionados con detalles de partido
     playerAlreadyInLineup: "Jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
