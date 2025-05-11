@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   firstName: text("first_name"),
   lastName: text("last_name"),
-  role: text("role", { enum: ["superuser", "admin", "coach", "player"] }).notNull().default("player"),
+  role: text("role", { enum: ["superuser", "admin", "coach", "player", "colaborador"] }).notNull().default("player"),
   profilePicture: text("profile_picture").default("/default-avatar.png"),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
