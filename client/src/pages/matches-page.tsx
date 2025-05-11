@@ -900,14 +900,14 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      {t("seasons.createFirst")}
+                      Debe crear primero una temporada para gestionar partidos
                     </p>
                     <Button
                       variant="default"
                       className="mt-4"
                       onClick={() => setActiveTab("seasons")}
                     >
-                      <PlusCircle className="h-4 w-4 mr-2" /> {t("seasons.createSeasonButton")}
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
                     </Button>
                   </CardContent>
                 </Card>
@@ -940,14 +940,14 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      {t("seasons.createFirst")}
+                      Debe crear primero una temporada para gestionar partidos
                     </p>
                     <Button
                       variant="default"
                       className="mt-4"
                       onClick={() => setActiveTab("seasons")}
                     >
-                      <PlusCircle className="h-4 w-4 mr-2" /> {t("seasons.createSeasonButton")}
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
                     </Button>
                   </CardContent>
                 </Card>
@@ -985,14 +985,14 @@ export default function MatchesPage() {
                 <Card>
                   <CardContent className="pt-6 text-center">
                     <p className="text-muted-foreground">
-                      {t("seasons.createSeasonFirst")}
+                      Debe crear primero una temporada para gestionar clasificaciones
                     </p>
                     <Button
                       variant="default"
                       className="mt-4"
                       onClick={() => setActiveTab("seasons")}
                     >
-                      <PlusCircle className="h-4 w-4 mr-2" /> {t("seasons.createSeasonButton")}
+                      <PlusCircle className="h-4 w-4 mr-2" /> Crear Temporada
                     </Button>
                   </CardContent>
                 </Card>
