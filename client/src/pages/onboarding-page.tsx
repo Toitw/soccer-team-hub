@@ -215,7 +215,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>Team Code</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your team code" {...field} />
+                            <Input placeholder={t("onboarding.teamCode")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -341,7 +341,7 @@ export default function OnboardingPage() {
                     <FormItem>
                       <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your team code" {...field} />
+                        <Input placeholder={t("onboarding.teamCode")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
