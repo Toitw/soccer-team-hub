@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { insertUserSchema } from "@shared/schema";
@@ -44,6 +44,7 @@ type AddUserFormProps = {
 
 export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   // Set up form
@@ -79,7 +80,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       
       // 2) Invalidate all team-related queries
       queryClient.invalidateQueries({
-        predicate: query => 
+        predicate: (query: any) => 
           Array.isArray(query.queryKey) &&
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/teams')
@@ -87,7 +88,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       
       // 2.1) Specifically target team members lists
       queryClient.invalidateQueries({
-        predicate: (query) =>
+        predicate: (query: any) =>
           Array.isArray(query.queryKey) &&
           typeof query.queryKey[0] === "string" &&
           query.queryKey[0].startsWith("/api/teams") &&
@@ -96,7 +97,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       
       // 3) Invalidate any individual user queries
       queryClient.invalidateQueries({
-        predicate: query => 
+        predicate: (query: any) => 
           Array.isArray(query.queryKey) &&
           typeof query.queryKey[0] === 'string' &&
           query.queryKey[0].startsWith('/api/users')
@@ -104,7 +105,7 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       
       // 3.1) Specifically target user-by-ID queries
       queryClient.invalidateQueries({
-        predicate: (query) =>
+        predicate: (query: any) =>
           Array.isArray(query.queryKey) &&
           typeof query.queryKey[0] === "string" &&
           query.queryKey[0].startsWith("/api/users/")
