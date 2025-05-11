@@ -84,7 +84,7 @@ interface TeamMemberWithUser extends TeamMember {
 // Schema for adding a team member
 const addTeamMemberSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters"),
-  role: z.enum(["coach", "player"]),
+  role: z.enum(["coach", "player", "colaborador"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
   profilePicture: z
@@ -94,7 +94,7 @@ const addTeamMemberSchema = z.object({
 
 // Schema for editing a team member
 const editTeamMemberSchema = z.object({
-  role: z.enum(["coach", "player"]),
+  role: z.enum(["coach", "player", "colaborador"]),
   position: z.string().optional(),
   jerseyNumber: z.coerce.number().int().optional(),
   profilePicture: z
@@ -247,7 +247,7 @@ export default function TeamPage() {
   useEffect(() => {
     if (memberToEdit) {
       editForm.reset({
-        role: memberToEdit.role as "coach" | "player",
+        role: memberToEdit.role as "coach" | "player" | "colaborador",
         position: memberToEdit.user.position || "",
         jerseyNumber: memberToEdit.user.jerseyNumber || undefined,
         profilePicture: memberToEdit.user.profilePicture || "",
@@ -822,6 +822,7 @@ export default function TeamPage() {
                               <SelectContent>
                                 <SelectItem value="coach">{t("auth.coach")}</SelectItem>
                                 <SelectItem value="player">{t("auth.player")}</SelectItem>
+                                <SelectItem value="colaborador">{t("auth.colaborador")}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -1383,6 +1384,7 @@ export default function TeamPage() {
                     <SelectItem value="all">{t("team.allMembers")}</SelectItem>
                     <SelectItem value="admin">{t("auth.admin") + "s"}</SelectItem>
                     <SelectItem value="coach">{t("auth.coach") + "es"}</SelectItem>
+                    <SelectItem value="colaborador">{t("auth.colaborador") + "es"}</SelectItem>
                     <SelectItem value="player">{t("auth.player") + "es"}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1584,6 +1586,7 @@ export default function TeamPage() {
                       <SelectContent>
                         <SelectItem value="coach">{t("auth.coach")}</SelectItem>
                         <SelectItem value="player">{t("auth.player")}</SelectItem>
+                        <SelectItem value="colaborador">{t("auth.colaborador")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
