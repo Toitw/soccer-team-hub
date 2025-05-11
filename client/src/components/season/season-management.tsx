@@ -203,7 +203,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="startDate"
@@ -242,7 +242,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="endDate"
@@ -281,7 +281,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -295,7 +295,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <DialogFooter>
                   <Button 
                     type="button" 
@@ -316,7 +316,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       {isLoading ? (
         <div className="py-8 text-center">{t('seasons.loadingSeasons')}</div>
       ) : seasons && seasons.length > 0 ? (
@@ -340,20 +340,21 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
               </TabsTrigger>
             ))}
           </TabsList>
-          
+
           {seasons.map((season) => (
             <TabsContent key={season.id} value={season.id.toString()}>
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
+                  <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <span>{season.name}</span>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       {season.isActive && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => finishSeasonMutation.mutate(season.id)}
                           disabled={finishSeasonMutation.isPending}
+                          className="flex-grow sm:flex-grow-0"
                         >
                           <Check className="mr-2 h-4 w-4" />
                           {t('seasons.markAsFinished')}
@@ -361,7 +362,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                       )}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
+                          <Button variant="destructive" size="sm" className="flex-grow sm:flex-grow-0">
                             <Trash2 className="mr-2 h-4 w-4" />
                             {t('seasons.delete')}
                           </Button>
