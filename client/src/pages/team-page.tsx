@@ -145,7 +145,7 @@ export default function TeamPage() {
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
-  
+
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
   const { data: teamLineup, isLoading: teamLineupLoading } = useQuery({
@@ -430,20 +430,20 @@ export default function TeamPage() {
       top: number;
       left: number;
     }[] = [];
-    
+
     // Check formation type by prefix
     const isSevenASide = formation.startsWith("7a-");
     const isFutsalOrFiveASide = formation.startsWith("5a-");
-    
+
     if (isSevenASide) {
       // 7-a-side formations
       // Extract pattern after the "7a-" prefix
       const pattern = formation.substring(3);
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
-      
+
       // Add goalkeeper
       positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
-      
+
       // Add defenders - wider spacing for fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
@@ -454,7 +454,7 @@ export default function TeamPage() {
           left: 5 + i * defenderWidth,
         });
       }
-      
+
       // Add midfielders - wider spacing for fewer players
       const midfielderWidth = 90 / (midfielders + 1);
       for (let i = 1; i <= midfielders; i++) {
@@ -465,7 +465,7 @@ export default function TeamPage() {
           left: 5 + i * midfielderWidth,
         });
       }
-      
+
       // Add forwards - wider spacing for fewer players
       const forwardWidth = 90 / (forwards + 1); 
       for (let i = 1; i <= forwards; i++) {
@@ -481,10 +481,10 @@ export default function TeamPage() {
       // Extract pattern after the "5a-" prefix
       const pattern = formation.substring(3);
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
-      
+
       // Add goalkeeper
       positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
-      
+
       // Add defenders - wider spacing for even fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
@@ -495,7 +495,7 @@ export default function TeamPage() {
           left: 5 + i * defenderWidth,
         });
       }
-      
+
       // Add midfielders - wider spacing for even fewer players
       const midfielderWidth = 90 / (midfielders + 1);
       for (let i = 1; i <= midfielders; i++) {
@@ -506,7 +506,7 @@ export default function TeamPage() {
           left: 5 + i * midfielderWidth,
         });
       }
-      
+
       // Add forwards - wider spacing for even fewer players
       const forwardWidth = 90 / (forwards + 1); 
       for (let i = 1; i <= forwards; i++) {
@@ -549,7 +549,7 @@ export default function TeamPage() {
         });
       }
     }
-    
+
     return positions;
   };
 
@@ -587,7 +587,7 @@ export default function TeamPage() {
         ];
     }
   };
-  
+
   // Get available formations based on selected team type
   const availableFormations = getAvailableFormations(selectedTeam?.teamType);
 
@@ -651,19 +651,19 @@ export default function TeamPage() {
       description: "Player has been removed from the lineup.",
     });
   };
-  
+
   // Save lineup mutation
   const saveLineupMutation = useMutation({
     mutationFn: async () => {
       if (!selectedTeam) throw new Error("No team selected");
-      
+
       // Convert lineup object to arrays of player IDs for storage
       const playerIds: number[] = [];
       const benchPlayerIds: number[] = [];
-      
+
       // Create a position mapping object from the lineup for storing position assignments
       const positionMapping: { [key: string]: number } = {};
-      
+
       // Process the lineup object to extract player IDs and position mappings
       Object.entries(lineup).forEach(([positionId, member]) => {
         if (member) {
@@ -671,7 +671,7 @@ export default function TeamPage() {
           positionMapping[positionId] = member.userId;
         }
       });
-      
+
       // Find players who are on the team but not in the starting lineup - they go to the bench
       if (teamMembers) {
         teamMembers.forEach(member => {
@@ -680,7 +680,7 @@ export default function TeamPage() {
           }
         });
       }
-      
+
       return apiRequest(`/api/teams/${selectedTeam.id}/lineup`, {
         method: "POST",
         data: {
@@ -708,12 +708,12 @@ export default function TeamPage() {
       setIsSavingLineup(false);
     }
   });
-  
+
   const handleSaveLineup = () => {
     setIsSavingLineup(true);
     saveLineupMutation.mutate();
   };
-  
+
   // Initialize lineup from server data when it's available
   useEffect(() => {
     if (teamLineup && teamMembers) {
@@ -721,10 +721,10 @@ export default function TeamPage() {
       if (teamLineup.formation) {
         setSelectedFormation(teamLineup.formation);
       }
-      
+
       // Initialize an empty lineup object
       const newLineup: {[key: string]: TeamMemberWithUser | null} = {};
-      
+
       // Process the position mapping to place players in their positions
       if (teamLineup.positionMapping) {
         Object.entries(teamLineup.positionMapping).forEach(([positionId, userId]) => {
@@ -737,7 +737,7 @@ export default function TeamPage() {
           }
         });
       }
-      
+
       setLineup(newLineup);
     }
   }, [teamLineup, teamMembers]);
@@ -851,7 +851,7 @@ export default function TeamPage() {
                                     {t("team.goalkeeper")}
                                   </SelectItem>
                                 </SelectGroup>
-                                
+
                                 {/* Show positions based on team type */}
                                 {selectedTeam?.teamType === "7-a-side" && (
                                   <SelectGroup>
@@ -873,7 +873,7 @@ export default function TeamPage() {
                                     </SelectItem>
                                   </SelectGroup>
                                 )}
-                                
+
                                 {/* Futsal/5-a-side positions */}
                                 {selectedTeam?.teamType === "Futsal" && (
                                   <SelectGroup>
@@ -892,7 +892,7 @@ export default function TeamPage() {
                                     </SelectItem>
                                   </SelectGroup>
                                 )}
-                                
+
                                 {/* 11-a-side positions, only shown when team type is 11-a-side or not set */}
                                 {(selectedTeam?.teamType === "11-a-side" || !selectedTeam?.teamType) && (
                                   <>
@@ -1055,12 +1055,90 @@ export default function TeamPage() {
                 {/* Field Container */}
                 <div className="lg:col-span-3">
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full">
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                  
+                  
+<div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
-                        {/* Different field markings based on format */}
-                        {selectedFormation.startsWith("7a-") ? (
+                        {/* Different field markings based on team type */}
+                        {selectedTeam?.teamType === "Futsal" ? (
                           <>
-                            {/* 7-a-side field markings - smaller and simplified */}
+                            {/* Futsal/5-a-side field markings */}
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-28 h-14 border-2 border-t-0 border-white rounded-b-full"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-20 w-40 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-10 w-20 border-2 border-b-0 border-white"></div>
+                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-12 bg-white"></div>
+                            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
+                            {/* Futsal specific text indicator */}
+                            <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                              Futsal
+                            </div>
+                          </>
+                        ) : selectedTeam?.teamType === "7-a-side" ? (
+                          <>
+                            {/* 7-a-side field markings */}
                             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-16 border-2 border-t-0 border-white rounded-b-full"></div>
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-24 w-48 border-2 border-b-0 border-white"></div>
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-12 w-24 border-2 border-b-0 border-white"></div>
@@ -1071,22 +1149,9 @@ export default function TeamPage() {
                               7-a-side
                             </div>
                           </>
-                        ) : selectedFormation.startsWith("5a-") ? (
-                          <>
-                            {/* Futsal/5-a-side field markings - even smaller */}
-                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-28 h-14 border-2 border-t-0 border-white rounded-b-full"></div>
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-20 w-40 border-2 border-b-0 border-white"></div>
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-10 w-20 border-2 border-b-0 border-white"></div>
-                            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-2 w-12 bg-white"></div>
-                            <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
-                            {/* 5-a-side specific text indicator */}
-                            <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                              Futsal
-                            </div>
-                          </>
                         ) : (
                           <>
-                            {/* 11-a-side field markings - original */}
+                            {/* 11-a-side field markings */}
                             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-20 border-2 border-t-0 border-white rounded-b-full"></div>
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-32 w-64 border-2 border-b-0 border-white"></div>
                             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-16 w-32 border-2 border-b-0 border-white"></div>
