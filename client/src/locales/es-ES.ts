@@ -673,6 +673,7 @@ export const esES = {
     date: "Fecha",
     author: "Autor",
     important: "Importante",
+    latestAnnouncements: "Últimos Anuncios",
     noAnnouncements: "No hay anuncios aún",
     noAnnouncementsDescription: "Cuando se creen anuncios, aparecerán aquí.",
     createAnnouncementDescription: "Completa el formulario a continuación para crear un nuevo anuncio.",
@@ -800,7 +801,16 @@ export const esES = {
       welcome: "Bienvenido, {{name}}",
       overview: "Resumen",
       recentActivity: "Actividad Reciente",
-      quickActions: "Acciones Rápidas"
+      quickActions: "Acciones Rápidas",
+      teamSummary: "Resumen del Equipo",
+      season: "Temporada",
+      players: "Jugadores",
+      matches: "Partidos",
+      wins: "Victorias",
+      goals: "Goles",
+      upcomingEvents: "Próximos Eventos",
+      noUpcomingEvents: "No hay eventos próximos",
+      addNewEvent: "Añadir Nuevo Evento"
     },
     notifications: {
       newNotification: "Nueva notificación",
