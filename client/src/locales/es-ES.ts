@@ -648,7 +648,7 @@ export const esES = {
     startDate: "Fecha de Inicio",
     endDate: "Fecha de Fin (Opcional)",
     endDateOptional: "Fecha de Fin (Opcional)",
-    description: "Descripción (Opcional)",
+    seasonDescription: "Descripción (Opcional)",
     descriptionPlaceholder: "Temporada regular de liga",
     pickDate: "Selecciona una fecha",
     creating: "Creando...",
@@ -681,6 +681,7 @@ export const esES = {
     createSeasonFirst: "Debe crear primero una temporada para gestionar partidos",
     createSeasonButton: "Crear Temporada"
   },
+  settings: {
     // Settings page
     teamMembers: "Miembros del Equipo",
     administrators: "Administradores",
@@ -804,5 +805,5 @@ export const esES = {
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
-  },
+  }
 };
