@@ -349,7 +349,7 @@ export default function OnboardingPage() {
                 />
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Joining Team..." : "Join Team"}
+                  {isSubmitting ? t("matches.deleting") : t("onboarding.joinTeam")}
                 </Button>
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -368,10 +368,10 @@ export default function OnboardingPage() {
                     }}
                     disabled={isSubmitting}
                   >
-                    Try Demo Mode
+                    {t("onboarding.tryDemoMode")}
                   </Button>
                   <p className="text-xs text-gray-500 text-center mt-2">
-                    Explore the app features before creating a team
+                    {t("onboarding.exploreFeatures")}
                   </p>
                 </div>
               </form>
@@ -380,7 +380,7 @@ export default function OnboardingPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button variant="ghost" onClick={skipOnboarding} disabled={isSubmitting}>
-            Skip for now
+            {t("onboarding.skipForNow")}
           </Button>
         </CardFooter>
       </Card>
