@@ -152,6 +152,7 @@ export const enUS = {
     player: "Player",
     coach: "Coach",
     admin: "Administrator",
+    colaborador: "Collaborator",
     login: "Log in",
     loggingIn: "Logging in...",
     register: "Register",
