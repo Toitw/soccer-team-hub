@@ -980,7 +980,7 @@ export default function MatchesPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="classification" className="space-y-4">
+            <TabsContent value="classification" className="space-y-4 pb-16">
               {!seasons || seasons.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6 text-center">
