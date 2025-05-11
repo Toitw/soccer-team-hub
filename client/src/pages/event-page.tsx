@@ -837,26 +837,28 @@ export default function EventPage() {
                   {!events || events.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <p>{t("events.noEvents")}</p>
-                      <Button
-                        variant="link"
-                        onClick={() => {
-                          // Use current date if no date is selected
-                          const today = new Date();
-                          today.setHours(12, 0, 0, 0);
-                          
-                          const selectedDateString = today.toISOString().slice(0, 16);
-                          const endTime = new Date(today.getTime() + 90 * 60 * 1000)
-                            .toISOString()
-                            .slice(0, 16);
-                          
-                          form.setValue("startTime", selectedDateString);
-                          form.setValue("endTime", endTime);
-                          setDialogOpen(true);
-                        }}
-                        className="text-primary mt-2"
-                      >
-                        {t("events.scheduleFirstEvent")}
-                      </Button>
+                      {user && user.role !== 'player' && user.role !== 'colaborador' && (
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            // Use current date if no date is selected
+                            const today = new Date();
+                            today.setHours(12, 0, 0, 0);
+                            
+                            const selectedDateString = today.toISOString().slice(0, 16);
+                            const endTime = new Date(today.getTime() + 90 * 60 * 1000)
+                              .toISOString()
+                              .slice(0, 16);
+                            
+                            form.setValue("startTime", selectedDateString);
+                            form.setValue("endTime", endTime);
+                            setDialogOpen(true);
+                          }}
+                          className="text-primary mt-2"
+                        >
+                          {t("events.scheduleFirstEvent")}
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">
