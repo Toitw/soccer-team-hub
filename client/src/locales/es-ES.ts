@@ -621,6 +621,8 @@ export const esES = {
       en: "English",
       es: "Español"
     },
+    english: "Inglés",
+    spanish: "Español",
     notificationTypes: {
       email: "Correo electrónico",
       push: "Notificaciones push",
@@ -667,7 +669,7 @@ export const esES = {
     publishedOn: "Publicado el",
     by: "por",
     all: "Todos",
-    important: "Importantes",
+    importantAnnouncements: "Importantes",
     filterBy: "Filtrar por",
     sortBy: "Ordenar por",
     newestFirst: "Más recientes primero",
@@ -849,7 +851,7 @@ export const esES = {
     showBanned: "Mostrar baneados",
     isBanned: "Baneado",
     isSuperuser: "Superusuario",
-    teamDetails: "Detalles del Equipo",
+    teamDetailsAdmin: "Detalles del Equipo",
     teamCode: "Código del Equipo",
     generateNewCode: "Generar Nuevo Código",
     copyToClipboard: "Copiar al Portapapeles",
@@ -929,7 +931,7 @@ export const esES = {
     announcementsCount: "Número de Anuncios",
     connections: "Conexiones",
     filters: "Filtros",
-    status: "Estado",
+    statusFilter: "Estado",
     resetFilters: "Restablecer Filtros"
   }
 };
