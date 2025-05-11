@@ -128,9 +128,21 @@ export default function TeamPage() {
   );
   const [memberToRemove, setMemberToRemove] =
     useState<TeamMemberWithUser | null>(null);
+  
+
+  const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+  });
+
+  // Select the first team by default
+  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
+
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
+  const [lineup, setLineup] = useState<{
+    [position: string]: TeamMemberWithUser | null;
+  }>({});
 
   useEffect(() => {
     if (selectedTeam?.teamType) {
@@ -141,20 +153,13 @@ export default function TeamPage() {
       );
     }
   }, [selectedTeam?.teamType]);
-  const [lineup, setLineup] = useState<{
-    [position: string]: TeamMemberWithUser | null;
-  }>({});
+  
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [showAddToLineupDialog, setShowAddToLineupDialog] =
     useState<boolean>(false);
   const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
 
-  const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
-    queryKey: ["/api/teams"],
-  });
 
-  // Select the first team by default
-  const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
@@ -917,6 +922,7 @@ export default function TeamPage() {
                                       <SelectItem value="Right Back">
                                         {t("team.rightBack")}
                                       </SelectItem>
+                               ```python
                                       <SelectItem value="Wing Back">
                                         {t("team.wingBack")}
                                       </SelectItem>
@@ -1065,71 +1071,71 @@ export default function TeamPage() {
                 {/* Field Container */}
                 <div className="lg:col-span-3">
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full h-96 sm:aspect-[16/9] md:max-w-3xl mx-auto rounded-md flex items-center justify-center overflow-hidden">
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                  
-                  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
                         {/* Different field markings based on team type */}
