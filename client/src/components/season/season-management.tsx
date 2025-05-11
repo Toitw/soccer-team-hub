@@ -8,6 +8,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
+import { ClassificationTable } from '@/components/classification/classification-table';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -451,19 +452,10 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
   const { t } = useTranslation();
 
   return (
-    <>
-      <ClassificationTable 
-        classifications={classifications || []} 
-        isLoading={isLoading}
-        emptyMessage={
-          <span>
-            {t('seasons.noStandings')}
-            <span className="block text-sm text-muted-foreground mt-2">
-              {t('seasons.useLeagueTab')}
-            </span>
-          </span>
-        }
-      />
-    </>
+    <ClassificationTable 
+      classifications={classifications || []} 
+      isLoading={isLoading}
+      emptyMessage={t('seasons.noStandings') + '. ' + t('seasons.useLeagueTab')}
+    />
   );
 }
