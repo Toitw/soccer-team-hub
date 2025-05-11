@@ -301,7 +301,8 @@ export default function AnnouncementsPage(props: PageProps = {}) {
     // Strict role-based permission check:
     // 1. Administrators: Full access to create/edit/delete announcements
     // 2. Coaches: Can create/edit/delete announcements
-    // 3. Players: No management permissions, read-only access
+    // 3. Colaboradores: No management permissions, read-only access (handled by readOnly prop)
+    // 4. Players: No management permissions, read-only access
     const canManage = user.role === "admin" || user.role === "coach";
     
     console.log('User permission check:', { 
