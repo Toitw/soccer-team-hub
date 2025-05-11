@@ -447,13 +447,31 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
     queryKey: ['/api/teams', teamId, 'seasons', seasonId, 'classifications'],
     queryFn: () => apiRequest(`/api/teams/${teamId}/seasons/${seasonId}/classifications`),
   });
+  
+  // Fetch team's general classifications as fallback
+  const { data: teamClassifications } = useQuery({
+    queryKey: ['/api/teams', teamId, 'classification'],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/classification`),
+  });
+  
   const { t } = useTranslation();
-
+  
+  // Use season-specific classifications if available, otherwise filter team classifications by season
+  const filteredClassifications = classifications?.length ? classifications : 
+    teamClassifications?.filter(c => c.seasonId === seasonId) || [];
+  
   return (
     <ClassificationTable 
-      classifications={classifications || []} 
+      classifications={filteredClassifications} 
       isLoading={isLoading}
-      emptyMessage={t('seasons.noStandings') + '. ' + t('seasons.useLeagueTab')}
+      emptyMessage={
+        <span>
+          {t('seasons.noStandings')}
+          <span className="block text-sm text-muted-foreground mt-2">
+            {t('seasons.useLeagueTab')}
+          </span>
+        </span>
+      }
     />
   );
 }
