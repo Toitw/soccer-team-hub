@@ -38,7 +38,7 @@ export default function MobileNavigation() {
           } 
           label={t("navigation.dashboard")} 
         />
-        
+
         <NavItem 
           href="/team" 
           icon={
@@ -51,7 +51,7 @@ export default function MobileNavigation() {
           } 
           label={t("navigation.team")} 
         />
-        
+
         <NavItem 
           href="/announcements" 
           icon={
@@ -63,25 +63,22 @@ export default function MobileNavigation() {
           }
           label={t("navigation.announcements")}
         />
-        
+
         <NavItem 
           href="/matches" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5h3.5a.5.5 0 0 1 .5.5V9" />
-              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5h-3.5a.5.5 0 0 0-.5.5V9" />
-              <path d="M4 22h16" />
-              <path d="M10 14.66V17c0 .55-.47.98-.97.93l-2-.4c-.61-.12-1.03-.66-1.03-1.29v-.96c0-.27.1-.53.29-.71l.35-.35" />
-              <path d="M14 14.66V17c0 .55.47.98.97.93l2-.4c.61-.12 1.03-.66 1.03-1.29v-.96c0-.27-.1-.53-.29-.71l-.35-.35" />
-              <path d="M8 13h8" />
-              <path d="M7 18h10" />
-              <path d="M12 2v7" />
-              <path d="M12 9v4" />
-            </svg>
+                <path d="M6 9V4c0-1 1-2 2-2h8c1 0 2 1 2 2v5" />
+                <path d="M18 9a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3M6 9a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3" />
+                <path d="M12 12h0.01" />
+                <path d="M12 16c2.2 0 4-1.8 4-4H8c0 2.2 1.8 4 4 4Z" />
+                <path d="M15 19v3H9v-3" />
+                <path d="M8 22h8" />
+              </svg>
           } 
           label={t("navigation.matches")} 
         />
-        
+
         <div className="flex flex-col items-center py-1 text-gray-500">
           <Sheet>
             <SheetTrigger className="flex flex-col items-center py-1 text-gray-500">
@@ -105,7 +102,7 @@ export default function MobileNavigation() {
                     </div>
                   </Link>
                 </div>
-                
+
                 <div className="flex flex-col items-center">
                   <Link href="/statistics">
                     <div className={`flex flex-col items-center px-4 py-2 ${location === '/statistics' ? 'text-primary' : 'text-gray-700'}`}>
@@ -118,7 +115,7 @@ export default function MobileNavigation() {
                     </div>
                   </Link>
                 </div>
-                
+
                 {/* Only admin users can access settings */}
                 {user?.role === "admin" && (
                   <div className="flex flex-col items-center">
@@ -133,7 +130,7 @@ export default function MobileNavigation() {
                     </Link>
                   </div>
                 )}
-                
+
                 <div className="flex flex-col items-center">
                   <div className="flex flex-col items-center px-4 py-2 text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -147,7 +144,7 @@ export default function MobileNavigation() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col items-center">
                   <button 
                     onClick={() => logoutMutation.mutate()}
