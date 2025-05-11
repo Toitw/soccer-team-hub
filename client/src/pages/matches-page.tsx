@@ -966,7 +966,7 @@ export default function MatchesPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="seasons" className="space-y-4">
+            <TabsContent value="seasons" className="space-y-4 pb-16">
               {selectedTeam ? (
                 <SeasonManagement teamId={selectedTeam.id} />
               ) : (
