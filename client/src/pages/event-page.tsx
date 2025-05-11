@@ -424,31 +424,33 @@ export default function EventPage() {
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  className="bg-primary hover:bg-primary/90"
-                  aria-label={t("events.addEvent")}
-                  onClick={() => {
-                    // Update form with selected date when opening dialog
-                    if (selectedDate) {
-                      // Create date at noon on the selected day to avoid timezone issues
-                      const localDate = new Date(selectedDate);
-                      localDate.setHours(12, 0, 0, 0);
-                      
-                      const selectedDateString = localDate.toISOString().slice(0, 16);
-                      const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
-                        .toISOString()
-                        .slice(0, 16);
-                      
-                      form.setValue("startTime", selectedDateString);
-                      form.setValue("endTime", endTime);
-                    }
-                  }}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  {t("events.addEvent")}
-                </Button>
-              </DialogTrigger>
+              {user && user.role !== 'player' && user.role !== 'colaborador' && (
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-primary hover:bg-primary/90"
+                    aria-label={t("events.addEvent")}
+                    onClick={() => {
+                      // Update form with selected date when opening dialog
+                      if (selectedDate) {
+                        // Create date at noon on the selected day to avoid timezone issues
+                        const localDate = new Date(selectedDate);
+                        localDate.setHours(12, 0, 0, 0);
+                        
+                        const selectedDateString = localDate.toISOString().slice(0, 16);
+                        const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
+                          .toISOString()
+                          .slice(0, 16);
+                        
+                        form.setValue("startTime", selectedDateString);
+                        form.setValue("endTime", endTime);
+                      }
+                    }}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    {t("events.addEvent")}
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{isEditMode ? t("events.editEvent") : t("events.createEvent")}</DialogTitle>
@@ -614,29 +616,31 @@ export default function EventPage() {
                     {eventsForSelectedDate.length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
                         <p>{t("events.noEventsForDate")}</p>
-                        <Button
-                          variant="link"
-                          onClick={() => {
-                            // Update form with selected date when opening dialog
-                            if (selectedDate) {
-                              // Create date at noon on the selected day to avoid timezone issues
-                              const localDate = new Date(selectedDate);
-                              localDate.setHours(12, 0, 0, 0);
-                              
-                              const selectedDateString = localDate.toISOString().slice(0, 16);
-                              const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
-                                .toISOString()
-                                .slice(0, 16);
-                              
-                              form.setValue("startTime", selectedDateString);
-                              form.setValue("endTime", endTime);
-                            }
-                            setDialogOpen(true);
-                          }}
-                          className="text-primary mt-2"
-                        >
-                          {t("events.scheduleEvent")}
-                        </Button>
+                        {user && user.role !== 'player' && user.role !== 'colaborador' && (
+                          <Button
+                            variant="link"
+                            onClick={() => {
+                              // Update form with selected date when opening dialog
+                              if (selectedDate) {
+                                // Create date at noon on the selected day to avoid timezone issues
+                                const localDate = new Date(selectedDate);
+                                localDate.setHours(12, 0, 0, 0);
+                                
+                                const selectedDateString = localDate.toISOString().slice(0, 16);
+                                const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
+                                  .toISOString()
+                                  .slice(0, 16);
+                                
+                                form.setValue("startTime", selectedDateString);
+                                form.setValue("endTime", endTime);
+                              }
+                              setDialogOpen(true);
+                            }}
+                            className="text-primary mt-2"
+                          >
+                            {t("events.scheduleEvent")}
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -835,26 +839,28 @@ export default function EventPage() {
                   {!events || events.length === 0 ? (
                     <div className="text-center py-12 text-gray-500">
                       <p>{t("events.noEvents")}</p>
-                      <Button
-                        variant="link"
-                        onClick={() => {
-                          // Use current date if no date is selected
-                          const today = new Date();
-                          today.setHours(12, 0, 0, 0);
-                          
-                          const selectedDateString = today.toISOString().slice(0, 16);
-                          const endTime = new Date(today.getTime() + 90 * 60 * 1000)
-                            .toISOString()
-                            .slice(0, 16);
-                          
-                          form.setValue("startTime", selectedDateString);
-                          form.setValue("endTime", endTime);
-                          setDialogOpen(true);
-                        }}
-                        className="text-primary mt-2"
-                      >
-                        {t("events.scheduleFirstEvent")}
-                      </Button>
+                      {user && user.role !== 'player' && user.role !== 'colaborador' && (
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            // Use current date if no date is selected
+                            const today = new Date();
+                            today.setHours(12, 0, 0, 0);
+                            
+                            const selectedDateString = today.toISOString().slice(0, 16);
+                            const endTime = new Date(today.getTime() + 90 * 60 * 1000)
+                              .toISOString()
+                              .slice(0, 16);
+                            
+                            form.setValue("startTime", selectedDateString);
+                            form.setValue("endTime", endTime);
+                            setDialogOpen(true);
+                          }}
+                          className="text-primary mt-2"
+                        >
+                          {t("events.scheduleFirstEvent")}
+                        </Button>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-4">

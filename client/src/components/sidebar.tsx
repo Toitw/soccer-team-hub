@@ -75,11 +75,12 @@ export default function Sidebar() {
           <Link href="/matches">
             <div className={`flex items-center space-x-3 px-4 py-3 cursor-pointer ${location === '/matches' ? 'bg-white/10' : 'hover:bg-white/10'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18.5 4l2 6h-13l2-6"></path>
-                <path d="M3 10h18v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"></path>
-                <path d="M6 14v4"></path>
-                <path d="M12 14v4"></path>
-                <path d="M18 14v4"></path>
+                <path d="M6 9V4c0-1 1-2 2-2h8c1 0 2 1 2 2v5" />
+                <path d="M18 9a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3M6 9a3 3 0 0 0-3 3v1a3 3 0 0 0 3 3" />
+                <path d="M12 12h0.01" />
+                <path d="M12 16c2.2 0 4-1.8 4-4H8c0 2.2 1.8 4 4 4Z" />
+                <path d="M15 19v3H9v-3" />
+                <path d="M8 22h8" />
               </svg>
               <span>{t("navigation.matches")}</span>
             </div>

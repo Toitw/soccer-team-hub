@@ -867,7 +867,7 @@ export default function MatchesPage() {
         <Header title="Matches" translationKey="matches.matches" />
         <main className="flex-1 p-4 md:p-6 space-y-4 pb-16 overflow-x-hidden">
           <div className="flex justify-between items-center">
-            {canManage && (
+            {canManage && seasons && seasons.length > 0 && (
               <Button onClick={() => setDialogOpen(true)}>
                 <PlusCircle className="h-4 w-4 mr-2" /> {t("matches.addMatch")}
               </Button>

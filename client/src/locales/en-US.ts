@@ -649,6 +649,15 @@ export const enUS = {
     refreshed: "Refreshed",
     announcementsUpdated: "Announcements have been updated.",
   },
+  onboarding: {
+    welcome: "Welcome to Cancha+",
+    joinTeamPrompt: "Join your team to get started",
+    teamCode: "Team Code",
+    joinTeam: "Join Team",
+    tryDemoMode: "Try Demo Mode",
+    exploreFeatures: "Explore the app features before creating a team",
+    skipForNow: "Skip for now"
+  },
   settings: {
     generalSettings: "General Settings",
     accountSettings: "Account Settings",

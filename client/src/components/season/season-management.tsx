@@ -179,8 +179,8 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          {/* Only show New Season button if no active season exists */}
-          {!seasons?.some(season => season.isActive) && (
+          {/* Show New Season button only if seasons exist and none are active */}
+          {seasons && seasons.length > 0 && !seasons.some(season => season.isActive) && (
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
