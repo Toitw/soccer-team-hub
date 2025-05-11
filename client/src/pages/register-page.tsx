@@ -17,7 +17,7 @@ const registerSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "coach", "player"]),
+  role: z.enum(["admin", "coach", "player", "colaborador"]),
   teamCode: z.string().optional(),
   agreedToTerms: z.boolean().default(true)
 });
@@ -179,6 +179,7 @@ export default function RegisterPage() {
                       <SelectContent>
                         <SelectItem value="admin">Team Administrator</SelectItem>
                         <SelectItem value="coach">Coach</SelectItem>
+                        <SelectItem value="colaborador">Collaborator</SelectItem>
                         <SelectItem value="player">Player</SelectItem>
                       </SelectContent>
                     </Select>
