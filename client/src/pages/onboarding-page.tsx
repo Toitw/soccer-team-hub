@@ -67,7 +67,7 @@ export default function OnboardingPage() {
       });
 
       setUser(response.user);
-      
+
       toast({
         title: "Team joined successfully",
         description: `You have joined ${response.team.name}. Welcome to the team!`,
@@ -96,7 +96,7 @@ export default function OnboardingPage() {
       });
 
       setUser(response.user);
-      
+
       toast({
         title: "Team created successfully",
         description: `Your team "${response.team.name}" has been created! Team code: ${response.team.joinCode}`,
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
       });
 
       setUser(response);
-      
+
       toast({
         title: "Demo Mode Activated",
         description: "You're now viewing the app in demo mode. Create your team when you're ready!",
@@ -147,12 +147,12 @@ export default function OnboardingPage() {
 
   // Show loading state while fetching user data
   const { isLoading } = useAuth();
-  
+
   // Only proceed with redirects when we're sure about the user state
   if (!isLoading) {
     // Adding logging for debugging  
     console.log("Onboarding page - Current user:", user);
-    
+
     if (!user) {
       console.log("No user found, redirecting to auth page");
       // Use setLocation instead of direct window.location to prevent refresh loops
@@ -163,14 +163,14 @@ export default function OnboardingPage() {
     // Only redirect if they didn't come from the mock page
     const urlParams = new URLSearchParams(window.location.search);
     const fromMock = urlParams.get('fromMock') === 'true';
-    
+
     if (user.onboardingCompleted && !fromMock) {
       console.log("User already completed onboarding, redirecting to dashboard");
       // Use setLocation instead of direct window.location to prevent refresh loops
       setLocation("/");
       return null;
     }
-    
+
     console.log("User needs to complete onboarding, staying on page");
   } else {
     // Show loading indicator when we're still determining user state
@@ -188,13 +188,13 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to Cancha+</CardTitle>
-          <CardDescription>
-            {isAdmin 
-              ? "Join an existing team or create your own"
-              : "Join your team to get started"}
-          </CardDescription>
-        </CardHeader>
+            <CardTitle className="text-2xl font-bold">{t("onboarding.welcome")}</CardTitle>
+            <CardDescription>
+              {isAdmin 
+                ? t("auth.joinCodeHelp")
+                : t("onboarding.joinTeamPrompt")}
+            </CardDescription>
+          </CardHeader>
         <CardContent>
           {isAdmin ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -202,7 +202,7 @@ export default function OnboardingPage() {
                 <TabsTrigger value="join">Join Team</TabsTrigger>
                 <TabsTrigger value="create">Create Team</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="join">
                 <Form {...joinTeamForm}>
                   <form onSubmit={joinTeamForm.handleSubmit(joinTeam)} className="space-y-4 mt-4">
@@ -219,14 +219,14 @@ export default function OnboardingPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? "Joining Team..." : "Join Team"}
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
-              
+
               <TabsContent value="create">
                 <Form {...createTeamForm}>
                   <form onSubmit={createTeamForm.handleSubmit(createTeam)} className="space-y-4 mt-4">
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={createTeamForm.control}
@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={createTeamForm.control}
                         name="teamType"
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
                         )}
                       />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={createTeamForm.control}
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={createTeamForm.control}
                         name="seasonYear"
@@ -321,7 +321,7 @@ export default function OnboardingPage() {
                         )}
                       />
                     </div>
-                    
+
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? "Creating Team..." : "Create Team"}
                     </Button>
@@ -345,11 +345,11 @@ export default function OnboardingPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? "Joining Team..." : "Join Team"}
                 </Button>
-                
+
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <Button 
                     variant="outline" 

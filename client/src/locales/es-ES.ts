@@ -654,6 +654,15 @@ export const esES = {
     refreshed: "Actualizado",
     announcementsUpdated: "Los anuncios han sido actualizados.",
   },
+  onboarding: {
+    welcome: "Bienvenido a Cancha+",
+    joinTeamPrompt: "Únete a tu equipo para comenzar",
+    teamCode: "Código de Equipo",
+    joinTeam: "Unirse al Equipo",
+    tryDemoMode: "Probar Modo Demo",
+    exploreFeatures: "Explora las funciones de la app antes de crear un equipo",
+    skipForNow: "Saltar por ahora"
+  },
   settings: {
     generalSettings: "Configuración General",
     accountSettings: "Configuración de Cuenta",
