@@ -75,6 +75,7 @@ export default function PlayerProfilePage() {
   };
 
   const isCurrentUser = user?.id === userId;
+  // Colaborador role has mostly read-only access except for attendance management
   const canEdit = isCurrentUser || user?.role === "admin" || user?.role === "coach";
 
   return (
