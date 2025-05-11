@@ -130,11 +130,17 @@ export default function TeamPage() {
     useState<TeamMemberWithUser | null>(null);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedFormation, setSelectedFormation] = useState<string>(
-    selectedTeam?.teamType === "Futsal" ? "5a-1-2-1" : 
-    selectedTeam?.teamType === "7-a-side" ? "7a-2-3-1" : 
-    "4-3-3"
-  );
+  const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
+
+  useEffect(() => {
+    if (selectedTeam?.teamType) {
+      setSelectedFormation(
+        selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
+        selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
+        "4-3-3"
+      );
+    }
+  }, [selectedTeam?.teamType]);
   const [lineup, setLineup] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
