@@ -339,7 +339,7 @@ export default function OnboardingPage() {
                   name="teamCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Team Code</FormLabel>
+                      <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter your team code" {...field} />
                       </FormControl>
