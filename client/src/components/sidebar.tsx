@@ -22,11 +22,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-primary text-white h-screen fixed left-0 top-0 z-40">
       <div className="p-4 flex items-center space-x-2">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <polygon points="10 8 16 12 10 16 10 8" />
-        </svg>
-        <h1 className="text-xl font-semibold">TeamKick</h1>
+        <img src="/cancha_plus_transparent.png" alt="Cancha+" className="h-8" />
       </div>
 
       <div className="mt-8">
