@@ -11,7 +11,7 @@ export function ProtectedRoute({
   path,
   component: Component,
   requiredRole,
-  allowedRoles = ["admin", "coach", "player"],
+  allowedRoles = ["admin", "coach", "player", "colaborador"],
   readOnly = false,
 }: {
   path: string;
@@ -33,8 +33,9 @@ export function ProtectedRoute({
   };
 
   // Create a special property to pass to components for read-only mode
-  // This is particularly useful for player role which can only view data
-  const isReadOnly = readOnly || (user?.role === "player");
+  // This is particularly useful for player and colaborador roles which can only view data
+  // (colaborador has special permissions just for attendance management)
+  const isReadOnly = readOnly || (user?.role === "player") || (user?.role === "colaborador");
   
   return (
     <Route path={path}>

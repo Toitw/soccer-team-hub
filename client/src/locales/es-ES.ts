@@ -152,6 +152,7 @@ export const esES = {
     player: "Jugador",
     coach: "Entrenador",
     admin: "Administrador",
+    colaborador: "Colaborador",
     login: "Iniciar sesión",
     loggingIn: "Iniciando sesión...",
     register: "Registrarse",

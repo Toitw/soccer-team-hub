@@ -677,6 +677,54 @@ export default function EventPage() {
                                     </Badge>
                                   </div>
                                 )}
+                                
+                                {/* Attendance Manager for Admin, Coach, or Colaborador */}
+                                {user && (selectedTeam?.createdById === user.id || user.role === 'admin' || user.role === 'coach' || user.role === 'colaborador') && (
+                                  <div className="mt-4">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCurrentEvent(event);
+                                        const dialogElement = document.getElementById('attendance-dialog-' + event.id);
+                                        if (dialogElement) {
+                                          (dialogElement as HTMLDialogElement).showModal();
+                                        }
+                                      }}
+                                    >
+                                      <Users className="h-4 w-4 mr-1" />
+                                      Manage Attendance
+                                    </Button>
+                                    
+                                    {/* Simple dialog for attendance management */}
+                                    <dialog id={`attendance-dialog-${event.id}`} className="p-0 rounded-lg shadow-lg">
+                                      <div className="p-4 w-full max-w-md max-h-[80vh] overflow-y-auto">
+                                        <div className="flex justify-between items-center mb-4">
+                                          <h3 className="text-lg font-medium">Manage Attendance: {event.title}</h3>
+                                          <button 
+                                            className="text-gray-500 hover:text-gray-700"
+                                            onClick={() => {
+                                              const dialogElement = document.getElementById('attendance-dialog-' + event.id);
+                                              if (dialogElement) {
+                                                (dialogElement as HTMLDialogElement).close();
+                                              }
+                                            }}
+                                          >
+                                            ✕
+                                          </button>
+                                        </div>
+                                        
+                                        {selectedTeam && (
+                                          <TeamAttendanceManager 
+                                            teamId={selectedTeam.id} 
+                                            eventId={event.id} 
+                                          />
+                                        )}
+                                      </div>
+                                    </dialog>
+                                  </div>
+                                )}
                               </div>
                               <div className="flex flex-col items-end">
                                 <span
