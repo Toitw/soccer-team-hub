@@ -46,7 +46,7 @@ import { apiRequest } from "@/lib/queryClient";
 // Define form schema for inviting members
 const inviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  role: z.enum(["admin", "coach", "player"]),
+  role: z.enum(["admin", "coach", "player", "colaborador"]),
 });
 
 // Define form schema for team settings
@@ -465,6 +465,7 @@ export default function SettingsPage() {
                             >
                               <option value="player">{t("auth.player")}</option>
                               <option value="coach">{t("auth.coach")}</option>
+                              <option value="colaborador">{t("auth.colaborador")}</option>
                               <option value="admin">{t("auth.admin")}</option>
                             </select>
                           </FormControl>

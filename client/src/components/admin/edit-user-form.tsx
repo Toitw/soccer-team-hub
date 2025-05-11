@@ -274,6 +274,7 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
                       <SelectItem value="superuser">Superuser</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="coach">Coach</SelectItem>
+                      <SelectItem value="colaborador">Collaborator</SelectItem>
                       <SelectItem value="player">Player</SelectItem>
                     </SelectContent>
                   </Select>

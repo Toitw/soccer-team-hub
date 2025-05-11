@@ -306,6 +306,7 @@ function RegisterForm() {
                     >
                       <option value="player">{t('auth.player')}</option>
                       <option value="coach">{t('auth.coach')}</option>
+                      <option value="colaborador">{t('auth.colaborador')}</option>
                       <option value="admin">{t('auth.admin')}</option>
                     </select>
                   </FormControl>
