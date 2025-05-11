@@ -1060,7 +1060,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create or update attendance status for an event
+  // Create or update attendance status for an event (self-attendance)
   app.post("/api/teams/:teamId/events/:eventId/attendance", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
@@ -1100,6 +1100,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(attendance);
     } catch (error) {
+      res.status(500).json({ error: "Failed to update attendance" });
+    }
+  });
+
+  // Create or update attendance status for a team member (admin, coach, colaborador can update others' attendance)
+  app.post("/api/teams/:teamId/events/:eventId/attendance/:userId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const eventId = parseInt(req.params.eventId);
+      const userId = parseInt(req.params.userId);
+      const { status } = req.body;
+
+      // Check if user has admin, coach, or colaborador role
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach" && teamMember.role !== "colaborador")) {
+        return res.status(403).json({ error: "Not authorized to update attendance for other members" });
+      }
+
+      // Check if event belongs to the team
+      const event = await storage.getEvent(eventId);
+      if (!event || event.teamId !== teamId) {
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      // Check if target user is a team member
+      const targetUserTeamMember = await storage.getTeamMember(teamId, userId);
+      if (!targetUserTeamMember) {
+        return res.status(404).json({ error: "Target user is not a member of this team" });
+      }
+
+      // Get existing attendance or create new one
+      const attendances = await storage.getAttendance(eventId);
+      const existingAttendance = attendances.find(a => a.userId === userId);
+
+      let attendance;
+      if (existingAttendance) {
+        // Update existing attendance
+        attendance = await storage.updateAttendance(existingAttendance.id, { status });
+      } else {
+        // Create new attendance
+        attendance = await storage.createAttendance({
+          eventId,
+          userId: userId,
+          status
+        });
+      }
+
+      res.status(201).json(attendance);
+    } catch (error) {
+      console.error("Error updating attendance:", error);
       res.status(500).json({ error: "Failed to update attendance" });
     }
   });
