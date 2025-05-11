@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Team, Match, LeagueClassification, Season } from "@shared/schema";
@@ -247,7 +246,7 @@ export default function MatchesPage() {
     queryFn: () => apiRequest<Season[]>(`/api/teams/${selectedTeam?.id}/seasons`),
     enabled: !!selectedTeam,
   });
-  
+
   // Ensure we're on the seasons tab when no seasons exist
   useEffect(() => {
     if (seasons && seasons.length === 0 && activeTab !== "seasons") {
@@ -307,6 +306,10 @@ export default function MatchesPage() {
     try {
       if (!selectedTeam) throw new Error(t("matches.errors.noTeamSelected"));
 
+      // Get the active season to associate with this classification
+      const activeSeason = seasons?.find(s => s.isActive);
+      const seasonId = activeSeason?.id;
+
       let response, successMessage;
       if (isEditingClassification && editingClassification) {
         response = await fetch(
@@ -314,7 +317,7 @@ export default function MatchesPage() {
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+            body: JSON.stringify({...data, seasonId}),
           },
         );
         successMessage = t("matches.success.classificationUpdated");
@@ -322,7 +325,7 @@ export default function MatchesPage() {
         response = await fetch(`/api/teams/${selectedTeam.id}/classification`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify({...data, seasonId}),
         });
         successMessage = t("matches.success.classificationCreated");
       }
@@ -726,13 +729,13 @@ export default function MatchesPage() {
     if (matchType === "league") variant = "default";
     else if (matchType === "copa") variant = "destructive";
     else if (matchType === "friendly") variant = "outline";
-    
+
     // Get translated match type
     let translatedType = matchType;
     if (matchType === "league") translatedType = t("matches.official");
     else if (matchType === "copa") translatedType = t("matches.tournament");
     else if (matchType === "friendly") translatedType = t("matches.friendly");
-    
+
     return (
       <Badge variant={variant} className="ml-2 capitalize">
         {translatedType}
@@ -1035,7 +1038,7 @@ export default function MatchesPage() {
                               <FileText className="h-4 w-4" />
                             </Button>
                           </div>
-                          
+
                           {/* Botones con texto para tablet/desktop */}
                           <div className="hidden sm:flex space-x-2">
                             <Button
@@ -1353,7 +1356,9 @@ export default function MatchesPage() {
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(
-                                    value === "" ? null : parseInt(value, 10),
+                                    value === "" ? null : 
+                                    value.startsWith('0') && value.length > 1 ? 
+                                    parseInt(value.slice(1), 10) : parseInt(value, 10),
                                   );
                                 }}
                               />
@@ -1376,7 +1381,9 @@ export default function MatchesPage() {
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   field.onChange(
-                                    value === "" ? null : parseInt(value, 10),
+                                    value === "" ? null : 
+                                    value.startsWith('0') && value.length > 1 ? 
+                                    parseInt(value.slice(1), 10) : parseInt(value, 10),
                                   );
                                 }}
                               />
@@ -1462,11 +1469,14 @@ export default function MatchesPage() {
                             <Input
                               type="number"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(
-                                  parseInt(e.target.value, 10) || 0,
-                                )
-                              }
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? 0 : 
+                                    value.startsWith('0') && value.length > 1 ? 
+                                    parseInt(value.slice(1), 10) : parseInt(value, 10) || 0,
+                                  );
+                                }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1484,12 +1494,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1510,12 +1520,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1534,12 +1544,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1560,12 +1570,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1584,12 +1594,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1610,12 +1620,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>
@@ -1634,12 +1644,12 @@ export default function MatchesPage() {
                               type="number"
                               {...field}
                               value={field.value !== null ? field.value : ""}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                field.onChange(
-                                  value === "" ? null : parseInt(value, 10),
-                                );
-                              }}
+                               onChange={(e) => {
+                                  const value = e.target.value;
+                                  field.onChange(
+                                    value === "" ? null : parseInt(value, 10),
+                                  );
+                                }}
                               placeholder={t("common.notAvailable")}
                             />
                           </FormControl>

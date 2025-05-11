@@ -8,6 +8,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
+import { ClassificationTable } from '@/components/classification/classification-table';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -178,12 +179,15 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t('seasons.newSeason')}
-            </Button>
-          </DialogTrigger>
+          {/* Only show New Season button if no active season exists */}
+          {!seasons?.some(season => season.isActive) && (
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t('seasons.newSeason')}
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t('seasons.createNewSeason')}</DialogTitle>
@@ -203,7 +207,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="startDate"
@@ -242,7 +246,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="endDate"
@@ -281,7 +285,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -295,7 +299,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     </FormItem>
                   )}
                 />
-                
+
                 <DialogFooter>
                   <Button 
                     type="button" 
@@ -316,7 +320,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       {isLoading ? (
         <div className="py-8 text-center">{t('seasons.loadingSeasons')}</div>
       ) : seasons && seasons.length > 0 ? (
@@ -340,20 +344,21 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
               </TabsTrigger>
             ))}
           </TabsList>
-          
+
           {seasons.map((season) => (
             <TabsContent key={season.id} value={season.id.toString()}>
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
+                  <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <span>{season.name}</span>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                       {season.isActive && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => finishSeasonMutation.mutate(season.id)}
                           disabled={finishSeasonMutation.isPending}
+                          className="flex-grow sm:flex-grow-0"
                         >
                           <Check className="mr-2 h-4 w-4" />
                           {t('seasons.markAsFinished')}
@@ -361,7 +366,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                       )}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
+                          <Button variant="destructive" size="sm" className="flex-grow sm:flex-grow-0">
                             <Trash2 className="mr-2 h-4 w-4" />
                             {t('seasons.delete')}
                           </Button>
@@ -442,90 +447,35 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
     queryKey: ['/api/teams', teamId, 'seasons', seasonId, 'classifications'],
     queryFn: () => apiRequest(`/api/teams/${teamId}/seasons/${seasonId}/classifications`),
   });
-  const { t } = useTranslation();
-
-  if (isLoading) {
-    return <div className="py-4 text-center">{t('seasons.loadingStandings')}</div>;
-  }
-
-  if (!classifications || classifications.length === 0) {
-    return (
-      <div className="py-4 text-center">
-        <p className="mb-2">{t('seasons.noStandings')}</p>
-        <p className="text-sm text-muted-foreground">
-          {t('seasons.useLeagueTab')}
-        </p>
-      </div>
-    );
-  }
-
-  // Sort classifications by position
-  const sortedClassifications = [...classifications].sort((a, b) => {
-    if (a.position !== null && b.position !== null) {
-      return a.position - b.position;
-    } else if (a.position !== null) {
-      return -1;
-    } else if (b.position !== null) {
-      return 1;
-    } else {
-      return (b.points || 0) - (a.points || 0);
-    }
+  
+  // Fetch team's general classifications as fallback
+  const { data: teamClassifications } = useQuery({
+    queryKey: ['/api/teams', teamId, 'classification'],
+    queryFn: () => apiRequest(`/api/teams/${teamId}/classification`),
   });
-
+  
+  const { t } = useTranslation();
+  
+  // Use season-specific classifications if available, otherwise filter team classifications by season
+  const filteredClassifications = classifications?.length ? classifications : 
+    (teamClassifications || []).filter(c => c.seasonId === seasonId);
+  
+  console.log("Season specific classifications:", classifications);
+  console.log("Team classifications:", teamClassifications);
+  console.log("Filtered classifications:", filteredClassifications);
+  
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="px-4 py-2 text-left">Pos</th>
-            <th className="px-4 py-2 text-left">Team</th>
-            <th className="px-4 py-2 text-center">P</th>
-            <th className="px-4 py-2 text-center">W</th>
-            <th className="px-4 py-2 text-center">D</th>
-            <th className="px-4 py-2 text-center">L</th>
-            <th className="px-4 py-2 text-center">GF</th>
-            <th className="px-4 py-2 text-center">GA</th>
-            <th className="px-4 py-2 text-center">GD</th>
-            <th className="px-4 py-2 text-center">Pts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedClassifications.map((classification) => (
-            <tr key={classification.id} className="border-b hover:bg-muted/50">
-              <td className="px-4 py-2 text-left font-medium">
-                {classification.position || "-"}
-              </td>
-              <td className="px-4 py-2 text-left">
-                {classification.externalTeamName}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.gamesPlayed || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.gamesWon || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.gamesDrawn || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.gamesLost || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.goalsFor || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {classification.goalsAgainst || 0}
-              </td>
-              <td className="px-4 py-2 text-center">
-                {(classification.goalsFor || 0) - (classification.goalsAgainst || 0)}
-              </td>
-              <td className="px-4 py-2 text-center font-bold">
-                {classification.points || 0}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <ClassificationTable 
+      classifications={filteredClassifications} 
+      isLoading={isLoading}
+      emptyMessage={
+        <div>
+          {t('seasons.noStandings')}
+          <div className="block text-sm text-muted-foreground mt-2">
+            {t('seasons.useLeagueTab')}
+          </div>
+        </div>
+      }
+    />
   );
 }

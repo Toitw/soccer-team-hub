@@ -78,7 +78,7 @@ export default function AuthPage() {
         <div className="hidden lg:block lg:w-1/2 bg-primary text-white p-12">
           <div className="h-full flex flex-col justify-center">
             <h2 className="text-3xl font-bold mb-4">{t('landingPage.heroTitle')}</h2>
-            <p className="mb-6">{t('landingPage.heroSubtitle')}</p>
+            <p className="mb-6">{t('landingPage.heroSubtitle').replace('TeamKick', 'Cancha Plus')}</p>
 
             <div className="space-y-4">
               <div className="flex items-start">
