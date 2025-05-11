@@ -424,31 +424,33 @@ export default function EventPage() {
             </div>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  className="bg-primary hover:bg-primary/90"
-                  aria-label={t("events.addEvent")}
-                  onClick={() => {
-                    // Update form with selected date when opening dialog
-                    if (selectedDate) {
-                      // Create date at noon on the selected day to avoid timezone issues
-                      const localDate = new Date(selectedDate);
-                      localDate.setHours(12, 0, 0, 0);
-                      
-                      const selectedDateString = localDate.toISOString().slice(0, 16);
-                      const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
-                        .toISOString()
-                        .slice(0, 16);
-                      
-                      form.setValue("startTime", selectedDateString);
-                      form.setValue("endTime", endTime);
-                    }
-                  }}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  {t("events.addEvent")}
-                </Button>
-              </DialogTrigger>
+              {user && user.role !== 'player' && user.role !== 'colaborador' && (
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-primary hover:bg-primary/90"
+                    aria-label={t("events.addEvent")}
+                    onClick={() => {
+                      // Update form with selected date when opening dialog
+                      if (selectedDate) {
+                        // Create date at noon on the selected day to avoid timezone issues
+                        const localDate = new Date(selectedDate);
+                        localDate.setHours(12, 0, 0, 0);
+                        
+                        const selectedDateString = localDate.toISOString().slice(0, 16);
+                        const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
+                          .toISOString()
+                          .slice(0, 16);
+                        
+                        form.setValue("startTime", selectedDateString);
+                        form.setValue("endTime", endTime);
+                      }
+                    }}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    {t("events.addEvent")}
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{isEditMode ? t("events.editEvent") : t("events.createEvent")}</DialogTitle>
