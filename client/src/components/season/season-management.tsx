@@ -346,15 +346,16 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
             <TabsContent key={season.id} value={season.id.toString()}>
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{season.name}</span>
-                    <div className="flex space-x-2">
+                  <CardTitle className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <span className="mb-2 sm:mb-0">{season.name}</span>
+                    <div className="flex flex-wrap w-full sm:w-auto gap-2">
                       {season.isActive && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => finishSeasonMutation.mutate(season.id)}
                           disabled={finishSeasonMutation.isPending}
+                          className="flex-1 sm:flex-auto"
                         >
                           <Check className="mr-2 h-4 w-4" />
                           {t("seasons.markAsFinished")}
@@ -362,7 +363,11 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                       )}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="flex-1 sm:flex-auto"
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             {t("seasons.delete")}
                           </Button>
@@ -371,12 +376,14 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           <DialogHeader>
                             <DialogTitle>{t("seasons.deleteSeason")}</DialogTitle>
                           </DialogHeader>
-                          <p>
-                            {t("seasons.deleteConfirmation")}
-                          </p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            {t("seasons.deleteNote")}
-                          </p>
+                          <div>
+                            <p>
+                              {t("seasons.deleteConfirmation")}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {t("seasons.deleteNote")}
+                            </p>
+                          </div>
                           <DialogFooter className="mt-4">
                             <Button
                               variant="outline"
