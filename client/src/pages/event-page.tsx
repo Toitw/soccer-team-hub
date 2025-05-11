@@ -54,6 +54,7 @@ import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
+import TeamAttendanceManager from "@/components/event/team-attendance-manager";
 
 // Define form schema for creating an event
 const eventSchema = z.object({
