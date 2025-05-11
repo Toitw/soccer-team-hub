@@ -306,6 +306,10 @@ export default function MatchesPage() {
     try {
       if (!selectedTeam) throw new Error(t("matches.errors.noTeamSelected"));
 
+      // Get the active season to associate with this classification
+      const activeSeason = seasons?.find(s => s.isActive);
+      const seasonId = activeSeason?.id;
+
       let response, successMessage;
       if (isEditingClassification && editingClassification) {
         response = await fetch(
@@ -313,7 +317,7 @@ export default function MatchesPage() {
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+            body: JSON.stringify({...data, seasonId}),
           },
         );
         successMessage = t("matches.success.classificationUpdated");
@@ -321,7 +325,7 @@ export default function MatchesPage() {
         response = await fetch(`/api/teams/${selectedTeam.id}/classification`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify({...data, seasonId}),
         });
         successMessage = t("matches.success.classificationCreated");
       }
