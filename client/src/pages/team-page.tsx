@@ -107,7 +107,7 @@ type EditTeamMemberFormData = z.infer<typeof editTeamMemberSchema>;
 
 // Type for the simplified payload sent to the server
 interface SimplifiedMemberPayload {
-  role: "coach" | "player";
+  role: "coach" | "player" | "colaborador";
   user: {
     fullName: string;
     position?: string;
