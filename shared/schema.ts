@@ -73,7 +73,7 @@ export const teamMembers = pgTable("team_members", {
   teamId: integer("team_id").notNull(),
   userId: integer("user_id").notNull(),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
-  role: text("role", { enum: ["admin", "coach", "player"] }).notNull().default("player"),
+  role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
@@ -196,7 +196,7 @@ export const invitations = pgTable("invitations", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   email: text("email").notNull(),
-  role: text("role", { enum: ["admin", "coach", "player"] }).notNull().default("player"),
+  role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
   status: text("status", { enum: ["pending", "accepted", "declined"] }).notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),
