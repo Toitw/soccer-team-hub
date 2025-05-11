@@ -218,7 +218,7 @@ export const esES = {
   },
   landingPage: {
     heroTitle: "Gestiona Tu Equipo de Fútbol Como un Profesional",
-    heroSubtitle: "TeamKick te ayuda a organizar actividades, seguir el rendimiento de los jugadores y gestionar las comunicaciones del equipo, todo en un solo lugar.",
+    heroSubtitle: "Cancha Plus te ayuda a organizar actividades, seguir el rendimiento de los jugadores y gestionar las comunicaciones del equipo, todo en un solo lugar.",
     teamManagement: "Gestión de Equipo",
     teamManagementDesc: "Asignar roles, invitar miembros, gestionar permisos",
     performanceTracking: "Seguimiento de Rendimiento",

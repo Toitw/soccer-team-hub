@@ -218,7 +218,7 @@ export const enUS = {
   },
   landingPage: {
     heroTitle: "Manage Your Soccer Team Like a Pro",
-    heroSubtitle: "TeamKick helps you organize activities, track player performance, and manage team communications all in one place.",
+    heroSubtitle: "Cancha Plus helps you organize activities, track player performance, and manage team communications all in one place.",
     teamManagement: "Team Management",
     teamManagementDesc: "Assign roles, invite members, manage permissions",
     performanceTracking: "Performance Tracking",
