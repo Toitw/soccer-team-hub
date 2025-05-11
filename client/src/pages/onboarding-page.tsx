@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "@/hooks/use-translation";
 
 // Schema for joining a team
 const joinTeamSchema = z.object({
@@ -32,6 +33,7 @@ const createTeamSchema = z.object({
 type CreateTeamFormValues = z.infer<typeof createTeamSchema>;
 
 export default function OnboardingPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user, setUser } = useAuth();
   const [, setLocation] = useLocation();
