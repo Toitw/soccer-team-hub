@@ -32,6 +32,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslation } from '@/hooks/use-translation';
 
 // Season form schema
 const seasonFormSchema = z.object({
@@ -59,6 +60,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeSeason, setActiveSeason] = useState<number | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Fetch all seasons for the team
   const { data: seasons, isLoading } = useQuery({
@@ -170,21 +172,21 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Seasons</h2>
+          <h2 className="text-2xl font-bold">{t('seasons.seasons')}</h2>
           <p className="text-muted-foreground">
-            Manage your team's seasons and view season-specific standings
+            {t('seasons.manageTeamSeasons')}
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Season
+              {t('seasons.newSeason')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Season</DialogTitle>
+              <DialogTitle>{t('seasons.createNewSeason')}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -193,9 +195,9 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Season Name</FormLabel>
+                      <FormLabel>{t('seasons.seasonName')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="2023-2024 Season" {...field} />
+                        <Input placeholder={t('seasons.namePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -207,7 +209,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                   name="startDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
+                      <FormLabel>{t('seasons.startDate')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -221,7 +223,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick a date</span>
+                                <span>{t('seasons.pickDate')}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -246,7 +248,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                   name="endDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>End Date (Optional)</FormLabel>
+                      <FormLabel>{t('seasons.endDate')}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -260,7 +262,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick a date</span>
+                                <span>{t('seasons.pickDate')}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -285,9 +287,9 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormLabel>{t('seasons.description')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Regular league season" {...field} />
+                        <Input placeholder={t('seasons.descriptionPlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -300,13 +302,13 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                     variant="outline" 
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
-                    Cancel
+                    {t('seasons.cancel')}
                   </Button>
                   <Button 
                     type="submit"
                     disabled={createSeasonMutation.isPending}
                   >
-                    {createSeasonMutation.isPending ? "Creating..." : "Create Season"}
+                    {createSeasonMutation.isPending ? t('seasons.creating') : t('seasons.createSeason')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -316,7 +318,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
       </div>
       
       {isLoading ? (
-        <div className="py-8 text-center">Loading seasons...</div>
+        <div className="py-8 text-center">{t('seasons.loadingSeasons')}</div>
       ) : seasons && seasons.length > 0 ? (
         <Tabs 
           defaultValue={activeSeason?.toString() || ""}
@@ -333,7 +335,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
               >
                 {season.name}
                 {season.isActive && (
-                  <span className="ml-1 text-green-500 text-xs">(Active)</span>
+                  <span className="ml-1 text-green-500 text-xs">({t('seasons.active')})</span>
                 )}
               </TabsTrigger>
             ))}
@@ -354,41 +356,39 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           disabled={finishSeasonMutation.isPending}
                         >
                           <Check className="mr-2 h-4 w-4" />
-                          Mark as Finished
+                          {t('seasons.markAsFinished')}
                         </Button>
                       )}
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="destructive" size="sm">
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t('seasons.delete')}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Delete Season</DialogTitle>
+                            <DialogTitle>{t('seasons.deleteSeason')}</DialogTitle>
                           </DialogHeader>
                           <p>
-                            Are you sure you want to delete this season? 
-                            This action cannot be undone.
+                            {t('seasons.deleteConfirmation')}
                           </p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Note: Seasons with associated classifications cannot be deleted.
-                            You'll need to delete any classification entries for this season first.
+                            {t('seasons.deleteNote')}
                           </p>
                           <DialogFooter className="mt-4">
                             <Button
                               variant="outline"
                               onClick={() => {}}
                             >
-                              Cancel
+                              {t('seasons.cancel')}
                             </Button>
                             <Button
                               variant="destructive"
                               onClick={() => deleteSeasonMutation.mutate(season.id)}
                               disabled={deleteSeasonMutation.isPending}
                             >
-                              {deleteSeasonMutation.isPending ? "Deleting..." : "Delete Season"}
+                              {deleteSeasonMutation.isPending ? t('seasons.deleting') : t('seasons.deleteSeason')}
                             </Button>
                           </DialogFooter>
                         </DialogContent>
@@ -398,10 +398,10 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                   <CardDescription>
                     {season.description && <p>{season.description}</p>}
                     <div className="text-sm mt-2">
-                      <span>Start Date: {new Date(season.startDate).toLocaleDateString()}</span>
+                      <span>{t('seasons.startDateLabel')}: {new Date(season.startDate).toLocaleDateString()}</span>
                       {season.endDate && (
                         <span className="ml-4">
-                          End Date: {new Date(season.endDate).toLocaleDateString()}
+                          {t('seasons.endDateLabel')}: {new Date(season.endDate).toLocaleDateString()}
                         </span>
                       )}
                     </div>
@@ -409,7 +409,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                 </CardHeader>
                 <Separator />
                 <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Season Standings</h3>
+                  <h3 className="text-lg font-semibold mb-4">{t('seasons.seasonStandings')}</h3>
                   <SeasonClassifications teamId={teamId} seasonId={season.id} />
                 </CardContent>
               </Card>
@@ -419,10 +419,10 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
       ) : (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="mb-4">No seasons found for this team.</p>
+            <p className="mb-4">{t('seasons.noSeasons')}</p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Create First Season
+              {t('seasons.createFirstSeason')}
             </Button>
           </CardContent>
         </Card>
@@ -442,17 +442,18 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
     queryKey: ['/api/teams', teamId, 'seasons', seasonId, 'classifications'],
     queryFn: () => apiRequest(`/api/teams/${teamId}/seasons/${seasonId}/classifications`),
   });
+  const { t } = useTranslation();
 
   if (isLoading) {
-    return <div className="py-4 text-center">Loading standings...</div>;
+    return <div className="py-4 text-center">{t('seasons.loadingStandings')}</div>;
   }
 
   if (!classifications || classifications.length === 0) {
     return (
       <div className="py-4 text-center">
-        <p className="mb-2">No standings have been added for this season yet.</p>
+        <p className="mb-2">{t('seasons.noStandings')}</p>
         <p className="text-sm text-muted-foreground">
-          Use the "League Standings" tab to add teams to the standings for this season.
+          {t('seasons.useLeagueTab')}
         </p>
       </div>
     );
