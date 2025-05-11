@@ -922,8 +922,7 @@ export default function MatchesPage() {
                     </p>
                     {canManage && (
                       <Button
-```text
-                      variant="outline"
+                        variant="outline"
                         className="mt-4"
                         onClick={() => setDialogOpen(true)}
                       >
