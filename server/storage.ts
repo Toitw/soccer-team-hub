@@ -15,7 +15,8 @@ import {
   matchCards, type MatchCard, type InsertMatchCard,
   matchPhotos, type MatchPhoto, type InsertMatchPhoto,
   leagueClassification, type LeagueClassification, type InsertLeagueClassification,
-  seasons, type Season, type InsertSeason
+  seasons, type Season, type InsertSeason,
+  feedback, type Feedback, type InsertFeedback
 } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
@@ -186,6 +187,13 @@ export interface IStorage {
   
   // Enhanced League Classification methods
   getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]>;
+  
+  // Feedback methods
+  getFeedback(id: number): Promise<Feedback | undefined>;
+  getAllFeedback(): Promise<Feedback[]>;
+  createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
+  updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined>;
+  deleteFeedback(id: number): Promise<boolean>;
   
   // Session store for authentication
   sessionStore: SessionStore;

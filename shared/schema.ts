@@ -424,3 +424,29 @@ export const insertSeasonSchema = createInsertSchema(seasons).pick({
 
 export type Season = typeof seasons.$inferSelect;
 export type InsertSeason = z.infer<typeof insertSeasonSchema>;
+
+// Feedback table for user-submitted feedback
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"), // Optional as guests may also submit feedback
+  name: text("name"), // Optional name field
+  email: text("email"), // Email to reply to
+  type: text("type", { enum: ["bug", "suggestion", "improvement", "other"] }).notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status", { enum: ["pending", "reviewed", "resolved"] }).notNull().default("pending"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertFeedbackSchema = createInsertSchema(feedback).pick({
+  userId: true,
+  name: true,
+  email: true,
+  type: true, 
+  subject: true,
+  message: true,
+});
+
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
