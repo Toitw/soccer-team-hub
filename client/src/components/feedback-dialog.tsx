@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,17 +81,40 @@ export default function FeedbackDialog() {
     }
   };
 
+  // Track screen size to adjust button size on mobile
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check if we're on mobile device on component mount and window resize
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Check initially
+    checkIfMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          className="fixed right-4 bottom-4 rounded-full w-12 h-12 p-0 shadow-lg"
+          className={`fixed ${isMobile ? 'right-4 bottom-16 z-50' : 'right-6 bottom-6'} rounded-full ${isMobile ? 'w-14 h-14' : 'w-12 h-12'} p-0 shadow-xl hover:shadow-lg transition-all duration-200 border border-primary/20`}
           aria-label="Submit feedback"
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsOpen(true)}
+          style={{ touchAction: 'manipulation' }}
         >
-          <MessageSquare className="h-5 w-5" />
+          <MessageSquare className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'}`} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Submit Feedback</DialogTitle>
           <DialogDescription>
