@@ -2773,20 +2773,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message
       });
       
-      // Send email notification to administrator
-      const { sendFeedbackNotification } = require("@shared/email-utils");
-      const emailResult = await sendFeedbackNotification({
-        name,
-        email,
-        type,
-        subject,
-        message,
-        userId: req.isAuthenticated() ? userId : null
-      });
-      
-      if (!emailResult.success) {
-        console.error("Failed to send feedback email:", emailResult.message);
-      }
+      // We're not sending email notifications anymore, just storing in the database
+      console.log(`New feedback received: ${subject} (${type})`); 
       
       res.status(201).json({ 
         success: true, 
