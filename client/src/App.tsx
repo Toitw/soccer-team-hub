@@ -23,6 +23,7 @@ import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { TeamProvider } from "./hooks/use-team";
 import { ProtectedRoute } from "./lib/protected-route";
+import { useState, useEffect, lazy, Suspense } from "react";
 
 function Router() {
   return (
@@ -92,10 +93,37 @@ function App() {
           <TeamProvider>
             <Router />
             <Toaster />
+            {/* Global Feedback Button */}
+            <FeedbackButton />
           </TeamProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
+  );
+}
+
+// Lazy-load the feedback component to avoid showing it during development
+const FeedbackButton = () => {
+  const [hasLoaded, setHasLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Delay loading the feedback button to improve initial load performance
+    const timer = setTimeout(() => {
+      setHasLoaded(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (!hasLoaded) return null;
+  
+  // Dynamically import the feedback component
+  const FeedbackDialog = lazy(() => import("./components/feedback-dialog"));
+  
+  return (
+    <Suspense fallback={null}>
+      <FeedbackDialog />
+    </Suspense>
   );
 }
 
