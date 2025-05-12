@@ -217,6 +217,7 @@ export class MemStorage implements IStorage {
   private matchPhotos: Map<number, MatchPhoto>;
   private leagueClassifications: Map<number, LeagueClassification>;
   private seasons: Map<number, Season>;
+  private feedbacks: Map<number, Feedback>;
   
   sessionStore: SessionStore;
   
@@ -237,6 +238,7 @@ export class MemStorage implements IStorage {
   private matchPhotoCurrentId: number;
   private leagueClassificationCurrentId: number;
   private seasonCurrentId: number;
+  private feedbackCurrentId: number;
 
   constructor() {
     // Ensure the data directory exists
@@ -261,6 +263,8 @@ export class MemStorage implements IStorage {
     this.matchCards = new Map();
     this.matchPhotos = new Map();
     this.leagueClassifications = new Map();
+    this.seasons = new Map();
+    this.feedbacks = new Map();
     
     this.userCurrentId = 1;
     this.teamCurrentId = 1;
@@ -279,6 +283,7 @@ export class MemStorage implements IStorage {
     this.matchPhotoCurrentId = 1;
     this.leagueClassificationCurrentId = 1;
     this.seasonCurrentId = 1;
+    this.feedbackCurrentId = 1;
 
     // Initialize seasons map
     this.seasons = new Map();
@@ -1993,6 +1998,49 @@ export class MemStorage implements IStorage {
     
     this.seasons.set(id, updatedSeason);
     return updatedSeason;
+  }
+
+  // Feedback methods
+  async getFeedback(id: number): Promise<Feedback | undefined> {
+    return this.feedbacks.get(id);
+  }
+  
+  async getAllFeedback(): Promise<Feedback[]> {
+    return Array.from(this.feedbacks.values());
+  }
+  
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const id = this.feedbackCurrentId++;
+    const newFeedback = {
+      id,
+      ...feedbackData,
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.feedbacks.set(id, newFeedback as Feedback);
+    return newFeedback as Feedback;
+  }
+  
+  async updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined> {
+    const feedback = this.feedbacks.get(id);
+    if (!feedback) {
+      return undefined;
+    }
+    
+    const updatedFeedback = {
+      ...feedback,
+      status,
+      updatedAt: new Date(),
+    };
+    
+    this.feedbacks.set(id, updatedFeedback);
+    return updatedFeedback;
+  }
+  
+  async deleteFeedback(id: number): Promise<boolean> {
+    return this.feedbacks.delete(id);
   }
 
   async getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]> {
