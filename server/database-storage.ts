@@ -15,7 +15,8 @@ import {
   type MatchCard, type InsertMatchCard, matchCards,
   type MatchPhoto, type InsertMatchPhoto, matchPhotos,
   type LeagueClassification, type InsertLeagueClassification, leagueClassification,
-  type Season, type InsertSeason, seasons
+  type Season, type InsertSeason, seasons,
+  type Feedback, type InsertFeedback, feedback
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and, desc, lte, gte, sql } from "drizzle-orm";
@@ -873,5 +874,57 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(leagueClassification.position);
+  }
+
+  // Feedback methods
+  async getFeedback(id: number): Promise<Feedback | undefined> {
+    const [result] = await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.id, id));
+    
+    return result;
+  }
+
+  async getAllFeedback(): Promise<Feedback[]> {
+    return db
+      .select()
+      .from(feedback)
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const [result] = await db
+      .insert(feedback)
+      .values(feedbackData)
+      .returning();
+    
+    return result;
+  }
+  
+  async updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined> {
+    // Ensure status is one of the allowed values
+    if (!["pending", "reviewed", "resolved"].includes(status)) {
+      throw new Error("Invalid status value");
+    }
+    
+    const [updated] = await db
+      .update(feedback)
+      .set({ 
+        status: status as "pending" | "reviewed" | "resolved",
+        updatedAt: new Date() 
+      })
+      .where(eq(feedback.id, id))
+      .returning();
+    
+    return updated;
+  }
+  
+  async deleteFeedback(id: number): Promise<boolean> {
+    await db
+      .delete(feedback)
+      .where(eq(feedback.id, id));
+    
+    return true;
   }
 }
