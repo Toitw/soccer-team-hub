@@ -2773,35 +2773,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message
       });
       
-      // Send email to administrator
-      const adminEmail = "canchaplusapp@gmail.com";
-      const emailSubject = `Feedback: ${subject}`;
-      const emailText = `
-Type: ${type}
-From: ${name || "Anonymous"} ${email ? `(${email})` : ""}
-${req.isAuthenticated() ? `User ID: ${userId}` : ""}
-Message:
-${message}
-      `;
-      
-      const emailHtml = `
-<h2>New Feedback Submission</h2>
-<p><strong>Type:</strong> ${type}</p>
-<p><strong>From:</strong> ${name || "Anonymous"} ${email ? `(${email})` : ""}</p>
-${req.isAuthenticated() ? `<p><strong>User ID:</strong> ${userId}</p>` : ""}
-<p><strong>Subject:</strong> ${subject}</p>
-<h3>Message:</h3>
-<p>${message.replace(/\n/g, '<br>')}</p>
-      `;
-      
-      // Send email notification
-      const { sendEmail } = require("@shared/email-utils");
-      const emailResult = await sendEmail(
-        adminEmail,
-        emailSubject,
-        emailHtml,
-        emailText
-      );
+      // Send email notification to administrator
+      const { sendFeedbackNotification } = require("@shared/email-utils");
+      const emailResult = await sendFeedbackNotification({
+        name,
+        email,
+        type,
+        subject,
+        message,
+        userId: req.isAuthenticated() ? userId : null
+      });
       
       if (!emailResult.success) {
         console.error("Failed to send feedback email:", emailResult.message);
