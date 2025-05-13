@@ -109,7 +109,8 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
   };
   
   // Filter claims by status
-  const filteredClaims = claims?.filter((claim: MemberClaim) => claim.status === activeTab) || [];
+  const claimsArray = Array.isArray(claims) ? claims : [];
+  const filteredClaims = claimsArray.filter((claim: MemberClaim) => claim.status === activeTab);
   
   if (isLoadingClaims) {
     return (
@@ -126,9 +127,9 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
           <TabsTrigger value="pending" className="flex items-center">
             <AlertTriangle className="h-4 w-4 mr-2" />
             {t("team.claims.pending") || "Pending"} 
-            {claims?.filter((c: MemberClaim) => c.status === "pending").length > 0 && (
+            {claimsArray.filter((c: MemberClaim) => c.status === "pending").length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {claims?.filter((c: MemberClaim) => c.status === "pending").length}
+                {claimsArray.filter((c: MemberClaim) => c.status === "pending").length}
               </Badge>
             )}
           </TabsTrigger>

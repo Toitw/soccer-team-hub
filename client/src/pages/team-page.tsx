@@ -1636,7 +1636,13 @@ export default function TeamPage() {
                                 </Button>
                               </>
                             ) : (
-                              <MemberClaimButton member={member} />
+                              <MemberClaimButton 
+                                member={{
+                                  id: member.id,
+                                  fullName: member.user.fullName || member.user.username || "Unknown",
+                                  teamId: member.teamId
+                                }} 
+                              />
                             )}
                           </div>
                         </TableCell>
@@ -1648,6 +1654,20 @@ export default function TeamPage() {
             </CardContent>
             </Card>
           </div>
+          
+          {/* Member Claims Management Section (Admin only) */}
+          {isAdmin && (
+            <div className="mt-8">
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-6">
+                    {t("team.claims.manage") || "Manage Membership Claims"}
+                  </h2>
+                  <MemberClaimsManager teamId={parseInt(id || "0")} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
         <MobileNavigation />
       </div>
