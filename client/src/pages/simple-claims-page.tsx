@@ -22,7 +22,7 @@ export function SimpleClaimsPage() {
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Team Member Claims</h1>
-        <Link href={`/teams/${teamId}`}>
+        <Link to={`/teams/${teamId}`}>
           <Button variant="outline">Back to Team</Button>
         </Link>
       </div>
