@@ -1,4 +1,4 @@
-import { Bell, LogOut, Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 import { Link } from "wouter";
+import NotificationButton from "@/components/notification/NotificationButton";
 
 interface HeaderProps {
   title: string;
@@ -57,10 +58,7 @@ export default function Header({ title, translationKey, showCreateTeamButton = f
               </Button>
             </Link>
           )}
-          <Button variant="ghost" className="text-sm text-primary hover:text-primary/80 relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs bg-accent text-white rounded-full">3</span>
-          </Button>
+          <NotificationButton />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
