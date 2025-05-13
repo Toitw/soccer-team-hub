@@ -9,6 +9,7 @@ import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
 import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
+import TeamRosterPage from "@/pages/team-roster-page";
 import MatchesPage from "./pages/matches-page";
 import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
@@ -56,7 +57,7 @@ function Router() {
       <Route path="/teams/:id">
         {(params) => {
           console.log("Teams route match with params:", params);
-          return <SimpleTeamPage />;
+          return <TeamRosterPage />;
         }}
       </Route>
       <Route path="/teams/:id/claims">

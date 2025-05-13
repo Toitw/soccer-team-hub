@@ -935,7 +935,6 @@ export default function TeamPage() {
                                       <SelectItem value="Right Back">
                                         {t("team.rightBack")}
                                       </SelectItem>
-                               ```python
                                       <SelectItem value="Wing Back">
                                         {t("team.wingBack")}
                                       </SelectItem>
@@ -1042,6 +1041,7 @@ export default function TeamPage() {
               </Dialog>
             )}
           </div>
+          
           <div className="space-y-6">
             <Card className="mb-8">
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
