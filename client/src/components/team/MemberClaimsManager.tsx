@@ -53,7 +53,7 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   
   // Fetch all member claims for this team
-  const { data: claims, isLoading: isLoadingClaims } = useQuery({
+  const { data: claims, isLoading: isLoadingClaims } = useQuery<MemberClaim[]>({
     queryKey: [`/api/teams/${teamId}/claims`],
     enabled: !!teamId,
   });
@@ -109,8 +109,8 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
   };
   
   // Filter claims by status
-  const claimsArray = Array.isArray(claims) ? claims : [];
-  const filteredClaims = claimsArray.filter((claim: MemberClaim) => claim.status === activeTab);
+  const claimsArray = claims || [];
+  const filteredClaims = claimsArray.filter((claim) => claim.status === activeTab);
   
   if (isLoadingClaims) {
     return (

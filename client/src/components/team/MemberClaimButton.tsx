@@ -8,6 +8,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../../lib/queryClient";
 import { toast } from "../../hooks/use-toast";
 
+interface MemberClaim {
+  id: number;
+  userId: number;
+  memberId: number;
+  teamId: number;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  updatedAt?: string;
+  rejectionReason?: string;
+}
+
 interface MemberClaimButtonProps {
   member: {
     id: number;
@@ -23,15 +34,15 @@ export function MemberClaimButton({ member }: MemberClaimButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Check if user already has a pending claim for this member
-  const { data: existingClaim, isLoading: isCheckingClaim } = useQuery({
-    queryKey: [`/api/teams/${member.teamId}/members/${member.id}/claims/user/${user?.id}`],
+  const { data: existingClaim, isLoading: isCheckingClaim } = useQuery<MemberClaim>({
+    queryKey: [`/api/teams/${member.teamId}/member-claims/member/${member.id}/user`],
     enabled: !!user?.id && !!member.id,
   });
   
   // Mutation to create a new claim
   const { mutate: createClaim, isPending: isCreatingClaim } = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/teams/${member.teamId}/members/${member.id}/claims`, {
+      return apiRequest(`/api/teams/${member.teamId}/member-claims`, {
         method: "POST",
         data: {
           userId: user?.id,
@@ -48,7 +59,7 @@ export function MemberClaimButton({ member }: MemberClaimButtonProps) {
         variant: "default",
       });
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/teams/${member.teamId}/members/${member.id}/claims/user/${user?.id}`]
+        queryKey: [`/api/teams/${member.teamId}/member-claims/member/${member.id}/user`]
       });
       setIsDialogOpen(false);
     },
@@ -71,17 +82,18 @@ export function MemberClaimButton({ member }: MemberClaimButtonProps) {
   
   // If user already has a claim, show the status
   if (existingClaim) {
+    const status = existingClaim.status;
     const statusColor = 
-      existingClaim.status === "approved" ? "text-green-500" :
-      existingClaim.status === "rejected" ? "text-red-500" :
+      status === "approved" ? "text-green-500" :
+      status === "rejected" ? "text-red-500" :
       "text-amber-500"; // pending
     
     return (
       <Button variant="ghost" size="sm" disabled className={statusColor}>
-        {existingClaim.status === "approved" && <Check className="h-4 w-4 mr-1" />}
-        {existingClaim.status === "pending" ? 
+        {status === "approved" && <Check className="h-4 w-4 mr-1" />}
+        {status === "pending" ? 
           (t("team.claims.pending") || "Pending") : 
-          existingClaim.status === "approved" ? 
+          status === "approved" ? 
             (t("team.claims.approved") || "Approved") : 
             (t("team.claims.rejected") || "Rejected")
         }
