@@ -13,17 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-
-interface TeamMember {
-  id: number;
-  teamId: number;  // Added teamId property
-  fullName: string;
-  role: string;
-  position: string | null;
-  jerseyNumber: number | null;
-  userId: number | null;
-  isVerified: boolean | null;
-}
+import { TeamMember } from "@shared/schema";
 
 export function MemberClaimButton({ member }: { member: TeamMember }) {
   const [open, setOpen] = useState(false);
@@ -41,6 +31,7 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
     mutationFn: async () => {
       setIsSubmitting(true);
       try {
+        console.log(`Sending claim request for member ${member.id} in team ${member.teamId}`);
         return await apiRequest(`/api/teams/${member.teamId}/claims`, {
           method: "POST",
           body: { teamMemberId: member.id },
