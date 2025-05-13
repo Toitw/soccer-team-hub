@@ -67,19 +67,39 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
   joinCode: true,
 });
 
-// TeamMembers table for player-team relationship
+// TeamMembers table for player-team relationship managed by admin/coach
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   userId: integer("user_id").notNull(),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
   role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
+  // This is the key difference - members are created by an admin
+  createdById: integer("created_by_id"),
+  // Flag to identify members created through the admin interface vs through join code
+  isCreatedByAdmin: boolean("is_created_by_admin").default(true),
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
   teamId: true,
   userId: true,
   role: true,
+  createdById: true,
+  isCreatedByAdmin: true,
+});
+
+// TeamUsers table for team access through joining with code
+export const teamUsers = pgTable("team_users", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull(),
+  userId: integer("user_id").notNull(),
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+  // This table doesn't dictate the role in the team, it just establishes access
+});
+
+export const insertTeamUserSchema = createInsertSchema(teamUsers).pick({
+  teamId: true,
+  userId: true,
 });
 
 // Matches table
@@ -328,6 +348,9 @@ export type InsertTeam = z.infer<typeof insertTeamSchema>;
 
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+
+export type TeamUser = typeof teamUsers.$inferSelect;
+export type InsertTeamUser = z.infer<typeof insertTeamUserSchema>;
 
 export type Match = typeof matches.$inferSelect;
 export type InsertMatch = z.infer<typeof insertMatchSchema>;
