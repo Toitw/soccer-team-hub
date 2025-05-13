@@ -974,6 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const events = await storage.getEvents(teamId);
       res.json(events);
     } catch (error) {
+      console.error("Error fetching events:", error);
       res.status(500).json({ error: "Failed to fetch events" });
     }
   });
@@ -999,6 +1000,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const events = await storage.getUpcomingEvents(teamId, limit);
       res.json(events);
     } catch (error) {
+      console.error("Error fetching upcoming events:", error);
       res.status(500).json({ error: "Failed to fetch upcoming events" });
     }
   });
