@@ -118,9 +118,24 @@ async function runMigration() {
     }
     
     // Check if team_members table has the new structure
-    const hasNewStructure = teamMembersColumns.includes('full_name') && teamMembersColumns.includes('is_verified');
+    const hasFullName = teamMembersColumns.includes('full_name');
+    const hasIsVerified = teamMembersColumns.includes('is_verified');
+    const hasPosition = teamMembersColumns.includes('position');
+    const hasJerseyNumber = teamMembersColumns.includes('jersey_number');
+    const hasProfilePicture = teamMembersColumns.includes('profile_picture');
+    const hasCreatedById = teamMembersColumns.includes('created_by_id');
+    const hasCreatedAt = teamMembersColumns.includes('created_at');
     
-    if (!hasNewStructure) {
+    const hasNewStructure = hasFullName && hasIsVerified && hasPosition && hasJerseyNumber && 
+                           hasProfilePicture && hasCreatedById && hasCreatedAt;
+    
+    console.log("Structure check:", {
+      hasFullName, hasIsVerified, hasPosition, hasJerseyNumber,
+      hasProfilePicture, hasCreatedById, hasCreatedAt, hasNewStructure
+    });
+    
+    // Proceed with migration if any column is missing
+    // if (!hasNewStructure) {
       // If we need to update team_members structure
       console.log("Updating team_members table structure...");
       
@@ -140,6 +155,51 @@ async function runMigration() {
           console.log("Added is_verified column to team_members");
         } catch (err) {
           console.error("Error adding is_verified column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('position')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN position TEXT`);
+          console.log("Added position column to team_members");
+        } catch (err) {
+          console.error("Error adding position column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('jersey_number')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN jersey_number INTEGER`);
+          console.log("Added jersey_number column to team_members");
+        } catch (err) {
+          console.error("Error adding jersey_number column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('profile_picture')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN profile_picture TEXT`);
+          console.log("Added profile_picture column to team_members");
+        } catch (err) {
+          console.error("Error adding profile_picture column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('created_by_id')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_by_id INTEGER`);
+          console.log("Added created_by_id column to team_members");
+        } catch (err) {
+          console.error("Error adding created_by_id column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('created_at')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW()`);
+          console.log("Added created_at column to team_members");
+        } catch (err) {
+          console.error("Error adding created_at column:", err);
         }
       }
       
