@@ -37,7 +37,7 @@ type MemberClaim = {
   teamMemberId: number;
   userId: number;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  requestedAt: string;  // Campo actualizado
   reviewedAt: string | null;
   reviewedById: number | null;
   rejectionReason: string | null;
@@ -315,7 +315,7 @@ function ClaimCard({
             </span>
           </div>
           <div className="text-xs text-muted-foreground mt-2">
-            Solicitado el {format(new Date(claim.createdAt), 'dd/MM/yyyy HH:mm')}
+            Solicitado el {format(new Date(claim.requestedAt), 'dd/MM/yyyy HH:mm')}
           </div>
           
           {claim.reviewedAt && (

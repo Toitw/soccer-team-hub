@@ -11,7 +11,7 @@ type ClaimNotification = {
   teamId: number;
   teamName: string;
   count: number;
-  latestCreatedAt: string;
+  latestCreatedAt: string; // Este es el campo que llega desde el servidor
 };
 
 export default function NotificationButton() {
@@ -22,7 +22,9 @@ export default function NotificationButton() {
   });
 
   // Calculate total pending claims
-  const totalPendingClaims = notifications?.reduce((sum, notification) => sum + notification.count, 0) || 0;
+  const totalPendingClaims = Array.isArray(notifications) 
+    ? notifications.reduce((sum, notification) => sum + notification.count, 0) 
+    : 0;
 
   return (
     <Popover>

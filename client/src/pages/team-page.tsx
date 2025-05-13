@@ -8,7 +8,7 @@ import {
   MemberClaim,
 } from "@shared/schema";
 import { MemberClaimButton } from "@/components/team/MemberClaimButton";
-import { MemberClaimsManager } from "@/components/team/MemberClaimsManager";
+import MemberClaimsManager from "@/components/team/MemberClaimsManager";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";

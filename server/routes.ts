@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (pendingClaims.length > 0) {
           // Sort by date to get the latest
           pendingClaims.sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()
           );
           
           notifications.push({
@@ -398,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             teamId: team.id,
             teamName: team.name,
             count: pendingClaims.length,
-            latestCreatedAt: pendingClaims[0].createdAt
+            latestCreatedAt: pendingClaims[0].requestedAt
           });
         }
       }
