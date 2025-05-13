@@ -3,10 +3,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldAlert, LogOut, Database } from "lucide-react";
+import { Loader2, ShieldAlert, LogOut, Database, MessageSquare } from "lucide-react";
 import UsersPanel from "@/components/admin/users-panel";
 import TeamsPanel from "@/components/admin/teams-panel";
 import DatabaseMonitoringPanel from "@/components/admin/database-monitoring-panel";
+import FeedbackPanel from "@/components/admin/feedback-panel";
 import { Link } from "wouter";
 
 export default function AdminPage() {
@@ -72,9 +73,13 @@ export default function AdminPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="users">Users Management</TabsTrigger>
           <TabsTrigger value="teams">Teams Management</TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Feedback
+          </TabsTrigger>
           <TabsTrigger value="database" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
             Database Monitoring
@@ -87,6 +92,10 @@ export default function AdminPage() {
         
         <TabsContent value="teams" className="space-y-4">
           <TeamsPanel />
+        </TabsContent>
+        
+        <TabsContent value="feedback" className="space-y-4">
+          <FeedbackPanel />
         </TabsContent>
         
         <TabsContent value="database" className="space-y-4">
