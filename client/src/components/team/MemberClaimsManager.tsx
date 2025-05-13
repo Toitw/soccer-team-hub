@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   XCircle,
   AlertCircle,
-  User
+  User,
+  Mail
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -305,6 +306,10 @@ function ClaimCard({
           <div className="font-medium">
             <User className="inline-block h-4 w-4 mr-1" />
             {claim.user?.fullName || 'Usuario'} ({claim.user?.username})
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <Mail className="inline-block h-3 w-3 mr-1" /> 
+            {claim.user?.email || 'Email no disponible'}
           </div>
           <div className="text-sm text-muted-foreground mt-1">
             Reclama ser:

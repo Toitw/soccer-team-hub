@@ -201,7 +201,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: user.id,
             username: user.username,
             fullName: user.fullName,
-            profilePicture: user.profilePicture
+            profilePicture: user.profilePicture,
+            email: user.email  // Añadimos el email del usuario
           } : null
         };
       }));
