@@ -38,12 +38,12 @@ interface MemberClaim {
 }
 
 interface MemberClaimsManagerProps {
-  teamId?: number;
+  teamId?: number | null;
 }
 
 export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerProps) {
   const { id } = useParams();
-  const teamId = propTeamId || parseInt(id || "0");
+  const teamId = propTeamId || (id ? parseInt(id) : undefined);
   const { user } = useAuth();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -62,7 +62,7 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
   const { mutate: updateClaimStatus, isPending: isUpdatingClaim } = useMutation({
     mutationFn: async ({ claimId, status, rejectionReason }: { claimId: number, status: string, rejectionReason?: string }) => {
       return apiRequest(`/api/teams/${teamId}/claims/${claimId}`, {
-        method: "PATCH",
+        method: "PUT", // Server uses PUT instead of PATCH
         data: {
           status,
           ...(rejectionReason && { rejectionReason })
