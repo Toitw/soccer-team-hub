@@ -127,9 +127,9 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
           <TabsTrigger value="pending" className="flex items-center">
             <AlertTriangle className="h-4 w-4 mr-2" />
             {t("team.claims.pending") || "Pending"} 
-            {claimsArray.filter((c: MemberClaim) => c.status === "pending").length > 0 && (
+            {claimsArray.filter((c) => c.status === "pending").length > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {claimsArray.filter((c: MemberClaim) => c.status === "pending").length}
+                {claimsArray.filter((c) => c.status === "pending").length}
               </Badge>
             )}
           </TabsTrigger>
