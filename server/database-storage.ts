@@ -247,6 +247,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(teamMembers.teamId, teamId));
   }
 
+  // Get team member by ID
+  async getTeamMemberById(id: number): Promise<TeamMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(eq(teamMembers.id, id));
+    
+    return member;
+  }
+  
+  // Get team member by team ID and user ID
   async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
     const [member] = await db
       .select()
@@ -266,6 +277,32 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teamMembers)
       .where(eq(teamMembers.userId, userId));
+  }
+  
+  async getTeamMemberByUserId(teamId: number, userId: number): Promise<TeamMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.teamId, teamId),
+          eq(teamMembers.userId, userId)
+        )
+      );
+    
+    return member;
+  }
+  
+  async getVerifiedTeamMembers(teamId: number): Promise<TeamMember[]> {
+    return db
+      .select()
+      .from(teamMembers)
+      .where(
+        and(
+          eq(teamMembers.teamId, teamId),
+          eq(teamMembers.isVerified, true)
+        )
+      );
   }
 
   async createTeamMember(teamMemberData: InsertTeamMember): Promise<TeamMember> {

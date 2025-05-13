@@ -81,7 +81,8 @@ export interface IStorage {
   
   // TeamMember methods (members created/managed by admin)
   getTeamMembers(teamId: number): Promise<TeamMember[]>;
-  getTeamMember(id: number): Promise<TeamMember | undefined>;
+  getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined>;
+  getTeamMemberById(id: number): Promise<TeamMember | undefined>;
   getTeamMemberByUserId(teamId: number, userId: number): Promise<TeamMember | undefined>;
   getVerifiedTeamMembers(teamId: number): Promise<TeamMember[]>;
   createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;

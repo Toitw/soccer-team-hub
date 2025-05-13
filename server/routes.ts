@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the member exists
-      const member = await storage.getTeamMember(teamMemberId);
+      const member = await storage.getTeamMemberById(teamMemberId);
       if (!member || member.teamId !== teamId) {
         return res.status(404).json({ error: "Team member not found" });
       }
