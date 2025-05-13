@@ -5,7 +5,9 @@ import {
   User,
   User as SelectUser,
   InsertTeamMember,
+  MemberClaim,
 } from "@shared/schema";
+import { MemberClaimButton } from "@/components/team/MemberClaimButton";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
