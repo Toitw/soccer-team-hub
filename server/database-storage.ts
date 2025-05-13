@@ -1121,4 +1121,53 @@ export class DatabaseStorage implements IStorage {
     
     return true;
   }
+  
+  // Member claims methods
+  async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
+    return db
+      .select()
+      .from(memberClaims)
+      .where(eq(memberClaims.teamId, teamId))
+      .orderBy(desc(memberClaims.requestedAt));
+  }
+  
+  async getMemberClaimsByUser(userId: number): Promise<MemberClaim[]> {
+    return db
+      .select()
+      .from(memberClaims)
+      .where(eq(memberClaims.userId, userId))
+      .orderBy(desc(memberClaims.requestedAt));
+  }
+  
+  async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
+    const [claim] = await db
+      .select()
+      .from(memberClaims)
+      .where(eq(memberClaims.id, id));
+    return claim;
+  }
+  
+  async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
+    const [claim] = await db
+      .insert(memberClaims)
+      .values(claimData)
+      .returning();
+    return claim;
+  }
+  
+  async updateMemberClaim(id: number, data: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
+    const [updated] = await db
+      .update(memberClaims)
+      .set(data)
+      .where(eq(memberClaims.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deleteMemberClaim(id: number): Promise<boolean> {
+    const deleted = await db
+      .delete(memberClaims)
+      .where(eq(memberClaims.id, id));
+    return deleted.rowCount > 0;
+  }
 }
