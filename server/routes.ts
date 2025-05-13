@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enhance claims with member and user details
       const enhancedClaims = await Promise.all(claims.map(async (claim) => {
-        const member = await storage.getTeamMember(claim.teamMemberId);
+        const member = await storage.getTeamMemberById(claim.teamMemberId);
         const user = await storage.getUser(claim.userId);
         
         return {
@@ -233,7 +233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enhance claims with member details
       const enhancedClaims = await Promise.all(teamClaims.map(async (claim) => {
-        const member = await storage.getTeamMember(claim.teamMemberId);
+        const member = await storage.getTeamMemberById(claim.teamMemberId);
         
         return {
           ...claim,
