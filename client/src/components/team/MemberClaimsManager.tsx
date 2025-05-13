@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import { useParams } from "wouter";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardContent 
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  CheckCircle2, 
+  XCircle,
+  AlertCircle,
+  User
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   Dialog,
   DialogContent,
@@ -18,280 +24,338 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type ClaimStatus = "pending" | "approved" | "rejected";
-
-interface MemberClaim {
+type MemberClaim = {
   id: number;
   teamId: number;
   teamMemberId: number;
   userId: number;
-  status: ClaimStatus;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   reviewedAt: string | null;
   reviewedById: number | null;
   rejectionReason: string | null;
-  member: {
+  member?: {
     id: number;
     fullName: string;
     position: string | null;
     jerseyNumber: number | null;
     role: string;
-  } | null;
-  user: {
+  };
+  user?: {
     id: number;
-    username: string;
     fullName: string;
-    profilePicture: string | null;
-  } | null;
-}
+    username: string;
+  };
+};
 
-export function MemberClaimsManager() {
+export default function MemberClaimsManager() {
   const { id: teamId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedClaim, setSelectedClaim] = useState<MemberClaim | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState<MemberClaim | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [activeTab, setActiveTab] = useState("pending");
 
-  const { data: claims = [], isLoading } = useQuery({
+  // Fetch claims
+  const { data: claims = [], isLoading, error } = useQuery({
     queryKey: [`/api/teams/${teamId}/claims`],
-    queryFn: async () => {
-      const response = await apiRequest(`/api/teams/${teamId}/claims`, {
-        method: "GET",
-      });
-      return response as MemberClaim[];
-    },
+    enabled: !!teamId
   });
 
-  const updateClaimMutation = useMutation({
-    mutationFn: async ({
-      claimId,
-      status,
-      rejectionReason,
-    }: {
-      claimId: number;
-      status: ClaimStatus;
-      rejectionReason?: string;
-    }) => {
-      return await apiRequest(`/api/teams/${teamId}/claims/${claimId}`, {
-        method: "PUT",
-        body: { status, rejectionReason },
+  // Filter claims by status
+  const pendingClaims = claims.filter(claim => claim.status === 'pending');
+  const historicalClaims = claims.filter(claim => claim.status === 'approved' || claim.status === 'rejected');
+
+  // Approve claim mutation
+  const approveMutation = useMutation({
+    mutationFn: async (claimId: number) => {
+      return await apiRequest(`/api/teams/${teamId}/claims/${claimId}/approve`, {
+        method: "POST"
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/claims`] });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/members`] });
       toast({
-        title: "Solicitud actualizada",
-        description: "La solicitud ha sido actualizada correctamente.",
+        title: "Reclamación aprobada",
+        description: "Se ha aprobado la reclamación del miembro correctamente.",
       });
-      setRejectDialogOpen(false);
     },
     onError: (error: any) => {
-      const errorMsg = error?.error || "Ha ocurrido un error al actualizar la solicitud.";
       toast({
         title: "Error",
-        description: errorMsg,
-        variant: "destructive",
+        description: error?.error || "Ha ocurrido un error al aprobar la reclamación.",
+        variant: "destructive"
       });
-    },
+    }
   });
 
-  const handleApproveClaim = (claim: MemberClaim) => {
-    updateClaimMutation.mutate({
-      claimId: claim.id,
-      status: "approved",
-    });
+  // Reject claim mutation
+  const rejectMutation = useMutation({
+    mutationFn: async (params: { claimId: number, reason: string }) => {
+      const { claimId, reason } = params;
+      return await apiRequest(`/api/teams/${teamId}/claims/${claimId}/reject`, {
+        method: "POST",
+        data: { reason }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/claims`] });
+      setRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedClaim(null);
+      toast({
+        title: "Reclamación rechazada",
+        description: "Se ha rechazado la reclamación del miembro.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.error || "Ha ocurrido un error al rechazar la reclamación.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleApprove = (claim: MemberClaim) => {
+    approveMutation.mutate(claim.id);
   };
 
-  const openRejectDialog = (claim: MemberClaim) => {
+  const handleOpenRejectDialog = (claim: MemberClaim) => {
     setSelectedClaim(claim);
-    setRejectReason("");
+    setRejectionReason("");
     setRejectDialogOpen(true);
   };
 
-  const handleRejectClaim = () => {
+  const handleReject = () => {
     if (!selectedClaim) return;
     
-    updateClaimMutation.mutate({
+    rejectMutation.mutate({
       claimId: selectedClaim.id,
-      status: "rejected",
-      rejectionReason: rejectReason,
+      reason: rejectionReason
     });
   };
 
   if (isLoading) {
-    return <div className="p-4">Cargando solicitudes...</div>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Reclamaciones de miembros</CardTitle>
+          <CardDescription>Cargando reclamaciones...</CardDescription>
+        </CardHeader>
+      </Card>
+    );
   }
 
-  const pendingClaims = claims.filter((claim) => claim.status === "pending");
-  const resolvedClaims = claims.filter((claim) => claim.status !== "pending");
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Reclamaciones de miembros</CardTitle>
+          <CardDescription className="text-red-500">Error al cargar las reclamaciones</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Gestión de solicitudes de miembros</h2>
-      
-      {pendingClaims.length === 0 ? (
-        <div className="p-4 text-center border rounded-md bg-muted">
-          No hay solicitudes pendientes.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Solicitudes pendientes ({pendingClaims.length})</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            {pendingClaims.map((claim) => (
-              <Card key={claim.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-md">
-                      {claim.member?.fullName || "Miembro desconocido"}
-                    </CardTitle>
-                    <Badge className="ml-2 bg-yellow-500">{claim.status}</Badge>
-                  </div>
-                  <CardDescription>
-                    {claim.member?.role === "player" && (
-                      <>
-                        {claim.member.position && `${claim.member.position}`}
-                        {claim.member.jerseyNumber && 
-                          `${claim.member.position ? " - " : ""}#${claim.member.jerseyNumber}`
-                        }
-                      </>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage 
-                        src={claim.user?.profilePicture || ""} 
-                        alt={claim.user?.fullName || "?"} 
-                      />
-                      <AvatarFallback>
-                        {(claim.user?.fullName || "?").substring(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{claim.user?.fullName}</p>
-                      <p className="text-sm text-muted-foreground">@{claim.user?.username}</p>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Solicitud creada: {new Date(claim.createdAt).toLocaleDateString()}
-                  </p>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => openRejectDialog(claim)}
-                  >
-                    Rechazar
-                  </Button>
-                  <Button 
-                    onClick={() => handleApproveClaim(claim)}
-                  >
-                    Aprobar
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {resolvedClaims.length > 0 && (
-        <div className="space-y-4 mt-8">
-          <h3 className="text-lg font-semibold">Solicitudes resueltas ({resolvedClaims.length})</h3>
-          <div className="grid gap-4 md:grid-cols-2">
-            {resolvedClaims.map((claim) => (
-              <Card key={claim.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-md">
-                      {claim.member?.fullName || "Miembro desconocido"}
-                    </CardTitle>
-                    <Badge className={`ml-2 ${
-                      claim.status === "approved" ? "bg-green-500" : "bg-red-500"
-                    }`}>
-                      {claim.status === "approved" ? "Aprobada" : "Rechazada"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage 
-                        src={claim.user?.profilePicture || ""} 
-                        alt={claim.user?.fullName || "?"} 
-                      />
-                      <AvatarFallback>
-                        {(claim.user?.fullName || "?").substring(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{claim.user?.fullName}</p>
-                      <p className="text-sm text-muted-foreground">@{claim.user?.username}</p>
-                    </div>
-                  </div>
-                  {claim.status === "rejected" && claim.rejectionReason && (
-                    <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded text-sm">
-                      <span className="font-medium">Motivo del rechazo:</span> {claim.rejectionReason}
-                    </div>
-                  )}
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Resuelta: {claim.reviewedAt ? new Date(claim.reviewedAt).toLocaleDateString() : "N/A"}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-      
+    <Card>
+      <CardHeader>
+        <CardTitle>Reclamaciones de miembros</CardTitle>
+        <CardDescription>
+          Gestiona las solicitudes de los usuarios que reclaman ser parte del equipo
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="pending">
+              Pendientes ({pendingClaims.length})
+            </TabsTrigger>
+            <TabsTrigger value="historical">
+              Historial ({historicalClaims.length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="pending">
+            {pendingClaims.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <AlertCircle className="mx-auto h-8 w-8 mb-2" />
+                <p>No hay reclamaciones pendientes</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pendingClaims.map(claim => (
+                  <ClaimCard
+                    key={claim.id}
+                    claim={claim}
+                    onApprove={() => handleApprove(claim)}
+                    onReject={() => handleOpenRejectDialog(claim)}
+                    isPending={approveMutation.isPending}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="historical">
+            {historicalClaims.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <AlertCircle className="mx-auto h-8 w-8 mb-2" />
+                <p>No hay historial de reclamaciones</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {historicalClaims.map(claim => (
+                  <ClaimCard
+                    key={claim.id}
+                    claim={claim}
+                    isHistorical
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+
+      {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rechazar solicitud</DialogTitle>
+            <DialogTitle>Rechazar reclamación</DialogTitle>
             <DialogDescription>
-              Estás a punto de rechazar la solicitud de{" "}
-              {selectedClaim?.user?.fullName || "un usuario"} para ser{" "}
-              {selectedClaim?.member?.fullName || "un miembro del equipo"}.
+              Estás a punto de rechazar la reclamación de {selectedClaim?.user?.fullName || 'este usuario'} para el miembro {selectedClaim?.member?.fullName}.
             </DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="reason">Motivo del rechazo (opcional)</Label>
-              <Input
-                id="reason"
-                placeholder="Explica por qué rechazas esta solicitud"
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-              />
-            </div>
+            <p className="text-sm">Puedes proporcionar un motivo para el rechazo (opcional):</p>
+            <Textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Motivo del rechazo..."
+              rows={3}
+            />
           </div>
+          
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRejectDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
               Cancelar
             </Button>
             <Button
               variant="destructive"
-              onClick={handleRejectClaim}
-              disabled={updateClaimMutation.isPending}
+              onClick={handleReject}
+              disabled={rejectMutation.isPending}
             >
-              {updateClaimMutation.isPending ? "Procesando..." : "Rechazar"}
+              {rejectMutation.isPending ? "Procesando..." : "Rechazar"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </Card>
+  );
+}
+
+// Helper component for displaying claims
+function ClaimCard({ 
+  claim, 
+  onApprove, 
+  onReject, 
+  isPending = false,
+  isHistorical = false 
+}: { 
+  claim: MemberClaim; 
+  onApprove?: () => void; 
+  onReject?: () => void; 
+  isPending?: boolean;
+  isHistorical?: boolean;
+}) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Pendiente</Badge>;
+      case 'approved':
+        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Aprobada</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Rechazada</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="border rounded-lg p-4 shadow-sm">
+      <div className="flex justify-between items-start">
+        <div>
+          <div className="font-medium">
+            <User className="inline-block h-4 w-4 mr-1" />
+            {claim.user?.fullName || 'Usuario'} ({claim.user?.username})
+          </div>
+          <div className="text-sm text-muted-foreground mt-1">
+            Reclama ser:
+            <span className="font-medium ml-1">
+              {claim.member?.fullName || 'Miembro'}
+              {claim.member?.role && <span className="ml-1">({claim.member.role})</span>}
+              {claim.member?.position && <span className="ml-1">- {claim.member.position}</span>}
+              {claim.member?.jerseyNumber && <span className="ml-1">#{claim.member.jerseyNumber}</span>}
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-2">
+            Solicitado el {format(new Date(claim.createdAt), 'dd/MM/yyyy HH:mm')}
+          </div>
+          
+          {claim.reviewedAt && (
+            <div className="text-xs text-muted-foreground">
+              Revisado el {format(new Date(claim.reviewedAt), 'dd/MM/yyyy HH:mm')}
+            </div>
+          )}
+          
+          {claim.rejectionReason && (
+            <div className="text-xs text-red-500 mt-2">
+              Motivo de rechazo: {claim.rejectionReason}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex flex-col items-end">
+          {getStatusBadge(claim.status)}
+          
+          {!isHistorical && (
+            <div className="mt-4 space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onReject}
+                disabled={isPending}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <XCircle className="h-4 w-4 mr-1" />
+                Rechazar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onApprove}
+                disabled={isPending}
+                className="text-green-500 hover:text-green-700 hover:bg-green-50"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                Aprobar
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
