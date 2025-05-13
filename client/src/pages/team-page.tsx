@@ -1663,7 +1663,7 @@ export default function TeamPage() {
                   <h2 className="text-2xl font-bold mb-6">
                     {t("team.claims.manage") || "Manage Membership Claims"}
                   </h2>
-                  <MemberClaimsManager teamId={parseInt(id || "0")} />
+                  <MemberClaimsManager teamId={team?.id} />
                 </CardContent>
               </Card>
             </div>

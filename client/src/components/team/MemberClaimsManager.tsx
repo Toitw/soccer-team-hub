@@ -104,7 +104,7 @@ export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerP
     updateClaimStatus({ 
       claimId: selectedClaim.id, 
       status: "rejected",
-      rejectionReason: rejectionReason.trim() || null
+      ...(rejectionReason.trim() && { rejectionReason: rejectionReason.trim() })
     });
   };
   
