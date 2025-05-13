@@ -1,153 +1,114 @@
 import React, { useState } from "react";
-import { useAuth } from "../../hooks/use-auth";
-import { useLanguage } from "../../hooks/use-language";
-import { Button } from "../ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
-import { UserPlus, Check, Loader2 } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "../../lib/queryClient";
-import { toast } from "../../hooks/use-toast";
+import { useParams } from "wouter";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
-interface MemberClaim {
+interface TeamMember {
   id: number;
-  userId: number;
-  memberId: number;
-  teamId: number;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  updatedAt?: string;
-  rejectionReason?: string;
+  fullName: string;
+  role: string;
+  position: string | null;
+  jerseyNumber: number | null;
+  userId: number | null;
+  isVerified: boolean | null;
 }
 
-interface MemberClaimButtonProps {
-  member: {
-    id: number;
-    fullName: string;
-    teamId: number;
-  };
-}
-
-export function MemberClaimButton({ member }: MemberClaimButtonProps) {
-  const { user } = useAuth();
-  const { t } = useLanguage();
+export function MemberClaimButton({ member }: { member: TeamMember }) {
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { id: teamId } = useParams();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  // Check if user already has a pending claim for this member
-  const { data: existingClaim, isLoading: isCheckingClaim } = useQuery<MemberClaim>({
-    queryKey: [`/api/teams/${member.teamId}/member-claims/member/${member.id}/user`],
-    enabled: !!user?.id && !!member.id,
-  });
-  
-  // Mutation to create a new claim
-  const { mutate: createClaim, isPending: isCreatingClaim } = useMutation({
+
+  // Don't show claim button if member already has a verified user
+  if (member.userId && member.isVerified) {
+    return null;
+  }
+
+  const createClaimMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/teams/${member.teamId}/member-claims`, {
-        method: "POST",
-        data: {
-          userId: user?.id,
-          memberId: member.id,
-          teamId: member.teamId,
-          status: "pending"
-        }
-      });
+      setIsSubmitting(true);
+      try {
+        return await apiRequest(`/api/teams/${teamId}/claims`, {
+          method: "POST",
+          body: { teamMemberId: member.id },
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/my-claims`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/members`] });
+      setOpen(false);
       toast({
-        title: t("team.claims.submitted") || "Claim Submitted",
-        description: t("team.claims.submittedDescription") || "Your claim has been submitted for review.",
-        variant: "default",
+        title: "Solicitud enviada",
+        description: "Tu solicitud para reclamar este jugador ha sido enviada. Un administrador la revisará pronto.",
       });
-      queryClient.invalidateQueries({ 
-        queryKey: [`/api/teams/${member.teamId}/member-claims/member/${member.id}/user`]
-      });
-      setIsDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMsg = error?.error || "Ha ocurrido un error al enviar la solicitud.";
       toast({
-        title: t("team.claims.error") || "Error",
-        description: error.message || t("team.claims.errorDescription") || "Failed to submit claim. Please try again.",
+        title: "Error",
+        description: errorMsg,
         variant: "destructive",
       });
-    }
+    },
   });
-  
-  if (isCheckingClaim) {
-    return (
-      <Button variant="ghost" size="sm" disabled>
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </Button>
-    );
-  }
-  
-  // If user already has a claim, show the status
-  if (existingClaim) {
-    const status = existingClaim.status;
-    const statusColor = 
-      status === "approved" ? "text-green-500" :
-      status === "rejected" ? "text-red-500" :
-      "text-amber-500"; // pending
-    
-    return (
-      <Button variant="ghost" size="sm" disabled className={statusColor}>
-        {status === "approved" && <Check className="h-4 w-4 mr-1" />}
-        {status === "pending" ? 
-          (t("team.claims.pending") || "Pending") : 
-          status === "approved" ? 
-            (t("team.claims.approved") || "Approved") : 
-            (t("team.claims.rejected") || "Rejected")
-        }
-      </Button>
-    );
-  }
-  
-  // Otherwise, show the claim button
+
+  const handleClaim = () => {
+    createClaimMutation.mutate();
+  };
+
   return (
-    <>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={() => setIsDialogOpen(true)}
-        disabled={!user?.id}
-      >
-        <UserPlus className="h-4 w-4 mr-1" />
-        {t("team.claims.claimButton") || "Claim"}
-      </Button>
-      
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("team.claims.confirmTitle") || "Confirm Membership Claim"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("team.claims.confirmDescription") || 
-                `Are you ${member.fullName}? This will notify team administrators to review and approve your claim. Your name will be marked as verified in the team roster once approved.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t("cancel") || "Cancel"}
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault();
-                createClaim();
-              }}
-              disabled={isCreatingClaim}
-            >
-              {isCreatingClaim ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                  {t("submitting") || "Submitting..."}
-                </>
-              ) : (
-                t("team.claims.submit") || "Submit Claim"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" size="sm" className="ml-2">
+          Reclamar
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reclamar jugador</DialogTitle>
+          <DialogDescription>
+            Estás a punto de reclamar que eres {member.fullName}.
+            {member.role === "player" && (
+              <span>
+                {member.position && <> ({member.position})</>}
+                {member.jerseyNumber && <>, #{member.jerseyNumber}</>}
+              </span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Al reclamar este perfil, un administrador del equipo revisará tu solicitud.
+          Una vez aprobada, podrás acceder a todas las funcionalidades asociadas a este jugador.
+        </p>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleClaim} 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Enviando..." : "Enviar solicitud"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

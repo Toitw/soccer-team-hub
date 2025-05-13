@@ -9,7 +9,6 @@ import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
 import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
-import TeamRosterPage from "@/pages/team-roster-page";
 import MatchesPage from "./pages/matches-page";
 import EventPage from "@/pages/event-page";
 import PlayerProfilePage from "@/pages/player-profile-page";
@@ -20,8 +19,6 @@ import AdminPage from "@/pages/admin-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
-import SimpleClaimsPage from "./pages/simple-claims-page";
-import SimpleTeamPage from "./pages/simple-team-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { TeamProvider } from "./hooks/use-team";
@@ -44,34 +41,8 @@ function Router() {
       {/* Mock page for demonstration */}
       <ProtectedRoute path="/mock" component={MockPage} />
 
-      {/* Redirect from /team to /teams/ */}
-      <Route path="/team">
-        {() => {
-          console.log("Team redirect hit, redirecting to /teams/4");
-          window.location.href = "/teams/4";
-          return <div>Redirecting...</div>;
-        }}
-      </Route>
-
       {/* Team management - accessible to all but players are read-only */}
-      <Route path="/teams/:id">
-        {(params) => {
-          console.log("Teams route match with params:", params);
-          return <TeamRosterPage />;
-        }}
-      </Route>
-      <Route path="/teams/:id/claims">
-        {(params) => {
-          console.log("Teams claims route match with params:", params);
-          return (
-            <Suspense fallback={<div className="flex h-screen items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>}>
-              <SimpleClaimsPage />
-            </Suspense>
-          );
-        }}
-      </Route>
+      <ProtectedRoute path="/team" component={TeamPage} />
 
       {/* Match-related pages - accessible to all but players are read-only */}
       <ProtectedRoute path="/matches" component={MatchesPage} />

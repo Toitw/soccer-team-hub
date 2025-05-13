@@ -1,5 +1,4 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link, useLocation, useParams } from "wouter";
 import {
   Team,
   TeamMember,
@@ -17,7 +16,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -66,7 +64,6 @@ import {
   AlertCircle,
   Search,
   Filter,
-  ClipboardCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -793,23 +790,16 @@ export default function TeamPage() {
               </p>
             </div>
             {isAdmin && (
-              <div className="flex items-center space-x-3">
-                <Link to={`/teams/${selectedTeam?.id}/claims`}>
-                  <Button variant="outline">
-                    <ClipboardCheck className="mr-2 h-4 w-4" />
-                    {t("team.claims.manage") || "Manage Claims"}
+              <Dialog
+                open={openAddMemberDialog}
+                onOpenChange={setOpenAddMemberDialog}
+              >
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    {t("team.addMember")}
                   </Button>
-                </Link>
-                <Dialog
-                  open={openAddMemberDialog}
-                  onOpenChange={setOpenAddMemberDialog}
-                >
-                  <DialogTrigger asChild>
-                    <Button>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      {t("team.addMember")}
-                    </Button>
-                  </DialogTrigger>
+                </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>{t("team.addTeamMember")}</DialogTitle>
@@ -935,6 +925,7 @@ export default function TeamPage() {
                                       <SelectItem value="Right Back">
                                         {t("team.rightBack")}
                                       </SelectItem>
+                               ```python
                                       <SelectItem value="Wing Back">
                                         {t("team.wingBack")}
                                       </SelectItem>
@@ -1041,27 +1032,27 @@ export default function TeamPage() {
               </Dialog>
             )}
           </div>
-          
-          <div className="space-y-6">
-            <Card className="mb-8">
-              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-                <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                  <Select
-                    defaultValue={selectedFormation}
-                    onValueChange={handleFormationChange}
-                  >
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Formation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFormations.map((formation) => (
-                        <SelectItem key={formation} value={formation}>
-                          {formation}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+          {/* Team Lineup Card */}
+          <Card className="mb-8">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                <Select
+                  defaultValue={selectedFormation}
+                  onValueChange={handleFormationChange}
+                >
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Formation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableFormations.map((formation) => (
+                      <SelectItem key={formation} value={formation}>
+                        {formation}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {isAdmin && (
                   <Button 
                     variant="outline" 
@@ -1636,13 +1627,7 @@ export default function TeamPage() {
                                 </Button>
                               </>
                             ) : (
-                              <MemberClaimButton 
-                                member={{
-                                  id: member.id,
-                                  fullName: member.user.fullName || member.user.username || "Unknown",
-                                  teamId: member.teamId
-                                }} 
-                              />
+                              <MemberClaimButton member={member} />
                             )}
                           </div>
                         </TableCell>
@@ -1652,22 +1637,7 @@ export default function TeamPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            </Card>
-          </div>
-          
-          {/* Member Claims Management Section (Admin only) */}
-          {isAdmin && (
-            <div className="mt-8">
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6">
-                    {t("team.claims.manage") || "Manage Membership Claims"}
-                  </h2>
-                  <MemberClaimsManager teamId={selectedTeam?.id} />
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          </Card>
         </div>
         <MobileNavigation />
       </div>

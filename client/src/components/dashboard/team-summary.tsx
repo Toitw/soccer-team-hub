@@ -115,13 +115,6 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
             <p className="text-sm text-gray-500">{team.division}</p>
           </div>
           
-          <div className="ml-auto">
-            <Link to={`/teams/${team.id}`}>
-              <Button variant="default" className="font-medium">
-                {t("dashboard.viewTeam") || "View Team"} →
-              </Button>
-            </Link>
-          </div>
         </div>
       </CardContent>
     </Card>

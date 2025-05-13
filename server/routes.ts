@@ -254,41 +254,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get claim for a specific member and user
-  app.get("/api/teams/:teamId/member-claims/member/:memberId/user", async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.teamId);
-      const memberId = parseInt(req.params.memberId);
-      
-      // Using req.isAuthenticated() and req.session.passport.user pattern
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-      
-      const userId = req.user?.id;
-      
-      // Check if user has access to the team
-      const teamUser = await storage.getTeamUser(teamId, userId);
-      if (!teamUser) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-      
-      // Get claim by user and member
-      const claim = await storage.getMemberClaimByUserAndMember(userId, memberId);
-      
-      if (!claim) {
-        return res.status(404).json({ error: "No claim found" });
-      }
-      
-      return res.json(claim);
-    } catch (error) {
-      console.error("Error getting member claim:", error);
-      res.status(500).json({ error: "Failed to get member claim" });
-    }
-  });
-  
   // Create a claim for a member
-  app.post("/api/teams/:id/member-claims", async (req, res) => {
+  app.post("/api/teams/:id/claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
