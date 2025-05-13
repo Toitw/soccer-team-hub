@@ -9,109 +9,169 @@
 
 import { db } from "../server/db";
 import { sql } from "drizzle-orm";
+import { pool } from "../server/db";
+
+async function getTableColumns(tableName: string) {
+  try {
+    const result = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = $1
+    `, [tableName]);
+    
+    return result.rows.map(row => row.column_name);
+  } catch (err) {
+    console.error(`Error fetching columns for ${tableName}:`, err);
+    return [];
+  }
+}
 
 async function runMigration() {
   console.log("Starting Member-User schema update...");
   
   try {
-    // Backup existing team_members table
-    console.log("Backing up existing team_members table...");
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS team_members_backup AS 
-      SELECT * FROM team_members
-    `);
-    console.log("Backup created successfully: team_members_backup");
+    // Check current state of the database
+    const teamMembersColumns = await getTableColumns('team_members');
+    console.log("Current team_members columns:", teamMembersColumns);
     
-    // Drop existing team_members table
-    console.log("Dropping existing team_members table...");
-    await db.execute(sql`DROP TABLE IF EXISTS team_members CASCADE`);
-    console.log("Table dropped successfully");
-    
-    // Create new team_members table with updated structure
-    console.log("Creating new team_members table...");
-    await db.execute(sql`
-      CREATE TABLE team_members (
-        id SERIAL PRIMARY KEY,
-        team_id INTEGER NOT NULL,
-        full_name TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'player',
-        position TEXT,
-        jersey_number INTEGER,
-        profile_picture TEXT,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        created_by_id INTEGER NOT NULL,
-        user_id INTEGER,
-        is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
-        FOREIGN KEY (created_by_id) REFERENCES users(id),
-        FOREIGN KEY (user_id) REFERENCES users(id)
+    // Check if the backup table already exists
+    const backupResult = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'team_members_backup'
       )
     `);
-    console.log("New team_members table created successfully");
+    const backupExists = backupResult.rows[0].exists;
     
-    // Create team_users table
-    console.log("Creating team_users table...");
-    await db.execute(sql`
-      CREATE TABLE team_users (
-        id SERIAL PRIMARY KEY,
-        team_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        joined_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        UNIQUE(team_id, user_id)
+    if (!backupExists) {
+      // Backup existing team_members table
+      console.log("Backing up existing team_members table...");
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS team_members_backup AS 
+        SELECT * FROM team_members
+      `);
+      console.log("Backup created successfully: team_members_backup");
+    } else {
+      console.log("Backup table already exists, skipping backup creation.");
+    }
+    
+    // Check if the tables exist already
+    const teamUsersResult = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'team_users'
       )
     `);
-    console.log("team_users table created successfully");
+    const teamUsersExists = teamUsersResult.rows[0].exists;
     
-    // Create member_claims table
-    console.log("Creating member_claims table...");
-    await db.execute(sql`
-      CREATE TABLE member_claims (
-        id SERIAL PRIMARY KEY,
-        team_id INTEGER NOT NULL,
-        team_member_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        status TEXT NOT NULL DEFAULT 'pending',
-        requested_at TIMESTAMP NOT NULL DEFAULT NOW(),
-        reviewed_at TIMESTAMP,
-        reviewed_by_id INTEGER,
-        rejection_reason TEXT,
-        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
-        FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE CASCADE,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (reviewed_by_id) REFERENCES users(id),
-        UNIQUE(team_member_id, user_id)
+    if (!teamUsersExists) {
+      // Create team_users table
+      console.log("Creating team_users table...");
+      await db.execute(sql`
+        CREATE TABLE team_users (
+          id SERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL,
+          user_id INTEGER NOT NULL,
+          joined_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          UNIQUE(team_id, user_id)
+        )
+      `);
+      console.log("team_users table created successfully");
+    } else {
+      console.log("team_users table already exists, skipping creation.");
+    }
+    
+    const memberClaimsResult = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'member_claims'
       )
     `);
-    console.log("member_claims table created successfully");
+    const memberClaimsExists = memberClaimsResult.rows[0].exists;
     
-    // Migrate data from backup to new team_members table
-    console.log("Migrating data from backup to new tables...");
+    if (!memberClaimsExists) {
+      // Create member_claims table
+      console.log("Creating member_claims table...");
+      await db.execute(sql`
+        CREATE TABLE member_claims (
+          id SERIAL PRIMARY KEY,
+          team_id INTEGER NOT NULL,
+          team_member_id INTEGER NOT NULL,
+          user_id INTEGER NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending',
+          requested_at TIMESTAMP NOT NULL DEFAULT NOW(),
+          reviewed_at TIMESTAMP,
+          reviewed_by_id INTEGER,
+          rejection_reason TEXT,
+          FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+          FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE CASCADE,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (reviewed_by_id) REFERENCES users(id),
+          UNIQUE(team_member_id, user_id)
+        )
+      `);
+      console.log("member_claims table created successfully");
+    } else {
+      console.log("member_claims table already exists, skipping creation.");
+    }
     
-    // First, populate team_users based on existing team memberships
-    await db.execute(sql`
-      INSERT INTO team_users (team_id, user_id)
-      SELECT DISTINCT team_id, user_id FROM team_members_backup
-    `);
-    console.log("Team users populated successfully");
+    // Check if team_members table has the new structure
+    const hasNewStructure = teamMembersColumns.includes('full_name') && teamMembersColumns.includes('is_verified');
     
-    // Then create team_members records with admin as creator
-    await db.execute(sql`
-      INSERT INTO team_members (team_id, full_name, role, position, jersey_number, created_by_id, user_id, is_verified)
-      SELECT 
-        tm.team_id, 
-        u.full_name, 
-        tm.role, 
-        u.position, 
-        u.jersey_number,
-        (SELECT id FROM users WHERE role = 'admin' LIMIT 1), -- Default to first admin
-        tm.user_id,
-        TRUE -- Mark as verified since we know these users exist
-      FROM team_members_backup tm
-      JOIN users u ON tm.user_id = u.id
-    `);
-    console.log("Team members migrated successfully");
+    if (!hasNewStructure) {
+      // If we need to update team_members structure
+      console.log("Updating team_members table structure...");
+      
+      // Add columns instead of recreating the table to preserve data
+      if (!teamMembersColumns.includes('full_name')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN full_name TEXT`);
+          console.log("Added full_name column to team_members");
+        } catch (err) {
+          console.error("Error adding full_name column:", err);
+        }
+      }
+      
+      if (!teamMembersColumns.includes('is_verified')) {
+        try {
+          await db.execute(sql`ALTER TABLE team_members ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE`);
+          console.log("Added is_verified column to team_members");
+        } catch (err) {
+          console.error("Error adding is_verified column:", err);
+        }
+      }
+      
+      // Update full_name with data from users table 
+      try {
+        await db.execute(sql`
+          UPDATE team_members tm
+          SET full_name = u.full_name
+          FROM users u
+          WHERE tm.user_id = u.id AND tm.full_name IS NULL
+        `);
+        console.log("Updated full_name values in team_members table");
+      } catch (err) {
+        console.error("Error updating full_name values:", err);
+      }
+    }
+    
+    // Migrate data to team_users if not already done
+    if (!teamUsersExists) {
+      console.log("Migrating existing team members to team_users table...");
+      try {
+        // Populate team_users based on existing team memberships
+        await db.execute(sql`
+          INSERT INTO team_users (team_id, user_id)
+          SELECT DISTINCT team_id, user_id FROM team_members
+          WHERE user_id IS NOT NULL
+        `);
+        console.log("Team users populated successfully");
+      } catch (err) {
+        console.error("Error populating team_users:", err);
+      }
+    }
     
     console.log("Migration completed successfully!");
   } catch (error) {
