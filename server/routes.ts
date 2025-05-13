@@ -139,11 +139,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
 
-      // Always add the current user as admin of the new team
+      // Add the current user to the team_users table
+      await storage.createTeamUser({
+        teamId: team.id,
+        userId: req.user.id
+      });
+      
+      // Also add as team admin (member) for now
       await storage.createTeamMember({
         teamId: team.id,
-        userId: req.user.id,
-        role: "admin"
+        fullName: req.user.fullName || "Team Admin",
+        role: "admin",
+        createdById: req.user.id
       });
 
       res.json({ 
