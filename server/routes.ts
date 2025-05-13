@@ -166,6 +166,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Member claims routes
+  
+  // Get all claims for a team (admin/coach only)
+  app.get("/api/teams/:id/claims", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Verify user is team admin or coach
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to access team claims" });
+      }
+      
+      const claims = await storage.getMemberClaims(teamId);
+      
+      // Enhance claims with member and user details
+      const enhancedClaims = await Promise.all(claims.map(async (claim) => {
+        const member = await storage.getTeamMember(claim.teamMemberId);
+        const user = await storage.getUser(claim.userId);
+        
+        return {
+          ...claim,
+          member: member ? {
+            id: member.id,
+            fullName: member.fullName,
+            position: member.position,
+            jerseyNumber: member.jerseyNumber,
+            role: member.role
+          } : null,
+          user: user ? {
+            id: user.id,
+            username: user.username,
+            fullName: user.fullName,
+            profilePicture: user.profilePicture
+          } : null
+        };
+      }));
+      
+      res.json(enhancedClaims);
+    } catch (error) {
+      console.error("Error getting member claims:", error);
+      res.status(500).json({ error: "Failed to get team member claims" });
+    }
+  });
+  
+  // Get my claims for a team
+  app.get("/api/teams/:id/my-claims", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const userId = req.user.id;
+      
+      // Check if user has access to the team
+      const teamUser = await storage.getTeamUser(teamId, userId);
+      if (!teamUser) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      // Get all claims by this user for this team
+      const allUserClaims = await storage.getMemberClaimsByUser(userId);
+      const teamClaims = allUserClaims.filter(claim => claim.teamId === teamId);
+      
+      // Enhance claims with member details
+      const enhancedClaims = await Promise.all(teamClaims.map(async (claim) => {
+        const member = await storage.getTeamMember(claim.teamMemberId);
+        
+        return {
+          ...claim,
+          member: member ? {
+            id: member.id,
+            fullName: member.fullName,
+            position: member.position,
+            jerseyNumber: member.jerseyNumber,
+            role: member.role
+          } : null
+        };
+      }));
+      
+      res.json(enhancedClaims);
+    } catch (error) {
+      console.error("Error getting user claims:", error);
+      res.status(500).json({ error: "Failed to get your member claims" });
+    }
+  });
+  
+  // Create a claim for a member
+  app.post("/api/teams/:id/claims", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.id);
+      const userId = req.user.id;
+      const { teamMemberId } = req.body;
+      
+      if (!teamMemberId) {
+        return res.status(400).json({ error: "Team member ID is required" });
+      }
+      
+      // Check if user has access to the team
+      const teamUser = await storage.getTeamUser(teamId, userId);
+      if (!teamUser) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+      
+      // Check if the member exists
+      const member = await storage.getTeamMember(teamMemberId);
+      if (!member || member.teamId !== teamId) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+      
+      // Check if claim already exists
+      const allUserClaims = await storage.getMemberClaimsByUser(userId);
+      const existingClaim = allUserClaims.find(
+        claim => claim.teamId === teamId && claim.teamMemberId === teamMemberId
+      );
+      
+      if (existingClaim) {
+        return res.status(409).json({ 
+          error: "You already have a claim for this team member",
+          claim: existingClaim
+        });
+      }
+      
+      // Create new claim
+      const newClaim = await storage.createMemberClaim({
+        teamId,
+        teamMemberId,
+        userId
+      });
+      
+      res.status(201).json(newClaim);
+    } catch (error) {
+      console.error("Error creating member claim:", error);
+      res.status(500).json({ error: "Failed to create team member claim" });
+    }
+  });
+  
+  // Update claim status (admin/coach only)
+  app.put("/api/teams/:teamId/claims/:claimId", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const claimId = parseInt(req.params.claimId);
+      const { status, rejectionReason } = req.body;
+      
+      // Verify user is team admin or coach
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to update claims" });
+      }
+      
+      // Get the claim
+      const claim = await storage.getMemberClaimById(claimId);
+      if (!claim || claim.teamId !== teamId) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+      
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status value" });
+      }
+      
+      // Update claim
+      const updatedClaim = await storage.updateMemberClaim(claimId, {
+        status,
+        rejectionReason: status === "rejected" ? rejectionReason : null,
+        reviewedAt: new Date(),
+        reviewedById: req.user.id
+      });
+      
+      // If approved, update the team member with the userId
+      if (status === "approved") {
+        await storage.updateTeamMember(claim.teamMemberId, {
+          userId: claim.userId,
+          isVerified: true
+        });
+      }
+      
+      res.json(updatedClaim);
+    } catch (error) {
+      console.error("Error updating member claim:", error);
+      res.status(500).json({ error: "Failed to update claim" });
+    }
+  });
+
   // Team routes
   app.get("/api/teams", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

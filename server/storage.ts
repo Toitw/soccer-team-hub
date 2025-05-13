@@ -218,6 +218,14 @@ export interface IStorage {
   updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined>;
   deleteFeedback(id: number): Promise<boolean>;
   
+  // Member claims methods
+  getMemberClaims(teamId: number): Promise<MemberClaim[]>;
+  getMemberClaimsByUser(userId: number): Promise<MemberClaim[]>;
+  getMemberClaimById(id: number): Promise<MemberClaim | undefined>;
+  createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim>;
+  updateMemberClaim(id: number, data: Partial<MemberClaim>): Promise<MemberClaim | undefined>;
+  deleteMemberClaim(id: number): Promise<boolean>;
+  
   // Session store for authentication
   sessionStore: SessionStore;
 }
