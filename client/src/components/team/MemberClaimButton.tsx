@@ -32,9 +32,12 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
       setIsSubmitting(true);
       try {
         console.log(`Sending claim request for member ${member.id} in team ${member.teamId}`);
+        // Debuggear la solicitud completa
+        console.log("Request body:", { teamMemberId: member.id });
+        
         return await apiRequest(`/api/teams/${member.teamId}/claims`, {
           method: "POST",
-          body: { teamMemberId: member.id },
+          data: { teamMemberId: member.id }, // Cambiamos 'body' por 'data' que es el nombre correcto del parámetro
         });
       } finally {
         setIsSubmitting(false);
