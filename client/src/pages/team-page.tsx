@@ -8,6 +8,7 @@ import {
   MemberClaim,
 } from "@shared/schema";
 import { MemberClaimButton } from "@/components/team/MemberClaimButton";
+import { MemberClaimsManager } from "@/components/team/MemberClaimsManager";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -1498,14 +1499,14 @@ export default function TeamPage() {
                     <TableHead>{t("team.table.position")}</TableHead>
                     <TableHead>{t("team.table.jerseyNumber")}</TableHead>
                     <TableHead>{t("team.table.contact")}</TableHead>
-                    {isAdmin && <TableHead>{t("team.table.actions")}</TableHead>}
+                    <TableHead>{t("team.table.actions") || "Acciones"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!filteredTeamMembers.length && (
                     <TableRow>
                       <TableCell
-                        colSpan={isAdmin ? 6 : 5}
+                        colSpan={6}
                         className="text-center py-8"
                       >
                         <div className="flex flex-col items-center justify-center text-muted-foreground">
@@ -1599,33 +1600,37 @@ export default function TeamPage() {
                               "-"}
                           </div>
                         </TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setMemberToEdit(member);
-                                  setOpenEditMemberDialog(true);
-                                }}
-                              >
-                                {t("common.edit")}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive hover:text-destructive/90"
-                                onClick={() => {
-                                  setMemberToRemove(member);
-                                  setOpenRemoveMemberDialog(true);
-                                }}
-                              >
-                                {t("team.remove")}
-                              </Button>
-                            </div>
-                          </TableCell>
-                        )}
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {isAdmin ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setMemberToEdit(member);
+                                    setOpenEditMemberDialog(true);
+                                  }}
+                                >
+                                  {t("common.edit")}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive/90"
+                                  onClick={() => {
+                                    setMemberToRemove(member);
+                                    setOpenRemoveMemberDialog(true);
+                                  }}
+                                >
+                                  {t("team.remove")}
+                                </Button>
+                              </>
+                            ) : (
+                              <MemberClaimButton member={member} />
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
