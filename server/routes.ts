@@ -960,9 +960,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.id);
 
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
+      // Check if user has access to the team (either as a team_user or a team_member)
+      // First check team_users (users who joined the team)
+      const teamUser = await storage.getTeamUser(teamId, req.user.id);
+      
+      // If not found in team_users, check if they're a team_member with role
+      const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
+      
+      if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
@@ -980,9 +985,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamId = parseInt(req.params.id);
       const limit = parseInt(req.query.limit as string) || 5;
 
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
+      // Check if user has access to the team (either as a team_user or a team_member)
+      // First check team_users (users who joined the team)
+      const teamUser = await storage.getTeamUser(teamId, req.user.id);
+      
+      // If not found in team_users, check if they're a team_member with role
+      const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
+      
+      if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
@@ -1249,9 +1259,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamId = parseInt(req.params.id);
       const limit = parseInt(req.query.limit as string) || 1; // Default to 1 to get only the most recent
 
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
+      // Check if user has access to the team (either as a team_user or a team_member)
+      // First check team_users (users who joined the team)
+      const teamUser = await storage.getTeamUser(teamId, req.user.id);
+      
+      // If not found in team_users, check if they're a team_member with role
+      const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
+      
+      if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
