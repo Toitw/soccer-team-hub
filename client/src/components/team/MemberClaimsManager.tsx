@@ -55,8 +55,12 @@ type MemberClaim = {
   };
 };
 
-export default function MemberClaimsManager() {
-  const { id: teamId } = useParams();
+export default function MemberClaimsManager({ teamId }: { teamId?: number }) {
+  const params = useParams();
+  const routeTeamId = params.id ? parseInt(params.id) : undefined;
+  // Use the passed teamId or fallback to the one from the route
+  const actualTeamId = teamId || routeTeamId;
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -65,9 +69,9 @@ export default function MemberClaimsManager() {
   const [activeTab, setActiveTab] = useState("pending");
 
   // Fetch claims
-  const { data: claims = [], isLoading, error } = useQuery({
-    queryKey: [`/api/teams/${teamId}/claims`],
-    enabled: !!teamId
+  const { data: claims = [], isLoading, error } = useQuery<MemberClaim[]>({
+    queryKey: [`/api/teams/${actualTeamId}/claims`],
+    enabled: !!actualTeamId
   });
 
   // Filter claims by status
@@ -77,13 +81,13 @@ export default function MemberClaimsManager() {
   // Approve claim mutation
   const approveMutation = useMutation({
     mutationFn: async (claimId: number) => {
-      return await apiRequest(`/api/teams/${teamId}/claims/${claimId}/approve`, {
+      return await apiRequest(`/api/teams/${actualTeamId}/claims/${claimId}/approve`, {
         method: "POST"
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/claims`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/members`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${actualTeamId}/claims`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${actualTeamId}/members`] });
       toast({
         title: "Reclamación aprobada",
         description: "Se ha aprobado la reclamación del miembro correctamente.",
@@ -102,13 +106,13 @@ export default function MemberClaimsManager() {
   const rejectMutation = useMutation({
     mutationFn: async (params: { claimId: number, reason: string }) => {
       const { claimId, reason } = params;
-      return await apiRequest(`/api/teams/${teamId}/claims/${claimId}/reject`, {
+      return await apiRequest(`/api/teams/${actualTeamId}/claims/${claimId}/reject`, {
         method: "POST",
         data: { reason }
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/claims`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${actualTeamId}/claims`] });
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedClaim(null);

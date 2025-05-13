@@ -42,6 +42,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import MemberClaimsManager from "@/components/team/MemberClaimsManager";
 
 // Define form schema for inviting members
 const inviteSchema = z.object({
@@ -488,6 +489,7 @@ export default function SettingsPage() {
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="members">{t("settings.teamMembers")}</TabsTrigger>
+              <TabsTrigger value="claims">Reclamaciones</TabsTrigger>
               <TabsTrigger value="settings">{t("settings.teamSettings")}</TabsTrigger>
             </TabsList>
 
@@ -639,6 +641,17 @@ export default function SettingsPage() {
                     </Table>
                   </CardContent>
                 </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="claims" className="mt-6">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Import and use the MemberClaimsManager component */}
+                {selectedTeamId && (
+                  <div>
+                    <MemberClaimsManager teamId={selectedTeamId} />
+                  </div>
+                )}
               </div>
             </TabsContent>
 
