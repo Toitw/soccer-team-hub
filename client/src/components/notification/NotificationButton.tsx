@@ -1,11 +1,7 @@
 import React from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { format } from "date-fns";
@@ -26,7 +22,7 @@ export default function NotificationButton() {
   });
 
   // Calculate total pending claims
-  const totalPendingClaims = notifications.reduce((sum, notification) => sum + notification.count, 0);
+  const totalPendingClaims = notifications?.reduce((sum, notification) => sum + notification.count, 0) || 0;
 
   return (
     <Popover>

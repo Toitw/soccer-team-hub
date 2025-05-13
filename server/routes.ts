@@ -353,6 +353,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to update claim" });
     }
   });
+  
+  // Get notifications for pending claims
+  app.get("/api/notifications/claims", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+      
+      // Get all teams where the user is an admin
+      const userTeams = await storage.getTeamsByUserId(userId);
+      const adminTeams = [];
+      
+      // Check each team if the user is an admin
+      for (const team of userTeams) {
+        const teamMember = await storage.getTeamMember(team.id, userId);
+        if (teamMember && teamMember.role === 'admin') {
+          adminTeams.push(team);
+        }
+      }
+      
+      if (adminTeams.length === 0) {
+        return res.json([]);
+      }
+      
+      // For each team, get the pending claims and count them
+      const notifications = [];
+      
+      for (const team of adminTeams) {
+        const claims = await storage.getMemberClaims(team.id);
+        const pendingClaims = claims.filter(claim => claim.status === 'pending');
+        
+        if (pendingClaims.length > 0) {
+          // Sort by date to get the latest
+          pendingClaims.sort((a, b) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          
+          notifications.push({
+            id: team.id,
+            teamId: team.id,
+            teamName: team.name,
+            count: pendingClaims.length,
+            latestCreatedAt: pendingClaims[0].createdAt
+          });
+        }
+      }
+      
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error getting claim notifications:", error);
+      res.status(500).json({ error: "Failed to get claim notifications" });
+    }
+  });
 
   // Team routes
   app.get("/api/teams", async (req, res) => {
