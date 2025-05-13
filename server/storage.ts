@@ -2,6 +2,8 @@ import {
   users, type User, type InsertUser,
   teams, type Team, type InsertTeam,
   teamMembers, type TeamMember, type InsertTeamMember,
+  teamUsers, type TeamUser, type InsertTeamUser,
+  memberClaims, type MemberClaim, type InsertMemberClaim,
   matches, type Match, type InsertMatch,
   events, type Event, type InsertEvent,
   attendance, type Attendance, type InsertAttendance,
@@ -31,6 +33,8 @@ const MemoryStore = createMemoryStore(session);
 // File paths for data persistence
 const DATA_DIR = './data';
 const TEAM_MEMBERS_FILE = path.join(DATA_DIR, 'team_members.json');
+const TEAM_USERS_FILE = path.join(DATA_DIR, 'team_users.json');
+const MEMBER_CLAIMS_FILE = path.join(DATA_DIR, 'member_claims.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const MATCHES_FILE = path.join(DATA_DIR, 'matches.json');
 const ANNOUNCEMENTS_FILE = path.join(DATA_DIR, 'announcements.json');
@@ -75,13 +79,32 @@ export interface IStorage {
   updateTeam(id: number, teamData: Partial<Team>): Promise<Team | undefined>;
   deleteTeam(id: number): Promise<boolean>;
   
-  // TeamMember methods
+  // TeamMember methods (members created/managed by admin)
   getTeamMembers(teamId: number): Promise<TeamMember[]>;
-  getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined>;
-  getTeamMembersByUserId(userId: number): Promise<TeamMember[]>;
+  getTeamMember(id: number): Promise<TeamMember | undefined>;
+  getTeamMemberByUserId(teamId: number, userId: number): Promise<TeamMember | undefined>;
+  getVerifiedTeamMembers(teamId: number): Promise<TeamMember[]>;
   createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
   updateTeamMember(id: number, teamMemberData: Partial<TeamMember>): Promise<TeamMember | undefined>;
   deleteTeamMember(id: number): Promise<boolean>;
+  verifyTeamMember(memberId: number, userId: number): Promise<TeamMember | undefined>;
+  
+  // TeamUser methods (users who joined teams)
+  getTeamUsers(teamId: number): Promise<TeamUser[]>;
+  getTeamUser(teamId: number, userId: number): Promise<TeamUser | undefined>;
+  getTeamUsersByUserId(userId: number): Promise<TeamUser[]>;
+  createTeamUser(teamUser: InsertTeamUser): Promise<TeamUser>;
+  deleteTeamUser(id: number): Promise<boolean>;
+  
+  // MemberClaim methods
+  getMemberClaims(teamId: number): Promise<MemberClaim[]>;
+  getMemberClaimsByStatus(teamId: number, status: string): Promise<MemberClaim[]>;
+  getMemberClaimById(id: number): Promise<MemberClaim | undefined>;
+  getMemberClaimByUserAndMember(userId: number, memberId: number): Promise<MemberClaim | undefined>;
+  createMemberClaim(claim: InsertMemberClaim): Promise<MemberClaim>;
+  updateMemberClaim(id: number, claimData: Partial<MemberClaim>): Promise<MemberClaim | undefined>;
+  approveMemberClaim(id: number, reviewerId: number): Promise<MemberClaim | undefined>;
+  rejectMemberClaim(id: number, reviewerId: number, reason?: string): Promise<MemberClaim | undefined>;
   
   // Match methods
   getMatch(id: number): Promise<Match | undefined>;
@@ -203,6 +226,8 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private teams: Map<number, Team>;
   private teamMembers: Map<number, TeamMember>;
+  private teamUsers: Map<number, TeamUser>;
+  private memberClaims: Map<number, MemberClaim>;
   private matches: Map<number, Match>;
   private events: Map<number, Event>;
   private attendance: Map<number, Attendance>;
@@ -224,6 +249,8 @@ export class MemStorage implements IStorage {
   private userCurrentId: number;
   private teamCurrentId: number;
   private teamMemberCurrentId: number;
+  private teamUserCurrentId: number;
+  private memberClaimCurrentId: number;
   private matchCurrentId: number;
   private eventCurrentId: number;
   private attendanceCurrentId: number;
@@ -250,6 +277,8 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.teams = new Map();
     this.teamMembers = new Map();
+    this.teamUsers = new Map();
+    this.memberClaims = new Map();
     this.matches = new Map();
     this.events = new Map();
     this.attendance = new Map();
@@ -269,6 +298,8 @@ export class MemStorage implements IStorage {
     this.userCurrentId = 1;
     this.teamCurrentId = 1;
     this.teamMemberCurrentId = 1;
+    this.teamUserCurrentId = 1;
+    this.memberClaimCurrentId = 1;
     this.matchCurrentId = 1;
     this.eventCurrentId = 1;
     this.attendanceCurrentId = 1;

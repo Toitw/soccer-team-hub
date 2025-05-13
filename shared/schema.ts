@@ -71,22 +71,25 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
-  userId: integer("user_id").notNull(),
-  joinedAt: timestamp("joined_at").notNull().defaultNow(),
+  fullName: text("full_name").notNull(),
   role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
-  // This is the key difference - members are created by an admin
-  createdById: integer("created_by_id"),
-  // Flag to identify members created through the admin interface vs through join code
-  isCreatedByAdmin: boolean("is_created_by_admin").default(true),
+  position: text("position"),
+  jerseyNumber: integer("jersey_number"),
+  profilePicture: text("profile_picture"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdById: integer("created_by_id").notNull(),
+  // User association fields (for verified members)
+  userId: integer("user_id"), // Nullable - only set when a member is verified/claimed
+  isVerified: boolean("is_verified").default(false), // Indicates if this member is verified/linked to a user
 });
 
-export const insertTeamMemberSchema = createInsertSchema(teamMembers).pick({
-  teamId: true,
-  userId: true,
-  role: true,
-  createdById: true,
-  isCreatedByAdmin: true,
-});
+export const insertTeamMemberSchema = createInsertSchema(teamMembers)
+  .omit({ id: true, createdAt: true, userId: true, isVerified: true })
+  .extend({
+    position: z.string().optional().nullable(),
+    jerseyNumber: z.number().int().optional().nullable(),
+    profilePicture: z.string().optional().nullable(),
+  });
 
 // TeamUsers table for team access through joining with code
 export const teamUsers = pgTable("team_users", {
@@ -101,6 +104,26 @@ export const insertTeamUserSchema = createInsertSchema(teamUsers).pick({
   teamId: true,
   userId: true,
 });
+
+// Member claims table for tracking user claims to be team members
+export const memberClaims = pgTable("member_claims", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull(),
+  teamMemberId: integer("team_member_id").notNull(), // The member being claimed
+  userId: integer("user_id").notNull(), // The user making the claim
+  status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
+  requestedAt: timestamp("requested_at").notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedById: integer("reviewed_by_id"), // Admin/coach who reviewed the claim
+  rejectionReason: text("rejection_reason"), // Optional reason for rejection
+});
+
+export const insertMemberClaimSchema = createInsertSchema(memberClaims)
+  .pick({
+    teamId: true,
+    teamMemberId: true,
+    userId: true,
+  });
 
 // Matches table
 export const matches = pgTable("matches", {
@@ -351,6 +374,9 @@ export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 
 export type TeamUser = typeof teamUsers.$inferSelect;
 export type InsertTeamUser = z.infer<typeof insertTeamUserSchema>;
+
+export type MemberClaim = typeof memberClaims.$inferSelect;
+export type InsertMemberClaim = z.infer<typeof insertMemberClaimSchema>;
 
 export type Match = typeof matches.$inferSelect;
 export type InsertMatch = z.infer<typeof insertMatchSchema>;
