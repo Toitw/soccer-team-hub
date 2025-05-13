@@ -19,6 +19,8 @@ import AdminPage from "@/pages/admin-page";
 import VerifyEmailPage from "@/pages/verify-email-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
+import SimpleClaimsPage from "./pages/simple-claims-page";
+import SimpleTeamPage from "./pages/simple-team-page";
 import { AuthProvider } from "./hooks/use-auth";
 import { LanguageProvider } from "./hooks/use-language";
 import { TeamProvider } from "./hooks/use-team";
@@ -42,7 +44,14 @@ function Router() {
       <ProtectedRoute path="/mock" component={MockPage} />
 
       {/* Team management - accessible to all but players are read-only */}
-      <ProtectedRoute path="/team" component={TeamPage} />
+      <ProtectedRoute path="/teams/:id" component={SimpleTeamPage} />
+      <Route path="/teams/:id/claims">
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>}>
+          <ProtectedRoute path="/teams/:id/claims" component={SimpleClaimsPage} />
+        </Suspense>
+      </Route>
 
       {/* Match-related pages - accessible to all but players are read-only */}
       <ProtectedRoute path="/matches" component={MatchesPage} />

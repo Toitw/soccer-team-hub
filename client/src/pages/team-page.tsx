@@ -1042,27 +1042,26 @@ export default function TeamPage() {
               </Dialog>
             )}
           </div>
-
-          {/** Team Lineup Card */}
-          <Card className="mb-8">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                <Select
-                  defaultValue={selectedFormation}
-                  onValueChange={handleFormationChange}
-                >
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Formation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableFormations.map((formation) => (
-                      <SelectItem key={formation} value={formation}>
-                        {formation}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="space-y-6">
+            <Card className="mb-8">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                  <Select
+                    defaultValue={selectedFormation}
+                    onValueChange={handleFormationChange}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder="Formation" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableFormations.map((formation) => (
+                        <SelectItem key={formation} value={formation}>
+                          {formation}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 {isAdmin && (
                   <Button 
                     variant="outline" 
@@ -1647,7 +1646,8 @@ export default function TeamPage() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
+            </Card>
+          </div>
         </div>
         <MobileNavigation />
       </div>
