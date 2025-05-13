@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { Link, useLocation, useParams } from "wouter";
 import {
   Team,
   TeamMember,
@@ -65,6 +66,7 @@ import {
   AlertCircle,
   Search,
   Filter,
+  ClipboardCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -791,16 +793,23 @@ export default function TeamPage() {
               </p>
             </div>
             {isAdmin && (
-              <Dialog
-                open={openAddMemberDialog}
-                onOpenChange={setOpenAddMemberDialog}
-              >
-                <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    {t("team.addMember")}
+              <div className="flex items-center space-x-3">
+                <Link to={`/teams/${selectedTeam?.id}/claims`}>
+                  <Button variant="outline">
+                    <ClipboardCheck className="mr-2 h-4 w-4" />
+                    {t("team.claims.manage") || "Manage Claims"}
                   </Button>
-                </DialogTrigger>
+                </Link>
+                <Dialog
+                  open={openAddMemberDialog}
+                  onOpenChange={setOpenAddMemberDialog}
+                >
+                  <DialogTrigger asChild>
+                    <Button>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      {t("team.addMember")}
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>{t("team.addTeamMember")}</DialogTitle>
@@ -1034,7 +1043,7 @@ export default function TeamPage() {
             )}
           </div>
 
-          {/* Team Lineup Card */}
+          {/** Team Lineup Card */}
           <Card className="mb-8">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <CardTitle className="text-xl">{t("team.teamLineup")}</CardTitle>
