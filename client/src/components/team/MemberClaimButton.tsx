@@ -40,7 +40,13 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
     mutationFn: async () => {
       setIsSubmitting(true);
       try {
-        return await apiRequest(`/api/teams/${teamId}/claims`, {
+        // Check if teamId is defined, and use member.teamId as fallback
+        const targetTeamId = teamId || member.teamId;
+        if (!targetTeamId) {
+          throw new Error("Team ID not found");
+        }
+        
+        return await apiRequest(`/api/teams/${targetTeamId}/claims`, {
           method: "POST",
           body: { teamMemberId: member.id },
         });
@@ -49,8 +55,14 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/my-claims`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/members`] });
+      // Use the same targetTeamId for invalidating queries
+      const targetTeamId = teamId || member.teamId;
+      
+      if (targetTeamId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/${targetTeamId}/my-claims`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/teams/${targetTeamId}/members`] });
+      }
+      
       setOpen(false);
       toast({
         title: "Solicitud enviada",
