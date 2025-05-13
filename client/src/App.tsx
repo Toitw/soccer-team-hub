@@ -44,13 +44,23 @@ function Router() {
       <ProtectedRoute path="/mock" component={MockPage} />
 
       {/* Team management - accessible to all but players are read-only */}
-      <ProtectedRoute path="/teams/:id" component={SimpleTeamPage} />
+      <Route path="/teams/:id">
+        {(params) => {
+          console.log("Teams route match with params:", params);
+          return <SimpleTeamPage />;
+        }}
+      </Route>
       <Route path="/teams/:id/claims">
-        <Suspense fallback={<div className="flex h-screen items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>}>
-          <ProtectedRoute path="/teams/:id/claims" component={SimpleClaimsPage} />
-        </Suspense>
+        {(params) => {
+          console.log("Teams claims route match with params:", params);
+          return (
+            <Suspense fallback={<div className="flex h-screen items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>}>
+              <SimpleClaimsPage />
+            </Suspense>
+          );
+        }}
       </Route>
 
       {/* Match-related pages - accessible to all but players are read-only */}
