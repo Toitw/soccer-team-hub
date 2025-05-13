@@ -134,87 +134,84 @@ async function runMigration() {
       hasProfilePicture, hasCreatedById, hasCreatedAt, hasNewStructure
     });
     
-    // Proceed with migration if any column is missing
-    // if (!hasNewStructure) {
-      // If we need to update team_members structure
-      console.log("Updating team_members table structure...");
-      
-      // Add columns instead of recreating the table to preserve data
-      if (!teamMembersColumns.includes('full_name')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN full_name TEXT`);
-          console.log("Added full_name column to team_members");
-        } catch (err) {
-          console.error("Error adding full_name column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('is_verified')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE`);
-          console.log("Added is_verified column to team_members");
-        } catch (err) {
-          console.error("Error adding is_verified column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('position')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN position TEXT`);
-          console.log("Added position column to team_members");
-        } catch (err) {
-          console.error("Error adding position column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('jersey_number')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN jersey_number INTEGER`);
-          console.log("Added jersey_number column to team_members");
-        } catch (err) {
-          console.error("Error adding jersey_number column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('profile_picture')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN profile_picture TEXT`);
-          console.log("Added profile_picture column to team_members");
-        } catch (err) {
-          console.error("Error adding profile_picture column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('created_by_id')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_by_id INTEGER`);
-          console.log("Added created_by_id column to team_members");
-        } catch (err) {
-          console.error("Error adding created_by_id column:", err);
-        }
-      }
-      
-      if (!teamMembersColumns.includes('created_at')) {
-        try {
-          await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW()`);
-          console.log("Added created_at column to team_members");
-        } catch (err) {
-          console.error("Error adding created_at column:", err);
-        }
-      }
-      
-      // Update full_name with data from users table 
+    // Add missing columns
+    console.log("Updating team_members table structure...");
+    
+    // Add columns instead of recreating the table to preserve data
+    if (!hasFullName) {
       try {
-        await db.execute(sql`
-          UPDATE team_members tm
-          SET full_name = u.full_name
-          FROM users u
-          WHERE tm.user_id = u.id AND tm.full_name IS NULL
-        `);
-        console.log("Updated full_name values in team_members table");
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN full_name TEXT`);
+        console.log("Added full_name column to team_members");
       } catch (err) {
-        console.error("Error updating full_name values:", err);
+        console.error("Error adding full_name column:", err);
       }
+    }
+    
+    if (!hasIsVerified) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE`);
+        console.log("Added is_verified column to team_members");
+      } catch (err) {
+        console.error("Error adding is_verified column:", err);
+      }
+    }
+    
+    if (!hasPosition) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN position TEXT`);
+        console.log("Added position column to team_members");
+      } catch (err) {
+        console.error("Error adding position column:", err);
+      }
+    }
+    
+    if (!hasJerseyNumber) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN jersey_number INTEGER`);
+        console.log("Added jersey_number column to team_members");
+      } catch (err) {
+        console.error("Error adding jersey_number column:", err);
+      }
+    }
+    
+    if (!hasProfilePicture) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN profile_picture TEXT`);
+        console.log("Added profile_picture column to team_members");
+      } catch (err) {
+        console.error("Error adding profile_picture column:", err);
+      }
+    }
+    
+    if (!hasCreatedById) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_by_id INTEGER`);
+        console.log("Added created_by_id column to team_members");
+      } catch (err) {
+        console.error("Error adding created_by_id column:", err);
+      }
+    }
+    
+    if (!hasCreatedAt) {
+      try {
+        await db.execute(sql`ALTER TABLE team_members ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW()`);
+        console.log("Added created_at column to team_members");
+      } catch (err) {
+        console.error("Error adding created_at column:", err);
+      }
+    }
+    
+    // Update full_name with data from users table 
+    try {
+      await db.execute(sql`
+        UPDATE team_members tm
+        SET full_name = u.full_name
+        FROM users u
+        WHERE tm.user_id = u.id AND tm.full_name IS NULL
+      `);
+      console.log("Updated full_name values in team_members table");
+    } catch (err) {
+      console.error("Error updating full_name values:", err);
     }
     
     // Migrate data to team_users if not already done
@@ -243,6 +240,13 @@ async function runMigration() {
 // Run the migration
 runMigration()
   .then(() => {
+    console.log("Member-User schema update completed successfully!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Migration failed:", error);
+    process.exit(1);
+  });
     console.log("Member-User schema update completed successfully!");
     process.exit(0);
   })
