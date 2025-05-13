@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -11,15 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { MessageSquare } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "@/hooks/use-translation";
 
-// Define feedback schema with validation
+// Define feedback schema with validation - only type and message fields are needed
 const feedbackSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().email("Please enter a valid email address").optional(),
   type: z.enum(["bug", "suggestion", "improvement", "other"], {
     required_error: "Please select a feedback type",
   }),
-  subject: z.string().min(3, "Subject must be at least 3 characters").max(100, "Subject must be less than 100 characters"),
   message: z.string().min(10, "Message must be at least 10 characters").max(1000, "Message must be less than 1000 characters"),
 });
 
@@ -28,6 +25,7 @@ type FeedbackFormData = z.infer<typeof feedbackSchema>;
 export default function FeedbackDialog() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,10 +33,7 @@ export default function FeedbackDialog() {
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
-      name: user?.fullName || "",
-      email: user?.email || "",
       type: undefined,
-      subject: "",
       message: "",
     },
   });
@@ -47,23 +42,31 @@ export default function FeedbackDialog() {
     setIsSubmitting(true);
 
     try {
+      // Add user information from the auth context
+      const feedbackData = {
+        ...data,
+        userId: user?.id,
+        name: user?.fullName,
+        email: user?.email,
+      };
+
       const response = await fetch("/api/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(feedbackData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || "Failed to submit feedback");
+        throw new Error(result.error || t("feedback.failedToSubmit"));
       }
 
       toast({
-        title: "Feedback submitted",
-        description: "Thank you for your feedback! We'll review it soon.",
+        title: t("feedback.feedbackSubmitted"),
+        description: t("feedback.thankYouFeedback"),
       });
 
       // Reset form and close dialog
@@ -72,8 +75,8 @@ export default function FeedbackDialog() {
     } catch (error) {
       console.error("Error submitting feedback:", error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to submit feedback",
+        title: t("feedback.errorSubmitting"),
+        description: error instanceof Error ? error.message : t("feedback.failedToSubmit"),
         variant: "destructive",
       });
     } finally {
@@ -105,7 +108,7 @@ export default function FeedbackDialog() {
       <DialogTrigger asChild>
         <Button
           className={`fixed ${isMobile ? 'right-4 bottom-16 z-50' : 'right-6 bottom-6'} rounded-full ${isMobile ? 'w-14 h-14' : 'w-12 h-12'} p-0 shadow-xl hover:shadow-lg transition-all duration-200 border border-primary/20`}
-          aria-label="Submit feedback"
+          aria-label={t("feedback.submitFeedback")}
           role="button"
           tabIndex={0}
           onClick={() => setIsOpen(true)}
@@ -116,9 +119,9 @@ export default function FeedbackDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Submit Feedback</DialogTitle>
+          <DialogTitle>{t("feedback.submitFeedback")}</DialogTitle>
           <DialogDescription>
-            Help us improve by sharing your thoughts, suggestions, or reporting issues.
+            {t("feedback.helpUsImprove")}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,73 +129,26 @@ export default function FeedbackDialog() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Your Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your name (optional)" {...field} value={field.value || ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Your email (optional)" 
-                      type="email"
-                      {...field} 
-                      value={field.value || ""} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Feedback Type</FormLabel>
+                  <FormLabel>{t("feedback.feedbackType")}</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select feedback type" />
+                        <SelectValue placeholder={t("feedback.selectFeedbackType")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="bug">Bug Report</SelectItem>
-                      <SelectItem value="suggestion">Suggestion</SelectItem>
-                      <SelectItem value="improvement">Improvement</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="bug">{t("feedback.bugReport")}</SelectItem>
+                      <SelectItem value="suggestion">{t("feedback.suggestion")}</SelectItem>
+                      <SelectItem value="improvement">{t("feedback.improvement")}</SelectItem>
+                      <SelectItem value="other">{t("feedback.other")}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Brief summary of your feedback" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -203,10 +159,10 @@ export default function FeedbackDialog() {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message</FormLabel>
+                  <FormLabel>{t("feedback.message")}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Describe your feedback in detail" 
+                      placeholder={t("feedback.describeFeedback")} 
                       className="min-h-[120px]" 
                       {...field} 
                     />
@@ -221,7 +177,7 @@ export default function FeedbackDialog() {
                 type="submit" 
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Submitting..." : "Submit Feedback"}
+                {isSubmitting ? t("feedback.submitting") : t("feedback.submitFeedback")}
               </Button>
             </DialogFooter>
           </form>
