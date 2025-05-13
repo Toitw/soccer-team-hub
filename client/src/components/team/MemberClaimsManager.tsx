@@ -37,9 +37,13 @@ interface MemberClaim {
   };
 }
 
-export function MemberClaimsManager() {
+interface MemberClaimsManagerProps {
+  teamId?: number;
+}
+
+export function MemberClaimsManager({ teamId: propTeamId }: MemberClaimsManagerProps) {
   const { id } = useParams();
-  const teamId = parseInt(id || "0");
+  const teamId = propTeamId || parseInt(id || "0");
   const { user } = useAuth();
   const { t } = useLanguage();
   const queryClient = useQueryClient();

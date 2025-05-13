@@ -1,7 +1,8 @@
 import React from "react";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { MemberClaimsManager } from "../components/team/MemberClaimsManager";
+import { Button } from "../components/ui/button";
 
 export function SimpleClaimsPage() {
   const { id } = useParams();
@@ -19,8 +20,14 @@ export function SimpleClaimsPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Team Member Claims</h1>
-      <MemberClaimsManager />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Team Member Claims</h1>
+        <Link href={`/teams/${teamId}`}>
+          <Button variant="outline">Back to Team</Button>
+        </Link>
+      </div>
+      
+      <MemberClaimsManager teamId={teamId} />
     </div>
   );
 }
