@@ -160,7 +160,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   title: text("title").notNull(),
-  type: text("type", { enum: ["training", "match", "meeting", "other"] }).notNull(),
+  type: text("event_type", { enum: ["training", "match", "meeting", "other"] }).notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location").notNull(),
