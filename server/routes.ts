@@ -354,6 +354,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Approve claim (shortcut route for admin/coach)
+  app.post("/api/teams/:teamId/claims/:claimId/approve", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const claimId = parseInt(req.params.claimId);
+      
+      // Verify user is team admin or coach
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to approve claims" });
+      }
+      
+      // Get the claim
+      const claim = await storage.getMemberClaimById(claimId);
+      if (!claim || claim.teamId !== teamId) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+      
+      // Update claim
+      const updatedClaim = await storage.updateMemberClaim(claimId, {
+        status: "approved",
+        rejectionReason: null,
+        reviewedAt: new Date(),
+        reviewedById: req.user.id
+      });
+      
+      // Update the team member with the userId
+      await storage.updateTeamMember(claim.teamMemberId, {
+        userId: claim.userId,
+        isVerified: true
+      });
+      
+      res.json(updatedClaim);
+    } catch (error) {
+      console.error("Error approving member claim:", error);
+      res.status(500).json({ error: "Failed to approve claim" });
+    }
+  });
+  
+  // Reject claim (shortcut route for admin/coach)
+  app.post("/api/teams/:teamId/claims/:claimId/reject", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const claimId = parseInt(req.params.claimId);
+      const { reason } = req.body;
+      
+      // Verify user is team admin or coach
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to reject claims" });
+      }
+      
+      // Get the claim
+      const claim = await storage.getMemberClaimById(claimId);
+      if (!claim || claim.teamId !== teamId) {
+        return res.status(404).json({ error: "Claim not found" });
+      }
+      
+      // Update claim
+      const updatedClaim = await storage.updateMemberClaim(claimId, {
+        status: "rejected",
+        rejectionReason: reason || null,
+        reviewedAt: new Date(),
+        reviewedById: req.user.id
+      });
+      
+      res.json(updatedClaim);
+    } catch (error) {
+      console.error("Error rejecting member claim:", error);
+      res.status(500).json({ error: "Failed to reject claim" });
+    }
+  });
+  
   // Get notifications for pending claims
   app.get("/api/notifications/claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

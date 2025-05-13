@@ -52,6 +52,7 @@ type MemberClaim = {
     id: number;
     fullName: string;
     username: string;
+    email: string;  // Añadimos el email del usuario
   };
 };
 
