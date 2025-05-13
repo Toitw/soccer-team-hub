@@ -392,13 +392,10 @@ router.post("/register", async (req: Request, res: Response) => {
       const team = await storage.getTeamByJoinCode(validatedData.teamCode);
       
       if (team) {
-        // Create team member relationship
-        await storage.createTeamMember({
+        // Create team_user relationship (for team access)
+        await storage.createTeamUser({
           teamId: team.id,
-          userId: user.id,
-          role: validatedData.role === "admin" ? "admin" : 
-                validatedData.role === "coach" ? "coach" : 
-                validatedData.role === "colaborador" ? "colaborador" : "player"
+          userId: user.id
         });
         
         // Mark onboarding as completed
@@ -509,26 +506,24 @@ router.post("/onboarding/join-team", isAuthenticated, async (req: Request, res: 
       return res.status(404).json({ error: "Invalid team code" });
     }
     
-    // Check if user is already a member of this team
-    const existingMembership = await storage.getTeamMember(team.id, userId);
+    // Check if user is already part of this team
+    const existingTeamUser = await storage.getTeamUser(team.id, userId);
     
-    if (existingMembership) {
+    if (existingTeamUser) {
       return res.status(400).json({ error: "Already a member of this team" });
     }
     
-    // Get user to determine role
+    // Get user
     const user = await storage.getUser(userId);
     
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     
-    // Create team member relationship
-    await storage.createTeamMember({
+    // Create team_user relationship (for team access)
+    await storage.createTeamUser({
       teamId: team.id,
-      userId: userId,
-      role: user.role === "admin" ? "admin" : 
-            user.role === "coach" ? "coach" : "player"
+      userId: userId
     });
     
     // Mark onboarding as completed
