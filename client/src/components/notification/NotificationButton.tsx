@@ -60,7 +60,18 @@ export default function NotificationButton() {
                       {notification.count} {notification.count === 1 ? 'reclamación pendiente' : 'reclamaciones pendientes'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Última: {format(new Date(notification.latestCreatedAt), 'dd/MM/yyyy HH:mm')}
+                      Última: {
+                        notification.latestCreatedAt 
+                          ? (() => {
+                              try {
+                                return format(new Date(notification.latestCreatedAt), 'dd/MM/yyyy HH:mm');
+                              } catch (error) {
+                                console.error("Error formatting date:", notification.latestCreatedAt);
+                                return "Fecha no disponible";
+                              }
+                            })()
+                          : "Fecha no disponible"
+                      }
                     </p>
                   </div>
                 </Link>
