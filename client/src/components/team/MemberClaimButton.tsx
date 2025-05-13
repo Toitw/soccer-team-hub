@@ -16,6 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 
 interface TeamMember {
   id: number;
+  teamId: number;  // Added teamId property
   fullName: string;
   role: string;
   position: string | null;
@@ -40,13 +41,7 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
     mutationFn: async () => {
       setIsSubmitting(true);
       try {
-        // Check if teamId is defined, and use member.teamId as fallback
-        const targetTeamId = teamId || member.teamId;
-        if (!targetTeamId) {
-          throw new Error("Team ID not found");
-        }
-        
-        return await apiRequest(`/api/teams/${targetTeamId}/claims`, {
+        return await apiRequest(`/api/teams/${member.teamId}/claims`, {
           method: "POST",
           body: { teamMemberId: member.id },
         });
@@ -55,13 +50,8 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
       }
     },
     onSuccess: () => {
-      // Use the same targetTeamId for invalidating queries
-      const targetTeamId = teamId || member.teamId;
-      
-      if (targetTeamId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/teams/${targetTeamId}/my-claims`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/teams/${targetTeamId}/members`] });
-      }
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${member.teamId}/my-claims`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/teams/${member.teamId}/members`] });
       
       setOpen(false);
       toast({
