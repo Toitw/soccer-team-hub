@@ -117,7 +117,9 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
           
           <div className="ml-auto">
             <Link to={`/teams/${team.id}`}>
-              <Button variant="outline">{t("dashboard.viewTeam") || "View Team"}</Button>
+              <Button variant="default" className="font-medium">
+                {t("dashboard.viewTeam") || "View Team"} →
+              </Button>
             </Link>
           </div>
         </div>

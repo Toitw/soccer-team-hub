@@ -43,6 +43,15 @@ function Router() {
       {/* Mock page for demonstration */}
       <ProtectedRoute path="/mock" component={MockPage} />
 
+      {/* Redirect from /team to /teams/ */}
+      <Route path="/team">
+        {() => {
+          console.log("Team redirect hit, redirecting to /teams/4");
+          window.location.href = "/teams/4";
+          return <div>Redirecting...</div>;
+        }}
+      </Route>
+
       {/* Team management - accessible to all but players are read-only */}
       <Route path="/teams/:id">
         {(params) => {
