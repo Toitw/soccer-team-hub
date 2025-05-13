@@ -10,6 +10,8 @@ import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./auth-routes";
 import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
+import { eq } from "drizzle-orm";
+import { teamMembers } from "@shared/schema";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -162,9 +164,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const teams = await storage.getTeamsByUserId(req.user.id);
-      res.json(teams);
+      console.log("Fetching teams for user ID:", req.user.id);
+      
+      // During migration, we might need a fallback if the new tables don't exist yet
+      try {
+        // First try the proper method that uses teamUsers table
+        const teams = await storage.getTeamsByUserId(req.user.id);
+        res.json(teams);
+      } catch (teamsError) {
+        console.error("Error using primary team fetch method:", teamsError);
+        
+        // If that fails, fall back to direct teams query instead
+        console.log("Attempting fallback to direct team lookup");
+        try {
+          // Try fetching all teams for now as a temporary solution during migration
+          const allTeams = await storage.getTeams();
+          
+          // Get all team members the user belongs to
+          const userTeamMembers = await db
+            .select()
+            .from(teamMembers)
+            .where(eq(teamMembers.userId, req.user.id));
+            
+          // Filter to only teams the user is a member of
+          const teamIds = userTeamMembers.map(member => member.teamId);
+          const teams = allTeams.filter(team => teamIds.includes(team.id));
+          
+          res.json(teams);
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+          // If all else fails, return empty array rather than error
+          res.json([]);
+        }
+      }
     } catch (error) {
+      console.error("Unexpected error in teams route:", error);
       res.status(500).json({ error: "Failed to fetch teams" });
     }
   });

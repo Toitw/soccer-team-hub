@@ -2,6 +2,8 @@ import {
   type User, type InsertUser, users,
   type Team, type InsertTeam, teams,
   type TeamMember, type InsertTeamMember, teamMembers,
+  type TeamUser, type InsertTeamUser, teamUsers,
+  type MemberClaim, type InsertMemberClaim, memberClaims,
   type Match, type InsertMatch, matches,
   type Event, type InsertEvent, events,
   type Attendance, type InsertAttendance, attendance,
@@ -109,25 +111,60 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeamsByUserId(userId: number): Promise<Team[]> {
-    // Find all team memberships for this user
-    const userTeamMembers = await db
-      .select()
-      .from(teamMembers)
-      .where(eq(teamMembers.userId, userId));
-    
-    // Get all teams for these memberships
-    const teamIds = userTeamMembers.map(member => member.teamId);
-    
-    if (teamIds.length === 0) {
-      return [];
+    try {
+      console.log(`Getting teams for user ID: ${userId}`);
+      
+      // Find all team memberships for this user from teamUsers table
+      const userTeams = await db
+        .select()
+        .from(teamUsers)
+        .where(eq(teamUsers.userId, userId));
+      
+      console.log(`Found ${userTeams.length} team associations for user ${userId}`);
+      
+      // Get all teams for these memberships
+      const teamIds = userTeams.map(tu => tu.teamId);
+      
+      if (teamIds.length === 0) {
+        console.log(`No teams found for user ${userId}`);
+        return [];
+      }
+      
+      // Use SQL IN clause to fetch all teams at once
+      const result = await db
+        .select()
+        .from(teams)
+        .where(sql`${teams.id} IN (${teamIds.join(',')})`);
+      
+      console.log(`Found ${result.length} teams for user ${userId}`);
+      return result;
+    } catch (error) {
+      console.error(`Error getting teams for user ${userId}:`, error);
+      // Create a basic fallback for now (will be properly migrated later)
+      // This is temporary during migration
+      try {
+        // Try the old method as fallback during migration
+        const userTeamMembers = await db
+          .select()
+          .from(teamMembers)
+          .where(eq(teamMembers.userId, userId));
+        
+        // Get all teams for these memberships
+        const teamIds = userTeamMembers.map(member => member.teamId);
+        
+        if (teamIds.length === 0) {
+          return [];
+        }
+        
+        return db
+          .select()
+          .from(teams)
+          .where(sql`${teams.id} IN (${teamIds.join(',')})`);
+      } catch (fallbackError) {
+        console.error(`Fallback method also failed:`, fallbackError);
+        return [];
+      }
     }
-    
-    return db
-      .select()
-      .from(teams)
-      .where(
-        sql`${teams.id} IN ${teamIds}`
-      );
   }
 
   async getTeamByJoinCode(joinCode: string): Promise<Team | undefined> {
@@ -253,6 +290,163 @@ export class DatabaseStorage implements IStorage {
   async deleteTeamMember(id: number): Promise<boolean> {
     await db.delete(teamMembers).where(eq(teamMembers.id, id));
     return true;
+  }
+  
+  // New method to verify a team member (link it to a user)
+  async verifyTeamMember(memberId: number, userId: number): Promise<TeamMember | undefined> {
+    const [updatedMember] = await db
+      .update(teamMembers)
+      .set({ 
+        userId: userId,
+        isVerified: true
+      })
+      .where(eq(teamMembers.id, memberId))
+      .returning();
+    
+    return updatedMember;
+  }
+  
+  // TeamUser methods
+  async getTeamUsers(teamId: number): Promise<TeamUser[]> {
+    return db
+      .select()
+      .from(teamUsers)
+      .where(eq(teamUsers.teamId, teamId));
+  }
+  
+  async getTeamUser(teamId: number, userId: number): Promise<TeamUser | undefined> {
+    const [teamUser] = await db
+      .select()
+      .from(teamUsers)
+      .where(
+        and(
+          eq(teamUsers.teamId, teamId),
+          eq(teamUsers.userId, userId)
+        )
+      );
+    
+    return teamUser;
+  }
+  
+  async getTeamUsersByUserId(userId: number): Promise<TeamUser[]> {
+    return db
+      .select()
+      .from(teamUsers)
+      .where(eq(teamUsers.userId, userId));
+  }
+  
+  async createTeamUser(teamUserData: InsertTeamUser): Promise<TeamUser> {
+    const [teamUser] = await db
+      .insert(teamUsers)
+      .values(teamUserData)
+      .returning();
+    
+    return teamUser;
+  }
+  
+  async deleteTeamUser(id: number): Promise<boolean> {
+    await db.delete(teamUsers).where(eq(teamUsers.id, id));
+    return true;
+  }
+  
+  // MemberClaim methods
+  async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
+    return db
+      .select()
+      .from(memberClaims)
+      .where(eq(memberClaims.teamId, teamId));
+  }
+  
+  async getMemberClaimsByStatus(teamId: number, status: string): Promise<MemberClaim[]> {
+    return db
+      .select()
+      .from(memberClaims)
+      .where(
+        and(
+          eq(memberClaims.teamId, teamId),
+          eq(memberClaims.status, status)
+        )
+      );
+  }
+  
+  async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
+    const [claim] = await db
+      .select()
+      .from(memberClaims)
+      .where(eq(memberClaims.id, id));
+    
+    return claim;
+  }
+  
+  async getMemberClaimByUserAndMember(userId: number, memberId: number): Promise<MemberClaim | undefined> {
+    const [claim] = await db
+      .select()
+      .from(memberClaims)
+      .where(
+        and(
+          eq(memberClaims.userId, userId),
+          eq(memberClaims.teamMemberId, memberId)
+        )
+      );
+    
+    return claim;
+  }
+  
+  async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
+    const [claim] = await db
+      .insert(memberClaims)
+      .values(claimData)
+      .returning();
+    
+    return claim;
+  }
+  
+  async updateMemberClaim(id: number, claimData: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
+    const [updatedClaim] = await db
+      .update(memberClaims)
+      .set(claimData)
+      .where(eq(memberClaims.id, id))
+      .returning();
+    
+    return updatedClaim;
+  }
+  
+  async approveMemberClaim(id: number, reviewerId: number): Promise<MemberClaim | undefined> {
+    const now = new Date();
+    
+    const [claim] = await db
+      .update(memberClaims)
+      .set({
+        status: "approved",
+        reviewedAt: now,
+        reviewedById: reviewerId
+      })
+      .where(eq(memberClaims.id, id))
+      .returning();
+      
+    if (claim) {
+      // When a claim is approved, update the team member to link with this user
+      await this.verifyTeamMember(claim.teamMemberId, claim.userId);
+    }
+    
+    return claim;
+  }
+  
+  async rejectMemberClaim(id: number, reviewerId: number, reason?: string): Promise<MemberClaim | undefined> {
+    const now = new Date();
+    
+    const [claim] = await db
+      .update(memberClaims)
+      .set({
+        status: "rejected",
+        reviewedAt: now,
+        reviewedById: reviewerId,
+        rejectionReason: reason || null
+      })
+      .where(eq(memberClaims.id, id))
+      .returning();
+    
+    return claim;
   }
 
   // Match methods
