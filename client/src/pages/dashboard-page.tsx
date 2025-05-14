@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Team, Match, Event, Announcement } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
