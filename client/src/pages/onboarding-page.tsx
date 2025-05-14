@@ -100,6 +100,15 @@ export default function OnboardingPage() {
 
       setUser(response.user);
 
+      // Force cache invalidation to refresh team list
+      // This ensures the new team data (with correct teamType) is loaded
+      window.localStorage.setItem('team_created', JSON.stringify({
+        id: response.team.id,
+        name: response.team.name,
+        teamType: response.team.teamType,
+        timestamp: Date.now()
+      }));
+
       toast({
         title: "Team created successfully",
         description: `Your team "${response.team.name}" has been created! Team code: ${response.team.joinCode}`,

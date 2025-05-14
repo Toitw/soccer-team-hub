@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useQuery } from "@tanstack/react-query";
 import { Team } from "@shared/schema";
 import { useAuth } from "./use-auth";
+import { queryClient } from "@/lib/queryClient";
 
 interface TeamContextType {
   teams: Team[];
@@ -17,6 +18,25 @@ export function TeamProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
+  // Check localStorage for newly created team
+  useEffect(() => {
+    const teamCreated = localStorage.getItem('team_created');
+    if (teamCreated) {
+      const parsed = JSON.parse(teamCreated);
+      const timestamp = parsed.timestamp;
+      
+      // If created within the last 10 seconds
+      if (Date.now() - timestamp < 10000) {
+        // Clear it after reading
+        localStorage.removeItem('team_created');
+        console.log("Found recently created team in localStorage, refreshing team list");
+        
+        // Invalidate teams query to force a refetch
+        queryClient.invalidateQueries({ queryKey: ['/api/teams'] });
+      }
+    }
+  }, []);
+
   // Fetch user's teams
   const { data: teams = [], isLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -26,6 +46,9 @@ export function TeamProvider({ children }: { children: ReactNode }) {
       return response.json();
     },
     enabled: !!user,
+    // Force refetch on mount and window focus to ensure we have fresh data after creation
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Set the first team as selected by default when teams load
