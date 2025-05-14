@@ -787,6 +787,8 @@ export default function TeamPage() {
               </h1>
               <p className="text-gray-500">
                 {selectedTeam?.division || "No division set"}
+                {selectedTeam?.teamType && <span className="ml-2">• {selectedTeam.teamType}</span>}
+                {selectedTeam?.category && <span className="ml-2">• {selectedTeam.category}</span>}
               </p>
             </div>
             {isAdmin && (

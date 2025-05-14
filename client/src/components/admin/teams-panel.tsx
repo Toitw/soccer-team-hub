@@ -184,6 +184,8 @@ export default function TeamsPanel() {
                 <TableRow>
                   <TableHead>Team</TableHead>
                   <TableHead>Division</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Join Code</TableHead>
                   <TableHead>Season</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -220,6 +222,8 @@ export default function TeamsPanel() {
                           </div>
                         </TableCell>
                         <TableCell>{team.division || 'N/A'}</TableCell>
+                        <TableCell>{team.teamType || 'N/A'}</TableCell>
+                        <TableCell>{team.category || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{team.joinCode || 'N/A'}</Badge>
                         </TableCell>
