@@ -2518,15 +2518,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Add members
         await storage.createTeamMember({
           teamId: team.id,
+          fullName: adminUser!.fullName,
+          createdById: adminUser!.id,
           userId: adminUser!.id,
-          role: "admin"
+          role: "admin",
+          isVerified: true
         });
 
         if (coachUser) {
           await storage.createTeamMember({
             teamId: team.id,
+            fullName: coachUser.fullName,
+            createdById: adminUser!.id,
             userId: coachUser.id,
-            role: "coach"
+            role: "coach",
+            isVerified: true
           });
         }
 
