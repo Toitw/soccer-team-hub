@@ -151,7 +151,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user.id,
         fullName: req.user.fullName || "Team Admin",
         role: "admin",
-        createdById: req.user.id,
         createdById: req.user.id
       });
 
@@ -577,7 +576,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTeamMember({
         teamId: team.id,
         userId: req.user.id,
-        role: "admin"
+        fullName: req.user.fullName || "Team Admin",
+        role: "admin",
+        createdById: req.user.id
       });
 
       res.status(201).json(team);
@@ -1037,10 +1038,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User is already a member of this team" });
       }
 
+      // Obtener los datos de usuario para tener el nombre completo
+      const userData = await storage.getUser(userId);
+      if (!userData) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
       const newTeamMember = await storage.createTeamMember({
         teamId,
         userId,
-        role
+        fullName: userData.fullName || "Team Member",
+        role,
+        createdById: req.user.id
       });
 
       res.status(201).json(newTeamMember);
@@ -2466,14 +2475,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createTeamMember({
           teamId: team.id,
           userId: adminUser!.id,
-          role: "admin"
+          fullName: adminUser!.fullName,
+          role: "admin",
+          createdById: adminUser!.id
         });
 
         if (coachUser) {
           await storage.createTeamMember({
             teamId: team.id,
             userId: coachUser.id,
-            role: "coach"
+            fullName: coachUser.fullName,
+            role: "coach",
+            createdById: adminUser!.id
           });
         }
 

@@ -337,11 +337,19 @@ export function createAdminRouter(storage: IStorage) {
       return errorResponse(res, 'User is already a member of this team', 400);
     }
     
+    // Obtener datos del usuario para el nombre completo
+    const userData = await storage.getUser(userId);
+    if (!userData) {
+      return errorResponse(res, 'User not found', 404);
+    }
+
     // Create team membership
     const membership = await storage.createTeamMember({
       teamId,
       userId,
-      role
+      fullName: userData.fullName || "Team Member",
+      role,
+      createdById: req.user.id
     });
     
     return createdResponse(res, membership);
