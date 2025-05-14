@@ -591,7 +591,7 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
     // Create team
     const team = await storage.createTeam(teamData);
   
-    // Add current user as team admin
+    // Add current user as team admin (member record)
     await storage.createTeamMember({
       teamId: team.id,
       fullName: user.fullName || "Team Admin",
@@ -599,6 +599,12 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       userId: userId,
       role: "admin",
       isVerified: true
+    });
+    
+    // Also create a team_user record for correct access control
+    await storage.createTeamUser({
+      teamId: team.id,
+      userId: userId
     });
     
     // Mark onboarding as completed
