@@ -223,11 +223,14 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       joinCode
     });
     
-    // Add current user as team admin
+    // Add current user as team admin with required fields
     await storage.createTeamMember({
       teamId: team.id,
+      fullName: user.fullName,
+      createdById: userId,
       userId: userId,
-      role: "admin"
+      role: "admin",
+      isVerified: true
     });
     
     // Mark onboarding as completed
