@@ -150,7 +150,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId: team.id,
         fullName: req.user.fullName || "Team Admin",
         role: "admin",
-        createdById: req.user.id
+        createdById: req.user.id,
+        userId: req.user.id,
+        isVerified: true
       });
 
       res.json({ 
