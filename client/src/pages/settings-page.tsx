@@ -189,18 +189,60 @@ export default function SettingsPage() {
     if (selectedTeam) {
       console.log("Selected team changed, updating form values:", selectedTeam);
 
-      // Reset the form with values from the selected team
-      teamSettingsForm.reset({
-        name: selectedTeam.name,
-        division: selectedTeam.division || "",
-        seasonYear: selectedTeam.seasonYear || "",
-        logo: selectedTeam.logo || "",
-        teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
-        category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
-      });
-
-      // Update logoUrl for preview
-      setLogoUrl(selectedTeam.logo || "");
+      // If we have a teamId, fetch the latest data directly from the API
+      // This ensures we get the most up-to-date information including teamType
+      if (selectedTeam.id) {
+        // Direct fetch to get fresh team data
+        fetch(`/api/teams/${selectedTeam.id}`)
+          .then(response => {
+            if (!response.ok) throw new Error("Failed to fetch team details");
+            return response.json();
+          })
+          .then(freshTeamData => {
+            console.log("Fresh team data loaded:", freshTeamData);
+            
+            // Reset the form with freshly fetched values
+            teamSettingsForm.reset({
+              name: freshTeamData.name,
+              division: freshTeamData.division || "",
+              seasonYear: freshTeamData.seasonYear || "",
+              logo: freshTeamData.logo || "",
+              teamType: freshTeamData.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
+              category: freshTeamData.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
+            });
+            
+            // Update logoUrl for preview
+            setLogoUrl(freshTeamData.logo || "");
+          })
+          .catch(error => {
+            console.error("Error fetching team details:", error);
+            // Fall back to the existing selectedTeam data
+            teamSettingsForm.reset({
+              name: selectedTeam.name,
+              division: selectedTeam.division || "",
+              seasonYear: selectedTeam.seasonYear || "",
+              logo: selectedTeam.logo || "",
+              teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
+              category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
+            });
+            
+            // Update logoUrl for preview
+            setLogoUrl(selectedTeam.logo || "");
+          });
+      } else {
+        // Fallback for when we don't have an ID yet
+        teamSettingsForm.reset({
+          name: selectedTeam.name,
+          division: selectedTeam.division || "",
+          seasonYear: selectedTeam.seasonYear || "",
+          logo: selectedTeam.logo || "",
+          teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
+          category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
+        });
+        
+        // Update logoUrl for preview
+        setLogoUrl(selectedTeam.logo || "");
+      }
     }
   }, [selectedTeam, teamSettingsForm]);
 
