@@ -56,6 +56,8 @@ const teamSettingsSchema = z.object({
   division: z.string().optional(),
   seasonYear: z.string().optional(),
   logo: z.string().optional(),
+  teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).optional(),
+  category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]).optional(),
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -177,6 +179,8 @@ export default function SettingsPage() {
       division: selectedTeam?.division || "",
       seasonYear: selectedTeam?.seasonYear || "",
       logo: selectedTeam?.logo || "",
+      teamType: selectedTeam?.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
+      category: selectedTeam?.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
     }
   });
 
@@ -191,6 +195,8 @@ export default function SettingsPage() {
         division: selectedTeam.division || "",
         seasonYear: selectedTeam.seasonYear || "",
         logo: selectedTeam.logo || "",
+        teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
+        category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
       });
 
       // Update logoUrl for preview
@@ -718,6 +724,56 @@ export default function SettingsPage() {
                                   setTeamSettingsChanged(true);
                                 }} 
                               />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={teamSettingsForm.control}
+                        name="teamType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Team Type</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={field.value}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setTeamSettingsChanged(true);
+                                }}
+                              >
+                                <option value="11-a-side">11-a-side</option>
+                                <option value="7-a-side">7-a-side</option>
+                                <option value="Futsal">Futsal</option>
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={teamSettingsForm.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={field.value}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setTeamSettingsChanged(true);
+                                }}
+                              >
+                                <option value="PROFESSIONAL">Professional</option>
+                                <option value="FEDERATED">Federated</option>
+                                <option value="AMATEUR">Amateur</option>
+                              </select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
