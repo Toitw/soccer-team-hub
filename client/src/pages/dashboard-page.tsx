@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -26,7 +27,35 @@ export default function DashboardPage() {
 
   // Create mock data for demonstration if none exists and user has completed onboarding
   useEffect(() => {
-    // Only create mock data if user has completed onboarding
+    // Check localStorage for recently created team
+    const recentlyCreatedTeamData = window.localStorage.getItem('team_created');
+    
+    if (recentlyCreatedTeamData) {
+      console.log("Found recently created team in localStorage, refreshing team list");
+      
+      try {
+        // Parse the team data
+        const teamData = JSON.parse(recentlyCreatedTeamData);
+        
+        // If the team was created within the last 5 minutes, don't create mock data
+        if (teamData && teamData.timestamp && (Date.now() - teamData.timestamp < 5 * 60 * 1000)) {
+          // Clear the localStorage entry after a delay to prevent persisting stale data
+          setTimeout(() => {
+            window.localStorage.removeItem('team_created');
+          }, 10000);
+          
+          // Force refresh the teams data
+          queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing team data from localStorage:", e);
+        // Remove invalid data
+        window.localStorage.removeItem('team_created');
+      }
+    }
+    
+    // Only create mock data if user has completed onboarding and has no teams
     if (teams && teams.length === 0 && user?.onboardingCompleted) {
       apiRequest("/api/mock-data", {
         method: "POST"
@@ -47,7 +76,7 @@ export default function DashboardPage() {
       // Use setLocation instead of direct window.location change to prevent refresh loops
       setLocation("/onboarding");
     }
-  }, [teams, user, setLocation]);
+  }, [teams, user, setLocation, queryClient]);
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;

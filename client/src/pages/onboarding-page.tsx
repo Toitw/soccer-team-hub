@@ -56,8 +56,8 @@ export default function OnboardingPage() {
       category: "AMATEUR",
       teamType: "11-a-side",
       division: "",
-      seasonYear: new Date().getFullYear().toString(),
-      logo: ""
+      seasonYear: new Date().getFullYear().toString()
+      // Logo is not part of the form schema, removed to fix type error
     }
   });
 
