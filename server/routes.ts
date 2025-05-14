@@ -148,7 +148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also add as team admin (member) for now
       await storage.createTeamMember({
         teamId: team.id,
-        userId: req.user.id,
         fullName: req.user.fullName || "Team Admin",
         role: "admin",
         createdById: req.user.id
@@ -576,9 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTeamMember({
         teamId: team.id,
         userId: req.user.id,
-        fullName: req.user.fullName || "Team Admin",
-        role: "admin",
-        createdById: req.user.id
+        role: "admin"
       });
 
       res.status(201).json(team);
@@ -987,42 +984,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // For the simplified member creation (without accounts)
       if (user) {
+        // Generate a random user ID for the mock user
+        const mockUserId = Math.floor(Math.random() * 10000) + 1000;
+
+        // Create a password hash for the mock user
+        const password = await hashPassword("password123");
+
         // Handle profile picture (use default avatar if none provided or empty string)
         const profilePicture = user.profilePicture && user.profilePicture.trim() !== '' 
           ? user.profilePicture 
           : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
-        // Create the team member directly without linking to a user account
-        // This is important: we create only a team_member record without a real user
-        const newTeamMember = await storage.createTeamMember({
-          teamId,
+        // Create the user with basic info
+        const newUser = await storage.createUser({
+          username: user.username || user.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId,
+          password,
           fullName: user.fullName,
-          role: role || "player",
-          position: user.position || null, 
+          role: "player", // Use a valid role from the schema
+          position: user.position || null,
           jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
-          profilePicture,
-          createdById: req.user.id, // Track who created this member
-          userId: null // Explícitamente establecemos userId a null para indicar que no hay usuario asociado
+          profilePicture
         });
 
-        // For API compatibility, create a simulated user object that doesn't represent
-        // a real user entry in the database 
+        // Add to team
+        const newTeamMember = await storage.createTeamMember({
+          teamId,
+          userId: newUser.id,
+          role
+        });
+
+        // Get the user with all properties
+        const fullUser = await storage.getUser(newUser.id);
+
+        if (!fullUser) {
+          return res.status(500).json({ error: "Failed to retrieve created user" });
+        }
+
+        // Return the complete team member with user details
+        const { password: pwd, ...userWithoutPassword } = fullUser;
+
+        // Return member with full user details
         const memberResponse = {
           id: newTeamMember.id,
           teamId: newTeamMember.teamId,
-          userId: null, // Important: no real user ID since this isn't linked to a real user account
+          userId: newTeamMember.userId,
           role: newTeamMember.role,
-          joinedAt: newTeamMember.createdAt,
+          joinedAt: newTeamMember.joinedAt,
           user: {
-            id: null, // No real user ID
-            username: null, // No real username
-            fullName: user.fullName,
-            role: role || "player",
-            profilePicture: profilePicture,
-            position: user.position || "",
-            jerseyNumber: user.jerseyNumber || null,
-            email: "",
-            phoneNumber: ""
+            id: fullUser.id,
+            username: fullUser.username,
+            fullName: fullUser.fullName,
+            role: fullUser.role,
+            profilePicture: fullUser.profilePicture || `https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png`,
+            position: fullUser.position || "",
+            jerseyNumber: fullUser.jerseyNumber || null,
+            email: fullUser.email || "",
+            phoneNumber: fullUser.phoneNumber || ""
           }
         };
 
@@ -1038,18 +1055,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User is already a member of this team" });
       }
 
-      // Obtener los datos de usuario para tener el nombre completo
-      const userData = await storage.getUser(userId);
-      if (!userData) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
       const newTeamMember = await storage.createTeamMember({
         teamId,
         userId,
-        fullName: userData.fullName || "Team Member",
-        role,
-        createdById: req.user.id
+        role
       });
 
       res.status(201).json(newTeamMember);
@@ -2475,18 +2484,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createTeamMember({
           teamId: team.id,
           userId: adminUser!.id,
-          fullName: adminUser!.fullName,
-          role: "admin",
-          createdById: adminUser!.id
+          role: "admin"
         });
 
         if (coachUser) {
           await storage.createTeamMember({
             teamId: team.id,
             userId: coachUser.id,
-            fullName: coachUser.fullName,
-            role: "coach",
-            createdById: adminUser!.id
+            role: "coach"
           });
         }
 

@@ -52,14 +52,8 @@ export class DatabaseStorage implements IStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    // Obtener usuario por ID, asegurando que sea un usuario real
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    
-    // Verificar que es un usuario real (con username y password)
-    if (user && user.username && user.password) {
-      return user;
-    }
-    return undefined;
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -73,13 +67,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    // Importante: Solo devolver registros de la tabla de usuarios propiamente dicha
-    // para evitar que se incluyan miembros de equipos que no son usuarios reales
-    const result = await db.select().from(users);
-    
-    // Filtrar para asegurar que solo devolvemos usuarios reales
-    // Un usuario real debe tener nombre de usuario y contraseña
-    return result.filter(user => user && user.username && user.password);
+    return db.select().from(users);
   }
 
   async createUser(userData: InsertUser): Promise<User> {
