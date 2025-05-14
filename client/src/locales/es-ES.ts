@@ -681,6 +681,9 @@ export const esES = {
     skipForNow: "Saltar por ahora"
   },
   settings: {
+    membersTab: "Miembros",
+    claimsTab: "Solicitudes",
+    configTab: "Configuración",
     generalSettings: "Configuración General",
     accountSettings: "Configuración de Cuenta",
     teamSettings: "Configuración de Equipo",

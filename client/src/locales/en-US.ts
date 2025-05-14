@@ -676,6 +676,9 @@ export const enUS = {
     skipForNow: "Skip for now"
   },
   settings: {
+    membersTab: "Members",
+    claimsTab: "Claims",
+    configTab: "Settings",
     generalSettings: "General Settings",
     accountSettings: "Account Settings",
     teamSettings: "Team Settings",

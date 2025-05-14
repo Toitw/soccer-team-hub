@@ -487,10 +487,10 @@ export default function SettingsPage() {
           </div>
 
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="members">{t("settings.teamMembers")}</TabsTrigger>
-              <TabsTrigger value="claims">Reclamaciones</TabsTrigger>
-              <TabsTrigger value="settings">{t("settings.teamSettings")}</TabsTrigger>
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="members">{t("settings.membersTab")}</TabsTrigger>
+              <TabsTrigger value="claims">{t("settings.claimsTab")}</TabsTrigger>
+              <TabsTrigger value="settings">{t("settings.configTab")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="members" className="mt-6">
