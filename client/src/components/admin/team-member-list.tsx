@@ -78,7 +78,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
   };
 
   // Find user details for a team member
-  const getUserForMember = (userId: number) => {
+  const getUserForMember = (userId: number | null) => {
+    if (!userId) return null;
     return users.find((user: User) => user.id === userId);
   };
 
@@ -142,16 +143,31 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
           <TableBody>
             {teamMembers.map((member: TeamMember) => {
               const user = getUserForMember(member.userId);
-              if (!user) return null;
+              // Create a display data object with either user data or member data
+              const displayData = user ? {
+                fullName: user.fullName,
+                username: user.username,
+                profilePicture: user.profilePicture,
+                role: user.role,
+                position: user.position,
+                jerseyNumber: user.jerseyNumber
+              } : {
+                fullName: member.fullName,
+                username: "Unclaimed Member",
+                profilePicture: member.profilePicture,
+                role: member.role,
+                position: member.position,
+                jerseyNumber: member.jerseyNumber
+              };
 
               return (
                 <TableRow key={member.id}>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      {user.profilePicture ? (
+                      {displayData.profilePicture ? (
                         <img
-                          src={user.profilePicture}
-                          alt={user.fullName}
+                          src={displayData.profilePicture}
+                          alt={displayData.fullName}
                           className="h-8 w-8 rounded-full object-cover"
                         />
                       ) : (
@@ -160,23 +176,24 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
                         </div>
                       )}
                       <div>
-                        <div className="font-medium">{user.fullName}</div>
+                        <div className="font-medium">{displayData.fullName}</div>
                         <div className="text-xs text-muted-foreground">
-                          {user.username}
+                          {!user && <span className="text-amber-500 font-semibold">Unclaimed</span>}
+                          {user && displayData.username}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
+                    <Badge variant={getRoleBadgeVariant(displayData.role)}>
                       <div className="flex items-center">
-                        {getRoleIcon(user.role)}
-                        {user.role}
+                        {getRoleIcon(displayData.role)}
+                        {displayData.role}
                       </div>
                     </Badge>
                   </TableCell>
-                  <TableCell>{user.position || "N/A"}</TableCell>
-                  <TableCell>{user.jerseyNumber || "N/A"}</TableCell>
+                  <TableCell>{displayData.position || "N/A"}</TableCell>
+                  <TableCell>{displayData.jerseyNumber || "N/A"}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"

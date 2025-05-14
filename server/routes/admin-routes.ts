@@ -238,6 +238,15 @@ export function createAdminRouter(storage: IStorage) {
     // Enhance with user details
     const enhancedMembers = await Promise.all(
       members.map(async (member) => {
+        if (!member.userId) {
+          // For members without linked users, return the member data as is
+          return {
+            ...member,
+            user: null
+          };
+        }
+        
+        // For members with linked users, add user details
         const user = await storage.getUser(member.userId);
         return {
           ...member,
