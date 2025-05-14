@@ -84,11 +84,13 @@ export const teamMembers = pgTable("team_members", {
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)
-  .omit({ id: true, createdAt: true, userId: true, isVerified: true })
+  .omit({ id: true, createdAt: true })
   .extend({
     position: z.string().optional().nullable(),
     jerseyNumber: z.number().int().optional().nullable(),
     profilePicture: z.string().optional().nullable(),
+    userId: z.number().optional().nullable(),
+    isVerified: z.boolean().optional().nullable(),
   });
 
 // TeamUsers table for team access through joining with code

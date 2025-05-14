@@ -840,12 +840,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user details for each team member
       const teamMembersWithUserDetails = await Promise.all(
         teamMembers.map(async (member) => {
+          // Handle members that aren't linked to a user yet
+          if (!member.userId) {
+            console.log(`Team member ${member.id} has no linked user yet`);
+            // Create a response format compatible with the expected structure
+            return {
+              ...member,
+              user: {
+                id: null, // No linked user ID yet
+                fullName: member.fullName,
+                role: member.role,
+                profilePicture: member.profilePicture || "/default-avatar.png",
+                position: member.position || "",
+                jerseyNumber: member.jerseyNumber || null,
+                email: "",
+                phoneNumber: ""
+              }
+            };
+          }
+
+          // Handle members with linked users
           const user = await storage.getUser(member.userId);
           if (!user) {
             console.log(`No user found for team member with userId: ${member.userId}`);
-            return null;
+            // This can happen if the user was deleted but the member reference remains
+            // We'll use the member data to maintain consistency
+            return {
+              ...member,
+              user: {
+                id: member.userId, // Keep the ID reference even if user not found
+                fullName: member.fullName,
+                role: member.role,
+                profilePicture: member.profilePicture || "/default-avatar.png",
+                position: member.position || "",
+                jerseyNumber: member.jerseyNumber || null,
+                email: "",
+                phoneNumber: ""
+              }
+            };
           }
 
+          // Normal case: member is linked to an existing user
           // Exclude password but include all other user fields explicitly
           const { password, ...userWithoutPassword } = user;
           return {
@@ -863,9 +898,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
-      const filteredMembers = teamMembersWithUserDetails.filter(Boolean);
-      console.log(`Returning ${filteredMembers.length} team members with user details for team ${teamId}`);
-      res.json(filteredMembers);
+      // We don't need to filter out null values since we handle all cases above
+      console.log(`Returning ${teamMembersWithUserDetails.length} team members for team ${teamId}`);
+      res.json(teamMembersWithUserDetails);
     } catch (error) {
       console.error(`Error fetching team members for team ${req.params.id}:`, error);
       console.error("Error fetching team members:", error);
@@ -984,62 +1019,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // For the simplified member creation (without accounts)
       if (user) {
-        // Generate a random user ID for the mock user
-        const mockUserId = Math.floor(Math.random() * 10000) + 1000;
-
-        // Create a password hash for the mock user
-        const password = await hashPassword("password123");
-
-        // Handle profile picture (use default avatar if none provided or empty string)
-        const profilePicture = user.profilePicture && user.profilePicture.trim() !== '' 
-          ? user.profilePicture 
-          : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-
-        // Create the user with basic info
-        const newUser = await storage.createUser({
-          username: user.username || user.fullName.toLowerCase().replace(/\s+/g, '.') + mockUserId,
-          password,
-          fullName: user.fullName,
-          role: "player", // Use a valid role from the schema
-          position: user.position || null,
-          jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
-          profilePicture
-        });
-
-        // Add to team
+        // Create a team member with the provided information,
+        // but do NOT create a corresponding user entry
         const newTeamMember = await storage.createTeamMember({
           teamId,
-          userId: newUser.id,
-          role
+          fullName: user.fullName,
+          role,
+          position: user.position || null,
+          jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
+          profilePicture: user.profilePicture && user.profilePicture.trim() !== '' 
+            ? user.profilePicture 
+            : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
+          createdById: req.user.id,
+          // Not linked to any user yet, will be set when claimed
+          userId: null,
+          isVerified: false
         });
 
-        // Get the user with all properties
-        const fullUser = await storage.getUser(newUser.id);
-
-        if (!fullUser) {
-          return res.status(500).json({ error: "Failed to retrieve created user" });
-        }
-
-        // Return the complete team member with user details
-        const { password: pwd, ...userWithoutPassword } = fullUser;
-
-        // Return member with full user details
+        // Create response format that's compatible with the existing client code
         const memberResponse = {
           id: newTeamMember.id,
           teamId: newTeamMember.teamId,
-          userId: newTeamMember.userId,
+          fullName: newTeamMember.fullName,
           role: newTeamMember.role,
-          joinedAt: newTeamMember.joinedAt,
+          createdAt: newTeamMember.createdAt,
+          position: newTeamMember.position || "",
+          jerseyNumber: newTeamMember.jerseyNumber || null,
+          profilePicture: newTeamMember.profilePicture,
+          // We're using the pattern where user property has the same fields as the member itself
+          // until it's claimed by a real user
           user: {
-            id: fullUser.id,
-            username: fullUser.username,
-            fullName: fullUser.fullName,
-            role: fullUser.role,
-            profilePicture: fullUser.profilePicture || `https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png`,
-            position: fullUser.position || "",
-            jerseyNumber: fullUser.jerseyNumber || null,
-            email: fullUser.email || "",
-            phoneNumber: fullUser.phoneNumber || ""
+            id: null,
+            fullName: newTeamMember.fullName,
+            role: newTeamMember.role,
+            profilePicture: newTeamMember.profilePicture,
+            position: newTeamMember.position || "",
+            jerseyNumber: newTeamMember.jerseyNumber || null,
+            email: "",
+            phoneNumber: ""
           }
         };
 
@@ -1055,14 +1072,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User is already a member of this team" });
       }
 
+      // Get the user to copy their profile data to the team member
+      const existingUser = await storage.getUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Create team member linked to the existing user
       const newTeamMember = await storage.createTeamMember({
         teamId,
-        userId,
-        role
+        fullName: existingUser.fullName,
+        role,
+        position: existingUser.position || null,
+        jerseyNumber: existingUser.jerseyNumber || null,
+        profilePicture: existingUser.profilePicture || null,
+        createdById: req.user.id,
+        userId, // Link to existing user
+        isVerified: true // Already verified since it's created with a specific user
       });
 
       res.status(201).json(newTeamMember);
     } catch (error) {
+      console.error("Error adding team member:", error);
       res.status(500).json({ error: "Failed to add team member" });
     }
   });
