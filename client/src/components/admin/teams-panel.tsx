@@ -252,7 +252,7 @@ export default function TeamsPanel() {
                       </TableRow>
                       {expandedTeam === team.id && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={5} className="p-4">
+                          <TableCell colSpan={7} className="p-4">
                             <TeamMemberList team={team} />
                           </TableCell>
                         </TableRow>
@@ -261,7 +261,7 @@ export default function TeamsPanel() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No teams found.
                     </TableCell>
                   </TableRow>

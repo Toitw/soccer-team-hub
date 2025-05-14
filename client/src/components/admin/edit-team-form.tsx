@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Create a schema for the edit team form (all fields optional)
 const editTeamSchema = insertTeamSchema
@@ -45,6 +46,8 @@ export function EditTeamForm({ team, onSuccess, onCancel }: EditTeamFormProps) {
       seasonYear: team.seasonYear || "",
       logo: team.logo || "",
       joinCode: team.joinCode || "",
+      teamType: team.teamType as "11-a-side" | "7-a-side" | "Futsal" | undefined,
+      category: team.category as "PROFESSIONAL" | "FEDERATED" | "AMATEUR" | undefined,
     },
   });
 
@@ -128,6 +131,60 @@ export function EditTeamForm({ team, onSuccess, onCancel }: EditTeamFormProps) {
                 <FormControl>
                   <Input placeholder="2023" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Team Type field */}
+          <FormField
+            control={form.control}
+            name="teamType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type of Team</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select team type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="11-a-side">11-a-side</SelectItem>
+                    <SelectItem value="7-a-side">7-a-side</SelectItem>
+                    <SelectItem value="Futsal">Futsal</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Category field */}
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PROFESSIONAL">Professional</SelectItem>
+                    <SelectItem value="FEDERATED">Federated</SelectItem>
+                    <SelectItem value="AMATEUR">Amateur</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
