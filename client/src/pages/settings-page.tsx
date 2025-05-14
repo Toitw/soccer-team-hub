@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, UserPlus, Mail, Copy, Eye, EyeOff, RefreshCw, X, AlertTriangle, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -56,6 +57,8 @@ const teamSettingsSchema = z.object({
   division: z.string().optional(),
   seasonYear: z.string().optional(),
   logo: z.string().optional(),
+  teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).optional(),
+  category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]).optional(),
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -177,6 +180,8 @@ export default function SettingsPage() {
       division: selectedTeam?.division || "",
       seasonYear: selectedTeam?.seasonYear || "",
       logo: selectedTeam?.logo || "",
+      teamType: selectedTeam?.teamType as "11-a-side" | "7-a-side" | "Futsal" | undefined,
+      category: selectedTeam?.category as "PROFESSIONAL" | "FEDERATED" | "AMATEUR" | undefined,
     }
   });
 
@@ -191,6 +196,8 @@ export default function SettingsPage() {
         division: selectedTeam.division || "",
         seasonYear: selectedTeam.seasonYear || "",
         logo: selectedTeam.logo || "",
+        teamType: selectedTeam.teamType as "11-a-side" | "7-a-side" | "Futsal" | undefined,
+        category: selectedTeam.category as "PROFESSIONAL" | "FEDERATED" | "AMATEUR" | undefined,
       });
 
       // Update logoUrl for preview
@@ -723,6 +730,68 @@ export default function SettingsPage() {
                           </FormItem>
                         )}
                       />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Team Type field */}
+                        <FormField
+                          control={teamSettingsForm.control}
+                          name="teamType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("settings.teamType")}</FormLabel>
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  setTeamSettingsChanged(true);
+                                }} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={t("settings.selectTeamType")} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="11-a-side">11-a-side</SelectItem>
+                                  <SelectItem value="7-a-side">7-a-side</SelectItem>
+                                  <SelectItem value="Futsal">Futsal</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Category field */}
+                        <FormField
+                          control={teamSettingsForm.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("settings.category")}</FormLabel>
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  setTeamSettingsChanged(true);
+                                }} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={t("settings.selectCategory")} />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="PROFESSIONAL">Professional</SelectItem>
+                                  <SelectItem value="FEDERATED">Federated</SelectItem>
+                                  <SelectItem value="AMATEUR">Amateur</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t("settings.logo")}</label>
