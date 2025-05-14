@@ -493,8 +493,8 @@ export default function SettingsPage() {
               <TabsTrigger value="settings">{t("settings.configTab")}</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="members" className="mt-6">
-              <div className="grid grid-cols-1 gap-6">
+            <TabsContent value="members" className="mt-6 w-full">
+              <div className="grid grid-cols-1 gap-6 max-w-full">
                 {/* Administrators */}
                 <Card>
                   <CardHeader className="pb-2">
@@ -644,8 +644,8 @@ export default function SettingsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="claims" className="mt-6">
-              <div className="grid grid-cols-1 gap-6">
+            <TabsContent value="claims" className="mt-6 w-full">
+              <div className="grid grid-cols-1 gap-6 max-w-full">
                 {/* Import and use the MemberClaimsManager component */}
                 {selectedTeamId && (
                   <div>
@@ -655,8 +655,8 @@ export default function SettingsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="settings" className="mt-6">
-              <Card>
+            <TabsContent value="settings" className="mt-6 w-full">
+              <Card className="w-full">
                 <CardHeader>
                   <CardTitle>{t("settings.teamSettings")}</CardTitle>
                   <CardDescription>{t("settings.manageTeamInformation")}</CardDescription>
