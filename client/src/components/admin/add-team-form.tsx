@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Create a schema for the add team form
 const addTeamSchema = insertTeamSchema.omit({ 
@@ -44,8 +45,12 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
       division: "",
       seasonYear: new Date().getFullYear().toString(),
       logo: "",
-    },
+      teamType: "11-a-side",
+    }
   });
+
+  // Add teamType field after division field
+  const [teamType, setTeamType] = useState("11-a-side");
 
   // Create team mutation
   const mutation = useMutation({
@@ -116,6 +121,30 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
               </FormItem>
             )}
           />
+
+            {/* Team Type field */}
+            <FormField
+              control={form.control}
+              name="teamType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type of Team</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select team type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="11-a-side">11-a-side</SelectItem>
+                      <SelectItem value="7-a-side">7-a-side</SelectItem>
+                      <SelectItem value="futsal">Futsal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           {/* Season Year field */}
           <FormField

@@ -25,7 +25,7 @@ type JoinTeamFormValues = z.infer<typeof joinTeamSchema>;
 const createTeamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
-  teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]),
+  teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).default("11-a-side"),
   division: z.string().optional(),
   seasonYear: z.string().optional()
 });
