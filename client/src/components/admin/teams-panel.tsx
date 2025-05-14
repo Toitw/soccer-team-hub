@@ -184,8 +184,6 @@ export default function TeamsPanel() {
                 <TableRow>
                   <TableHead>Team</TableHead>
                   <TableHead>Division</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Category</TableHead>
                   <TableHead>Join Code</TableHead>
                   <TableHead>Season</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -222,8 +220,6 @@ export default function TeamsPanel() {
                           </div>
                         </TableCell>
                         <TableCell>{team.division || 'N/A'}</TableCell>
-                        <TableCell>{team.teamType || 'N/A'}</TableCell>
-                        <TableCell>{team.category || 'N/A'}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{team.joinCode || 'N/A'}</Badge>
                         </TableCell>
@@ -252,7 +248,7 @@ export default function TeamsPanel() {
                       </TableRow>
                       {expandedTeam === team.id && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={7} className="p-4">
+                          <TableCell colSpan={5} className="p-4">
                             <TeamMemberList team={team} />
                           </TableCell>
                         </TableRow>
@@ -261,7 +257,7 @@ export default function TeamsPanel() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                       No teams found.
                     </TableCell>
                   </TableRow>

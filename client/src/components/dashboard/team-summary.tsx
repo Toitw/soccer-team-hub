@@ -112,11 +112,7 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
           />
           <div>
             <h3 className="text-lg font-medium">{team.name}</h3>
-            <p className="text-sm text-gray-500">
-              {team.division}
-              {team.teamType && <span className="ml-2">• {team.teamType}</span>}
-              {team.category && <span className="ml-2">• {team.category}</span>}
-            </p>
+            <p className="text-sm text-gray-500">{team.division}</p>
           </div>
           
         </div>
