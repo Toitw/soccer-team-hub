@@ -732,14 +732,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get update data from request body
-      const { name, division, seasonYear, logo } = req.body;
+      const { name, division, seasonYear, logo, teamType, category } = req.body;
       
       // Update the team
       const updatedTeam = await storage.updateTeam(teamId, {
         name,
         division,
         seasonYear,
-        logo
+        logo,
+        teamType,
+        category
       });
       
       res.json(updatedTeam);
