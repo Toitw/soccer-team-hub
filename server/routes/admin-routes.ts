@@ -22,18 +22,32 @@ export function createAdminRouter(storage: IStorage) {
   // Admin routes - all protected by superuser check
   router.use('/admin', requireSuperuser);
 
-  // Get all users
+  // Get all users (only actual users, not team members)
   router.get('/admin/users', asyncHandler(async (req: Request, res: Response) => {
+    // Get only actual users from the users table
     const users = await storage.getAllUsers();
-    return jsonResponse(res, users);
+    
+    // Filter out any entities that aren't actual users
+    // This ensures we only return proper user accounts, not team members
+    const filteredUsers = users.filter(user => 
+      // A valid user must have a username and password
+      user && user.username && user.password
+    );
+    
+    return jsonResponse(res, filteredUsers);
   }));
 
-  // Get user by ID
+  // Get user by ID - ensure we only return actual users
   router.get('/admin/users/:id', asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const user = await storage.getUser(id);
     
     if (!user) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Verify this is a real user account, not a team member
+    if (!user.username || !user.password) {
       return notFoundResponse(res, 'User');
     }
     
