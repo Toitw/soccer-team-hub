@@ -82,14 +82,14 @@ export default function SettingsPage() {
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
-  
+
   // Debug logging
   useEffect(() => {
     if (teams) {
       console.log("Teams data loaded:", teams);
     }
   }, [teams]);
-  
+
   // Regenerate join code mutation
   const regenerateJoinCodeMutation = useMutation({
     mutationFn: async (teamId: number) => {
@@ -98,12 +98,12 @@ export default function SettingsPage() {
     onSuccess: () => {
       // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      
+
       // Also invalidate team members to ensure they are refreshed
       if (selectedTeamId) {
         queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
       }
-      
+
       toast({
         title: "Join code regenerated",
         description: "New join code has been generated successfully",
@@ -120,17 +120,17 @@ export default function SettingsPage() {
       setIsGeneratingJoinCode(false);
     }
   });
-  
+
   const handleRegenerateJoinCode = () => {
     if (!selectedTeamId) return;
-    
+
     setIsGeneratingJoinCode(true);
     regenerateJoinCodeMutation.mutate(selectedTeamId);
   };
-  
+
   const copyJoinCodeToClipboard = () => {
     if (!selectedTeam?.joinCode) return;
-    
+
     navigator.clipboard.writeText(selectedTeam.joinCode)
       .then(() => {
         toast({
@@ -151,7 +151,7 @@ export default function SettingsPage() {
   // Find the selected team from teams data
   const selectedTeam = teams?.find(team => team.id === selectedTeamId) || 
                        (teams && teams.length > 0 ? teams[0] : null);
-  
+
   // Set the selected team ID when teams data is loaded
   useEffect(() => {
     if (teams && teams.length > 0 && !selectedTeamId) {
@@ -179,12 +179,12 @@ export default function SettingsPage() {
       logo: selectedTeam?.logo || "",
     }
   });
-  
+
   // Update teamSettingsForm values when selectedTeam changes
   useEffect(() => {
     if (selectedTeam) {
       console.log("Selected team changed, updating form values:", selectedTeam);
-      
+
       // Reset the form with values from the selected team
       teamSettingsForm.reset({
         name: selectedTeam.name,
@@ -192,12 +192,12 @@ export default function SettingsPage() {
         seasonYear: selectedTeam.seasonYear || "",
         logo: selectedTeam.logo || "",
       });
-      
+
       // Update logoUrl for preview
       setLogoUrl(selectedTeam.logo || "");
     }
   }, [selectedTeam, teamSettingsForm]);
-  
+
   // Add debug for form values
   useEffect(() => {
     console.log("Current form values:", teamSettingsForm.getValues());
@@ -206,7 +206,7 @@ export default function SettingsPage() {
       dirtyFields: teamSettingsForm.formState.dirtyFields
     });
   }, [teamSettingsForm.formState.isDirty]);
-  
+
   // Mutation for updating team settings
   const updateTeamMutation = useMutation({
     mutationFn: async (data: TeamSettingsFormData) => {
@@ -217,24 +217,24 @@ export default function SettingsPage() {
     onSuccess: (response, submittedData) => {
       console.log("Team update successful, response:", response);
       console.log("Submitted data:", submittedData);
-      
+
       // Invalidate all related queries to force a complete refresh
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      
+
       // Force refetch of team members immediately using the correct URL-based query key
       if (selectedTeamId) {
         queryClient.invalidateQueries({ 
           queryKey: [`/api/teams/${selectedTeamId}/members`],
           refetchType: 'active', 
         });
-        
+
         // Manually refetch to ensure immediate update
         queryClient.refetchQueries({ 
           queryKey: [`/api/teams/${selectedTeamId}/members`],
           exact: true 
         });
       }
-      
+
       toast({
         title: "Team updated",
         description: "Team settings have been updated successfully.",
@@ -259,7 +259,7 @@ export default function SettingsPage() {
     onSuccess: () => {
       setIsDeleteDialogOpen(false);
       setMemberToDelete(null);
-      
+
       // Use the same more aggressive refetch strategy
       setTimeout(() => {
         forceRefreshTeamMembers();
@@ -277,18 +277,18 @@ export default function SettingsPage() {
       });
     },
   });
-  
+
   const handleDeleteMember = (member: TeamMember & { user: any }) => {
     setMemberToDelete(member);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const confirmDeleteMember = () => {
     if (memberToDelete) {
       deleteTeamMemberMutation.mutate(memberToDelete.id);
     }
   };
-  
+
   // Upload logo mutation
   const uploadLogoMutation = useMutation({
     mutationFn: async (imageData: string) => {
@@ -298,15 +298,15 @@ export default function SettingsPage() {
     onSuccess: (data) => {
       // Update team logo in the form and invalidate queries
       teamSettingsForm.setValue("logo", data.logo);
-      
+
       // Invalidate team data
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      
+
       // Use our force refresh function to ensure team members are reloaded
       setTimeout(() => {
         forceRefreshTeamMembers();
       }, 300);
-      
+
       toast({
         title: "Logo updated",
         description: "Your team logo has been updated successfully.",
@@ -323,14 +323,14 @@ export default function SettingsPage() {
       setIsUploadingLogo(false);
     },
   });
-  
+
   // Handle file selection and conversion to base64
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     setLogoFile(file);
-    
+
     // Convert the file to base64
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -339,27 +339,27 @@ export default function SettingsPage() {
     };
     reader.readAsDataURL(file);
   };
-  
+
   // Handle logo upload
   const handleLogoUpload = () => {
     if (!logoUrl) return;
-    
+
     setIsUploadingLogo(true);
     uploadLogoMutation.mutate(logoUrl);
   };
-  
+
   // Helper function to force refresh team members
   const forceRefreshTeamMembers = () => {
     if (!selectedTeamId) return;
-    
+
     console.log("Force refreshing team members for team:", selectedTeamId);
-    
+
     // Force immediate invalidation and refetch with the correct query key
     queryClient.invalidateQueries({ 
       queryKey: [`/api/teams/${selectedTeamId}/members`],
       refetchType: 'all'
     });
-    
+
     queryClient.refetchQueries({ 
       queryKey: [`/api/teams/${selectedTeamId}/members`],
       exact: true
@@ -369,16 +369,16 @@ export default function SettingsPage() {
       console.error("Error refetching team members:", error);
     });
   };
-  
+
   const handleTeamSettingsSubmit = (data: TeamSettingsFormData) => {
     updateTeamMutation.mutate(data);
-    
+
     // Set a small delay to ensure the mutation has time to complete
     setTimeout(() => {
       forceRefreshTeamMembers();
     }, 300);
   };
-  
+
   const form = useForm<InviteFormData>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
@@ -683,7 +683,7 @@ export default function SettingsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={teamSettingsForm.control}
                         name="division"
@@ -703,7 +703,7 @@ export default function SettingsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={teamSettingsForm.control}
                         name="seasonYear"
@@ -723,7 +723,7 @@ export default function SettingsPage() {
                           </FormItem>
                         )}
                       />
-                    
+
                       <div className="space-y-2">
                         <label className="text-sm font-medium">{t("settings.logo")}</label>
                         <div className="flex items-center gap-4">
@@ -744,7 +744,7 @@ export default function SettingsPage() {
                           </Button>
                         </div>
                       </div>
-                      
+
                       {/* Logo Dialog */}
                       <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
                         <DialogContent>
@@ -769,7 +769,7 @@ export default function SettingsPage() {
                                 {t("settings.selectImageFile")} (PNG, JPG, GIF).
                               </p>
                             </div>
-                            
+
                             {logoUrl && (
                               <div className="mt-4 flex justify-center">
                                 <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
@@ -811,7 +811,7 @@ export default function SettingsPage() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      
+
                       <div className="space-y-2 pt-4 border-t">
                         <label className="text-sm font-medium flex items-center justify-between">
                           <span>{t("settings.joinCode")}</span>
@@ -900,7 +900,7 @@ export default function SettingsPage() {
           <MobileNavigation />
         </div>
       </div>
-      
+
       {/* Delete Member Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
