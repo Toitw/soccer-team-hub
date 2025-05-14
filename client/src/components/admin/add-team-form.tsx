@@ -122,8 +122,32 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
             )}
           />
 
-            {/* Team Type field */}
-            <FormField
+          {/* Category field */}
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="PROFESSIONAL">Professional</SelectItem>
+                    <SelectItem value="FEDERATED">Federated</SelectItem>
+                    <SelectItem value="AMATEUR">Amateur</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Team Type field */}
+          <FormField
               control={form.control}
               name="teamType"
               render={({ field }) => (

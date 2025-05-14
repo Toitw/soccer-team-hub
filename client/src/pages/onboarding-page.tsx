@@ -56,7 +56,8 @@ export default function OnboardingPage() {
       category: "AMATEUR",
       teamType: "11-a-side",
       division: "",
-      seasonYear: new Date().getFullYear().toString()
+      seasonYear: new Date().getFullYear().toString(),
+      logo: ""
     }
   });
 
