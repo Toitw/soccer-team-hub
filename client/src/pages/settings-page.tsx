@@ -487,7 +487,7 @@ export default function SettingsPage() {
           </div>
 
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full sm:w-auto">
+            <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="members">{t("settings.membersTab")}</TabsTrigger>
               <TabsTrigger value="claims">{t("settings.claimsTab")}</TabsTrigger>
               <TabsTrigger value="settings">{t("settings.configTab")}</TabsTrigger>
