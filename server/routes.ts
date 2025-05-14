@@ -148,8 +148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also add as team admin (member) for now
       await storage.createTeamMember({
         teamId: team.id,
+        userId: req.user.id,
         fullName: req.user.fullName || "Team Admin",
         role: "admin",
+        createdById: req.user.id,
         createdById: req.user.id
       });
 
@@ -998,7 +1000,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           position: user.position || null, 
           jerseyNumber: user.jerseyNumber ? parseInt(user.jerseyNumber.toString()) : null,
           profilePicture,
-          createdById: req.user.id // Track who created this member
+          createdById: req.user.id, // Track who created this member
+          userId: null // Explícitamente establecemos userId a null para indicar que no hay usuario asociado
         });
 
         // For API compatibility, create a simulated user object that doesn't represent
