@@ -676,6 +676,24 @@ export const esES = {
     joinTeamPrompt: "Únete a tu equipo para comenzar",
     teamCode: "Código de Equipo",
     joinTeam: "Unirse al Equipo",
+    createTeam: "Crear Equipo",
+    teamName: "Nombre del Equipo",
+    category: "Categoría",
+    categoryTypes: {
+      professional: "Profesional",
+      federated: "Federado",
+      amateur: "Amateur"
+    },
+    teamType: "Tipo de Equipo",
+    teamTypes: {
+      elevenASide: "Fútbol 11",
+      sevenASide: "Fútbol 7",
+      futsal: "Fútbol Sala"
+    },
+    division: "División",
+    divisionPlaceholder: "ej., Primera División",
+    seasonYear: "Temporada",
+    seasonYearPlaceholder: "ej., 2023",
     tryDemoMode: "Probar Modo Demo",
     exploreFeatures: "Explora las funciones de la app antes de crear un equipo",
     skipForNow: "Saltar por ahora"

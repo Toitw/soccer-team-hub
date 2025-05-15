@@ -671,6 +671,24 @@ export const enUS = {
     joinTeamPrompt: "Join your team to get started",
     teamCode: "Team Code",
     joinTeam: "Join Team",
+    createTeam: "Create Team",
+    teamName: "Team Name",
+    category: "Category",
+    categoryTypes: {
+      professional: "Professional",
+      federated: "Federated",
+      amateur: "Amateur"
+    },
+    teamType: "Team Type",
+    teamTypes: {
+      elevenASide: "11-a-side",
+      sevenASide: "7-a-side",
+      futsal: "Futsal"
+    },
+    division: "Division",
+    divisionPlaceholder: "e.g., First Division",
+    seasonYear: "Season Year",
+    seasonYearPlaceholder: "e.g., 2023",
     tryDemoMode: "Try Demo Mode",
     exploreFeatures: "Explore the app features before creating a team",
     skipForNow: "Skip for now"

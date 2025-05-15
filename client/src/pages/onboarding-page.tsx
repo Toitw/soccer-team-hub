@@ -211,8 +211,8 @@ export default function OnboardingPage() {
           {isAdmin ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="join">Join Team</TabsTrigger>
-                <TabsTrigger value="create">Create Team</TabsTrigger>
+                <TabsTrigger value="join">{t("onboarding.joinTeam")}</TabsTrigger>
+                <TabsTrigger value="create">{t("onboarding.createTeam")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="join">
@@ -247,9 +247,9 @@ export default function OnboardingPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Team Name</FormLabel>
+                          <FormLabel>{t("onboarding.teamName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter team name" {...field} />
+                            <Input placeholder={t("team.enterTeamName")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -262,17 +262,17 @@ export default function OnboardingPage() {
                         name="category"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Category</FormLabel>
+                            <FormLabel>{t("onboarding.category")}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select category" />
+                                  <SelectValue placeholder={t("matches.selectMatchType")} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="PROFESSIONAL">Professional</SelectItem>
-                                <SelectItem value="FEDERATED">Federated</SelectItem>
-                                <SelectItem value="AMATEUR">Amateur</SelectItem>
+                                <SelectItem value="PROFESSIONAL">{t("onboarding.categoryTypes.professional")}</SelectItem>
+                                <SelectItem value="FEDERATED">{t("onboarding.categoryTypes.federated")}</SelectItem>
+                                <SelectItem value="AMATEUR">{t("onboarding.categoryTypes.amateur")}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -285,17 +285,17 @@ export default function OnboardingPage() {
                         name="teamType"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Team Type</FormLabel>
+                            <FormLabel>{t("onboarding.teamType")}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select team type" />
+                                  <SelectValue placeholder={t("team.selectPosition")} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="11-a-side">11-a-side</SelectItem>
-                                <SelectItem value="7-a-side">7-a-side</SelectItem>
-                                <SelectItem value="Futsal">Futsal</SelectItem>
+                                <SelectItem value="11-a-side">{t("onboarding.teamTypes.elevenASide")}</SelectItem>
+                                <SelectItem value="7-a-side">{t("onboarding.teamTypes.sevenASide")}</SelectItem>
+                                <SelectItem value="Futsal">{t("onboarding.teamTypes.futsal")}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -310,9 +310,9 @@ export default function OnboardingPage() {
                         name="division"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Division (Optional)</FormLabel>
+                            <FormLabel>{t("onboarding.division")}</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., First Division" {...field} value={field.value || ""} />
+                              <Input placeholder={t("onboarding.divisionPlaceholder")} {...field} value={field.value || ""} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -324,9 +324,9 @@ export default function OnboardingPage() {
                         name="seasonYear"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Season Year</FormLabel>
+                            <FormLabel>{t("onboarding.seasonYear")}</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., 2023" {...field} />
+                              <Input placeholder={t("onboarding.seasonYearPlaceholder")} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
