@@ -78,11 +78,7 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">{t("dashboard.teamSummary")}</h2>
-          <div className="flex items-center justify-center">
-            <span className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full text-center">
-              {t("dashboard.season")} {team.seasonYear || "2023/24"}
-            </span>
-          </div>
+          {/* Removed season display as per requirements - now managed in competitions page */}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">

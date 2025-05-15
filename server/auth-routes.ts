@@ -565,7 +565,7 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
       teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]),
       division: z.string().optional(),
-      seasonYear: z.string().optional(),
+      // seasonYear removed as per requirements
       logo: z.string().optional()
     });
     
@@ -580,7 +580,6 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       category: validatedData.category,
       teamType: validatedData.teamType,
       division: validatedData.division || null,
-      seasonYear: validatedData.seasonYear || null,
       logo: validatedData.logo || null,
       createdById: userId,
       joinCode
