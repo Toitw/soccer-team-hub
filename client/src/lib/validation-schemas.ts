@@ -33,8 +33,8 @@ export const usernameSchema = z.string()
   .min(3, "Username must be at least 3 characters")
   .max(30, "Username must be at most 30 characters")
   .refine(
-    username => /^[a-zA-Z0-9_.-]+$/.test(username),
-    "Username can only contain letters, numbers, underscores, dots, and hyphens"
+    username => /^[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ_.-]+$/.test(username),
+    "Username can contain letters, numbers, Spanish characters, underscores, dots, and hyphens"
   );
 
 /**
