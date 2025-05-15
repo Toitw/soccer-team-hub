@@ -925,7 +925,6 @@ export default function TeamPage() {
                                       <SelectItem value="Right Back">
                                         {t("team.rightBack")}
                                       </SelectItem>
-                               ```python
                                       <SelectItem value="Wing Back">
                                         {t("team.wingBack")}
                                       </SelectItem>
