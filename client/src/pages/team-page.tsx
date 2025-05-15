@@ -1570,7 +1570,7 @@ export default function TeamPage() {
                             <span className="capitalize">{t(`auth.${member.role}`)}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>{member.user.position || "-"}</TableCell>
+                        <TableCell>{member.user.position ? t(`team.positions.${member.user.position}`) : "-"}</TableCell>
                         <TableCell>
                           {member.user.jerseyNumber ? (
                             <Badge variant="outline">

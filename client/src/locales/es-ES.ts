@@ -356,6 +356,30 @@ export const esES = {
     mid: "MED",
     fw: "DEL",
     noTeamMembersForLineup: "No hay miembros del equipo disponibles para la alineación",
+
+    // Position translations for team members table
+    positions: {
+      "Left Winger": "Extremo Izquierdo",
+      "Right Winger": "Extremo Derecho", 
+      "Center Forward": "Delantero Centro",
+      "Goalkeeper": "Portero",
+      "Center Back": "Defensa Central",
+      "Left Back": "Lateral Izquierdo",
+      "Right Back": "Lateral Derecho",
+      "Defensive Midfielder": "Mediocentro Defensivo",
+      "Central Midfielder": "Mediocentro",
+      "Attacking Midfielder": "Mediapunta",
+      "Striker": "Delantero",
+      "7-a-side Center Defender": "Defensa Central F7",
+      "7-a-side Wide Defender": "Defensa Lateral F7",
+      "7-a-side Center Midfielder": "Mediocentro F7",
+      "7-a-side Wide Midfielder": "Mediocampista Lateral F7",
+      "7-a-side Forward": "Delantero F7",
+      "Futsal Defender": "Defensa Sala",
+      "Futsal Pivot": "Pívot Sala",
+      "Futsal Winger": "Extremo Sala",
+      "Futsal Universal": "Universal Sala"
+    }
   },
   matches: {
     matches: "Competición",
