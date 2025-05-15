@@ -54,7 +54,7 @@ const inviteSchema = z.object({
 const teamSettingsSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   division: z.string().optional(),
-  seasonYear: z.string().optional(),
+  // seasonYear removed as per requirements - now managed in competitions page
   logo: z.string().optional(),
   teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).optional(),
   category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]).optional(),
@@ -177,7 +177,7 @@ export default function SettingsPage() {
     defaultValues: {
       name: selectedTeam?.name || "",
       division: selectedTeam?.division || "",
-      seasonYear: selectedTeam?.seasonYear || "",
+      // seasonYear removed as per requirements - now managed in competitions page
       logo: selectedTeam?.logo || "",
       teamType: selectedTeam?.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
       category: selectedTeam?.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
@@ -205,7 +205,6 @@ export default function SettingsPage() {
             teamSettingsForm.reset({
               name: freshTeamData.name,
               division: freshTeamData.division || "",
-              seasonYear: freshTeamData.seasonYear || "",
               logo: freshTeamData.logo || "",
               teamType: freshTeamData.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
               category: freshTeamData.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
@@ -220,7 +219,6 @@ export default function SettingsPage() {
             teamSettingsForm.reset({
               name: selectedTeam.name,
               division: selectedTeam.division || "",
-              seasonYear: selectedTeam.seasonYear || "",
               logo: selectedTeam.logo || "",
               teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
               category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
