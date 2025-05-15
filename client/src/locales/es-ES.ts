@@ -812,6 +812,10 @@ export const esES = {
     teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
     teamCreateError: "Error al crear equipo",
     teamCreateErrorDesc: "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
+    memberCreated: "Miembro Añadido",
+    memberCreatedDesc: "{{name}} ha sido añadido al equipo exitosamente.",
+    memberCreateError: "Error al añadir miembro",
+    memberCreateErrorDesc: "No se pudo añadir el miembro al equipo. Por favor, inténtalo de nuevo.",
     
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",

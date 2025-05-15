@@ -749,6 +749,10 @@ export const enUS = {
     teamCreatedDesc: "Successfully created team {{name}}.",
     teamCreateError: "Failed to create team",
     teamCreateErrorDesc: "Failed to create team. Please try again.",
+    memberCreated: "Member Added",
+    memberCreatedDesc: "Successfully added {{name}} to the team.",
+    memberCreateError: "Failed to add member",
+    memberCreateErrorDesc: "Failed to add member to team. Please try again.",
 
     // Auth related toast messages
     loginSuccess: "Login successful",

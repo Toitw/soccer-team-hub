@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 
 type TeamMemberListProps = {
   team: Team;
@@ -32,6 +33,7 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
   const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Fetch team members
   const { data: teamMembers = [], isLoading: membersLoading } = useQuery({
@@ -53,8 +55,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
       }),
     onSuccess: () => {
       toast({
-        title: 'Member Removed',
-        description: 'Team member has been removed successfully.',
+        title: t('toasts.memberRemoved'),
+        description: t('toasts.memberRemovedDesc'),
       });
       setIsDeleteDialogOpen(false);
       queryClient.invalidateQueries({
@@ -63,8 +65,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to remove team member. Please try again.',
+        title: t('toasts.error'),
+        description: t('toasts.memberRemoveError'),
         variant: 'destructive',
       });
     },
@@ -128,16 +130,16 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Team Members</h3>
+      <h3 className="text-lg font-medium">{t('teamMembers.title')}</h3>
       {teamMembers.length > 0 ? (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Jersey #</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('teamMembers.user')}</TableHead>
+              <TableHead>{t('teamMembers.role')}</TableHead>
+              <TableHead>{t('teamMembers.position')}</TableHead>
+              <TableHead>{t('teamMembers.jersey')}</TableHead>
+              <TableHead className="text-right">{t('teamMembers.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -211,7 +213,7 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
         </Table>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          No members found for this team.
+          {t('teamMembers.noMembers')}
         </div>
       )}
 
@@ -219,14 +221,14 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-destructive">Remove Team Member</DialogTitle>
+            <DialogTitle className="text-destructive">{t('teamMembers.removeMember')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this member from the team? This action cannot be undone.
+              {t('teamMembers.removeConfirmation')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -234,7 +236,7 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Remove
+              {t('actions.remove')}
             </Button>
           </DialogFooter>
         </DialogContent>
