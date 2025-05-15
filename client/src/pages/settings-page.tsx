@@ -232,7 +232,6 @@ export default function SettingsPage() {
         teamSettingsForm.reset({
           name: selectedTeam.name,
           division: selectedTeam.division || "",
-          seasonYear: selectedTeam.seasonYear || "",
           logo: selectedTeam.logo || "",
           teamType: selectedTeam.teamType as ("11-a-side" | "7-a-side" | "Futsal") || "11-a-side",
           category: selectedTeam.category as ("PROFESSIONAL" | "FEDERATED" | "AMATEUR") || "AMATEUR",
@@ -750,25 +749,7 @@ export default function SettingsPage() {
                         )}
                       />
 
-                      <FormField
-                        control={teamSettingsForm.control}
-                        name="seasonYear"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("settings.seasonYear")}</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setTeamSettingsChanged(true);
-                                }} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* seasonYear field removed as per requirements - now managed in competitions page */}
 
                       <FormField
                         control={teamSettingsForm.control}
