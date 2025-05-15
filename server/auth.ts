@@ -126,18 +126,19 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       // Always fetch fresh user data from storage
-      // This is critical to ensure we don't use stale user data
       const user = await storage.getUser(id);
       
       if (!user) {
-        return done(new Error("User not found"), null);
+        // Instead of error, return null to handle gracefully
+        console.log(`Session references deleted user ID: ${id}, clearing session`);
+        return done(null, null);
       }
       
       // We only store the user ID in the session and fetch the complete data each time
       done(null, user);
     } catch (error) {
       console.error("Error deserializing user:", error);
-      done(error, null);
+      done(null, null);
     }
   });
 
