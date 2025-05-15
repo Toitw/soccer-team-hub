@@ -26,8 +26,8 @@ const createTeamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
   teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).default("11-a-side"),
-  division: z.string().optional(),
-  seasonYear: z.string().optional()
+  division: z.string().optional()
+  // seasonYear field removed as per requirements
 });
 
 type CreateTeamFormValues = z.infer<typeof createTeamSchema>;
@@ -55,8 +55,8 @@ export default function OnboardingPage() {
       name: "",
       category: "AMATEUR",
       teamType: "11-a-side",
-      division: "",
-      seasonYear: new Date().getFullYear().toString()
+      division: ""
+      // seasonYear removed as per requirements
       // Logo is not part of the form schema, removed to fix type error
     }
   });
@@ -304,7 +304,7 @@ export default function OnboardingPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="mb-4">
                       <FormField
                         control={createTeamForm.control}
                         name="division"
@@ -313,20 +313,6 @@ export default function OnboardingPage() {
                             <FormLabel>{t("onboarding.division")}</FormLabel>
                             <FormControl>
                               <Input placeholder={t("onboarding.divisionPlaceholder")} {...field} value={field.value || ""} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={createTeamForm.control}
-                        name="seasonYear"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("onboarding.seasonYear")}</FormLabel>
-                            <FormControl>
-                              <Input placeholder={t("onboarding.seasonYearPlaceholder")} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
