@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTeam } from "../hooks/use-team";
 import { Match, TeamMember, LeagueClassification } from "@shared/schema";
 import Header from "@/components/header";
@@ -10,15 +10,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, BarChart3, TrendingUp, Trophy, Users, Goal, Award, Clock, Calendar } from "lucide-react";
+import { Loader2, BarChart3, TrendingUp, Trophy, Users, Goal, Award, Clock, Calendar, FilterIcon } from "lucide-react";
 import { useTranslation } from "../hooks/use-translation";
 import { format, parseISO } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Interface for Season data
+interface Season {
+  id: number;
+  name: string;
+  teamId: number;
+  startDate: string;
+  endDate: string | null;
+  isActive: boolean;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function StatisticsPage() {
   const { user } = useAuth();
   const { selectedTeam } = useTeam();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("team");
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
 
   // Fetch team members
   const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
@@ -34,24 +49,84 @@ export default function StatisticsPage() {
     enabled: !!selectedTeam,
   });
 
-  // Fetch matches
+  // Fetch matches (filtered by season if selected)
   const { data: matches, isLoading: matchesLoading } = useQuery<Match[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "matches"],
+    queryKey: ["/api/teams", selectedTeam?.id, "matches", selectedSeasonId],
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
-      const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
+      
+      let url = `/api/teams/${selectedTeam.id}/matches`;
+      if (selectedSeasonId) {
+        // For now, we don't have season-specific matches endpoint, but we can filter client-side
+        // In the future, you might want to implement a server-side endpoint for this
+        url = `/api/teams/${selectedTeam.id}/matches`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch matches");
-      return response.json();
+      
+      const allMatches = await response.json();
+      
+      // If a season is selected, filter matches based on date range
+      if (selectedSeasonId && seasons) {
+        const season = seasons.find(s => s.id.toString() === selectedSeasonId);
+        if (season) {
+          const startDate = new Date(season.startDate);
+          const endDate = season.endDate ? new Date(season.endDate) : new Date();
+          
+          return allMatches.filter((match: Match) => {
+            const matchDate = new Date(match.matchDate);
+            return matchDate >= startDate && matchDate <= endDate;
+          });
+        }
+      }
+      
+      return allMatches;
     },
     enabled: !!selectedTeam,
   });
 
-  // Fetch league classification
-  const { data: classification, isLoading: classificationLoading } = useQuery<LeagueClassification[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "classification"],
+  // Fetch available seasons for the team
+  const { data: seasons, isLoading: seasonsLoading } = useQuery<Season[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "seasons"],
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
-      const response = await fetch(`/api/teams/${selectedTeam.id}/classification`);
+      const response = await fetch(`/api/teams/${selectedTeam.id}/seasons`);
+      if (!response.ok) throw new Error("Failed to fetch team seasons");
+      return response.json();
+    },
+    enabled: !!selectedTeam,
+  });
+  
+  // Set default selected season when seasons are loaded
+  useEffect(() => {
+    if (seasons && seasons.length > 0 && !selectedSeasonId) {
+      // Find an active season if any
+      const activeSeason = seasons.find(s => s.isActive);
+      if (activeSeason) {
+        setSelectedSeasonId(activeSeason.id.toString());
+      } else {
+        // Default to the most recent season
+        const mostRecent = [...seasons].sort((a, b) => 
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        )[0];
+        setSelectedSeasonId(mostRecent.id.toString());
+      }
+    }
+  }, [seasons, selectedSeasonId]);
+
+  // Fetch league classification (either for all seasons or for a specific season)
+  const { data: classification, isLoading: classificationLoading } = useQuery<LeagueClassification[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "seasons", selectedSeasonId, "classifications"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      
+      let url = `/api/teams/${selectedTeam.id}/classification`;
+      if (selectedSeasonId) {
+        url = `/api/teams/${selectedTeam.id}/seasons/${selectedSeasonId}/classifications`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch league classification");
       return response.json();
     },
@@ -107,14 +182,34 @@ export default function StatisticsPage() {
 
   // Fetch player statistics from API
   const { data: apiPlayerStats, isLoading: playerStatsLoading } = useQuery<any[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "player-stats"],
+    queryKey: ["/api/teams", selectedTeam?.id, "player-stats", selectedSeasonId],
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
+      
+      // Since we don't have season-specific endpoint for player stats yet,
+      // we'll filter based on the filtered matches from the selected season
       const response = await fetch(`/api/teams/${selectedTeam.id}/player-stats`);
       if (!response.ok) throw new Error("Failed to fetch player statistics");
-      return response.json();
+      
+      const allPlayerStats = await response.json();
+      
+      // If there are no filtered matches, return all player stats
+      if (!matches || matches.length === 0) {
+        return allPlayerStats;
+      }
+      
+      // Create a set of match IDs from the filtered matches
+      // This will be used to filter player stats to only those that occurred in matches of the selected season
+      const filteredMatchIds = new Set(matches.map(match => match.id));
+      
+      // For now we don't have match-specific player stats, so this is a placeholder for future implementation
+      // When match-specific player stats are added, we could filter like this:
+      // return allPlayerStats.filter(playerStat => filteredMatchIds.has(playerStat.matchId));
+      
+      // For now, just return all player stats
+      return allPlayerStats;
     },
-    enabled: !!selectedTeam,
+    enabled: !!selectedTeam && !!matches,
   });
 
   // Process player statistics
@@ -234,7 +329,7 @@ export default function StatisticsPage() {
     });
   }, [matches]);
 
-  const isLoading = teamMembersLoading || matchesLoading || classificationLoading || playerStatsLoading;
+  const isLoading = teamMembersLoading || matchesLoading || classificationLoading || playerStatsLoading || seasonsLoading;
 
   if (isLoading) {
     return (
@@ -254,28 +349,71 @@ export default function StatisticsPage() {
         <div className="flex-1 overflow-auto p-4 pb-16 md:pb-16 pb-24">
           <div className="max-w-6xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold hidden md:block">
-                  {t("statistics.teamStats")}
-                </h1>
-                <TabsList className="w-full md:w-auto grid grid-cols-4 max-w-full">
-                  <TabsTrigger value="team" className="px-1 sm:px-2">
-                    <span className="text-xs sm:text-sm">{t("statistics.team")}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="players" className="px-1 sm:px-2">
-                    <span className="text-xs sm:text-sm">{t("statistics.players")}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="performance" className="px-1 sm:px-2">
-                    <span className="text-xs sm:text-sm">{t("statistics.performance")}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="league" className="px-1 sm:px-2">
-                    <span className="text-xs sm:text-sm">{t("statistics.league")}</span>
-                  </TabsTrigger>
-                </TabsList>
+              <div className="flex flex-col space-y-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-2xl font-bold hidden md:block">
+                    {t("statistics.teamStats")}
+                  </h1>
+                  <TabsList className="w-full md:w-auto grid grid-cols-4 max-w-full">
+                    <TabsTrigger value="team" className="px-1 sm:px-2">
+                      <span className="text-xs sm:text-sm">{t("statistics.team")}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="players" className="px-1 sm:px-2">
+                      <span className="text-xs sm:text-sm">{t("statistics.players")}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="performance" className="px-1 sm:px-2">
+                      <span className="text-xs sm:text-sm">{t("statistics.performance")}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="league" className="px-1 sm:px-2">
+                      <span className="text-xs sm:text-sm">{t("statistics.league")}</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                
+                {/* Season selector */}
+                {seasons && seasons.length > 0 && (
+                  <div className="flex items-center space-x-2 px-2 py-1 bg-muted/50 rounded-lg w-full md:w-auto">
+                    <FilterIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground hidden md:inline">
+                      {t("statistics.filterBySeason")}:
+                    </span>
+                    <Select
+                      value={selectedSeasonId || ""}
+                      onValueChange={(value) => setSelectedSeasonId(value)}
+                    >
+                      <SelectTrigger className="w-full md:w-[200px] h-8 text-sm bg-background">
+                        <SelectValue placeholder={t("statistics.selectSeason")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {seasons.map((season) => (
+                          <SelectItem key={season.id} value={season.id.toString()}>
+                            {season.name}
+                            {season.isActive && (
+                              <span className="ml-2 text-primary text-xs">
+                                ({t("statistics.active")})
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               
               {/* Team Overview */}
               <TabsContent value="team" className="space-y-4">
+                {/* Season display banner */}
+                {selectedSeasonId && seasons && (
+                  <div className="bg-primary/10 text-primary rounded-lg p-3 text-sm">
+                    {t("statistics.viewing")} 
+                    <span className="font-semibold mx-1">
+                      {seasons.find(s => s.id.toString() === selectedSeasonId)?.name}
+                    </span>
+                    {t("statistics.statistics")}
+                  </div>
+                )}
+                
                 {/* Overview Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Card>
@@ -761,6 +899,17 @@ export default function StatisticsPage() {
               
               {/* League Table */}
               <TabsContent value="league" className="space-y-4">
+                {/* Season display banner */}
+                {selectedSeasonId && seasons && (
+                  <div className="bg-primary/10 text-primary rounded-lg p-3 text-sm">
+                    {t("statistics.viewing")} 
+                    <span className="font-semibold mx-1">
+                      {seasons.find(s => s.id.toString() === selectedSeasonId)?.name}
+                    </span>
+                    {t("statistics.leagueStatistics")}
+                  </div>
+                )}
+                
                 <Card>
                   <CardHeader>
                     <CardTitle>{t("statistics.leagueTable")}</CardTitle>
