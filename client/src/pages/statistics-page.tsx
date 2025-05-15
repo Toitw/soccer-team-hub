@@ -679,6 +679,17 @@ export default function StatisticsPage() {
               
               {/* Player Statistics */}
               <TabsContent value="players" className="space-y-4">
+                {/* Season display banner */}
+                {selectedSeasonId && seasons && (
+                  <div className="bg-primary/10 text-primary rounded-lg p-3 text-sm">
+                    {t("statistics.viewing")} 
+                    <span className="font-semibold mx-1">
+                      {seasons.find(s => s.id.toString() === selectedSeasonId)?.name}
+                    </span>
+                    {t("statistics.playerStatistics")}
+                  </div>
+                )}
+                
                 {/* Goal Scorers */}
                 <Card>
                   <CardHeader>
@@ -833,6 +844,17 @@ export default function StatisticsPage() {
               
               {/* Performance Analysis */}
               <TabsContent value="performance" className="space-y-4">
+                {/* Season display banner */}
+                {selectedSeasonId && seasons && (
+                  <div className="bg-primary/10 text-primary rounded-lg p-3 text-sm">
+                    {t("statistics.viewing")} 
+                    <span className="font-semibold mx-1">
+                      {seasons.find(s => s.id.toString() === selectedSeasonId)?.name}
+                    </span>
+                    {t("statistics.performanceStatistics")}
+                  </div>
+                )}
+                
                 {/* Monthly Performance */}
                 <Card>
                   <CardHeader>
