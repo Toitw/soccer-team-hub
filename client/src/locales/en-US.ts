@@ -328,13 +328,13 @@ export const enUS = {
     wideDefender: "Wide Defender",
     centerMidfielder: "Center Midfielder",
     wideMidfielder: "Wide Midfielder",
-    
+
     // Futsal/5-a-side positions
     futsalPositions: "Futsal Positions",
     pivot: "Pivot",
     winger: "Winger",
     universal: "Universal",
-    
+
     // 11-a-side position translations
     centerBack: "Center Back",
     leftBack: "Left Back",
@@ -743,13 +743,16 @@ export const enUS = {
     error: "Error",
     warning: "Warning",
     refreshed: "Refreshed",
-    
+
     // Team management toasts
     teamCreated: "Team Created",
     teamCreatedDesc: "Successfully created team {{name}}.",
     teamCreateError: "Failed to create team",
     teamCreateErrorDesc: "Failed to create team. Please try again.",
-
+    memberCreated: "Member Added",
+    memberCreatedDesc: "Successfully added {{name}} to the team.",
+    memberCreateError: "Failed to add member",
+    memberCreateErrorDesc: "Failed to add member. Please try again.",
     // Auth related toast messages
     loginSuccess: "Login successful",
     loginFailed: "Login failed",
