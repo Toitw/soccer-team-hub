@@ -807,6 +807,12 @@ export const esES = {
     warning: "Advertencia",
     refreshed: "Actualizado",
     
+    // Mensajes de gestión de equipos
+    teamCreated: "Equipo Creado",
+    teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
+    teamCreateError: "Error al crear equipo",
+    teamCreateErrorDesc: "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
+    
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
     loginFailed: "Error al iniciar sesión",

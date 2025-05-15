@@ -743,6 +743,12 @@ export const enUS = {
     error: "Error",
     warning: "Warning",
     refreshed: "Refreshed",
+    
+    // Team management toasts
+    teamCreated: "Team Created",
+    teamCreatedDesc: "Successfully created team {{name}}.",
+    teamCreateError: "Failed to create team",
+    teamCreateErrorDesc: "Failed to create team. Please try again.",
 
     // Auth related toast messages
     loginSuccess: "Login successful",

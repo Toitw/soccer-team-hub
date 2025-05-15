@@ -62,15 +62,15 @@ export function AddTeamForm({ onSuccess, onCancel }: AddTeamFormProps) {
     },
     onSuccess: (data) => {
       toast({
-        title: 'Team Created',
-        description: `Successfully created team ${data.name}.`,
+        title: t('toasts.teamCreated'),
+        description: t('toasts.teamCreatedDesc', { name: data.name }),
       });
       onSuccess();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to create team. Please try again.',
+        title: t('toasts.error'),
+        description: t('toasts.teamCreateErrorDesc'),
         variant: 'destructive',
       });
     },
