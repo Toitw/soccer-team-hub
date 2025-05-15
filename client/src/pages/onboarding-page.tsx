@@ -249,7 +249,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t("team.enterTeamName")} {...field} />
+                            <Input placeholder={t("matches.enterTeamName")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -335,7 +335,7 @@ export default function OnboardingPage() {
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Creating Team..." : "Create Team"}
+                      {isSubmitting ? t("matches.deleting") : t("onboarding.createTeam")}
                     </Button>
                   </form>
                 </Form>
