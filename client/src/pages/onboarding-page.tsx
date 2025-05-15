@@ -233,7 +233,7 @@ export default function OnboardingPage() {
                     />
 
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Joining Team..." : "Join Team"}
+                      {isSubmitting ? "Joining Team..." : t("onboarding.joinTeam")}
                     </Button>
                   </form>
                 </Form>
