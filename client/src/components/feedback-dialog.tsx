@@ -107,7 +107,7 @@ export default function FeedbackDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          className={`fixed ${isMobile ? 'right-4 bottom-16 z-50' : 'right-6 bottom-6'} rounded-full ${isMobile ? 'w-14 h-14' : 'w-12 h-12'} p-0 shadow-xl hover:shadow-lg transition-all duration-200 border border-primary/20`}
+          className={`fixed ${isMobile ? 'right-4 bottom-16' : 'right-8 bottom-8 lg:right-12'} z-50 rounded-full ${isMobile ? 'w-14 h-14' : 'w-12 h-12'} p-0 shadow-xl hover:shadow-lg transition-all duration-200 border border-primary/20`}
           aria-label={t("feedback.submitFeedback")}
           role="button"
           tabIndex={0}
