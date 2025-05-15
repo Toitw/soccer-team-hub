@@ -366,6 +366,7 @@ export const enUS = {
       "Center Back": "Center Back",
       "Left Back": "Left Back",
       "Right Back": "Right Back",
+      "Wing Back": "Wing Back",
       "Defensive Midfielder": "Defensive Midfielder",
       "Central Midfielder": "Central Midfielder",
       "Attacking Midfielder": "Attacking Midfielder",

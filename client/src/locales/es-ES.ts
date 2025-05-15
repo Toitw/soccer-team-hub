@@ -366,6 +366,7 @@ export const esES = {
       "Center Back": "Defensa Central",
       "Left Back": "Lateral Izquierdo",
       "Right Back": "Lateral Derecho",
+      "Wing Back": "Carrilero",
       "Defensive Midfielder": "Mediocentro Defensivo",
       "Central Midfielder": "Mediocentro",
       "Attacking Midfielder": "Mediapunta",
