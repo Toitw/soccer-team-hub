@@ -55,7 +55,8 @@ export const registerSchema = z.object({
   fullName: z.string()
     .min(2, "Full name must be at least 2 characters")
     .max(100, "Full name must be at most 100 characters"),
-  role: z.enum(["player", "coach", "admin", "colaborador"]),
+  // Role is now optional in registration, will be set during onboarding
+  role: z.enum(["player", "coach", "admin", "colaborador"]).optional().default("player"),
   email: emailSchema,
   joinCode: z.string().optional(),
   agreedToTerms: z.boolean().refine(val => val, {
