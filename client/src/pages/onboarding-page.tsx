@@ -13,6 +13,14 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
+import { UserRoundCog, UserRound, Users } from "lucide-react";
+
+// Schema for user role selection
+const userRoleSchema = z.object({
+  role: z.enum(["player", "coach", "admin", "colaborador", "superuser"])
+});
+
+type UserRoleFormValues = z.infer<typeof userRoleSchema>;
 
 // Schema for joining a team
 const joinTeamSchema = z.object({
@@ -39,6 +47,16 @@ export default function OnboardingPage() {
   const [, setLocation] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("join");
+  // New state to track the onboarding step
+  const [onboardingStep, setOnboardingStep] = useState<"role" | "team">("role");
+
+  // Role selection form
+  const roleForm = useForm<UserRoleFormValues>({
+    resolver: zodResolver(userRoleSchema),
+    defaultValues: {
+      role: user?.role as "player" | "coach" | "admin" | "colaborador" | "superuser" || "player"
+    }
+  });
 
   // Join team form
   const joinTeamForm = useForm<JoinTeamFormValues>({
@@ -121,6 +139,38 @@ export default function OnboardingPage() {
       toast({
         variant: "destructive",
         title: "Failed to create team",
+        description: error.message || "Something went wrong. Please try again."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function submitRole(values: UserRoleFormValues) {
+    setIsSubmitting(true);
+    try {
+      // Update user role
+      const response = await apiRequest("/api/auth/onboarding/update-role", {
+        method: "POST",
+        data: values
+      });
+
+      // Update user state with new role
+      setUser(response);
+
+      // Move to team step
+      setOnboardingStep("team");
+      
+      // If role is admin, default to create tab
+      if (values.role === "admin") {
+        setActiveTab("create");
+      }
+
+    } catch (error: any) {
+      console.error("Error updating role:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
         description: error.message || "Something went wrong. Please try again."
       });
     } finally {
