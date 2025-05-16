@@ -185,6 +185,7 @@ export const esES = {
     validJoinCode: "Código de unión válido para el equipo \"{{teamName}}\"",
     invalidJoinCode: "Código de unión inválido",
     joinCodeHelp: "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
+    teamCodeHelp: "Contacta con el administrador del equipo para obtener el código",
     logout: "Cerrar sesión",
     agreeToTerms: "Acepto los Términos y Condiciones",
     

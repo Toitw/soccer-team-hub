@@ -185,6 +185,7 @@ export const enUS = {
     validJoinCode: "Valid join code for team \"{{teamName}}\"",
     invalidJoinCode: "Invalid join code",
     joinCodeHelp: "Have a team join code? Enter it to join a team during registration.",
+    teamCodeHelp: "Contact the team administrator to get the join code",
     logout: "Logout",
     agreeToTerms: "I agree to the Terms and Conditions",
 

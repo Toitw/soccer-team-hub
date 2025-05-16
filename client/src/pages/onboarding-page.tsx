@@ -161,7 +161,7 @@ export default function OnboardingPage() {
 
       // Move to team step
       setOnboardingStep("team");
-      
+
       // If role is admin, default to create tab
       if (values.role === "admin") {
         setActiveTab("create");
@@ -361,7 +361,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t("onboarding.teamCode")} {...field} />
+                            <Input placeholder="" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
