@@ -253,7 +253,7 @@ export default function OnboardingPage() {
             <CardTitle className="text-2xl font-bold">{t("onboarding.welcome")}</CardTitle>
             <CardDescription>
               {onboardingStep === "role" 
-                ? "Choose your role to get started" 
+                ? t("onboarding.roleSelectionTitle")
                 : isAdmin 
                   ? t("auth.joinCodeHelp")
                   : t("onboarding.joinTeamPrompt")}
@@ -285,7 +285,7 @@ export default function OnboardingPage() {
                             <div>
                               <h3 className="font-medium">{t("auth.player")}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Join a team, track your stats, and participate in matches
+                                {t("onboarding.roleDescriptions.player")}
                               </p>
                             </div>
                           </div>
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
                             <div>
                               <h3 className="font-medium">{t("auth.coach")}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Manage team lineup, create training sessions and analyze performance
+                                {t("onboarding.roleDescriptions.coach")}
                               </p>
                             </div>
                           </div>
@@ -327,7 +327,7 @@ export default function OnboardingPage() {
                             <div>
                               <h3 className="font-medium">{t("auth.admin")}</h3>
                               <p className="text-sm text-muted-foreground">
-                                Create and manage teams, add users, and configure team settings
+                                {t("onboarding.roleDescriptions.admin")}
                               </p>
                             </div>
                           </div>
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
                 />
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Saving..." : "Continue"}
+                  {isSubmitting ? t("onboarding.saving") : t("onboarding.continue")}
                 </Button>
               </form>
             </Form>
@@ -516,7 +516,7 @@ export default function OnboardingPage() {
             </Button>
           ) : (
             <Button variant="ghost" onClick={() => setOnboardingStep("role")} disabled={isSubmitting}>
-              Back to Role Selection
+              {t("onboarding.backToRoleSelection")}
             </Button>
           )}
         </CardFooter>

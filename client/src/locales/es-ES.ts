@@ -710,6 +710,15 @@ export const esES = {
     joinTeam: "Unirse al Equipo",
     createTeam: "Crear Equipo",
     teamName: "Nombre del Equipo",
+    roleSelectionTitle: "Elige tu rol para comenzar",
+    backToRoleSelection: "Volver a Selección de Rol",
+    roleDescriptions: {
+      player: "Únete a un equipo, sigue tus estadísticas y participa en partidos",
+      coach: "Gestiona alineaciones, crea sesiones de entrenamiento y analiza el rendimiento",
+      admin: "Crea y gestiona equipos, añade usuarios y configura ajustes del equipo"
+    },
+    continue: "Continuar",
+    saving: "Guardando...",
     category: "Categoría",
     categoryTypes: {
       professional: "Profesional",
