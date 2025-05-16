@@ -252,13 +252,98 @@ export default function OnboardingPage() {
         <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">{t("onboarding.welcome")}</CardTitle>
             <CardDescription>
-              {isAdmin 
-                ? t("auth.joinCodeHelp")
-                : t("onboarding.joinTeamPrompt")}
+              {onboardingStep === "role" 
+                ? "Choose your role to get started" 
+                : isAdmin 
+                  ? t("auth.joinCodeHelp")
+                  : t("onboarding.joinTeamPrompt")}
             </CardDescription>
           </CardHeader>
         <CardContent>
-          {isAdmin ? (
+          {onboardingStep === "role" ? (
+            // Role selection step
+            <Form {...roleForm}>
+              <form onSubmit={roleForm.handleSubmit(submitRole)} className="space-y-6">
+                <FormField
+                  control={roleForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-1 gap-6">
+                        <div 
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "player" 
+                              ? "border-primary bg-primary/10" 
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("player")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <UserRound className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{t("auth.player")}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Join a team, track your stats, and participate in matches
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div 
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "coach" 
+                              ? "border-primary bg-primary/10" 
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("coach")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <UserRoundCog className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{t("auth.coach")}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Manage team lineup, create training sessions and analyze performance
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div 
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "admin" 
+                              ? "border-primary bg-primary/10" 
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("admin")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <Users className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{t("auth.admin")}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Create and manage teams, add users, and configure team settings
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Saving..." : "Continue"}
+                </Button>
+              </form>
+            </Form>
+          ) : isAdmin ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="join">{t("onboarding.joinTeam")}</TabsTrigger>
@@ -425,9 +510,15 @@ export default function OnboardingPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button variant="ghost" onClick={skipOnboarding} disabled={isSubmitting}>
-            {t("onboarding.skipForNow")}
-          </Button>
+          {onboardingStep === "role" ? (
+            <Button variant="ghost" onClick={skipOnboarding} disabled={isSubmitting}>
+              {t("onboarding.skipForNow")}
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={() => setOnboardingStep("role")} disabled={isSubmitting}>
+              Back to Role Selection
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>

@@ -463,6 +463,36 @@ router.post("/register", async (req: Request, res: Response) => {
 });
 
 /**
+ * Update user role during onboarding
+ * POST /api/auth/onboarding/update-role
+ */
+router.post("/onboarding/update-role", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const { role } = req.body;
+    
+    // Validate role
+    if (!role || !["player", "coach", "admin", "colaborador", "superuser"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+    
+    // Update user role
+    const updatedUser = await storage.updateUser(userId, { role });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Return updated user data without password
+    const { password, ...userWithoutPassword } = updatedUser;
+    return res.json(userWithoutPassword);
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return res.status(500).json({ error: "Failed to update user role" });
+  }
+});
+
+/**
  * Complete user onboarding
  * POST /api/auth/onboarding/complete
  */
