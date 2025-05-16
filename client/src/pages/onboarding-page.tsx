@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
-import { UserRoundCog, UserRound, Users } from "lucide-react";
+import { UserRoundCog, UserRound, Users, HelpCircle } from "lucide-react";
 
 // Schema for user role selection
 const userRoleSchema = z.object({
@@ -470,9 +471,21 @@ export default function OnboardingPage() {
                   name="teamCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t("onboarding.teamCode")}</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel>{t("onboarding.teamCode")}</FormLabel>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{t("onboarding.teamCodeHelp") || "Contact the team administrator to get the join code"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <FormControl>
-                        <Input placeholder={t("onboarding.teamCode")} {...field} />
+                        <Input placeholder="" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
