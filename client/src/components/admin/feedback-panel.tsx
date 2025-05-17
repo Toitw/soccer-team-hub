@@ -41,27 +41,30 @@ export default function FeedbackPanel() {
 
   const updateFeedbackStatus = async (id: number, status: FeedbackStatus) => {
     try {
-      // Validate status before sending
       if (!['pending', 'reviewed', 'resolved'].includes(status)) {
         throw new Error('Invalid status value');
       }
-      
-      await apiRequest(`/api/feedback/${id}`, {
+
+      const response = await apiRequest(`/api/feedback/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      
+
+      if (!response) {
+        throw new Error('Failed to update status');
+      }
+
       toast({
         title: "Status updated",
         description: `Feedback status changed to ${status}`,
       });
-      
+
       // Update the cache
       queryClient.invalidateQueries({ queryKey: ['/api/feedback'] });
-      
+
       // If updating the currently viewed feedback, close the dialog
       if (selectedFeedback?.id === id) {
         setSelectedFeedback(prev => prev ? { ...prev, status } : null);
