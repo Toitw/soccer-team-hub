@@ -55,6 +55,50 @@ const joinTeamSchema = z.object({
 
 type JoinTeamFormValues = z.infer<typeof joinTeamSchema>;
 
+// Isolated team code input component
+const TeamCodeInput = forwardRef<
+  HTMLInputElement,
+  {
+    value: string;
+    onChange: (value: string) => void;
+    onBlur?: () => void;
+    placeholder?: string;
+    error?: string;
+    label: string;
+  }
+>(({ value, onChange, onBlur, placeholder, error, label }, ref) => {
+  // Completely isolated internal state
+  const [internalValue, setInternalValue] = useState("");
+  
+  // Sync with external value only on mount
+  useEffect(() => {
+    setInternalValue(value || "");
+  }, []);
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInternalValue(newValue);
+    onChange(newValue);
+  };
+  
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        {label}
+      </label>
+      <Input
+        ref={ref}
+        value={internalValue}
+        onChange={handleChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        className={error ? "border-red-500" : ""}
+      />
+      {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+    </div>
+  );
+});
+
 // Schema for creating a team
 const createTeamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
@@ -90,16 +134,15 @@ export default function OnboardingPage() {
     },
   });
 
-  // Local state for team code input
-  const [teamCodeInput, setTeamCodeInput] = useState("");
+  // Simple state for team code input - completely separate from form
+  const [teamCode, setTeamCode] = useState("");
   
-  // Join team form
+  // Join team form with normal React Hook Form setup
   const joinTeamForm = useForm<JoinTeamFormValues>({
     resolver: zodResolver(joinTeamSchema),
     defaultValues: {
       teamCode: "",
-    },
-    mode: "onChange"
+    }
   });
 
   // Create team form (for admins only)
@@ -115,12 +158,20 @@ export default function OnboardingPage() {
     },
   });
 
-  async function joinTeam(values: JoinTeamFormValues) {
+  async function joinTeam() {
     setIsSubmitting(true);
+    
+    // Validate team code
+    if (!teamCodeValue) {
+      setTeamCodeError("Team code is required");
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       const response = await apiRequest("/api/auth/onboarding/join-team", {
         method: "POST",
-        data: values,
+        data: { teamCode: teamCodeValue },
       });
 
       setUser(response.user);
@@ -200,13 +251,11 @@ export default function OnboardingPage() {
       setUser(response);
       
       // Reset the team code input state completely
-      setTeamCodeInput("");
+      setTeamCodeValue("");
+      setTeamCodeError("");
       
-      // Unregister the field to completely remove it from form state
-      joinTeamForm.unregister("teamCode");
-      
-      // Create a new instance of the join team form
-      joinTeamForm.reset({ teamCode: "" });
+      // Force component recreation by updating key
+      setTeamInputKey(prev => prev + 1);
       
       // Move to team step
       setOnboardingStep("team");
@@ -420,33 +469,22 @@ export default function OnboardingPage() {
               </TabsList>
 
               <TabsContent value="join">
-                <Form {...joinTeamForm}>
+                <div className="mt-4">
                   <form
-                    onSubmit={joinTeamForm.handleSubmit(joinTeam)}
-                    className="space-y-4 mt-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      joinTeam();
+                    }}
+                    className="space-y-4"
                   >
-                    <FormField
-                      control={joinTeamForm.control}
-                      name="teamCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t("onboarding.teamCode")}</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="ej. D6JKN9"
-                              value={teamCodeInput}
-                              onChange={(e) => {
-                                setTeamCodeInput(e.target.value);
-                                field.onChange(e.target.value);
-                              }}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              ref={field.ref}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    {/* Use our isolated component with its own state */}
+                    <TeamCodeInput
+                      key={teamInputKey} // Force recreate when step changes
+                      label={t("onboarding.teamCode")}
+                      placeholder="ej. D6JKN9"
+                      value={teamCodeValue}
+                      onChange={setTeamCodeValue}
+                      error={teamCodeError}
                     />
 
                     <Button
