@@ -596,9 +596,9 @@ export default function OnboardingPage() {
                       </div>
                       <FormControl>
                         <Input 
-                          placeholder={t("onboarding.teamCodePlaceholder") || "ej. D6JKN9"}
+                          placeholder="ej. D6JKN9"
                           {...field}
-                          value={field.value || ""}
+                          value=""
                         />
                       </FormControl>
                       <FormMessage />
