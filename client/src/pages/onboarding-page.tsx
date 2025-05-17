@@ -419,7 +419,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="ej. D6JKN9" {...field} />
+                            <Input placeholder={t("onboarding.teamCode")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -587,7 +587,7 @@ export default function OnboardingPage() {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>
-                                {t("onboarding.teamCodeHelp") ||
+                                {t("auth.teamCodeHelp") ||
                                   "Contact the team administrator to get the join code"}
                               </p>
                             </TooltipContent>
@@ -595,7 +595,7 @@ export default function OnboardingPage() {
                         </TooltipProvider>
                       </div>
                       <FormControl>
-                        <Input placeholder="ej. D6JKN9" {...field} />
+                        <Input placeholder={t("onboarding.teamCode")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
