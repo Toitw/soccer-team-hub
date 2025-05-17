@@ -96,7 +96,9 @@ export default function OnboardingPage() {
     defaultValues: {
       teamCode: "",
     },
-    mode: "onChange"
+    resetOptions: {
+      keepDirtyValues: false,
+    }
   });
 
   // Create team form (for admins only)
@@ -598,8 +600,10 @@ export default function OnboardingPage() {
                       <FormControl>
                         <Input 
                           placeholder="ej. D6JKN9"
-                          {...field}
-                          value={field.value || ""}
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          onBlur={field.onBlur}
+                          name={field.name}
                         />
                       </FormControl>
                       <FormMessage />
