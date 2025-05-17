@@ -198,6 +198,9 @@ export default function OnboardingPage() {
       // Update user state with new role
       setUser(response);
 
+      // Reset the join team form to ensure no values are carried over
+      joinTeamForm.reset({ teamCode: "" });
+      
       // Move to team step
       setOnboardingStep("team");
 
