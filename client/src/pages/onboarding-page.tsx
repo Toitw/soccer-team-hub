@@ -419,7 +419,10 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t("onboarding.teamCode")} {...field} />
+                            <Input
+                              placeholder={t("onboarding.teamCode")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -595,7 +598,10 @@ export default function OnboardingPage() {
                         </TooltipProvider>
                       </div>
                       <FormControl>
-                        <Input placeholder={t("onboarding.teamCode")} {...field} />
+                        <Input
+                          placeholder={t("onboarding.teamCode")}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
