@@ -96,9 +96,7 @@ export default function OnboardingPage() {
     defaultValues: {
       teamCode: "",
     },
-    resetOptions: {
-      keepDirtyValues: false,
-    }
+    mode: "onChange"
   });
 
   // Create team form (for admins only)
@@ -197,9 +195,17 @@ export default function OnboardingPage() {
 
       // Update user state with new role
       setUser(response);
-
-      // Reset the join team form to ensure no values are carried over
-      joinTeamForm.reset({ teamCode: "" });
+      
+      // Completely reset the join team form with a fresh instance
+      joinTeamForm.reset();
+      
+      // Force clear the value with direct DOM manipulation if needed
+      setTimeout(() => {
+        const teamCodeInput = document.querySelector('input[name="teamCode"]');
+        if (teamCodeInput) {
+          (teamCodeInput as HTMLInputElement).value = '';
+        }
+      }, 10);
       
       // Move to team step
       setOnboardingStep("team");
@@ -425,7 +431,14 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="ej. D6JKN9" {...field} />
+                            <Input 
+                              placeholder="ej. D6JKN9"
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
