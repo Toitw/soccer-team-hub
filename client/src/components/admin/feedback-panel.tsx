@@ -41,9 +41,17 @@ export default function FeedbackPanel() {
 
   const updateFeedbackStatus = async (id: number, status: FeedbackStatus) => {
     try {
+      // Validate status before sending
+      if (!['pending', 'reviewed', 'resolved'].includes(status)) {
+        throw new Error('Invalid status value');
+      }
+      
       await apiRequest(`/api/feedback/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       toast({
@@ -234,7 +242,7 @@ export default function FeedbackPanel() {
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Feedback Details</DialogTitle>
-            <DialogDescription>
+            <DialogDescription asChild>
               {selectedFeedback && (
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 mt-2">
