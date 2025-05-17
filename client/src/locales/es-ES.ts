@@ -757,6 +757,26 @@ export const esES = {
     refreshed: "Actualizado",
     announcementsUpdated: "Los anuncios han sido actualizados.",
   },
+  teams: {
+    createTeam: "Crear Equipo",
+    name: "Nombre del Equipo",
+    category: "Categoría",
+    categoryPlaceholder: "Seleccionar categoría del equipo",
+    categories: {
+      amateur: "Amateur",
+      federated: "Federado",
+      professional: "Profesional"
+    },
+    type: "Tipo de Equipo",
+    typePlaceholder: "Seleccionar tipo de equipo",
+    types: {
+      "11aside": "Fútbol 11",
+      "7aside": "Fútbol 7",
+      "futsal": "Fútbol Sala"
+    },
+    division: "División",
+    divisionPlaceholder: "ej., Primera División"
+  },
   onboarding: {
     welcome: "Bienvenido a Cancha+",
     joinTeamPrompt: "Únete a tu equipo para comenzar",

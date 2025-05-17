@@ -699,6 +699,26 @@ export const enUS = {
     refreshed: "Refreshed",
     announcementsUpdated: "Announcements have been updated.",
   },
+  teams: {
+    createTeam: "Create Team",
+    name: "Team Name",
+    category: "Category",
+    categoryPlaceholder: "Select team category",
+    categories: {
+      amateur: "Amateur",
+      federated: "Federated",
+      professional: "Professional"
+    },
+    type: "Team Type",
+    typePlaceholder: "Select team type",
+    types: {
+      "11aside": "11-a-side",
+      "7aside": "7-a-side",
+      "futsal": "Futsal"
+    },
+    division: "Division",
+    divisionPlaceholder: "e.g., First Division"
+  },
   onboarding: {
     welcome: "Welcome to Cancha+",
     joinTeamPrompt: "Join your team to get started",
