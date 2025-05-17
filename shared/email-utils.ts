@@ -22,16 +22,16 @@ if (process.env.SENDGRID_API_KEY) {
  * 
  * @param to - Recipient email address
  * @param subject - Email subject
- * @param htmlContent - HTML content of the email
- * @param textContent - Plain text content of the email
+ * @param html - HTML content of the email
+ * @param text - Plain text content of the email
  * @param fromEmail - Sender email address (defaults to canchaplusapp@gmail.com)
  * @returns Object with success status and optional error message
  */
 export async function sendEmail(
   to: string, 
   subject: string, 
-  htmlContent: string, 
-  textContent?: string,
+  html: string, 
+  text?: string,
   fromEmail: string = 'canchaplusapp@gmail.com'
 ): Promise<{ success: boolean; message?: string }> {
   // If SENDGRID_API_KEY is not set, return error
@@ -47,8 +47,8 @@ export async function sendEmail(
       to,
       from: fromEmail,
       subject,
-      text: textContent || htmlContent.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
-      html: htmlContent,
+      text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
+      html,
     };
 
     await mailService.send(msg);
@@ -84,7 +84,7 @@ export async function sendFeedbackNotification(
   
   const emailSubject = `Feedback: ${subject}`;
   
-  const emailHtml = `
+  const html = `
     <h2>New Feedback Submission</h2>
     <p><strong>Type:</strong> ${type}</p>
     <p><strong>From:</strong> ${name || "Anonymous"} ${email ? `(${email})` : ""}</p>
@@ -94,7 +94,7 @@ export async function sendFeedbackNotification(
     <p>${message.replace(/\n/g, '<br>')}</p>
   `;
   
-  const emailText = `
+  const text = `
 Type: ${type}
 From: ${name || "Anonymous"} ${email ? `(${email})` : ""}
 ${userId ? `User ID: ${userId}` : ""}
@@ -106,8 +106,8 @@ ${message}
   return await sendEmail(
     adminEmail,
     emailSubject,
-    emailHtml,
-    emailText
+    html,
+    text
   );
 }
 
@@ -116,33 +116,50 @@ ${message}
  * 
  * @param username - User's username
  * @param token - Email verification token
+ * @param baseUrl - Base URL for the verification link
+ * @param language - Language preference for email content
  * @returns Email content with verification link
  */
 export function generateVerificationEmail(
   username: string,
-  token: string
-): { subject: string; htmlContent: string; textContent: string } {
-  const subject = "Cancha+ Email Verification";
-  const verificationUrl = `${process.env.APP_URL || 'https://app.cancha.plus'}/verify-email/${token}`;
+  token: string,
+  baseUrl?: string,
+  language?: string
+): { subject: string; html: string; text: string } {
+  const verificationUrl = baseUrl 
+    ? `${baseUrl}/${token}`
+    : `${process.env.APP_URL || 'https://app.cancha.plus'}/verify-email/${token}`;
   
-  const htmlContent = `
+  // Set subject based on language
+  const subject = language === 'en' 
+    ? "Cancha+ Email Verification" 
+    : "Cancha+ Verificación de Correo Electrónico";
+  
+  const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #3b82f6;">Cancha+ Email Verification</h2>
-      <p>Hello ${username},</p>
-      <p>Thank you for signing up with Cancha+. Please verify your email address by clicking the button below:</p>
+      <h2 style="color: #3b82f6;">Cancha+ ${language === 'en' ? 'Email Verification' : 'Verificación de Correo Electrónico'}</h2>
+      <p>${language === 'en' ? 'Hello' : 'Hola'} ${username},</p>
+      <p>${language === 'en' 
+          ? 'Thank you for signing up with Cancha+. Please verify your email address by clicking the button below:' 
+          : 'Gracias por registrarte en Cancha+. Por favor verifica tu correo electrónico haciendo clic en el botón a continuación:'}</p>
       <p style="text-align: center; margin: 30px 0;">
         <a href="${verificationUrl}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Verify Email
+          ${language === 'en' ? 'Verify Email' : 'Verificar Correo'}
         </a>
       </p>
-      <p>Alternatively, you can copy and paste the following link into your browser:</p>
+      <p>${language === 'en' 
+          ? 'Alternatively, you can copy and paste the following link into your browser:' 
+          : 'Alternativamente, puedes copiar y pegar el siguiente enlace en tu navegador:'}</p>
       <p>${verificationUrl}</p>
-      <p>If you did not create an account, please ignore this email.</p>
-      <p>Thanks,<br>The Cancha+ Team</p>
+      <p>${language === 'en' 
+          ? 'If you did not create an account, please ignore this email.' 
+          : 'Si no creaste una cuenta, ignora este correo electrónico.'}</p>
+      <p>${language === 'en' ? 'Thanks,' : 'Gracias,'}<br>The Cancha+ Team</p>
     </div>
   `;
   
-  const textContent = `
+  const text = language === 'en'
+    ? `
 Hello ${username},
 
 Thank you for signing up with Cancha+. Please verify your email address by visiting the link below:
@@ -153,9 +170,21 @@ If you did not create an account, please ignore this email.
 
 Thanks,
 The Cancha+ Team
-  `;
+    `
+    : `
+Hola ${username},
+
+Gracias por registrarte en Cancha+. Por favor verifica tu correo electrónico visitando el siguiente enlace:
+
+${verificationUrl}
+
+Si no creaste una cuenta, ignora este correo electrónico.
+
+Gracias,
+El Equipo de Cancha+
+    `;
   
-  return { subject, htmlContent, textContent };
+  return { subject, html, text };
 }
 
 /**
@@ -163,34 +192,53 @@ The Cancha+ Team
  * 
  * @param username - User's username
  * @param token - Password reset token
+ * @param baseUrl - Base URL for the reset link
+ * @param language - Language preference for email content
  * @returns Email content with password reset link
  */
 export function generatePasswordResetEmail(
   username: string,
-  token: string
-): { subject: string; htmlContent: string; textContent: string } {
-  const subject = "Cancha+ Password Reset";
-  const resetUrl = `${process.env.APP_URL || 'https://app.cancha.plus'}/reset-password/${token}`;
+  token: string,
+  baseUrl?: string,
+  language?: string
+): { subject: string; html: string; text: string } {
+  const resetUrl = baseUrl 
+    ? `${baseUrl}/${token}`
+    : `${process.env.APP_URL || 'https://app.cancha.plus'}/reset-password/${token}`;
   
-  const htmlContent = `
+  // Set subject based on language
+  const subject = language === 'en' 
+    ? "Cancha+ Password Reset" 
+    : "Cancha+ Restablecimiento de Contraseña";
+  
+  const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #3b82f6;">Cancha+ Password Reset</h2>
-      <p>Hello ${username},</p>
-      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+      <h2 style="color: #3b82f6;">Cancha+ ${language === 'en' ? 'Password Reset' : 'Restablecimiento de Contraseña'}</h2>
+      <p>${language === 'en' ? 'Hello' : 'Hola'} ${username},</p>
+      <p>${language === 'en' 
+          ? 'We received a request to reset your password. Click the button below to create a new password:' 
+          : 'Recibimos una solicitud para restablecer tu contraseña. Haz clic en el botón a continuación para crear una nueva contraseña:'}</p>
       <p style="text-align: center; margin: 30px 0;">
         <a href="${resetUrl}" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-          Reset Password
+          ${language === 'en' ? 'Reset Password' : 'Restablecer Contraseña'}
         </a>
       </p>
-      <p>Alternatively, you can copy and paste the following link into your browser:</p>
+      <p>${language === 'en' 
+          ? 'Alternatively, you can copy and paste the following link into your browser:' 
+          : 'Alternativamente, puedes copiar y pegar el siguiente enlace en tu navegador:'}</p>
       <p>${resetUrl}</p>
-      <p>If you did not request a password reset, please ignore this email and your password will remain unchanged.</p>
-      <p>This password reset link will expire in 1 hour.</p>
-      <p>Thanks,<br>The Cancha+ Team</p>
+      <p>${language === 'en' 
+          ? 'If you did not request a password reset, please ignore this email and your password will remain unchanged.' 
+          : 'Si no solicitaste un restablecimiento de contraseña, ignora este correo y tu contraseña permanecerá sin cambios.'}</p>
+      <p>${language === 'en' 
+          ? 'This password reset link will expire in 1 hour.' 
+          : 'Este enlace de restablecimiento de contraseña caducará en 1 hora.'}</p>
+      <p>${language === 'en' ? 'Thanks,' : 'Gracias,'}<br>The Cancha+ Team</p>
     </div>
   `;
   
-  const textContent = `
+  const text = language === 'en'
+    ? `
 Hello ${username},
 
 We received a request to reset your password. Please visit the link below to create a new password:
@@ -203,7 +251,21 @@ This password reset link will expire in 1 hour.
 
 Thanks,
 The Cancha+ Team
-  `;
+    `
+    : `
+Hola ${username},
+
+Recibimos una solicitud para restablecer tu contraseña. Por favor visita el siguiente enlace para crear una nueva contraseña:
+
+${resetUrl}
+
+Si no solicitaste un restablecimiento de contraseña, ignora este correo y tu contraseña permanecerá sin cambios.
+
+Este enlace de restablecimiento de contraseña caducará en 1 hora.
+
+Gracias,
+El Equipo de Cancha+
+    `;
   
-  return { subject, htmlContent, textContent };
+  return { subject, html, text };
 }
