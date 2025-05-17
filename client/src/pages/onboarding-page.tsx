@@ -595,7 +595,11 @@ export default function OnboardingPage() {
                         </TooltipProvider>
                       </div>
                       <FormControl>
-                        <Input placeholder="ej. D6JKN9" {...field} />
+                        <Input 
+                          placeholder={t("onboarding.teamCodePlaceholder") || "ej. D6JKN9"}
+                          {...field}
+                          value={field.value || ""}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
