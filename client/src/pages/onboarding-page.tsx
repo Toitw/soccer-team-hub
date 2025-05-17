@@ -90,6 +90,9 @@ export default function OnboardingPage() {
     },
   });
 
+  // Local state for team code input
+  const [teamCodeInput, setTeamCodeInput] = useState("");
+  
   // Join team form
   const joinTeamForm = useForm<JoinTeamFormValues>({
     resolver: zodResolver(joinTeamSchema),
@@ -196,16 +199,14 @@ export default function OnboardingPage() {
       // Update user state with new role
       setUser(response);
       
-      // Completely reset the join team form with a fresh instance
-      joinTeamForm.reset();
+      // Reset the team code input state completely
+      setTeamCodeInput("");
       
-      // Force clear the value with direct DOM manipulation if needed
-      setTimeout(() => {
-        const teamCodeInput = document.querySelector('input[name="teamCode"]');
-        if (teamCodeInput) {
-          (teamCodeInput as HTMLInputElement).value = '';
-        }
-      }, 10);
+      // Unregister the field to completely remove it from form state
+      joinTeamForm.unregister("teamCode");
+      
+      // Create a new instance of the join team form
+      joinTeamForm.reset({ teamCode: "" });
       
       // Move to team step
       setOnboardingStep("team");
@@ -433,8 +434,11 @@ export default function OnboardingPage() {
                           <FormControl>
                             <Input 
                               placeholder="ej. D6JKN9"
-                              value={field.value || ""}
-                              onChange={field.onChange}
+                              value={teamCodeInput}
+                              onChange={(e) => {
+                                setTeamCodeInput(e.target.value);
+                                field.onChange(e.target.value);
+                              }}
                               onBlur={field.onBlur}
                               name={field.name}
                               ref={field.ref}

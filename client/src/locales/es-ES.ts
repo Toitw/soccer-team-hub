@@ -2,7 +2,8 @@ export const esES = {
   seasons: {
     seasons: "Temporadas",
     seasonManagement: "Gestión de Temporadas",
-    manageTeamSeasons: "Gestiona las temporadas de tu equipo y visualiza clasificaciones específicas por temporada",
+    manageTeamSeasons:
+      "Gestiona las temporadas de tu equipo y visualiza clasificaciones específicas por temporada",
     newSeason: "Nueva Temporada",
     createNewSeason: "Crear Nueva Temporada",
     createFirstSeason: "Crear Primera Temporada",
@@ -26,18 +27,22 @@ export const esES = {
     loadingSeasons: "Cargando temporadas...",
     loadingStandings: "Cargando clasificación...",
     noSeasons: "No se encontraron temporadas para este equipo.",
-    noStandings: "Aún no se ha añadido ninguna clasificación para esta temporada.",
-    useLeagueTab: "Utiliza la pestaña \"Clasificación de Liga\" para añadir equipos a la clasificación de esta temporada.",
-    deleteConfirmation: "¿Estás seguro de que quieres eliminar esta temporada? Esta acción no se puede deshacer.",
-    deleteNote: "Nota: Las temporadas con clasificaciones asociadas no se pueden eliminar. Primero deberás eliminar cualquier entrada de clasificación para esta temporada.",
-    active: "Activa"
+    noStandings:
+      "Aún no se ha añadido ninguna clasificación para esta temporada.",
+    useLeagueTab:
+      'Utiliza la pestaña "Clasificación de Liga" para añadir equipos a la clasificación de esta temporada.',
+    deleteConfirmation:
+      "¿Estás seguro de que quieres eliminar esta temporada? Esta acción no se puede deshacer.",
+    deleteNote:
+      "Nota: Las temporadas con clasificaciones asociadas no se pueden eliminar. Primero deberás eliminar cualquier entrada de clasificación para esta temporada.",
+    active: "Activa",
   },
   statistics: {
     teamStats: "Estadísticas del Equipo",
     team: "Equipo",
     players: "Jugadores",
     performance: "Rendimiento",
-    league: "Liga", 
+    league: "Liga",
     viewing: "Viendo",
     statistics: "Estadísticas",
     playerStatistics: "Estadísticas de Jugadores",
@@ -96,7 +101,8 @@ export const esES = {
     noDataAvailable: "No hay datos disponibles",
     goalsAnalysis: "Análisis de Goles",
     goalsAnalysisDesc: "Cuándo se marcan y reciben goles",
-    goalsTimingNotAvailable: "El análisis de tiempo de goles no está disponible",
+    goalsTimingNotAvailable:
+      "El análisis de tiempo de goles no está disponible",
     futureFeature: "Esta función estará disponible en una actualización futura",
     leagueTable: "Tabla de la Liga",
     leagueTableDesc: "Clasificación actual en la liga",
@@ -104,7 +110,8 @@ export const esES = {
     goalDifference: "DG",
     points: "Pts",
     noLeagueData: "No hay datos de liga disponibles",
-    leagueDataInstruction: "Añadir datos de clasificación de liga desde la página de Partidos"
+    leagueDataInstruction:
+      "Añadir datos de clasificación de liga desde la página de Partidos",
   },
   common: {
     teamKick: "TeamKick",
@@ -131,7 +138,8 @@ export const esES = {
   },
   feedback: {
     submitFeedback: "Enviar Comentarios",
-    helpUsImprove: "Ayúdanos a mejorar compartiendo tus ideas, sugerencias o reportando problemas.",
+    helpUsImprove:
+      "Ayúdanos a mejorar compartiendo tus ideas, sugerencias o reportando problemas.",
     feedbackType: "Tipo de Comentario",
     selectFeedbackType: "Selecciona el tipo de comentario",
     bugReport: "Reporte de Error",
@@ -182,57 +190,71 @@ export const esES = {
     register: "Registrarse",
     registering: "Registrando...",
     checkingJoinCode: "Verificando código de unión...",
-    validJoinCode: "Código de unión válido para el equipo \"{{teamName}}\"",
+    validJoinCode: 'Código de unión válido para el equipo "{{teamName}}"',
     invalidJoinCode: "Código de unión inválido",
-    joinCodeHelp: "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
-    teamCodeHelp: "Ingresa el código de unión proporcionado por el administrador (ej. D6JKN9)",
+    joinCodeHelp:
+      "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
+    teamCodeHelp:
+      "Ingresa el código de unión proporcionado por el administrador",
     logout: "Cerrar sesión",
     agreeToTerms: "Acepto los Términos y Condiciones",
 
     // Verificación de correo electrónico
     emailVerification: "Verificación de Correo Electrónico",
-    verifyEmailPrompt: "Por favor, revisa tu correo electrónico para verificar tu cuenta",
+    verifyEmailPrompt:
+      "Por favor, revisa tu correo electrónico para verificar tu cuenta",
     verifyEmailSuccess: "Correo electrónico verificado correctamente",
     verifyEmailFailed: "Falló la verificación del correo electrónico",
     verifyEmailToken: "Verificando tu dirección de correo electrónico",
     emailVerified: "Correo Electrónico Verificado",
     emailVerificationFailed: "Falló la Verificación del Correo Electrónico",
     emailVerificationExpired: "El enlace de verificación ha expirado",
-    verifyEmailSuccessMessage: "Tu correo electrónico ha sido verificado correctamente. Ahora puedes iniciar sesión en tu cuenta.",
-    verifyEmailFailedMessage: "No pudimos verificar tu dirección de correo electrónico. El enlace de verificación puede ser inválido o ha expirado.",
-    emailVerificationNotice: "Se enviará un correo de verificación a tu dirección de correo electrónico",
+    verifyEmailSuccessMessage:
+      "Tu correo electrónico ha sido verificado correctamente. Ahora puedes iniciar sesión en tu cuenta.",
+    verifyEmailFailedMessage:
+      "No pudimos verificar tu dirección de correo electrónico. El enlace de verificación puede ser inválido o ha expirado.",
+    emailVerificationNotice:
+      "Se enviará un correo de verificación a tu dirección de correo electrónico",
 
     // Restablecimiento de contraseña
     resetPassword: "Restablecer Contraseña",
-    resetPasswordPrompt: "Introduce tu correo electrónico para restablecer tu contraseña",
+    resetPasswordPrompt:
+      "Introduce tu correo electrónico para restablecer tu contraseña",
     requestPasswordReset: "Solicitar Restablecimiento de Contraseña",
     resetPasswordDescription: "Crea una nueva contraseña para tu cuenta",
     resetPasswordSuccess: "Contraseña Restablecida Correctamente",
     resetPasswordError: "Error al Restablecer Contraseña",
     passwordResetSuccess: "Contraseña Restablecida Correctamente",
-    passwordResetSuccessMessage: "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña.",
+    passwordResetSuccessMessage:
+      "Tu contraseña ha sido restablecida. Ahora puedes iniciar sesión con tu nueva contraseña.",
     passwordResetError: "Error al Restablecer Contraseña",
-    passwordResetErrorMessage: "No pudimos restablecer tu contraseña. Por favor intenta de nuevo.",
-    passwordResetErrorNetwork: "Error de red. Por favor, verifica tu conexión e intenta nuevamente.",
+    passwordResetErrorMessage:
+      "No pudimos restablecer tu contraseña. Por favor intenta de nuevo.",
+    passwordResetErrorNetwork:
+      "Error de red. Por favor, verifica tu conexión e intenta nuevamente.",
     validatingResetToken: "Validando token de restablecimiento...",
     resettingPassword: "Restableciendo contraseña...",
     newPassword: "Nueva Contraseña",
     setNewPasswordPrompt: "Introduce tu nueva contraseña",
-    passwordSecurityNotice: "La contraseña debe tener al menos 8 caracteres e incluir un número, una letra mayúscula y un carácter especial",
+    passwordSecurityNotice:
+      "La contraseña debe tener al menos 8 caracteres e incluir un número, una letra mayúscula y un carácter especial",
     forgotPassword: "¿Olvidaste tu contraseña?",
     noAccount: "¿No tienes una cuenta?",
     registerHere: "Regístrate aquí",
     // Página de olvido de contraseña
     forgotPasswordTitle: "¿Olvidaste tu Contraseña?",
-    forgotPasswordDescription: "Introduce tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+    forgotPasswordDescription:
+      "Introduce tu dirección de correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
     emailAddress: "Correo electrónico",
     emailPlaceholder: "Introduce tu dirección de correo electrónico",
     sendResetLink: "Enviar Enlace de Restablecimiento",
     sending: "Enviando...",
     resetLinkSent: "Enlace de Restablecimiento Enviado",
-    resetLinkSentMessage: "Si existe una cuenta con este correo electrónico, recibirás un enlace para restablecer tu contraseña en breve. Por favor, revisa tu correo (incluyendo la carpeta de spam).",
+    resetLinkSentMessage:
+      "Si existe una cuenta con este correo electrónico, recibirás un enlace para restablecer tu contraseña en breve. Por favor, revisa tu correo (incluyendo la carpeta de spam).",
     requestError: "Error en la Solicitud",
-    resetRequestErrorMessage: "No pudimos enviar el correo para restablecer tu contraseña. Por favor intenta de nuevo.",
+    resetRequestErrorMessage:
+      "No pudimos enviar el correo para restablecer tu contraseña. Por favor intenta de nuevo.",
     tryAgain: "Intentar de Nuevo",
     backToLogin: "Volver al Inicio de Sesión",
     processingRequest: "Procesando Solicitud",
@@ -244,13 +266,16 @@ export const esES = {
   },
   landingPage: {
     heroTitle: "Gestiona Tu Equipo de Fútbol Como un Profesional",
-    heroSubtitle: "Cancha Plus te ayuda a organizar actividades, seguir el rendimiento de los jugadores y gestionar las comunicaciones del equipo, todo en un solo lugar.",
+    heroSubtitle:
+      "Cancha Plus te ayuda a organizar actividades, seguir el rendimiento de los jugadores y gestionar las comunicaciones del equipo, todo en un solo lugar.",
     teamManagement: "Gestión de Equipo",
     teamManagementDesc: "Asignar roles, invitar miembros, gestionar permisos",
     performanceTracking: "Seguimiento de Rendimiento",
-    performanceTrackingDesc: "Seguimiento de goles, asistencias y otras estadísticas de jugadores",
+    performanceTrackingDesc:
+      "Seguimiento de goles, asistencias y otras estadísticas de jugadores",
     eventManagement: "Gestión de Eventos",
-    eventManagementDesc: "Organiza entrenamientos, partidos y reuniones de equipo",
+    eventManagementDesc:
+      "Organiza entrenamientos, partidos y reuniones de equipo",
   },
   team: {
     myTeam: "Mi Equipo",
@@ -278,7 +303,7 @@ export const esES = {
       role: "Rol",
       position: "Posición",
       jerseyNumber: "Número de Camiseta (opcional)",
-      profilePicture: "Foto de Perfil"
+      profilePicture: "Foto de Perfil",
     },
     teamLineup: "Alineación del Equipo",
     formation: "Formación",
@@ -288,9 +313,12 @@ export const esES = {
     allPlayersInLineup: "Todos los jugadores están en la alineación",
     addPlayerToLineup: "Añadir Jugador a la Alineación",
     searchPlayers: "Buscar jugadores...",
-    selectPlayerForPosition: "Selecciona un jugador para añadir a la posición seleccionada.",
-    lineupPositionInstructions: "Haz clic en una posición para asignar un jugador.",
-    lineupSetByCoach: "La alineación del equipo es establecida por el entrenador.",
+    selectPlayerForPosition:
+      "Selecciona un jugador para añadir a la posición seleccionada.",
+    lineupPositionInstructions:
+      "Haz clic en una posición para asignar un jugador.",
+    lineupSetByCoach:
+      "La alineación del equipo es establecida por el entrenador.",
     cancel: "Cancelar",
     filterByRole: "Filtrar por rol",
     allMembers: "Todos los Miembros",
@@ -301,7 +329,8 @@ export const esES = {
     addTeamMembersToStart: "Añade miembros al equipo para comenzar",
     editTeamMember: "Editar Miembro del Equipo",
     removeTeamMember: "Eliminar Miembro del Equipo",
-    removeConfirmation: "¿Estás seguro de que quieres eliminar a {{name}} del equipo? Esta acción no se puede deshacer.",
+    removeConfirmation:
+      "¿Estás seguro de que quieres eliminar a {{name}} del equipo? Esta acción no se puede deshacer.",
     remove: "Eliminar",
     teamMembers: "Miembros del Equipo",
     table: {
@@ -322,13 +351,14 @@ export const esES = {
     forwards: "Delanteros",
     forward: "Delantero",
     none: "Ninguno",
-    noPlayersAvailable: "No hay jugadores disponibles. Añade jugadores a tu equipo primero.",
+    noPlayersAvailable:
+      "No hay jugadores disponibles. Añade jugadores a tu equipo primero.",
     noTeamMembersFound: "No se han encontrado miembros del equipo",
     selectRole: "Seleccionar rol",
     selectPosition: "Seleccionar posición",
     filters: {
       tryAdjusting: "Intenta ajustar tus filtros",
-      addToStart: "Añade miembros al equipo para comenzar"
+      addToStart: "Añade miembros al equipo para comenzar",
     },
     // 7-a-side specific positions
     sevenASidePositions: "Posiciones de Fútbol 7",
@@ -363,14 +393,15 @@ export const esES = {
     def: "DEF",
     mid: "MED",
     fw: "DEL",
-    noTeamMembersForLineup: "No hay miembros del equipo disponibles para la alineación",
+    noTeamMembersForLineup:
+      "No hay miembros del equipo disponibles para la alineación",
 
     // Position translations for team members table
     positions: {
       "Left Winger": "Extremo Izquierdo",
-      "Right Winger": "Extremo Derecho", 
+      "Right Winger": "Extremo Derecho",
       "Center Forward": "Delantero Centro",
-      "Goalkeeper": "Portero",
+      Goalkeeper: "Portero",
       "Center Back": "Defensa Central",
       "Left Back": "Lateral Izquierdo",
       "Right Back": "Lateral Derecho",
@@ -378,7 +409,7 @@ export const esES = {
       "Defensive Midfielder": "Mediocentro Defensivo",
       "Central Midfielder": "Mediocentro",
       "Attacking Midfielder": "Mediapunta",
-      "Striker": "Delantero",
+      Striker: "Delantero",
       "7-a-side Center Defender": "Defensa Central F7",
       "7-a-side Wide Defender": "Defensa Lateral F7",
       "7-a-side Center Midfielder": "Mediocentro F7",
@@ -387,8 +418,8 @@ export const esES = {
       "Futsal Defender": "Defensa Sala",
       "Futsal Pivot": "Pívot Sala",
       "Futsal Winger": "Extremo Sala",
-      "Futsal Universal": "Universal Sala"
-    }
+      "Futsal Universal": "Universal Sala",
+    },
   },
   matches: {
     matches: "Competición",
@@ -412,7 +443,8 @@ export const esES = {
     cards: "Tarjetas",
     substitutions: "Sustituciones",
     noMatches: "No hay partidos programados",
-    noMatchesDescription: "Programa tu primer partido haciendo clic en el botón de abajo",
+    noMatchesDescription:
+      "Programa tu primer partido haciendo clic en el botón de abajo",
     noClassificationData: "No hay datos de clasificación disponibles.",
     addManually: "Añadir manualmente",
     nextMatch: "Próximo Partido",
@@ -427,7 +459,8 @@ export const esES = {
     addMatchDescription: "Completa el formulario para añadir un nuevo partido",
     editMatchDescription: "Realiza cambios en los detalles del partido",
     uploadCSVDescription: "Sube un archivo CSV con datos de partidos",
-    deleteMatchConfirmation: "Esta acción no se puede deshacer. Esto eliminará permanentemente el partido.",
+    deleteMatchConfirmation:
+      "Esta acción no se puede deshacer. Esto eliminará permanentemente el partido.",
     matchCreated: "Partido creado con éxito",
     matchUpdated: "Partido actualizado con éxito",
     matchDeleted: "Partido eliminado con éxito",
@@ -437,7 +470,8 @@ export const esES = {
     csvUploaded: "Datos CSV subidos con éxito",
     failedToUpload: "Error al subir datos CSV",
     csvFile: "Archivo CSV",
-    requiredFormat: "Formato requerido: \"Equipo,Puntos\" con columnas opcionales para partidos jugados, ganados, empatados, perdidos y goles.",
+    requiredFormat:
+      'Formato requerido: "Equipo,Puntos" con columnas opcionales para partidos jugados, ganados, empatados, perdidos y goles.',
     exampleCsvFormat: "Ejemplo de formato CSV:",
     needTemplate: "¿Necesitas una plantilla?",
     downloadSampleCsv: "Descargar CSV de ejemplo",
@@ -485,8 +519,10 @@ export const esES = {
     details: "Detalles",
     enterNotes: "Introduce notas adicionales",
     addClassificationEntry: "Añadir Entrada de Clasificación",
-    editClassificationDetails: "Edita los detalles de la clasificación a continuación.",
-    enterTeamDetailsClassification: "Introduce detalles del equipo para añadir a la tabla de clasificación.",
+    editClassificationDetails:
+      "Edita los detalles de la clasificación a continuación.",
+    enterTeamDetailsClassification:
+      "Introduce detalles del equipo para añadir a la tabla de clasificación.",
     teamName: "Nombre del Equipo",
     enterTeamName: "Introduce nombre del equipo",
     matchType: "Tipo de Partido",
@@ -520,23 +556,28 @@ export const esES = {
       failedUploadCsvFile: "Error al subir el archivo CSV",
       failedDeleteMatch: "Error al eliminar el partido",
       failedUpdateMatch: "Error al actualizar el partido",
-      failedCreateMatch: "Error al crear el partido"
+      failedCreateMatch: "Error al crear el partido",
     },
     success: {
       classificationUpdated: "Clasificación actualizada con éxito",
       classificationCreated: "Clasificación creada con éxito",
-      classificationDeleted: "La entrada de clasificación ha sido eliminada con éxito",
-      entriesCreated: "Se han creado {count} entradas de clasificación con éxito",
+      classificationDeleted:
+        "La entrada de clasificación ha sido eliminada con éxito",
+      entriesCreated:
+        "Se han creado {count} entradas de clasificación con éxito",
       matchDeleted: "El partido ha sido eliminado con éxito",
       matchUpdated: "Partido actualizado con éxito",
       matchCreated: "Partido creado con éxito",
-      matchUpdatedDesc: "Los detalles del partido han sido actualizados con éxito",
-      matchCreatedDesc: "El nuevo partido ha sido añadido con éxito"
+      matchUpdatedDesc:
+        "Los detalles del partido han sido actualizados con éxito",
+      matchCreatedDesc: "El nuevo partido ha sido añadido con éxito",
     },
     areYouSure: "¿Estás seguro?",
-    permanentlyDeleteMatch: "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",
-    permanentlyDeleteClassification: "Esto eliminará permanentemente la entrada de clasificación para {{teamName}}. Esta acción no se puede deshacer.",
-    editLineup: "Editar Alineación", 
+    permanentlyDeleteMatch:
+      "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",
+    permanentlyDeleteClassification:
+      "Esto eliminará permanentemente la entrada de clasificación para {{teamName}}. Esta acción no se puede deshacer.",
+    editLineup: "Editar Alineación",
     addLineup: "Añadir Alineación",
     editMatchLineup: "Editar Alineación de Partido",
     addMatchLineup: "Añadir Alineación de Partido",
@@ -565,13 +606,17 @@ export const esES = {
 
     // New entries for match-details.tsx
     noCardsRecorded: "No hay tarjetas registradas para este partido.",
-    recordCardsHelp: "Registra tarjetas amarillas y rojas recibidas por tu equipo.",
+    recordCardsHelp:
+      "Registra tarjetas amarillas y rojas recibidas por tu equipo.",
     noGoalsRecorded: "No hay goles registrados para este partido.",
     recordGoalsHelp: "Añade detalles de cada gol marcado por tu equipo.",
-    noSubstitutionsRecorded: "No hay sustituciones registradas para este partido.",
-    recordSubstitutionsHelp: "Registra sustituciones de jugadores para hacer seguimiento de los cambios durante el partido.",
+    noSubstitutionsRecorded:
+      "No hay sustituciones registradas para este partido.",
+    recordSubstitutionsHelp:
+      "Registra sustituciones de jugadores para hacer seguimiento de los cambios durante el partido.",
     noLineupSet: "No se ha establecido alineación para este partido.",
-    addLineupHelp: "Añade una alineación para hacer seguimiento de las posiciones de los jugadores.",
+    addLineupHelp:
+      "Añade una alineación para hacer seguimiento de las posiciones de los jugadores.",
     subs: "Sustituciones",
     lineup: "Alineación",
     startingLineup: "Alineación Inicial",
@@ -583,8 +628,10 @@ export const esES = {
     addCard: "Añadir Tarjeta",
     min: "Min",
     type: "Tipo",
-    setupStartingLineupDescription: "Introduce detalles para registrar estadísticas del partido",
-    matchDetailsDescription: "Ver y gestionar información del partido, alineación y estadísticas",
+    setupStartingLineupDescription:
+      "Introduce detalles para registrar estadísticas del partido",
+    matchDetailsDescription:
+      "Ver y gestionar información del partido, alineación y estadísticas",
     yellowCard: "Tarjeta Amarilla",
     redCard: "Tarjeta Roja",
     yellow: "Amarilla",
@@ -621,7 +668,7 @@ export const esES = {
       actions: "Acciones",
       addEntry: "Añadir Entrada",
       uploadCsv: "Subir CSV",
-      sampleCsv: "Modelo CSV"
+      sampleCsv: "Modelo CSV",
     },
   },
   events: {
@@ -644,7 +691,7 @@ export const esES = {
       match: "Partido",
       meeting: "Reunión",
       social: "Evento Social",
-      other: "Otro"
+      other: "Otro",
     },
     noEvents: "No hay eventos programados",
     eventManagement: "Gestión de Eventos",
@@ -653,7 +700,8 @@ export const esES = {
     editEvent: "Editar Evento",
     title: "Título",
     enterTitle: "Introduce el título del evento",
-    enterDescription: "Introduce la descripción del evento, objetivos, equipo necesario, etc.",
+    enterDescription:
+      "Introduce la descripción del evento, objetivos, equipo necesario, etc.",
     enterLocation: "Introduce la ubicación del evento",
     calendar: "Calendario",
     listView: "Vista de Lista",
@@ -664,7 +712,8 @@ export const esES = {
     scheduleFirstEvent: "Programa tu primer evento",
     updateEvent: "Actualizar Evento",
     deleteEvent: "Eliminar Evento",
-    confirmDelete: "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
+    confirmDelete:
+      "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     attending: "asistiendo",
     attend: "Asistir",
     notAttending: "No Asistiendo",
@@ -672,7 +721,8 @@ export const esES = {
     responses: "respuestas",
     attendingStatus: "Asistiendo",
     notAttendingStatus: "No Asistiendo",
-    deleteEventConfirmation: "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
+    deleteEventConfirmation:
+      "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     deleting: "Eliminando...",
   },
   announcements: {
@@ -691,10 +741,13 @@ export const esES = {
     important: "Importante",
     noAnnouncements: "Aún no hay anuncios",
     noAnnouncementsDescription: "Cuando se creen anuncios, aparecerán aquí.",
-    createAnnouncementDescription: "Completa el formulario a continuación para crear un nuevo anuncio.",
-    editAnnouncementDescription: "Realiza cambios en el anuncio a continuación.",
+    createAnnouncementDescription:
+      "Completa el formulario a continuación para crear un nuevo anuncio.",
+    editAnnouncementDescription:
+      "Realiza cambios en el anuncio a continuación.",
     areYouSure: "¿Estás seguro?",
-    deleteConfirmation: "Esta acción no se puede deshacer. Esto eliminará permanentemente el anuncio.",
+    deleteConfirmation:
+      "Esta acción no se puede deshacer. Esto eliminará permanentemente el anuncio.",
     deleteAnnouncementSuccess: "El anuncio ha sido eliminado con éxito.",
     updateAnnouncementSuccess: "Tu anuncio ha sido actualizado con éxito.",
     createAnnouncementSuccess: "Tu anuncio ha sido creado con éxito.",
@@ -714,9 +767,12 @@ export const esES = {
     roleSelectionTitle: "Elige tu rol para comenzar",
     backToRoleSelection: "Volver a Selección de Rol",
     roleDescriptions: {
-      player: "Únete a un equipo, sigue tus estadísticas y participa en partidos",
-      coach: "Gestiona alineaciones, crea sesiones de entrenamiento y analiza el rendimiento",
-      admin: "Crea y gestiona equipos, añade usuarios y configura ajustes del equipo"
+      player:
+        "Únete a un equipo, sigue tus estadísticas y participa en partidos",
+      coach:
+        "Gestiona alineaciones, crea sesiones de entrenamiento y analiza el rendimiento",
+      admin:
+        "Crea y gestiona equipos, añade usuarios y configura ajustes del equipo",
     },
     continue: "Continuar",
     saving: "Guardando...",
@@ -724,13 +780,13 @@ export const esES = {
     categoryTypes: {
       professional: "Profesional",
       federated: "Federado",
-      amateur: "Amateur"
+      amateur: "Amateur",
     },
     teamType: "Tipo de Equipo",
     teamTypes: {
       elevenASide: "Fútbol 11",
       sevenASide: "Fútbol 7",
-      futsal: "Fútbol Sala"
+      futsal: "Fútbol Sala",
     },
     division: "División",
     divisionPlaceholder: "ej., Primera División",
@@ -738,7 +794,7 @@ export const esES = {
     seasonYearPlaceholder: "ej., 2023",
     tryDemoMode: "Probar Modo Demo",
     exploreFeatures: "Explora las funciones de la app antes de crear un equipo",
-    skipForNow: "Saltar por ahora"
+    skipForNow: "Saltar por ahora",
   },
   settings: {
     membersTab: "Miembros",
@@ -759,18 +815,22 @@ export const esES = {
     currentPassword: "Contraseña Actual",
     newPassword: "Nueva Contraseña",
     confirmNewPassword: "Confirmar Nueva Contraseña",
-    profilePictureDescription: "Sube una nueva foto de perfil (déjalo vacío para mantener la actual)",
+    profilePictureDescription:
+      "Sube una nueva foto de perfil (déjalo vacío para mantener la actual)",
     // Settings page
     teamMembers: "Miembros del Equipo",
     administrators: "Administradores",
-    administratorsDescription: "Administradores del equipo con acceso completo a la configuración",
+    administratorsDescription:
+      "Administradores del equipo con acceso completo a la configuración",
     coaches: "Entrenadores",
-    coachesDescription: "Entrenadores del equipo que gestionan sesiones de entrenamiento y partidos",
+    coachesDescription:
+      "Entrenadores del equipo que gestionan sesiones de entrenamiento y partidos",
     players: "Jugadores",
     playersDescription: "Plantilla de jugadores del equipo",
     inviteMember: "Invitar Miembro",
     inviteTeamMember: "Invitar Miembro al Equipo",
-    inviteDescription: "Envía un correo de invitación para añadir un nuevo miembro al equipo.",
+    inviteDescription:
+      "Envía un correo de invitación para añadir un nuevo miembro al equipo.",
     email: "Correo Electrónico",
     enterEmailAddress: "Introduce dirección de correo electrónico",
     role: "Rol",
@@ -784,28 +844,34 @@ export const esES = {
     seasonYear: "Temporada",
     logo: "Logo",
     joinCode: "Código de Unión",
-    joinCodeDescription: "Los miembros pueden usar este código para unirse a tu equipo durante el registro",
+    joinCodeDescription:
+      "Los miembros pueden usar este código para unirse a tu equipo durante el registro",
     regenerateJoinCode: "Regenerar Código",
     copyToClipboard: "Copiar al Portapapeles",
     showCode: "Mostrar Código",
     hideCode: "Ocultar Código",
     joinCodeRegenerated: "Código de unión regenerado",
-    joinCodeRegeneratedDescription: "Nuevo código de unión generado correctamente",
+    joinCodeRegeneratedDescription:
+      "Nuevo código de unión generado correctamente",
     copiedToClipboard: "Copiado al portapapeles",
-    clipboardDescription: "El código de unión del equipo ha sido copiado al portapapeles",
+    clipboardDescription:
+      "El código de unión del equipo ha sido copiado al portapapeles",
     name: "Nombre",
     position: "Posición",
     contact: "Contacto",
     actions: "Acciones",
     teamUpdated: "Equipo actualizado",
-    teamUpdatedDescription: "La configuración del equipo ha sido actualizada correctamente.",
+    teamUpdatedDescription:
+      "La configuración del equipo ha sido actualizada correctamente.",
     changeTeamLogo: "Cambiar Logo del Equipo",
     currentLogo: "Logo Actual",
     uploadNewLogo: "Subir Nuevo Logo",
     selectImageFile: "Selecciona un archivo de imagen",
     logoUpdated: "Logo actualizado",
-    logoUpdatedDescription: "El logo de tu equipo ha sido actualizado correctamente.",
-    manageTeamInformation: "Gestiona la información y preferencias de tu equipo",
+    logoUpdatedDescription:
+      "El logo de tu equipo ha sido actualizado correctamente.",
+    manageTeamInformation:
+      "Gestiona la información y preferencias de tu equipo",
     uploadLogo: "Subir Logo",
     errorUpdatingTeam: "Error al actualizar el equipo",
     errorUpdatingLogo: "Error al actualizar el logo",
@@ -813,10 +879,13 @@ export const esES = {
     save: "Guardar",
     member: "Miembro",
     memberRemoved: "Miembro eliminado",
-    memberRemovedDescription: "El miembro del equipo ha sido eliminado correctamente.",
+    memberRemovedDescription:
+      "El miembro del equipo ha sido eliminado correctamente.",
     errorRemovingMember: "Error al eliminar el miembro",
-    confirmDeleteMember: "¿Estás seguro de que quieres eliminar a este miembro del equipo?",
-    deleteWarning: "Esta acción no se puede deshacer. El miembro perderá el acceso al equipo.",
+    confirmDeleteMember:
+      "¿Estás seguro de que quieres eliminar a este miembro del equipo?",
+    deleteWarning:
+      "Esta acción no se puede deshacer. El miembro perderá el acceso al equipo.",
     confirmDelete: "Confirmar Eliminación",
   },
   dashboard: {
@@ -853,11 +922,13 @@ export const esES = {
     teamCreated: "Equipo Creado",
     teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
     teamCreateError: "Error al crear equipo",
-    teamCreateErrorDesc: "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
+    teamCreateErrorDesc:
+      "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
     memberCreated: "Miembro Añadido",
     memberCreatedDesc: "{{name}} ha sido añadido al equipo exitosamente.",
     memberCreateError: "Error al añadir miembro",
-    memberCreateErrorDesc: "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
+    memberCreateErrorDesc:
+      "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
 
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
@@ -875,7 +946,8 @@ export const esES = {
     announcementUpdatedDesc: "Tu anuncio ha sido actualizado",
     announcementDeleted: "Anuncio eliminado",
     announcementDeletedDesc: "El anuncio ha sido eliminado",
-    refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
+    refreshingAnnouncements:
+      "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
     failedToRefresh: "Error al actualizar",
 
@@ -888,7 +960,8 @@ export const esES = {
     // Mensajes relacionados con detalles de partido
     playerAlreadyInLineup: "Jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
-    removePlayerFirst: "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
+    removePlayerFirst:
+      "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
     playerAlreadyOnBench: "Jugador ya está en el banquillo",
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
