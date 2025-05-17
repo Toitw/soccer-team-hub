@@ -1,0 +1,75 @@
+<FormField
+                  control={roleForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="grid grid-cols-1 gap-6">
+                        <div
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "player"
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("player")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <UserRound className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">
+                                {t("auth.player")}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {t("onboarding.roleDescriptions.player")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "coach"
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("coach")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <UserRoundCog className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{t("auth.coach")}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {t("onboarding.roleDescriptions.coach")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
+                            field.value === "admin"
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                          onClick={() => field.onChange("admin")}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/20 p-2 rounded-full">
+                              <Users className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{t("auth.admin")}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {t("onboarding.roleDescriptions.admin")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
