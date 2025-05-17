@@ -1,10 +1,35 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { z } from "zod";
@@ -18,14 +43,14 @@ import { UserRoundCog, UserRound, Users, HelpCircle } from "lucide-react";
 
 // Schema for user role selection
 const userRoleSchema = z.object({
-  role: z.enum(["player", "coach", "admin", "colaborador", "superuser"])
+  role: z.enum(["player", "coach", "admin", "colaborador", "superuser"]),
 });
 
 type UserRoleFormValues = z.infer<typeof userRoleSchema>;
 
 // Schema for joining a team
 const joinTeamSchema = z.object({
-  teamCode: z.string().min(1, "Team code is required")
+  teamCode: z.string().min(1, "Team code is required"),
 });
 
 type JoinTeamFormValues = z.infer<typeof joinTeamSchema>;
@@ -35,7 +60,7 @@ const createTeamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
   teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).default("11-a-side"),
-  division: z.string().optional()
+  division: z.string().optional(),
   // seasonYear field removed as per requirements
 });
 
@@ -55,16 +80,22 @@ export default function OnboardingPage() {
   const roleForm = useForm<UserRoleFormValues>({
     resolver: zodResolver(userRoleSchema),
     defaultValues: {
-      role: user?.role as "player" | "coach" | "admin" | "colaborador" | "superuser" || "player"
-    }
+      role:
+        (user?.role as
+          | "player"
+          | "coach"
+          | "admin"
+          | "colaborador"
+          | "superuser") || "player",
+    },
   });
 
   // Join team form
   const joinTeamForm = useForm<JoinTeamFormValues>({
     resolver: zodResolver(joinTeamSchema),
     defaultValues: {
-      teamCode: ""
-    }
+      teamCode: "",
+    },
   });
 
   // Create team form (for admins only)
@@ -74,10 +105,10 @@ export default function OnboardingPage() {
       name: "",
       category: "AMATEUR",
       teamType: "11-a-side",
-      division: ""
+      division: "",
       // seasonYear removed as per requirements
       // Logo is not part of the form schema, removed to fix type error
-    }
+    },
   });
 
   async function joinTeam(values: JoinTeamFormValues) {
@@ -85,7 +116,7 @@ export default function OnboardingPage() {
     try {
       const response = await apiRequest("/api/auth/onboarding/join-team", {
         method: "POST",
-        data: values
+        data: values,
       });
 
       setUser(response.user);
@@ -102,7 +133,9 @@ export default function OnboardingPage() {
       toast({
         variant: "destructive",
         title: "Failed to join team",
-        description: error.message || "Invalid team code or server error. Please try again."
+        description:
+          error.message ||
+          "Invalid team code or server error. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -114,19 +147,22 @@ export default function OnboardingPage() {
     try {
       const response = await apiRequest("/api/auth/onboarding/create-team", {
         method: "POST",
-        data: values
+        data: values,
       });
 
       setUser(response.user);
 
       // Force cache invalidation to refresh team list
       // This ensures the new team data (with correct teamType) is loaded
-      window.localStorage.setItem('team_created', JSON.stringify({
-        id: response.team.id,
-        name: response.team.name,
-        teamType: response.team.teamType,
-        timestamp: Date.now()
-      }));
+      window.localStorage.setItem(
+        "team_created",
+        JSON.stringify({
+          id: response.team.id,
+          name: response.team.name,
+          teamType: response.team.teamType,
+          timestamp: Date.now(),
+        }),
+      );
 
       toast({
         title: "Team created successfully",
@@ -140,7 +176,7 @@ export default function OnboardingPage() {
       toast({
         variant: "destructive",
         title: "Failed to create team",
-        description: error.message || "Something went wrong. Please try again."
+        description: error.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -153,7 +189,7 @@ export default function OnboardingPage() {
       // Update user role
       const response = await apiRequest("/api/auth/onboarding/update-role", {
         method: "POST",
-        data: values
+        data: values,
       });
 
       // Update user state with new role
@@ -166,13 +202,12 @@ export default function OnboardingPage() {
       if (values.role === "admin") {
         setActiveTab("create");
       }
-
     } catch (error: any) {
       console.error("Error updating role:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Something went wrong. Please try again."
+        description: error.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -184,14 +219,15 @@ export default function OnboardingPage() {
     try {
       // Still mark onboarding as complete in the backend
       const response = await apiRequest("/api/auth/onboarding/complete", {
-        method: "POST"
+        method: "POST",
       });
 
       setUser(response);
 
       toast({
         title: "Demo Mode Activated",
-        description: "You're now viewing the app in demo mode. Create your team when you're ready!",
+        description:
+          "You're now viewing the app in demo mode. Create your team when you're ready!",
       });
 
       // Redirect to mock page instead of dashboard
@@ -201,7 +237,7 @@ export default function OnboardingPage() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Something went wrong. Please try again."
+        description: error.message || "Something went wrong. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -213,7 +249,7 @@ export default function OnboardingPage() {
 
   // Only proceed with redirects when we're sure about the user state
   if (!isLoading) {
-    // Adding logging for debugging  
+    // Adding logging for debugging
     console.log("Onboarding page - Current user:", user);
 
     if (!user) {
@@ -225,10 +261,12 @@ export default function OnboardingPage() {
 
     // Only redirect if they didn't come from the mock page
     const urlParams = new URLSearchParams(window.location.search);
-    const fromMock = urlParams.get('fromMock') === 'true';
+    const fromMock = urlParams.get("fromMock") === "true";
 
     if (user.onboardingCompleted && !fromMock) {
-      console.log("User already completed onboarding, redirecting to dashboard");
+      console.log(
+        "User already completed onboarding, redirecting to dashboard",
+      );
       // Use setLocation instead of direct window.location to prevent refresh loops
       setLocation("/");
       return null;
@@ -251,30 +289,35 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">{t("onboarding.welcome")}</CardTitle>
-            <CardDescription>
-              {onboardingStep === "role" 
-                ? t("onboarding.roleSelectionTitle")
-                : isAdmin 
-                  ? t("auth.joinCodeHelp")
-                  : t("onboarding.joinTeamPrompt")}
-            </CardDescription>
-          </CardHeader>
+          <CardTitle className="text-2xl font-bold">
+            {t("onboarding.welcome")}
+          </CardTitle>
+          <CardDescription>
+            {onboardingStep === "role"
+              ? t("onboarding.roleSelectionTitle")
+              : isAdmin
+                ? t("auth.joinCodeHelp")
+                : t("onboarding.joinTeamPrompt")}
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           {onboardingStep === "role" ? (
             // Role selection step
             <Form {...roleForm}>
-              <form onSubmit={roleForm.handleSubmit(submitRole)} className="space-y-6">
+              <form
+                onSubmit={roleForm.handleSubmit(submitRole)}
+                className="space-y-6"
+              >
                 <FormField
                   control={roleForm.control}
                   name="role"
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid grid-cols-1 gap-6">
-                        <div 
+                        <div
                           className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                            field.value === "player" 
-                              ? "border-primary bg-primary/10" 
+                            field.value === "player"
+                              ? "border-primary bg-primary/10"
                               : "border-border hover:border-primary/50"
                           }`}
                           onClick={() => field.onChange("player")}
@@ -284,7 +327,9 @@ export default function OnboardingPage() {
                               <UserRound className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                              <h3 className="font-medium">{t("auth.player")}</h3>
+                              <h3 className="font-medium">
+                                {t("auth.player")}
+                              </h3>
                               <p className="text-sm text-muted-foreground">
                                 {t("onboarding.roleDescriptions.player")}
                               </p>
@@ -292,10 +337,10 @@ export default function OnboardingPage() {
                           </div>
                         </div>
 
-                        <div 
+                        <div
                           className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                            field.value === "coach" 
-                              ? "border-primary bg-primary/10" 
+                            field.value === "coach"
+                              ? "border-primary bg-primary/10"
                               : "border-border hover:border-primary/50"
                           }`}
                           onClick={() => field.onChange("coach")}
@@ -313,10 +358,10 @@ export default function OnboardingPage() {
                           </div>
                         </div>
 
-                        <div 
+                        <div
                           className={`relative rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                            field.value === "admin" 
-                              ? "border-primary bg-primary/10" 
+                            field.value === "admin"
+                              ? "border-primary bg-primary/10"
                               : "border-border hover:border-primary/50"
                           }`}
                           onClick={() => field.onChange("admin")}
@@ -339,21 +384,34 @@ export default function OnboardingPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? t("onboarding.saving") : t("onboarding.continue")}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? t("onboarding.saving")
+                    : t("onboarding.continue")}
                 </Button>
               </form>
             </Form>
           ) : isAdmin ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="join">{t("onboarding.joinTeam")}</TabsTrigger>
-                <TabsTrigger value="create">{t("onboarding.createTeam")}</TabsTrigger>
+                <TabsTrigger value="join">
+                  {t("onboarding.joinTeam")}
+                </TabsTrigger>
+                <TabsTrigger value="create">
+                  {t("onboarding.createTeam")}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="join">
                 <Form {...joinTeamForm}>
-                  <form onSubmit={joinTeamForm.handleSubmit(joinTeam)} className="space-y-4 mt-4">
+                  <form
+                    onSubmit={joinTeamForm.handleSubmit(joinTeam)}
+                    className="space-y-4 mt-4"
+                  >
                     <FormField
                       control={joinTeamForm.control}
                       name="teamCode"
@@ -368,8 +426,14 @@ export default function OnboardingPage() {
                       )}
                     />
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? "Joining Team..." : t("onboarding.joinTeam")}
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting
+                        ? "Joining Team..."
+                        : t("onboarding.joinTeam")}
                     </Button>
                   </form>
                 </Form>
@@ -377,7 +441,10 @@ export default function OnboardingPage() {
 
               <TabsContent value="create">
                 <Form {...createTeamForm}>
-                  <form onSubmit={createTeamForm.handleSubmit(createTeam)} className="space-y-4 mt-4">
+                  <form
+                    onSubmit={createTeamForm.handleSubmit(createTeam)}
+                    className="space-y-4 mt-4"
+                  >
                     <FormField
                       control={createTeamForm.control}
                       name="name"
@@ -385,7 +452,10 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder={t("matches.enterTeamName")} {...field} />
+                            <Input
+                              placeholder={t("matches.enterTeamName")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -399,16 +469,27 @@ export default function OnboardingPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{t("onboarding.category")}</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t("matches.selectMatchType")} />
+                                  <SelectValue
+                                    placeholder={t("matches.selectMatchType")}
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="PROFESSIONAL">{t("onboarding.categoryTypes.professional")}</SelectItem>
-                                <SelectItem value="FEDERATED">{t("onboarding.categoryTypes.federated")}</SelectItem>
-                                <SelectItem value="AMATEUR">{t("onboarding.categoryTypes.amateur")}</SelectItem>
+                                <SelectItem value="PROFESSIONAL">
+                                  {t("onboarding.categoryTypes.professional")}
+                                </SelectItem>
+                                <SelectItem value="FEDERATED">
+                                  {t("onboarding.categoryTypes.federated")}
+                                </SelectItem>
+                                <SelectItem value="AMATEUR">
+                                  {t("onboarding.categoryTypes.amateur")}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -422,16 +503,27 @@ export default function OnboardingPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{t("onboarding.teamType")}</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder={t("team.selectPosition")} />
+                                  <SelectValue
+                                    placeholder={t("team.selectPosition")}
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="11-a-side">{t("onboarding.teamTypes.elevenASide")}</SelectItem>
-                                <SelectItem value="7-a-side">{t("onboarding.teamTypes.sevenASide")}</SelectItem>
-                                <SelectItem value="Futsal">{t("onboarding.teamTypes.futsal")}</SelectItem>
+                                <SelectItem value="11-a-side">
+                                  {t("onboarding.teamTypes.elevenASide")}
+                                </SelectItem>
+                                <SelectItem value="7-a-side">
+                                  {t("onboarding.teamTypes.sevenASide")}
+                                </SelectItem>
+                                <SelectItem value="Futsal">
+                                  {t("onboarding.teamTypes.futsal")}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -448,7 +540,13 @@ export default function OnboardingPage() {
                           <FormItem>
                             <FormLabel>{t("onboarding.division")}</FormLabel>
                             <FormControl>
-                              <Input placeholder={t("onboarding.divisionPlaceholder")} {...field} value={field.value || ""} />
+                              <Input
+                                placeholder={t(
+                                  "onboarding.divisionPlaceholder",
+                                )}
+                                {...field}
+                                value={field.value || ""}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -456,8 +554,14 @@ export default function OnboardingPage() {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? t("matches.deleting") : t("onboarding.createTeam")}
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting
+                        ? t("matches.deleting")
+                        : t("onboarding.createTeam")}
                     </Button>
                   </form>
                 </Form>
@@ -465,7 +569,10 @@ export default function OnboardingPage() {
             </Tabs>
           ) : (
             <Form {...joinTeamForm}>
-              <form onSubmit={joinTeamForm.handleSubmit(joinTeam)} className="space-y-4">
+              <form
+                onSubmit={joinTeamForm.handleSubmit(joinTeam)}
+                className="space-y-4"
+              >
                 <FormField
                   control={joinTeamForm.control}
                   name="teamCode"
@@ -479,7 +586,10 @@ export default function OnboardingPage() {
                               <HelpCircle className="h-4 w-4 text-muted-foreground" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{t("onboarding.teamCodeHelp") || "Contact the team administrator to get the join code"}</p>
+                              <p>
+                                {t("onboarding.teamCodeHelp") ||
+                                  "Contact the team administrator to get the join code"}
+                              </p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -492,23 +602,31 @@ export default function OnboardingPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? t("matches.deleting") : t("onboarding.joinTeam")}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? t("matches.deleting")
+                    : t("onboarding.joinTeam")}
                 </Button>
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => {
                       // Complete onboarding and redirect to mock page
                       apiRequest("/api/auth/onboarding/complete", {
-                        method: "POST"
-                      }).then(() => {
-                        window.location.href = '/mock';
-                      }).catch(error => {
-                        console.error("Error activating demo mode:", error);
-                      });
+                        method: "POST",
+                      })
+                        .then(() => {
+                          window.location.href = "/mock";
+                        })
+                        .catch((error) => {
+                          console.error("Error activating demo mode:", error);
+                        });
                     }}
                     disabled={isSubmitting}
                   >
@@ -524,11 +642,19 @@ export default function OnboardingPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           {onboardingStep === "role" ? (
-            <Button variant="ghost" onClick={skipOnboarding} disabled={isSubmitting}>
+            <Button
+              variant="ghost"
+              onClick={skipOnboarding}
+              disabled={isSubmitting}
+            >
               {t("onboarding.skipForNow")}
             </Button>
           ) : (
-            <Button variant="ghost" onClick={() => setOnboardingStep("role")} disabled={isSubmitting}>
+            <Button
+              variant="ghost"
+              onClick={() => setOnboardingStep("role")}
+              disabled={isSubmitting}
+            >
               {t("onboarding.backToRoleSelection")}
             </Button>
           )}
