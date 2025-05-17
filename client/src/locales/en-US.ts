@@ -185,7 +185,7 @@ export const enUS = {
     validJoinCode: "Valid join code for team \"{{teamName}}\"",
     invalidJoinCode: "Invalid join code",
     joinCodeHelp: "Have a team join code? Enter it to join a team during registration.",
-    teamCodeHelp: "Contact the team administrator to get the join code",
+    teamCodeHelp: "Enter the team join code provided by the administrator (e.g. D6JKN9)",
     logout: "Logout",
     agreeToTerms: "I agree to the Terms and Conditions",
 
@@ -815,8 +815,7 @@ export const enUS = {
     // Match details related toast messages
     playerAlreadyInLineup: "Player already in lineup",
     playerAlreadyAssigned: "This player is already assigned to a position.",
-    removePlayerFirst: "Remove the player from the field position first before adding to bench.",
-    playerAlreadyOnBench: "Player already on bench",
+    removePlayerFirst: "Remove the player from the field position first before adding to bench.",    playerAlreadyOnBench: "Player already on bench",
     playerAlreadyOnBenchDesc: "This player is already on the bench.",
     lineupSaved: "Lineup saved",
     lineupSavedDesc: "Match lineup has been saved successfully",

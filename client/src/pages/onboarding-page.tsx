@@ -361,7 +361,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("onboarding.teamCode")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="" {...field} />
+                            <Input placeholder="ej. D6JKN9" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -485,7 +485,7 @@ export default function OnboardingPage() {
                         </TooltipProvider>
                       </div>
                       <FormControl>
-                        <Input placeholder="" {...field} />
+                        <Input placeholder="ej. D6JKN9" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

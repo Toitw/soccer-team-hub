@@ -185,10 +185,10 @@ export const esES = {
     validJoinCode: "Código de unión válido para el equipo \"{{teamName}}\"",
     invalidJoinCode: "Código de unión inválido",
     joinCodeHelp: "¿Tienes un código de unión a un equipo? Introdúcelo para unirte durante el registro.",
-    teamCodeHelp: "Contacta con el administrador del equipo para obtener el código",
+    teamCodeHelp: "Ingresa el código de unión proporcionado por el administrador (ej. D6JKN9)",
     logout: "Cerrar sesión",
     agreeToTerms: "Acepto los Términos y Condiciones",
-    
+
     // Verificación de correo electrónico
     emailVerification: "Verificación de Correo Electrónico",
     verifyEmailPrompt: "Por favor, revisa tu correo electrónico para verificar tu cuenta",
@@ -201,7 +201,7 @@ export const esES = {
     verifyEmailSuccessMessage: "Tu correo electrónico ha sido verificado correctamente. Ahora puedes iniciar sesión en tu cuenta.",
     verifyEmailFailedMessage: "No pudimos verificar tu dirección de correo electrónico. El enlace de verificación puede ser inválido o ha expirado.",
     emailVerificationNotice: "Se enviará un correo de verificación a tu dirección de correo electrónico",
-    
+
     // Restablecimiento de contraseña
     resetPassword: "Restablecer Contraseña",
     resetPasswordPrompt: "Introduce tu correo electrónico para restablecer tu contraseña",
@@ -336,13 +336,13 @@ export const esES = {
     wideDefender: "Defensa Lateral",
     centerMidfielder: "Centrocampista Central",
     wideMidfielder: "Centrocampista Lateral",
-    
+
     // Futsal/5-a-side positions
     futsalPositions: "Posiciones de Fútbol Sala",
     pivot: "Pívot",
     winger: "Extremo",
     universal: "Universal",
-    
+
     // 11-a-side position translations
     centerBack: "Defensa Central",
     leftBack: "Lateral Izquierdo",
@@ -562,7 +562,7 @@ export const esES = {
     selectGoalType: "Seleccionar tipo de gol",
     selectPlayer: "Seleccionar jugador",
     selectCardType: "Seleccionar tipo de tarjeta",
-    
+
     // New entries for match-details.tsx
     noCardsRecorded: "No hay tarjetas registradas para este partido.",
     recordCardsHelp: "Registra tarjetas amarillas y rojas recibidas por tu equipo.",
@@ -848,7 +848,7 @@ export const esES = {
     error: "Error",
     warning: "Advertencia",
     refreshed: "Actualizado",
-    
+
     // Mensajes de gestión de equipos
     teamCreated: "Equipo Creado",
     teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
@@ -858,7 +858,7 @@ export const esES = {
     memberCreatedDesc: "{{name}} ha sido añadido al equipo exitosamente.",
     memberCreateError: "Error al añadir miembro",
     memberCreateErrorDesc: "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
-    
+
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
     loginFailed: "Error al iniciar sesión",
@@ -867,7 +867,7 @@ export const esES = {
     registrationFailed: "Error al registrarse",
     welcomeToTeamKick: "Bienvenido a TeamKick, {{name}}",
     logoutSuccess: "Sesión cerrada correctamente",
-    
+
     // Mensajes relacionados con anuncios
     announcementCreated: "Anuncio creado",
     announcementCreatedDesc: "Tu anuncio ha sido publicado",
@@ -878,13 +878,13 @@ export const esES = {
     refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
     failedToRefresh: "Error al actualizar",
-    
+
     // Mensajes generales de acciones
     dataSaved: "Datos guardados",
     changesSaved: "Cambios guardados correctamente",
     actionCompleted: "Acción completada",
     actionFailed: "Error en la acción",
-    
+
     // Mensajes relacionados con detalles de partido
     playerAlreadyInLineup: "Jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
