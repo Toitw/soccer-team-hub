@@ -198,9 +198,10 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
  */
 router.post("/reset-password", async (req: Request, res: Response) => {
   try {
-    const { token, password } = req.body;
-    // Also check if token might be in query params for GET requests redirected from email
+    // Get token from either body or query params (for email links)
     const tokenParam = req.query.token as string | undefined;
+    const { password } = req.body;
+    const token = req.body.token || tokenParam;
     
     if (!token || !password) {
       return res.status(400).json({ error: "Token and password are required" });
