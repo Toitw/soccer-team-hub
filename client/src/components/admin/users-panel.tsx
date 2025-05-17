@@ -27,6 +27,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Loader2, 
   Plus, 
@@ -37,11 +44,12 @@ import {
   UserCog, 
   Shield,
   ShieldAlert,
-  User
+  User,
+  Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiRequest } from '@/lib/queryClient';
-import { User as UserType } from '@shared/schema';
+import { User as UserType, Team as TeamType } from '@shared/schema';
 import { AddUserForm } from './add-user-form';
 import { EditUserForm } from './edit-user-form';
 
@@ -52,6 +60,9 @@ export default function UsersPanel() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
+  const [userTeams, setUserTeams] = useState<Record<number, string[]>>({});
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -60,7 +71,49 @@ export default function UsersPanel() {
   const { data: apiResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: () => apiRequest('/api/admin/users'),
+    enabled: showSearchResults, // Only fetch when search button is clicked
   });
+  
+  // Fetch all teams for reference
+  const { data: teamsResponse } = useQuery({
+    queryKey: ['/api/admin/teams'],
+    queryFn: () => apiRequest('/api/admin/teams'),
+    enabled: showSearchResults, // Only fetch when search button is clicked
+  });
+  
+  // Get all teams
+  const teams: TeamType[] = Array.isArray(teamsResponse) ? teamsResponse : teamsResponse ? [teamsResponse] : [];
+  
+  // Fetch team memberships for each user when users and teams are loaded
+  useEffect(() => {
+    const fetchUserTeams = async () => {
+      if (!apiResponse || !teamsResponse) return;
+      
+      const userTeamsMap: Record<number, string[]> = {};
+      
+      // For each user, check team memberships
+      for (const user of users) {
+        try {
+          // Fetch teams for this user
+          const response = await apiRequest(`/api/admin/users/${user.id}/teams`);
+          if (response && Array.isArray(response)) {
+            userTeamsMap[user.id] = response.map((team: TeamType) => team.name);
+          } else {
+            userTeamsMap[user.id] = [];
+          }
+        } catch (err) {
+          console.error(`Error fetching teams for user ${user.id}:`, err);
+          userTeamsMap[user.id] = [];
+        }
+      }
+      
+      setUserTeams(userTeamsMap);
+    };
+    
+    if (showSearchResults && users.length > 0 && teams.length > 0) {
+      fetchUserTeams();
+    }
+  }, [apiResponse, teamsResponse, showSearchResults]);
   
   // Handle errors from the query
   useEffect(() => {
@@ -117,14 +170,30 @@ export default function UsersPanel() {
 
   // Filter users based on search query
   const filteredUsers = users.filter(
-    (user: UserType) =>
-      user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user?.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (user?.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (user?.position && user.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      false // Fallback if user is null/undefined
+    (user: UserType) => {
+      // Get user's teams
+      const userTeamsList = userTeams[user.id] || [];
+      
+      // Check if any team name matches the search
+      const teamMatch = userTeamsList.some(teamName => 
+        teamName.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      return (
+        searchQuery === '' || // Show all if no search query
+        user?.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user?.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user?.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user?.position && user.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        teamMatch || // Added team search
+        false // Fallback if user is null/undefined
+      );
+    }
   );
+  
+  // Apply pagination
+  const paginatedUsers = filteredUsers.slice(0, itemsPerPage);
 
   // Handle user deletion
   const handleDeleteUser = () => {
@@ -200,17 +269,51 @@ export default function UsersPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users by name, username, role, email, or position..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button variant="outline" size="icon" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+          <div className="flex flex-col space-y-4 mb-4">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users by name, username, role, email, position, or team..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button variant="default" onClick={() => {
+                setShowSearchResults(true);
+                refetch();
+              }}>
+                Search
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="items-per-page" className="text-sm">Show:</label>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => setItemsPerPage(parseInt(value))}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue placeholder="20" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm">entries</span>
+              </div>
+              
+              {filteredUsers.length > itemsPerPage && (
+                <Button variant="outline" size="sm" onClick={() => setItemsPerPage(prev => prev + 20)}>
+                  Show More
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="rounded-md border">
@@ -221,13 +324,20 @@ export default function UsersPanel() {
                   <TableHead>Username</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Position</TableHead>
+                  <TableHead>Team</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user: UserType) => (
+                {!showSearchResults ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      Use the search button to display users.
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((user: UserType) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center space-x-2">
