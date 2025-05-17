@@ -41,7 +41,7 @@ export default function VerifyEmailPage() {
     const verifyEmail = async () => {
       try {
         // Send verification request to the server
-        await apiRequest(`/api/auth/verify-email/${token}`, { method: "GET" });
+        await apiRequest(`/api/auth/verify-email?token=${token}`, { method: "GET" });
         
         // If successful, set state to success
         setVerificationState("success");

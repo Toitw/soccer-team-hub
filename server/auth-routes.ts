@@ -88,11 +88,16 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
 
 /**
  * Route to verify email with token
- * GET /api/auth/verify-email/:token
+ * GET /api/auth/verify-email/:token or GET /api/auth/verify-email?token=xxx
  */
-router.get("/verify-email/:token", async (req: Request, res: Response) => {
+router.get("/verify-email/:token?", async (req: Request, res: Response) => {
   try {
-    const { token } = req.params;
+    // Get token from either params or query
+    const token = req.params.token || req.query.token as string;
+    
+    if (!token) {
+      return res.status(400).json({ error: "Token is required" });
+    }
     
     // Find user with this verification token
     const users = await storage.getAllUsers();
@@ -194,6 +199,8 @@ router.post("/reset-password/request", async (req: Request, res: Response) => {
 router.post("/reset-password", async (req: Request, res: Response) => {
   try {
     const { token, password } = req.body;
+    // Also check if token might be in query params for GET requests redirected from email
+    const tokenParam = req.query.token as string | undefined;
     
     if (!token || !password) {
       return res.status(400).json({ error: "Token and password are required" });

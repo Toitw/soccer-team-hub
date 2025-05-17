@@ -127,8 +127,8 @@ export function generateVerificationEmail(
   language?: string
 ): { subject: string; html: string; text: string } {
   const verificationUrl = baseUrl 
-    ? `${baseUrl}/${token}`
-    : `${process.env.APP_URL || 'https://app.cancha.plus'}/verify-email/${token}`;
+    ? `${baseUrl}?token=${token}`
+    : `${process.env.APP_URL || 'https://app.cancha.plus'}/verify-email?token=${token}`;
   
   // Set subject based on language
   const subject = language === 'en' 
@@ -203,8 +203,8 @@ export function generatePasswordResetEmail(
   language?: string
 ): { subject: string; html: string; text: string } {
   const resetUrl = baseUrl 
-    ? `${baseUrl}/${token}`
-    : `${process.env.APP_URL || 'https://app.cancha.plus'}/reset-password/${token}`;
+    ? `${baseUrl}?token=${token}`
+    : `${process.env.APP_URL || 'https://app.cancha.plus'}/reset-password?token=${token}`;
   
   // Set subject based on language
   const subject = language === 'en' 
