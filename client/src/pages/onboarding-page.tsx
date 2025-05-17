@@ -96,6 +96,7 @@ export default function OnboardingPage() {
     defaultValues: {
       teamCode: "",
     },
+    mode: "onChange"
   });
 
   // Create team form (for admins only)
