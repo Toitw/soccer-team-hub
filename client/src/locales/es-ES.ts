@@ -755,11 +755,11 @@ export const esES = {
     failedToUpdate: "Error al actualizar el anuncio",
     failedToDelete: "Error al eliminar el anuncio",
     refreshed: "Actualizado",
-    announcementsUpdated: "Los anuncios han sido actualizados.",
-  },
+    announcementsUpdated: "Los anuncios han sido actualizados.",  },
   teams: {
     createTeam: "Crear Equipo",
     name: "Nombre del Equipo",
+    teamNamePlaceholder: "ej. Huracán de Carreño",
     category: "Categoría",
     categoryPlaceholder: "Seleccionar categoría del equipo",
     categories: {

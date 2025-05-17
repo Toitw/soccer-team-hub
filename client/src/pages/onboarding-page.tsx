@@ -429,7 +429,7 @@ export default function OnboardingPage() {
                         <FormItem>
                           <FormLabel>{t("teams.name")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Team name" {...field} />
+                            <Input placeholder={t("teams.teamNamePlaceholder")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
