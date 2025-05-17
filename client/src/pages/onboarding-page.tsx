@@ -1,18 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
-import { UserRoundCog, UserRound, Users, HelpCircle } from "lucide-react";
+import { UserRoundCog, UserRound, Users } from "lucide-react";
 
 // Schema for user role selection
 const userRoleSchema = z.object({
@@ -55,57 +48,12 @@ const joinTeamSchema = z.object({
 
 type JoinTeamFormValues = z.infer<typeof joinTeamSchema>;
 
-// Isolated team code input component
-const TeamCodeInput = forwardRef<
-  HTMLInputElement,
-  {
-    value: string;
-    onChange: (value: string) => void;
-    onBlur?: () => void;
-    placeholder?: string;
-    error?: string;
-    label: string;
-  }
->(({ value, onChange, onBlur, placeholder, error, label }, ref) => {
-  // Completely isolated internal state
-  const [internalValue, setInternalValue] = useState("");
-  
-  // Sync with external value only on mount
-  useEffect(() => {
-    setInternalValue(value || "");
-  }, []);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInternalValue(newValue);
-    onChange(newValue);
-  };
-  
-  return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        {label}
-      </label>
-      <Input
-        ref={ref}
-        value={internalValue}
-        onChange={handleChange}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        className={error ? "border-red-500" : ""}
-      />
-      {error && <p className="text-sm font-medium text-red-500">{error}</p>}
-    </div>
-  );
-});
-
 // Schema for creating a team
 const createTeamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
   teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]).default("11-a-side"),
   division: z.string().optional(),
-  // seasonYear field removed as per requirements
 });
 
 type CreateTeamFormValues = z.infer<typeof createTeamSchema>;
@@ -117,8 +65,11 @@ export default function OnboardingPage() {
   const [, setLocation] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("join");
-  // New state to track the onboarding step
+  // State to track the onboarding step
   const [onboardingStep, setOnboardingStep] = useState<"role" | "team">("role");
+  
+  // For team join form - we'll recreate the form for each step change
+  const [formKey, setFormKey] = useState(0);
 
   // Role selection form
   const roleForm = useForm<UserRoleFormValues>({
@@ -134,15 +85,12 @@ export default function OnboardingPage() {
     },
   });
 
-  // Simple state for team code input - completely separate from form
-  const [teamCode, setTeamCode] = useState("");
-  
-  // Join team form with normal React Hook Form setup
+  // Join team form - recreated with unique key when step changes
   const joinTeamForm = useForm<JoinTeamFormValues>({
     resolver: zodResolver(joinTeamSchema),
     defaultValues: {
       teamCode: "",
-    }
+    },
   });
 
   // Create team form (for admins only)
@@ -153,25 +101,25 @@ export default function OnboardingPage() {
       category: "AMATEUR",
       teamType: "11-a-side",
       division: "",
-      // seasonYear removed as per requirements
-      // Logo is not part of the form schema, removed to fix type error
     },
   });
 
-  async function joinTeam() {
-    setIsSubmitting(true);
-    
-    // Validate team code
-    if (!teamCodeValue) {
-      setTeamCodeError("Team code is required");
-      setIsSubmitting(false);
-      return;
+  // Effect to reset forms when step changes
+  useEffect(() => {
+    if (onboardingStep === "team") {
+      // Increment key to force recreation of the form
+      setFormKey(prev => prev + 1);
+      // Reset all form values
+      joinTeamForm.reset({ teamCode: "" });
     }
-    
+  }, [onboardingStep]);
+
+  async function joinTeam(values: JoinTeamFormValues) {
+    setIsSubmitting(true);
     try {
       const response = await apiRequest("/api/auth/onboarding/join-team", {
         method: "POST",
-        data: { teamCode: teamCodeValue },
+        data: values,
       });
 
       setUser(response.user);
@@ -208,7 +156,6 @@ export default function OnboardingPage() {
       setUser(response.user);
 
       // Force cache invalidation to refresh team list
-      // This ensures the new team data (with correct teamType) is loaded
       window.localStorage.setItem(
         "team_created",
         JSON.stringify({
@@ -250,14 +197,7 @@ export default function OnboardingPage() {
       // Update user state with new role
       setUser(response);
       
-      // Reset the team code input state completely
-      setTeamCodeValue("");
-      setTeamCodeError("");
-      
-      // Force component recreation by updating key
-      setTeamInputKey(prev => prev + 1);
-      
-      // Move to team step
+      // Move to team step (the useEffect will handle form reset)
       setOnboardingStep("team");
 
       // If role is admin, default to create tab
@@ -469,35 +409,39 @@ export default function OnboardingPage() {
               </TabsList>
 
               <TabsContent value="join">
-                <div className="mt-4">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      joinTeam();
-                    }}
-                    className="space-y-4"
-                  >
-                    {/* Use our isolated component with its own state */}
-                    <TeamCodeInput
-                      key={teamInputKey} // Force recreate when step changes
-                      label={t("onboarding.teamCode")}
-                      placeholder="ej. D6JKN9"
-                      value={teamCodeValue}
-                      onChange={setTeamCodeValue}
-                      error={teamCodeError}
-                    />
-
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isSubmitting}
+                {/* Use key to force complete recreation of form */}
+                <div key={formKey}>
+                  <Form {...joinTeamForm}>
+                    <form
+                      onSubmit={joinTeamForm.handleSubmit(joinTeam)}
+                      className="space-y-4 mt-4"
                     >
-                      {isSubmitting
-                        ? "Joining Team..."
-                        : t("onboarding.joinTeam")}
-                    </Button>
-                  </form>
-                </Form>
+                      <FormField
+                        control={joinTeamForm.control}
+                        name="teamCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("onboarding.teamCode")}</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ej. D6JKN9" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting
+                          ? "Joining Team..."
+                          : t("onboarding.joinTeam")}
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
               </TabsContent>
 
               <TabsContent value="create">
@@ -511,12 +455,9 @@ export default function OnboardingPage() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("onboarding.teamName")}</FormLabel>
+                          <FormLabel>{t("teams.name")}</FormLabel>
                           <FormControl>
-                            <Input
-                              placeholder={t("matches.enterTeamName")}
-                              {...field}
-                            />
+                            <Input placeholder="Team name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -529,30 +470,30 @@ export default function OnboardingPage() {
                         name="category"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("onboarding.category")}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
+                            <FormLabel>{t("teams.category")}</FormLabel>
+                            <FormControl>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
                                 <SelectTrigger>
                                   <SelectValue
-                                    placeholder={t("matches.selectMatchType")}
+                                    placeholder={t("teams.categoryPlaceholder")}
                                   />
                                 </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="PROFESSIONAL">
-                                  {t("onboarding.categoryTypes.professional")}
-                                </SelectItem>
-                                <SelectItem value="FEDERATED">
-                                  {t("onboarding.categoryTypes.federated")}
-                                </SelectItem>
-                                <SelectItem value="AMATEUR">
-                                  {t("onboarding.categoryTypes.amateur")}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                                <SelectContent>
+                                  <SelectItem value="AMATEUR">
+                                    {t("teams.categories.amateur")}
+                                  </SelectItem>
+                                  <SelectItem value="FEDERATED">
+                                    {t("teams.categories.federated")}
+                                  </SelectItem>
+                                  <SelectItem value="PROFESSIONAL">
+                                    {t("teams.categories.professional")}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -563,51 +504,29 @@ export default function OnboardingPage() {
                         name="teamType"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t("onboarding.teamType")}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
+                            <FormLabel>{t("teams.type")}</FormLabel>
+                            <FormControl>
+                              <Select
+                                value={field.value}
+                                onValueChange={field.onChange}
+                              >
                                 <SelectTrigger>
                                   <SelectValue
-                                    placeholder={t("team.selectPosition")}
+                                    placeholder={t("teams.typePlaceholder")}
                                   />
                                 </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="11-a-side">
-                                  {t("onboarding.teamTypes.elevenASide")}
-                                </SelectItem>
-                                <SelectItem value="7-a-side">
-                                  {t("onboarding.teamTypes.sevenASide")}
-                                </SelectItem>
-                                <SelectItem value="Futsal">
-                                  {t("onboarding.teamTypes.futsal")}
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <FormField
-                        control={createTeamForm.control}
-                        name="division"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("onboarding.division")}</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={t(
-                                  "onboarding.divisionPlaceholder",
-                                )}
-                                {...field}
-                                value={field.value || ""}
-                              />
+                                <SelectContent>
+                                  <SelectItem value="11-a-side">
+                                    {t("teams.types.11aside")}
+                                  </SelectItem>
+                                  <SelectItem value="7-a-side">
+                                    {t("teams.types.7aside")}
+                                  </SelectItem>
+                                  <SelectItem value="Futsal">
+                                    {t("teams.types.futsal")}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -615,117 +534,96 @@ export default function OnboardingPage() {
                       />
                     </div>
 
+                    <FormField
+                      control={createTeamForm.control}
+                      name="division"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("teams.division")}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t("teams.divisionPlaceholder")}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <Button
                       type="submit"
                       className="w-full"
                       disabled={isSubmitting}
                     >
                       {isSubmitting
-                        ? t("matches.deleting")
-                        : t("onboarding.createTeam")}
+                        ? t("teams.creating")
+                        : t("teams.createTeam")}
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
             </Tabs>
           ) : (
-            <Form {...joinTeamForm}>
-              <form
-                onSubmit={joinTeamForm.handleSubmit(joinTeam)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={joinTeamForm.control}
-                  name="teamCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center gap-2">
-                        <FormLabel>{t("onboarding.teamCode")}</FormLabel>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {t("auth.teamCodeHelp") ||
-                                  "Contact the team administrator to get the join code"}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                      <FormControl>
-                        <Input 
-                          placeholder="ej. D6JKN9"
-                          value={field.value}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
+            // Non-admin: only join team option
+            <div key={formKey}>
+              <Form {...joinTeamForm}>
+                <form
+                  onSubmit={joinTeamForm.handleSubmit(joinTeam)}
+                  className="space-y-4 mt-4"
                 >
-                  {isSubmitting
-                    ? t("matches.deleting")
-                    : t("onboarding.joinTeam")}
-                </Button>
+                  <FormField
+                    control={joinTeamForm.control}
+                    name="teamCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("onboarding.teamCode")}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ej. D6JKN9" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="mt-4 pt-4 border-t border-gray-200">
                   <Button
-                    variant="outline"
+                    type="submit"
                     className="w-full"
-                    onClick={() => {
-                      // Complete onboarding and redirect to mock page
-                      apiRequest("/api/auth/onboarding/complete", {
-                        method: "POST",
-                      })
-                        .then(() => {
-                          window.location.href = "/mock";
-                        })
-                        .catch((error) => {
-                          console.error("Error activating demo mode:", error);
-                        });
-                    }}
                     disabled={isSubmitting}
                   >
-                    {t("onboarding.tryDemoMode")}
+                    {isSubmitting ? "Joining Team..." : t("onboarding.joinTeam")}
                   </Button>
-                  <p className="text-xs text-gray-500 text-center mt-2">
-                    {t("onboarding.exploreFeatures")}
-                  </p>
-                </div>
-              </form>
-            </Form>
+                </form>
+              </Form>
+            </div>
+          )}
+
+          {/* Only show skip option in role step */}
+          {onboardingStep === "role" && (
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                onClick={skipOnboarding}
+                disabled={isSubmitting}
+              >
+                {t("onboarding.skipForNow")}
+              </Button>
+            </div>
+          )}
+
+          {/* For team step, add a back button to return to role selection */}
+          {onboardingStep === "team" && (
+            <div className="mt-6 text-center">
+              <Button
+                variant="link"
+                onClick={() => setOnboardingStep("role")}
+                disabled={isSubmitting}
+              >
+                {t("onboarding.backToRoleSelection")}
+              </Button>
+            </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-center">
-          {onboardingStep === "role" ? (
-            <Button
-              variant="ghost"
-              onClick={skipOnboarding}
-              disabled={isSubmitting}
-            >
-              {t("onboarding.skipForNow")}
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={() => setOnboardingStep("role")}
-              disabled={isSubmitting}
-            >
-              {t("onboarding.backToRoleSelection")}
-            </Button>
-          )}
-        </CardFooter>
       </Card>
     </div>
   );
