@@ -41,13 +41,9 @@ export default function FeedbackPanel() {
 
   const updateFeedbackStatus = async (id: number, status: FeedbackStatus) => {
     try {
-      if (!['pending', 'reviewed', 'resolved'].includes(status)) {
-        throw new Error('Invalid status value');
-      }
-
       const response = await apiRequest(`/api/feedback/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
+        data: { status }, // Changed from body to data to match apiRequest expectations
         headers: {
           'Content-Type': 'application/json'
         }
