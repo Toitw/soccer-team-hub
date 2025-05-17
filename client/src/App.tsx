@@ -7,7 +7,6 @@ import AuthPage from "@/pages/auth-page";
 import RegisterPage from "@/pages/register-page";
 import OnboardingPage from "@/pages/onboarding-page";
 import DashboardPage from "@/pages/dashboard-page";
-import MockPage from "@/pages/mock-page";
 import TeamPage from "@/pages/team-page";
 import MatchesPage from "./pages/matches-page";
 import EventPage from "@/pages/event-page";
@@ -38,8 +37,7 @@ function Router() {
       {/* Dashboard accessible to all authenticated users */}
       <ProtectedRoute path="/" component={DashboardPage} />
 
-      {/* Mock page for demonstration */}
-      <ProtectedRoute path="/mock" component={MockPage} />
+      {/* Mock page route removed */}
 
       {/* Team management - accessible to all but players are read-only */}
       <ProtectedRoute path="/team" component={TeamPage} />
@@ -105,21 +103,21 @@ function App() {
 // Lazy-load the feedback component to avoid showing it during development
 const FeedbackButton = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
-  
+
   useEffect(() => {
     // Delay loading the feedback button to improve initial load performance
     const timer = setTimeout(() => {
       setHasLoaded(true);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
-  
+
   if (!hasLoaded) return null;
-  
+
   // Dynamically import the feedback component
   const FeedbackDialog = lazy(() => import("./components/feedback-dialog"));
-  
+
   return (
     <Suspense fallback={null}>
       <FeedbackDialog />

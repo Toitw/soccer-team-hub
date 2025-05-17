@@ -216,35 +216,7 @@ export default function OnboardingPage() {
     }
   }
 
-  async function skipOnboarding() {
-    setIsSubmitting(true);
-    try {
-      // Still mark onboarding as complete in the backend
-      const response = await apiRequest("/api/auth/onboarding/complete", {
-        method: "POST",
-      });
-
-      setUser(response);
-
-      toast({
-        title: "Demo Mode Activated",
-        description:
-          "You're now viewing the app in demo mode. Create your team when you're ready!",
-      });
-
-      // Redirect to mock page instead of dashboard
-      setLocation("/mock");
-    } catch (error: any) {
-      console.error("Error completing onboarding:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  // Removed skip onboarding functionality
 
   // Show loading state while fetching user data
   const { isLoading } = useAuth();
@@ -598,18 +570,7 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Only show skip option in role step */}
-          {onboardingStep === "role" && (
-            <div className="mt-6 text-center">
-              <Button
-                variant="link"
-                onClick={skipOnboarding}
-                disabled={isSubmitting}
-              >
-                {t("onboarding.skipForNow")}
-              </Button>
-            </div>
-          )}
+          {/* Skip option removed */}
 
           {/* For team step, add a back button to return to role selection */}
           {onboardingStep === "team" && (
