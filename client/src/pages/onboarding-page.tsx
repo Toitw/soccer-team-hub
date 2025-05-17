@@ -598,7 +598,7 @@ export default function OnboardingPage() {
                         <Input 
                           placeholder="ej. D6JKN9"
                           {...field}
-                          value=""
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
