@@ -366,6 +366,20 @@ export default function UsersPanel() {
                       </TableCell>
                       <TableCell>{user.position || 'N/A'}</TableCell>
                       <TableCell>
+                        <div className="flex flex-col">
+                          {userTeams[user.id]?.length > 0 ? (
+                            userTeams[user.id].map((team, index) => (
+                              <Badge key={index} variant="outline" className="mb-1">
+                                <Users className="h-3 w-3 mr-1" />
+                                {team}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No team</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="text-sm">
                           {user.email && (
                             <div className="text-muted-foreground">{user.email}</div>
@@ -412,7 +426,10 @@ export default function UsersPanel() {
           </div>
         </CardContent>
         <CardFooter className="border-t p-4 text-sm text-muted-foreground">
-          Showing {filteredUsers.length} of {users.length} users
+          {showSearchResults ? 
+            `Showing ${Math.min(paginatedUsers.length, itemsPerPage)} of ${filteredUsers.length} filtered users (${users.length} total)` : 
+            "Click search to display users"
+          }
         </CardFooter>
       </Card>
 

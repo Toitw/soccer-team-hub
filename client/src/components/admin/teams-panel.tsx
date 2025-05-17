@@ -28,6 +28,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -60,6 +67,8 @@ export default function TeamsPanel() {
   const [isEditTeamOpen, setIsEditTeamOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentTeamId, setCurrentTeamId] = useState<number | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -68,6 +77,7 @@ export default function TeamsPanel() {
   const { data: apiResponse, isLoading, refetch, error } = useQuery({
     queryKey: ['/api/admin/teams'],
     queryFn: () => apiRequest('/api/admin/teams'),
+    enabled: showSearchResults, // Only fetch when search button is clicked
   });
   
   // Handle errors from the query
@@ -114,6 +124,9 @@ export default function TeamsPanel() {
       (team?.joinCode && team.joinCode.toLowerCase().includes(searchQuery.toLowerCase())) || 
       false // Fallback if team is null/undefined
   );
+  
+  // Apply pagination
+  const paginatedTeams = filteredTeams.slice(0, itemsPerPage);
 
   // Handle team deletion
   const handleDeleteTeam = () => {
@@ -165,17 +178,51 @@ export default function TeamsPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search teams by name, division, or join code..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button variant="outline" size="icon" onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+          <div className="flex flex-col space-y-4 mb-4">
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search teams by name, division, or join code..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button variant="default" onClick={() => {
+                setShowSearchResults(true);
+                refetch();
+              }}>
+                Search
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="items-per-page" className="text-sm">Show:</label>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={(value) => setItemsPerPage(parseInt(value))}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue placeholder="20" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm">entries</span>
+              </div>
+              
+              {filteredTeams.length > itemsPerPage && (
+                <Button variant="outline" size="sm" onClick={() => setItemsPerPage(prev => prev + 20)}>
+                  Show More
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="rounded-md border">
@@ -185,13 +232,18 @@ export default function TeamsPanel() {
                   <TableHead>Team</TableHead>
                   <TableHead>Division</TableHead>
                   <TableHead>Join Code</TableHead>
-                  <TableHead>Season</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTeams.length > 0 ? (
-                  filteredTeams.map((team: Team) => (
+                {!showSearchResults ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      Use the search button to display teams.
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedTeams.length > 0 ? (
+                  paginatedTeams.map((team: Team) => (
                     <React.Fragment key={team.id}>
                       <TableRow>
                         <TableCell>
@@ -223,7 +275,6 @@ export default function TeamsPanel() {
                         <TableCell>
                           <Badge variant="outline">{team.joinCode || 'N/A'}</Badge>
                         </TableCell>
-                        <TableCell>{team.seasonYear || 'N/A'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
                             <Button
@@ -267,7 +318,10 @@ export default function TeamsPanel() {
           </div>
         </CardContent>
         <CardFooter className="border-t p-4 text-sm text-muted-foreground">
-          Showing {filteredTeams.length} of {teams.length} teams
+          {showSearchResults ? 
+            `Showing ${Math.min(paginatedTeams.length, itemsPerPage)} of ${filteredTeams.length} filtered teams (${teams.length} total)` : 
+            "Click search to display teams"
+          }
         </CardFooter>
       </Card>
 

@@ -53,6 +53,25 @@ export function createAdminRouter(storage: IStorage) {
     
     return jsonResponse(res, user);
   }));
+  
+  // Get teams for a specific user (for admin panel)
+  router.get('/admin/users/:id/teams', asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.id);
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return notFoundResponse(res, 'User');
+    }
+    
+    // Get teams the user belongs to
+    try {
+      const teams = await storage.getTeamsByUserId(userId);
+      return jsonResponse(res, teams);
+    } catch (error) {
+      console.error(`Error fetching teams for user ${userId}:`, error);
+      return jsonResponse(res, []);
+    }
+  }));
 
   // Create a new user
   router.post('/admin/users', asyncHandler(async (req: Request, res: Response) => {
