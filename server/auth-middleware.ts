@@ -169,7 +169,7 @@ export function requireTeamMembership() {
  * @param roles - Array of allowed roles
  * @returns A middleware function
  */
-export function requireRole(roles: string[]) {
+export function requireRole(roles: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Unauthorized. Please log in.' });
@@ -177,7 +177,7 @@ export function requireRole(roles: string[]) {
     
     const user = req.user as User;
     
-    if (!user.role || !roles.includes(user.role)) {
+    if (!user.role || !roles.includes(user.role as UserRole)) {
       return res.status(403).json({ 
         error: 'Forbidden. Insufficient privileges.',
         required: roles,
@@ -194,7 +194,7 @@ export function requireRole(roles: string[]) {
  * @param roles - Array of allowed roles
  * @returns A middleware function
  */
-export function requireTeamRole(roles: string[]) {
+export function requireTeamRole(roles: TeamMemberRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Unauthorized. Please log in.' });
@@ -208,14 +208,14 @@ export function requireTeamRole(roles: string[]) {
     const user = req.user as User;
     
     // If user is a global admin, always grant access
-    if (user.role === 'admin' || user.role === 'superuser') {
+    if (canAdministerTeam(user.role as UserRole)) {
       return next();
     }
     
     // Check if user has the required role in this team
     storage.getTeamMember(teamId, user.id)
       .then(member => {
-        if (member && member.role && roles.includes(member.role)) {
+        if (member && member.role && isValidTeamMemberRole(member.role) && roles.includes(member.role as TeamMemberRole)) {
           // Add team member information to the request for use in route handlers
           (req as any).teamMember = member;
           return next();

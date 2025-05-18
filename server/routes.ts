@@ -5,6 +5,7 @@ import { hashPassword } from "@shared/auth-utils";
 import { hashPasswordInStorage } from "./optimized-storage";
 import { setupAuth } from "./auth";
 import { z } from "zod";
+import { UserRole, TeamMemberRole } from "@shared/roles";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./optimized/auth-routes";
@@ -3202,7 +3203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Verify the user is an admin or superuser
-      if (req.user.role !== "admin" && req.user.role !== "superuser") {
+      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
         return res.status(403).json({ error: "Not authorized to view feedback" });
       }
       
