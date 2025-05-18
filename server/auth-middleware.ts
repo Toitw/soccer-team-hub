@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { User } from '@shared/schema';
 import { storage } from './storage-implementation';
 import { UserRole, TeamMemberRole, isValidUserRole, isValidTeamMemberRole, canAdministerTeam, isTeamAdminRole } from '@shared/roles';
+import { hasApiPermission, ApiMethod } from '@shared/permissions';
 
 /**
  * Type guard to check if user has required role
