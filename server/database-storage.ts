@@ -259,17 +259,101 @@ export class DatabaseStorage implements IStorage {
   
   // Get team member by team ID and user ID
   async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
-    const [member] = await db
-      .select()
-      .from(teamMembers)
-      .where(
-        and(
-          eq(teamMembers.teamId, teamId),
-          eq(teamMembers.userId, userId)
-        )
-      );
-    
-    return member;
+    try {
+      // First try the direct relationship
+      const [member] = await db
+        .select()
+        .from(teamMembers)
+        .where(
+          and(
+            eq(teamMembers.teamId, teamId),
+            eq(teamMembers.userId, userId)
+          )
+        );
+      
+      if (member) {
+        return member;
+      }
+      
+      // If not found, check through team_users table
+      const [teamUser] = await db
+        .select()
+        .from(teamUsers)
+        .where(
+          and(
+            eq(teamUsers.teamId, teamId),
+            eq(teamUsers.userId, userId)
+          )
+        );
+      
+      if (teamUser) {
+        // If there's a team_user entry, find the corresponding team member
+        const [teamMember] = await db
+          .select()
+          .from(teamMembers)
+          .where(eq(teamMembers.id, teamUser.teamMemberId));
+        
+        return teamMember;
+      }
+      
+      // Check for admin users who should have access to all teams
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId));
+      
+      if (user && (user.role === 'admin' || user.role === 'superuser')) {
+        // Create a virtual team member for admin/superuser
+        return {
+          id: -1, // Virtual ID
+          teamId: teamId,
+          userId: userId,
+          fullName: user.fullName || '',
+          profilePicture: user.profilePicture || '',
+          position: user.position || '',
+          role: 'admin',
+          jerseyNumber: null,
+          isVerified: true,
+          joinDate: new Date(),
+          exitDate: null,
+          notes: 'Global admin access'
+        };
+      }
+      
+      // Final check: if user created this team
+      const [team] = await db
+        .select()
+        .from(teams)
+        .where(
+          and(
+            eq(teams.id, teamId),
+            eq(teams.createdById, userId)
+          )
+        );
+      
+      if (team) {
+        // Create a virtual team member for the team creator
+        return {
+          id: -2, // Virtual ID
+          teamId: teamId,
+          userId: userId,
+          fullName: '',
+          profilePicture: '',
+          position: '',
+          role: 'admin',
+          jerseyNumber: null,
+          isVerified: true,
+          joinDate: new Date(),
+          exitDate: null,
+          notes: 'Team creator'
+        };
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error('Error in getTeamMember:', error);
+      return undefined;
+    }
   }
 
   async getTeamMembersByUserId(userId: number): Promise<TeamMember[]> {
