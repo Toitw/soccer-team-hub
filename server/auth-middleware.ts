@@ -159,15 +159,80 @@ export function isTeamMember(req: Request, res: Response, next: NextFunction) {
     return next();
   }
   
+  // For debugging purpose, log who is accessing which team
+  console.log(`Getting teams for user ID: ${user.id}`);
+  
   // Check if user is a member of this team
   storage.getTeamMember(teamId, user.id)
     .then(member => {
       if (member) {
         // Add team member information to the request for use in route handlers
         (req as any).teamMember = member;
+        console.log(`User ${user.id} is a member of team ${teamId} with role ${member.role}`);
         return next();
       }
-      res.status(403).json({ error: 'Not a member of this team' });
+      
+      // Check if user is the owner of this team
+      return storage.getTeam(teamId)
+        .then(team => {
+          if (team && team.createdById === user.id) {
+            // If the user is the team owner (creator), create a virtual admin member
+            const virtualMember = {
+              id: -1,
+              teamId,
+              userId: user.id,
+              fullName: user.fullName || '',
+              role: 'admin' as TeamMemberRole,
+              profilePicture: user.profilePicture,
+              position: user.position,
+              jerseyNumber: user.jerseyNumber,
+              isVerified: true,
+              createdAt: new Date(),
+              createdById: user.id
+            };
+            // Add virtual member to the request
+            (req as any).teamMember = virtualMember;
+            console.log(`User ${user.id} is the owner of team ${teamId}`);
+            return next();
+          }
+          
+          // Finally check team_users association
+          return storage.getTeamUsersByUserId(user.id)
+            .then(teamUsers => {
+              console.log(`Found ${teamUsers.length} team associations for user ${user.id}`);
+              
+              // Check if the user is associated with this team through team_users
+              const teamUserAssociation = teamUsers.find(tu => tu.teamId === teamId);
+              
+              if (teamUserAssociation) {
+                console.log(`User ${user.id} is associated with team ${teamId} through team_users`);
+                
+                // Create a virtual member based on user's role
+                const virtualMember = {
+                  id: -1,
+                  teamId,
+                  userId: user.id,
+                  fullName: user.fullName || '',
+                  role: (user.role === 'admin' || user.role === 'coach') 
+                    ? user.role as TeamMemberRole 
+                    : 'player' as TeamMemberRole,
+                  profilePicture: user.profilePicture,
+                  position: user.position,
+                  jerseyNumber: user.jerseyNumber,
+                  isVerified: true,
+                  createdAt: teamUserAssociation.joinedAt,
+                  createdById: user.id
+                };
+                
+                // Add virtual member to the request
+                (req as any).teamMember = virtualMember;
+                return next();
+              }
+              
+              // If we've checked all possible ways and no association found
+              res.status(403).json({ error: 'Not a member of this team' });
+            });
+        });
     })
     .catch(error => {
       console.error('Error checking team membership:', error);

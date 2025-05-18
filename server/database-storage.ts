@@ -906,12 +906,26 @@ export class DatabaseStorage implements IStorage {
 
   // Team Lineup methods
   async getTeamLineup(teamId: number): Promise<TeamLineup | undefined> {
-    const [lineup] = await db
-      .select()
-      .from(teamLineups)
-      .where(eq(teamLineups.teamId, teamId));
-    
-    return lineup;
+    try {
+      const [lineup] = await db
+        .select({
+          id: teamLineups.id,
+          teamId: teamLineups.teamId,
+          formation: teamLineups.formation,
+          positionMapping: teamLineups.positionMapping,
+          createdAt: teamLineups.createdAt,
+          updatedAt: teamLineups.updatedAt,
+          name: teamLineups.name,
+          isDefault: teamLineups.isDefault
+        })
+        .from(teamLineups)
+        .where(eq(teamLineups.teamId, teamId));
+      
+      return lineup;
+    } catch (error) {
+      console.error("Error retrieving team lineup:", error);
+      return undefined;
+    }
   }
 
   async createTeamLineup(lineupData: InsertTeamLineup): Promise<TeamLineup> {
