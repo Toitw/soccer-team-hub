@@ -40,6 +40,10 @@ class UserEntityManager extends EntityManager<User, InsertUser> {
     return this.findOne(user => user.username === username);
   }
   
+  async getByEmail(email: string): Promise<User | undefined> {
+    return this.findOne(user => user.email === email);
+  }
+  
   async create(data: InsertUser): Promise<User> {
     return super.create(data, (userData, id) => {
       // Ensure role is never undefined
@@ -259,8 +263,7 @@ export class EntityStorage {
   }
   
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const users = await this.users.getAll();
-    return users.find(user => user.email === email);
+    return this.users.getByEmail(email);
   }
   
   async getAllUsers(): Promise<User[]> {
