@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Detailed database health endpoint (for authenticated superusers only)
-  app.get("/api/admin/database/health", requireRole(['superuser']), async (req, res) => {
+  app.get("/api/admin/database/health", requireRole([UserRole.SUPERUSER]), async (req, res) => {
     try {
       // Run the comprehensive database health check
       const healthData = await checkDatabaseHealth();
@@ -144,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createTeamMember({
         teamId: team.id,
         fullName: req.user.fullName || "Team Admin",
-        role: "admin",
+        role: TeamMemberRole.ADMIN,
         createdById: req.user.id,
         userId: req.user.id,
         isVerified: true
@@ -569,7 +569,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fullName: req.user.fullName || "Team Admin",
         createdById: req.user.id,
         userId: req.user.id,
-        role: "admin",
+        role: TeamMemberRole.ADMIN,
         isVerified: true
       });
       
@@ -3221,7 +3221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Verify the user is an admin or superuser
-      if (req.user.role !== "admin" && req.user.role !== "superuser") {
+      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
         return res.status(403).json({ error: "Not authorized to update feedback" });
       }
       
