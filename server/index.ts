@@ -3,7 +3,6 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
 import { isDatabaseHealthy } from "./db-health";
-import { checkApiPermission } from "./permissions-middleware";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));

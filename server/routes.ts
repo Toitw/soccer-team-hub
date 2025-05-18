@@ -13,8 +13,7 @@ import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 import { teamMembers } from "@shared/schema";
-import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole, requireTeamRole } from "./auth-middleware";
-import { checkApiPermission } from "./permissions-middleware";
+import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole, requireTeamRole, checkApiPermission } from "./auth-middleware";
 
 // Mock data creation has been disabled
 async function createMockData() {
