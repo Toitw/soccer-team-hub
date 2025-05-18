@@ -39,9 +39,10 @@ app.use((req, res, next) => {
 });
 
 // Run admin initialization script before starting the server
-exec('node initialize-admin.js', (error, stdout, stderr) => {
+exec('node scripts/legacy/initialize-admin.js', (error, stdout, stderr) => {
   if (error) {
     console.error('Error initializing admin account:', error);
+    console.log('Continuing without admin initialization');
   } else {
     console.log('Admin initialization output:', stdout);
   }

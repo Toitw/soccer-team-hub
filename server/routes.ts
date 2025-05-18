@@ -7,7 +7,7 @@ import { setupAuth } from "./auth";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
-import authRoutes from "./auth-routes";
+import authRoutes from "./optimized/auth-routes";
 import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";

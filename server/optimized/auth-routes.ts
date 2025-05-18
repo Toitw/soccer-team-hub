@@ -2,9 +2,9 @@
  * Authentication routes for the API
  */
 import { Router, Request, Response, NextFunction } from "express";
-import { storage } from "./storage-implementation";
+import { storage } from "../storage-implementation";
 import { generateVerificationToken, generateTokenExpiry, comparePasswords, hashPassword } from "@shared/auth-utils";
-import { isAuthenticated } from "./auth-middleware";
+import { isAuthenticated } from "../auth-middleware";
 import { generateVerificationEmail, generatePasswordResetEmail, sendEmail } from "@shared/email-utils";
 import { z } from "zod";
 import { randomBytes } from "crypto";
