@@ -1,0 +1,29 @@
+It's important to understand the following model in our app:
+
+- There are "users" and "members."
+  - "Users" are people who have created an account in the app (by registering). Every authenticated person is a user, and users have roles such as admin, coach, or player.
+  - "Members" are created from the /team page by a team admin or coach. Members represent players, coaches, or admins that belong to a specific team. A member record can exist even if there is no user account linked yet.
+
+- Users and members are different:
+  - Not all members are users, and not all users are linked to members.
+  - Players are often created first as members of a team (by admin/coach), and later a user can register and "claim" to be that member.
+  - When a user claims a member, there should be a way to link the user account to the member entity.
+  - Admin and coach users have the ability to accept or reject these claims from the /settings page.
+
+- **Important:** If the member has the role "admin," this member does NOT need to claim or be claimed. There should be no claim process for admin members. Admins are always considered to be linked to the team directly and have immediate full admin permissions for that team, without any claim/approval flow.
+
+- Implications for authentication and authorization:
+  - Authentication and global permissions should always be based on the user account.
+  - Role-based permissions (admin, coach, player) should refer to the user's role.
+  - Actions that are related to team membership (e.g. editing member data, attending matches, etc.) need to check both the user's global role and, if relevant, whether the user is linked to a given member in that team.
+  - There may be some permissions/actions that only apply if a user is the claimed member for a member record.
+  - Claims management (approving/rejecting) should only be accessible by admin and coach users.
+  - Admins do not need to claim any member record and should always be recognized as admins for the team.
+
+When fixing the authentication middleware and permissions logic:
+  - Ensure that all checks are made on the authenticated user.
+  - When an action is team-specific or member-specific, check if the authenticated user is linked to the relevant member and/or has the required role for the team.
+  - Make sure there is no claim/approval logic for admin members; they should have immediate and full access to admin functionality for their teams.
+  - Claims management (approval/rejection) applies only to player and coach members.
+
+Please update the authentication and authorization logic to fully support this user/member/claim system, including the special rule for admins, and make sure permission checks are clear and unambiguous.

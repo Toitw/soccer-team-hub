@@ -946,49 +946,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role
       });
 
-      // Update the user's profile data (position, jerseyNumber, profilePicture)
-      const user = await storage.getUser(teamMember.userId);
-      if (user) {
-        console.log(`Updating user ${user.fullName} (ID: ${user.id}) with new data:`, {
-          position,
-          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
-          profilePicture: profilePicture ? "..." : "no change"
-        });
+      // Update the member's profile data (position, jerseyNumber, profilePicture)
+      // Also update the team member data
+      const memberUpdateData: Partial<TeamMember> = { role };
+      
+      // Add position and profile picture to team member update
+      if (position !== undefined) memberUpdateData.position = position;
+      if (jerseyNumber !== undefined) memberUpdateData.jerseyNumber = jerseyNumber ? parseInt(jerseyNumber.toString()) : null;
+      if (profilePicture !== undefined) memberUpdateData.profilePicture = profilePicture;
+      
+      // Update member fields
+      const updatedMemberWithFields = await storage.updateTeamMember(memberId, memberUpdateData);
+      
+      // If the member has a linked user, update user data as well
+      if (teamMember.userId) {
+        const user = await storage.getUser(teamMember.userId);
+        if (user) {
+          console.log(`Updating user ${user.fullName} (ID: ${user.id}) with new data:`, {
+            position,
+            jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+            profilePicture: profilePicture ? "..." : "no change"
+          });
 
-        // Handle empty profile picture values
-        const profilePictureValue = profilePicture === "" || profilePicture === null || profilePicture === undefined
-          ? user.profilePicture  // Keep existing picture if empty
-          : profilePicture;      // Otherwise use the new value
+          // Handle empty profile picture values
+          const profilePictureValue = profilePicture === "" || profilePicture === null || profilePicture === undefined
+            ? user.profilePicture  // Keep existing picture if empty
+            : profilePicture;      // Otherwise use the new value
 
-        const updatedUser = await storage.updateUser(user.id, {
-          position,
-          jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
-          profilePicture: profilePictureValue
-        });
+          const updatedUser = await storage.updateUser(user.id, {
+            position,
+            jerseyNumber: jerseyNumber ? parseInt(jerseyNumber.toString()) : null,
+            profilePicture: profilePictureValue
+          });
 
-        if (updatedUser) {
-          // Return the updated team member with user details
-          const { password, ...userWithoutPassword } = updatedUser;
+          if (updatedUser) {
+            // Return the updated team member with user details
+            const { password, ...userWithoutPassword } = updatedUser;
 
-          // Return the complete updated record with all relevant fields
-          const response = {
-            ...updatedTeamMember,
-            user: {
-              ...userWithoutPassword,
-              profilePicture: updatedUser.profilePicture || `/default-avatar.png?u=${user.id}`,
-              position: updatedUser.position || "",
-              jerseyNumber: updatedUser.jerseyNumber || null
-            }
-          };
+            // Return the complete updated record with all relevant fields
+            const response = {
+              ...updatedMemberWithFields,
+              user: {
+                ...userWithoutPassword,
+                profilePicture: updatedUser.profilePicture || `/default-avatar.png?u=${user.id}`,
+                position: updatedUser.position || "",
+                jerseyNumber: updatedUser.jerseyNumber || null
+              }
+            };
 
-          console.log("Sending updated team member response:", JSON.stringify(response, null, 2));
-          res.json(response);
-        } else {
-          res.status(500).json({ error: "Failed to update user" });
+            console.log("Sending updated team member response:", JSON.stringify(response, null, 2));
+            return res.json(response);
+          }
         }
-      } else {
-        res.status(404).json({ error: "User not found" });
       }
+      
+      // If no user exists or user update failed, return just the team member data
+      // with a placeholder user object for API consistency
+      const response = {
+        ...updatedMemberWithFields,
+        user: {
+          id: null,
+          fullName: updatedMemberWithFields.fullName,
+          role: updatedMemberWithFields.role,
+          profilePicture: updatedMemberWithFields.profilePicture || `/default-avatar.png?m=${memberId}`,
+          position: updatedMemberWithFields.position || "",
+          jerseyNumber: updatedMemberWithFields.jerseyNumber || null,
+          email: "",
+          phoneNumber: ""
+        }
+      };
+      
+      console.log("Sending updated team member response (no user):", JSON.stringify(response, null, 2));
+      res.json(response);
     } catch (error) {
       console.error("Error updating team member:", error);
       res.status(500).json({ error: "Failed to update team member" });
