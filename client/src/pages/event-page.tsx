@@ -45,6 +45,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,7 +70,7 @@ const eventSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
   location: z.string().min(1, "Location is required"),
   description: z.string().optional(),
-  type: z.string().default("training"),
+  type: z.enum(["training", "meeting", "other"]).default("training"),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -516,6 +523,28 @@ export default function EventPage() {
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("events.type")}</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("events.selectType")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="training">{t("events.types.training")}</SelectItem>
+                              <SelectItem value="meeting">{t("events.types.meeting")}</SelectItem>
+                              <SelectItem value="other">{t("events.types.other")}</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
