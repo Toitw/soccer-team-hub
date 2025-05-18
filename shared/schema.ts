@@ -191,7 +191,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   title: text("title").notNull(),
-  type: eventTypeEnum("event_type").notNull(),
+  type: eventTypeEnum("type").notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location").notNull(),
