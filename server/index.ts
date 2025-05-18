@@ -3,10 +3,14 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
 import { isDatabaseHealthy } from "./db-health";
+import { checkApiPermission } from "./permissions-middleware";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Add the permissions middleware - this will centralize all API access controls
+app.use(checkApiPermission());
 
 app.use((req, res, next) => {
   const start = Date.now();
