@@ -70,7 +70,7 @@ const eventSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
   location: z.string().min(1, "Location is required"),
   description: z.string().optional(),
-  type: z.enum(["training", "meeting", "other"]).default("training"),
+  eventType: z.enum(["training", "meeting", "other"]).default("training"),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -140,7 +140,7 @@ export default function EventPage() {
         .slice(0, 16),
       location: "",
       description: "",
-      type: "training",
+      eventType: "training",
     },
   });
 
@@ -298,7 +298,7 @@ export default function EventPage() {
 
   // Computed values - always compute these, don't make them conditional
   const isLoading = teamsLoading || eventsLoading;
-  const trainingEvents = events?.filter((event) => event.type === "training") || [];
+  const trainingEvents = events?.filter((event) => event.eventType === "training") || [];
   
   // Get events for the selected date - always compute this
   const eventsForSelectedDate = events?.filter((event) => {
@@ -351,7 +351,7 @@ export default function EventPage() {
       endTime: event.endTime ? new Date(event.endTime).toISOString().slice(0, 16) : "",
       location: event.location,
       description: event.description || "",
-      type: event.type,
+      eventType: event.eventType,
     });
     
     setDialogOpen(true);
@@ -529,7 +529,7 @@ export default function EventPage() {
                     />
                     <FormField
                       control={form.control}
-                      name="type"
+                      name="eventType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t("events.type")}</FormLabel>
