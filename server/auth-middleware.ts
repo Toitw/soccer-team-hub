@@ -263,10 +263,18 @@ export function requireTeamRole(roles: TeamMemberRole[]) {
  */
 export function checkApiPermission() {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Skip auth check for non-API routes and auth-related routes
-    if (!req.path.startsWith('/api') || req.path.startsWith('/api/auth') || 
-        req.path === '/api/login' || req.path === '/api/logout' || 
-        req.path === '/api/health' || req.path === '/api/user') {
+    // Skip auth check for these public endpoints
+    const publicPaths = [
+      '/api/health', 
+      '/api/user', 
+      '/api/login', 
+      '/api/logout',
+      '/api/auth'
+    ];
+    
+    // Skip for non-API routes or public endpoints
+    if (!req.path.startsWith('/api') || 
+        publicPaths.some(path => req.path === path || req.path.startsWith(path + '/'))) {
       return next();
     }
 
@@ -276,44 +284,56 @@ export function checkApiPermission() {
     }
 
     const user = req.user as User;
-    const endpoint = getApiEndpoint(req);
-    const method = req.method as ApiMethod;
-
-    // Use centralized permission check
-    if (hasApiPermission(endpoint, method, user.role as UserRole)) {
+    
+    // Special case for the teams endpoint - everyone can access this
+    if (req.path === '/api/teams' && req.method === 'GET') {
       return next();
     }
 
-    // If user doesn't have direct permission, check if it's a team-specific endpoint
-    // and if the user has appropriate team permissions
-    if (endpoint.includes('/teams/') && endpoint.includes('/')) {
+    // If it's a team-specific endpoint, check team membership
+    if (req.path.includes('/teams/')) {
       // Extract teamId from request
-      const teamIdMatch = endpoint.match(/\/teams\/(\d+)/);
+      const teamIdMatch = req.path.match(/\/teams\/(\d+)/);
+      
       if (teamIdMatch && teamIdMatch[1]) {
         const teamId = parseInt(teamIdMatch[1]);
         
         // For team endpoints, check team membership and role
         return storage.getTeamMember(teamId, user.id)
           .then(member => {
-            if (member) {
-              // Add team member info to request for use in route handlers
-              (req as any).teamMember = member;
-              
-              // For now, allow access to team members for GET requests
-              // This is a fallback until we transition entirely to the permissions map
-              if (req.method === 'GET') {
-                return next();
-              }
-              
-              // For other methods, only allow team admins and coaches
-              if (member.role === 'admin' || member.role === 'coach') {
-                return next();
-              }
+            if (!member) {
+              return res.status(403).json({ 
+                error: 'Not a member of this team',
+                message: 'You do not have permission to access this resource.'
+              });
+            }
+            
+            // Add team member info to request for use in route handlers
+            (req as any).teamMember = member;
+            
+            // For GET requests, allow any team member access
+            if (req.method === 'GET') {
+              return next();
+            }
+            
+            // For "claims" endpoints - allow player role to POST
+            if (req.path.includes('/claims') && req.method === 'POST') {
+              return next();
+            }
+            
+            // For "attendance" endpoints - allow all roles to update their own attendance
+            if (req.path.includes('/attendance') && (req.method === 'POST' || req.method === 'PUT')) {
+              return next();
+            }
+            
+            // For all other requests, require admin or coach role
+            if (member.role === 'admin' || member.role === 'coach') {
+              return next();
             }
             
             res.status(403).json({ 
               error: 'Insufficient privileges',
-              message: 'You do not have permission to access this resource.'
+              message: 'You do not have permission to modify this resource.'
             });
           })
           .catch(error => {
@@ -321,6 +341,11 @@ export function checkApiPermission() {
             res.status(500).json({ error: 'Failed to verify team access' });
           });
       }
+    }
+
+    // Check if user is admin or superuser - they can access everything
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPERUSER) {
+      return next();
     }
 
     // Default: unauthorized
