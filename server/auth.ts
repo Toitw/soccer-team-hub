@@ -7,6 +7,7 @@ import { randomBytes, timingSafeEqual, scrypt } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage-implementation";
 import { User as SelectUser } from "@shared/schema";
+import { UserRole } from "@shared/roles";
 import * as argon2 from "argon2";
 
 const scryptAsync = promisify(scrypt);

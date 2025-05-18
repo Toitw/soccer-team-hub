@@ -2462,7 +2462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: "admin",
             password: await hashPassword("password"),
             fullName: "Admin User",
-            role: "admin",
+            role: UserRole.ADMIN,
             profilePicture: "https://i.pravatar.cc/150?u=admin",
             email: "admin@example.com",
             phoneNumber: "+1 (555) 123-4567"
@@ -2478,7 +2478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             username: "coach",
             password: await hashPassword("password"),
             fullName: "Erik Ten Hag",
-            role: "coach",
+            role: UserRole.COACH,
             profilePicture: "https://i.pravatar.cc/150?u=coach",
             position: "Head Coach",
             email: "coach@example.com",
@@ -2501,7 +2501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fullName: adminUser!.fullName,
           createdById: adminUser!.id,
           userId: adminUser!.id,
-          role: "admin",
+          role: TeamMemberRole.ADMIN,
           isVerified: true
         });
 
@@ -2511,7 +2511,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fullName: coachUser.fullName,
             createdById: adminUser!.id,
             userId: coachUser.id,
-            role: "coach",
+            role: TeamMemberRole.COACH,
             isVerified: true
           });
         }
