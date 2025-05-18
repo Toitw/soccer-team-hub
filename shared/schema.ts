@@ -399,16 +399,17 @@ export const teamLineups = pgTable("team_lineups", {
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  name: text("name"),
-  isDefault: boolean("is_default").default(false),
+  // These fields are in the schema but not in the actual database yet
+  // name: text("name"),
+  // isDefault: boolean("is_default").default(false),
 });
 
 export const insertTeamLineupSchema = createInsertSchema(teamLineups).pick({
   teamId: true,
   formation: true,
   positionMapping: true,
-  name: true,
-  isDefault: true,
+  // name: true,
+  // isDefault: true,
 });
 
 // League Classification table

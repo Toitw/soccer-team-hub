@@ -1912,6 +1912,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.teamId);
+      if (!req.user) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
 
       // Check if user is a member of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -1922,7 +1925,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lineup = await storage.getTeamLineup(teamId);
 
       if (!lineup) {
-        return res.status(404).json({ error: "Team lineup not found" });
+        // Return a default empty lineup structure instead of 404
+        // This allows the frontend to display an empty formation that can be edited
+        return res.json({
+          id: -1,
+          teamId: teamId,
+          formation: "4-4-2", // Default formation
+          positionMapping: {},
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
       }
 
       res.json(lineup);
