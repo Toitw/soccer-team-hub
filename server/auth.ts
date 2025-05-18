@@ -166,7 +166,10 @@ export function setupAuth(app: Express) {
           await storage.createTeamMember({
             teamId: team.id,
             userId: user.id,
-            role: "player"  // New users join as regular players
+            fullName: user.fullName || user.username,
+            createdById: user.id,
+            role: UserRole.PLAYER,  // New users join as regular players
+            isVerified: true
           });
           
           console.log(`User ${user.username} joined team ${team.name} using join code`);
