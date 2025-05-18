@@ -258,6 +258,11 @@ export class EntityStorage {
     return this.users.getByUsername(username);
   }
   
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const users = await this.users.getAll();
+    return users.find(user => user.email === email);
+  }
+  
   async getAllUsers(): Promise<User[]> {
     return this.users.getAll();
   }
