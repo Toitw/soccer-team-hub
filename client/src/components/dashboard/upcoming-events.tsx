@@ -96,7 +96,7 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
               return (
                 <div 
                   key={event.id} 
-                  className={`mb-4 border-l-4 ${getEventTypeColor(event.type)} bg-white rounded-r-lg shadow-sm overflow-hidden`}
+                  className={`mb-4 border-l-4 ${getEventTypeColor(event.eventType)} bg-white rounded-r-lg shadow-sm overflow-hidden`}
                 >
                   <div className="flex">
                     <div className="w-16 sm:w-24 bg-accent/10 flex flex-col items-center justify-center p-2">
@@ -107,8 +107,8 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
                     <div className="flex-1 p-3 pl-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.type || 'other')} mb-1`}>
-                            {event.type ? (event.type.charAt(0).toUpperCase() + event.type.slice(1)) : 'Event'}
+                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.eventType || 'other')} mb-1`}>
+                            {event.eventType ? (event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)) : 'Event'}
                           </span>
                           <h3 className="font-medium">{event.title}</h3>
                         </div>
@@ -118,7 +118,7 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
                       <div className="flex items-center mt-2 space-x-4">
                         <span className="text-xs flex items-center">
                           <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
-                          {event.type === "match" ? 
+                          {event.eventType === "match" ? 
                             ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? t("common.home") : t("common.away")) 
                             : (event.location || t("common.locationNotSet"))}
                         </span>

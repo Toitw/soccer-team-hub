@@ -762,14 +762,14 @@ export default function EventPage() {
                               <div className="flex flex-col items-end">
                                 <span
                                   className={`inline-block px-2 py-1 text-xs rounded mb-2 ${
-                                    event.type === "training"
+                                    event.eventType === "training"
                                       ? "bg-primary/10 text-primary"
-                                      : event.type === "match"
+                                      : event.eventType === "match"
                                         ? "bg-secondary/10 text-secondary"
                                         : "bg-accent/10 text-accent"
                                   }`}
                                 >
-                                  {t(`events.types.${event.type}`)}
+                                  {t(`events.types.${event.eventType}`)}
                                 </span>
                                 
                                 {/* Admin controls */}
@@ -958,14 +958,14 @@ export default function EventPage() {
                                 <div className="flex flex-col items-end">
                                   <span
                                     className={`inline-block px-2 py-1 text-xs rounded mb-2 ${
-                                      event.type === "training"
+                                      event.eventType === "training"
                                         ? "bg-primary/10 text-primary"
-                                        : event.type === "match"
+                                        : event.eventType === "match"
                                           ? "bg-secondary/10 text-secondary"
                                           : "bg-accent/10 text-accent"
                                     }`}
                                   >
-                                    {t(`events.types.${event.type}`)}
+                                    {t(`events.types.${event.eventType}`)}
                                   </span>
                                   
                                   {/* Admin controls */}
