@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
-import { hasPagePermission, isPageReadOnly } from "./permissions";
 
 // Define props type for the protected component
 interface ComponentWithReadOnly {
@@ -23,16 +22,22 @@ export function ProtectedRoute({
 }) {
   const { user, isLoading } = useAuth();
 
-  const hasAccess = () => {
+  const hasRequiredRole = () => {
+    // If no user or no role, deny access
     if (!user?.role) return false;
     
-    // Use our centralized permissions system
-    return hasPagePermission(path, user.role);
+    // If a specific role is required, check only that role
+    if (requiredRole) {
+      return user.role === requiredRole;
+    }
+    
+    // Otherwise, check if user's role is in the allowed roles list
+    return allowedRoles.includes(user.role);
   };
 
   // Create a special property to pass to components for read-only mode
-  // Use our centralized permissions system to determine if the page should be read-only
-  const isReadOnly = user?.role ? isPageReadOnly(path, user.role) : true;
+  // This is particularly useful for player and colaborador roles which can only view data
+  const isReadOnly = readOnly || (user?.role === "player") || (user?.role === "colaborador");
   
   return (
     <Route path={path}>
@@ -41,7 +46,7 @@ export function ProtectedRoute({
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : user ? (
-        hasAccess() ? (
+        hasRequiredRole() ? (
           <Component readOnly={isReadOnly} />
         ) : (
           <Redirect to="/" />
