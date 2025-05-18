@@ -1,35 +1,7 @@
-/**
- * Unified Database Schema for TeamKick Soccer Manager
- * 
- * This is the single source of truth for all database schema definitions.
- * It combines and harmonizes all previous schema files into one coherent structure.
- */
-
-import { relations, sql } from "drizzle-orm";
-import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { UserRole, TeamMemberRole, MemberClaimStatus, userRoleEnum, teamMemberRoleEnum, memberClaimStatusEnum } from "./roles";
-
-// Additional enum definitions for better type safety
-export const matchStatusEnum = pgEnum("match_status", [
-  "scheduled",
-  "completed",
-  "cancelled",
-]);
-
-export const matchTypeEnum = pgEnum("match_type", [
-  "league",
-  "copa",
-  "friendly"
-]);
-
-export const eventTypeEnum = pgEnum("event_type", [
-  "training",
-  "match",
-  "meeting",
-  "other"
-]);
 
 // Users table
 export const users = pgTable("users", {
@@ -167,8 +139,8 @@ export const matches = pgTable("matches", {
   isHome: boolean("is_home").notNull(),
   goalsScored: integer("goals_scored"),
   goalsConceded: integer("goals_conceded"),
-  status: matchStatusEnum("status").notNull().default("scheduled"),
-  matchType: matchTypeEnum("match_type").notNull().default("friendly"),
+  status: text("status", { enum: ["scheduled", "completed", "cancelled"] }).notNull().default("scheduled"),
+  matchType: text("match_type", { enum: ["league", "copa", "friendly"] }).notNull().default("friendly"),
   notes: text("notes"),
 });
 
@@ -191,7 +163,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   title: text("title").notNull(),
-  type: eventTypeEnum("type").notNull(),
+  type: text("event_type", { enum: ["training", "match", "meeting", "other"] }).notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location").notNull(),
@@ -216,15 +188,12 @@ export const attendance = pgTable("attendance", {
   eventId: integer("event_id").notNull(),
   userId: integer("user_id").notNull(),
   status: text("status", { enum: ["confirmed", "declined", "pending"] }).notNull().default("pending"),
-  responseTime: timestamp("response_time").defaultNow().notNull(),
-  notes: text("notes"),
 });
 
 export const insertAttendanceSchema = createInsertSchema(attendance).pick({
   eventId: true,
   userId: true,
   status: true,
-  notes: true,
 });
 
 // PlayerStats table for tracking individual player statistics
@@ -296,7 +265,6 @@ export const matchLineups = pgTable("match_lineups", {
   formation: text("formation"), // e.g., "4-4-2", "4-3-3"
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
@@ -316,7 +284,6 @@ export const matchSubstitutions = pgTable("match_substitutions", {
   playerOutId: integer("player_out_id").notNull(),
   minute: integer("minute").notNull(),
   reason: text("reason"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
 });
 
 export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutions).pick({
@@ -325,7 +292,6 @@ export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutio
   playerOutId: true,
   minute: true,
   reason: true,
-  period: true,
 });
 
 // MatchGoals table for detailed goal information
@@ -337,9 +303,6 @@ export const matchGoals = pgTable("match_goals", {
   minute: integer("minute").notNull(),
   type: text("type", { enum: ["regular", "penalty", "free_kick", "own_goal"] }).default("regular"),
   description: text("description"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
-  isOwnGoal: boolean("is_own_goal").default(false),
-  isPenalty: boolean("is_penalty").default(false),
 });
 
 export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
@@ -349,9 +312,6 @@ export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
   minute: true,
   type: true,
   description: true,
-  period: true,
-  isOwnGoal: true,
-  isPenalty: true,
 });
 
 // MatchCards table for yellow and red cards
@@ -362,7 +322,6 @@ export const matchCards = pgTable("match_cards", {
   type: text("type", { enum: ["yellow", "red", "second_yellow"] }).notNull(),
   minute: integer("minute").notNull(),
   reason: text("reason"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
 });
 
 export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
@@ -371,7 +330,6 @@ export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
   type: true,
   minute: true,
   reason: true,
-  period: true,
 });
 
 // MatchPhotos table for storing match photos
@@ -399,104 +357,13 @@ export const teamLineups = pgTable("team_lineups", {
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  name: text("name"),
-  isDefault: boolean("is_default").default(false),
 });
 
 export const insertTeamLineupSchema = createInsertSchema(teamLineups).pick({
   teamId: true,
   formation: true,
   positionMapping: true,
-  name: true,
-  isDefault: true,
 });
-
-// League Classification table
-export const leagueClassification = pgTable("league_classification", {
-  id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(), // Reference to the team this classification belongs to
-  seasonId: integer("season_id"), // Reference to the season this classification belongs to (optional for backward compatibility)
-  externalTeamName: text("external_team_name").notNull(), // Name of the external team in the league
-  points: integer("points").notNull().default(0),
-  position: integer("position"),
-  gamesPlayed: integer("games_played").default(0),
-  gamesWon: integer("games_won").default(0),
-  gamesDrawn: integer("games_drawn").default(0),
-  gamesLost: integer("games_lost").default(0),
-  goalsFor: integer("goals_for").default(0),
-  goalsAgainst: integer("goals_against").default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  // Fields from optimized schema
-  season: text("season"),
-  wins: integer("wins"),
-  draws: integer("draws"),
-  losses: integer("losses"),
-});
-
-export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
-  teamId: true,
-  seasonId: true,
-  externalTeamName: true,
-  points: true,
-  position: true,
-  gamesPlayed: true,
-  gamesWon: true,
-  gamesDrawn: true,
-  gamesLost: true,
-  goalsFor: true,
-  goalsAgainst: true,
-  season: true,
-});
-
-// Define relationships
-export const usersRelations = relations(users, ({ many }) => ({
-  teamMembers: many(teamMembers),
-}));
-
-export const teamsRelations = relations(teams, ({ many, one }) => ({
-  creator: one(users, {
-    fields: [teams.createdById],
-    references: [users.id],
-  }),
-  members: many(teamMembers),
-  matches: many(matches),
-  events: many(events),
-  announcements: many(announcements),
-}));
-
-export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
-  team: one(teams, {
-    fields: [teamMembers.teamId],
-    references: [teams.id],
-  }),
-  user: one(users, {
-    fields: [teamMembers.userId],
-    references: [users.id],
-  }),
-}));
-
-export const announcementsRelations = relations(announcements, ({ one }) => ({
-  team: one(teams, {
-    fields: [announcements.teamId],
-    references: [teams.id],
-  }),
-  creator: one(users, {
-    fields: [announcements.createdById],
-    references: [users.id],
-  }),
-}));
-
-export const matchesRelations = relations(matches, ({ one, many }) => ({
-  team: one(teams, {
-    fields: [matches.teamId],
-    references: [teams.id],
-  }),
-  goals: many(matchGoals),
-  cards: many(matchCards),
-  lineups: many(matchLineups),
-  substitutions: many(matchSubstitutions),
-}));
 
 // Export types
 export type User = typeof users.$inferSelect;
@@ -550,59 +417,34 @@ export type InsertMatchCard = z.infer<typeof insertMatchCardSchema>;
 export type MatchPhoto = typeof matchPhotos.$inferSelect;
 export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
 
-export type LeagueClassification = typeof leagueClassification.$inferSelect;
-export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
-
-export type LeagueClassification = typeof leagueClassification.$inferSelect;
-export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
-
-// Seasons table
-export const seasons = pgTable("seasons", {
+// League Classification table
+export const leagueClassification = pgTable("league_classification", {
   id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
-  name: text("name").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-  description: text("description"),
+  teamId: integer("team_id").notNull(), // Reference to the team this classification belongs to
+  seasonId: integer("season_id"), // Reference to the season this classification belongs to (optional for backward compatibility)
+  externalTeamName: text("external_team_name").notNull(), // Name of the external team in the league
+  points: integer("points").notNull().default(0),
+  position: integer("position"),
+  gamesPlayed: integer("games_played").default(0),
+  gamesWon: integer("games_won").default(0),
+  gamesDrawn: integer("games_drawn").default(0),
+  gamesLost: integer("games_lost").default(0),
+  goalsFor: integer("goals_for").default(0),
+  goalsAgainst: integer("goals_against").default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertSeasonSchema = createInsertSchema(seasons).pick({
+export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
   teamId: true,
-  name: true,
-  startDate: true,
-  endDate: true,
-  isActive: true,
-  description: true,
+  seasonId: true,
+  externalTeamName: true,
+  points: true,
+  position: true,
+  gamesPlayed: true,
+  gamesWon: true,
+  gamesDrawn: true,
+  gamesLost: true,
+  goalsFor: true,
+  goalsAgainst: true,
 });
-
-export type Season = typeof seasons.$inferSelect;
-export type InsertSeason = z.infer<typeof insertSeasonSchema>;
-
-// Feedback table for user-submitted feedback
-export const feedback = pgTable("feedback", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id"), // Optional as guests may also submit feedback
-  name: text("name"), // Optional name field
-  email: text("email"), // Email to reply to
-  type: text("type", { enum: ["bug", "suggestion", "improvement", "other"] }).notNull(),
-  subject: text("subject").notNull(),
-  message: text("message").notNull(),
-  status: text("status", { enum: ["pending", "reviewed", "resolved"] }).notNull().default("pending"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const insertFeedbackSchema = createInsertSchema(feedback).pick({
-  userId: true,
-  name: true,
-  email: true,
-  type: true, 
-  subject: true,
-  message: true,
-});
-
-export type Feedback = typeof feedback.$inferSelect;
-export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
