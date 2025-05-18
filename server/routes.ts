@@ -1152,23 +1152,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Matches routes
-  app.get("/api/teams/:id/matches", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
+  app.get("/api/teams/:id/matches", isTeamMember, async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
-
-      // Check if user has access to the team (either as a team_user or a team_member)
-      // First check team_users (users who joined the team)
-      const teamUser = await storage.getTeamUser(teamId, req.user.id);
       
-      // If not found in team_users, check if they're a team_member with role
-      const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
-      if (!teamUser && !teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-
+      // We already verified the user is a team member in the middleware
       const matches = await storage.getMatches(teamId);
       res.json(matches);
     } catch (error) {
@@ -1176,19 +1164,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/teams/:id/matches/recent", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
+  app.get("/api/teams/:id/matches/recent", isTeamMember, async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
       const limit = parseInt(req.query.limit as string) || 5;
 
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-
+      // We already verified the user is a team member in the middleware
       const matches = await storage.getRecentMatches(teamId, limit);
       res.json(matches);
     } catch (error) {
