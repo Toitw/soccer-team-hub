@@ -907,6 +907,7 @@ export class DatabaseStorage implements IStorage {
   // Team Lineup methods
   async getTeamLineup(teamId: number): Promise<TeamLineup | undefined> {
     try {
+      // Only select columns that actually exist in the database
       const [lineup] = await db
         .select({
           id: teamLineups.id,
@@ -914,9 +915,7 @@ export class DatabaseStorage implements IStorage {
           formation: teamLineups.formation,
           positionMapping: teamLineups.positionMapping,
           createdAt: teamLineups.createdAt,
-          updatedAt: teamLineups.updatedAt,
-          name: teamLineups.name,
-          isDefault: teamLineups.isDefault
+          updatedAt: teamLineups.updatedAt
         })
         .from(teamLineups)
         .where(eq(teamLineups.teamId, teamId));
