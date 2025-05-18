@@ -12,6 +12,7 @@ import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 import { teamMembers } from "@shared/schema";
+import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole } from "./auth-middleware";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -654,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/teams/:id", async (req, res) => {
+  app.get("/api/teams/:id", async (req, res, next) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
@@ -678,7 +679,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Upload team logo (base64)
-  app.post("/api/teams/:id/logo", async (req, res) => {
+  app.post("/api/teams/:id/logo", async (req, res, next) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     
     try {
