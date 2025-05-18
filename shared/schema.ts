@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { UserRole, TeamMemberRole, MemberClaimStatus, userRoleEnum, teamMemberRoleEnum, memberClaimStatusEnum } from "./roles";
 
 // Users table
 export const users = pgTable("users", {
