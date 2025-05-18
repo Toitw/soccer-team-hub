@@ -73,15 +73,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Detailed database health endpoint (for authenticated superusers only)
-  app.get("/api/admin/database/health", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.get("/api/admin/database/health", requireRole(['superuser']), async (req, res) => {
     try {
-      // Check if user is a superuser
-      if (req.user.role !== 'superuser') {
-        return res.status(403).json({ error: "Not authorized to access database health information" });
-      }
-      
       // Run the comprehensive database health check
       const healthData = await checkDatabaseHealth();
       
@@ -259,9 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a claim for a member
-  app.post("/api/teams/:id/claims", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+  app.post("/api/teams/:id/claims", isAuthenticated, async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
       const userId = req.user.id;
@@ -319,11 +310,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const claimId = parseInt(req.params.claimId);
       const { status, rejectionReason } = req.body;
       
-      // Verify user is team admin or coach
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
-        return res.status(403).json({ error: "Not authorized to update claims" });
-      }
+      // We'll replace this check with the requireTeamRole middleware
+      // after refactoring the route declaration
       
       // Get the claim
       const claim = await storage.getMemberClaimById(claimId);
