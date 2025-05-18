@@ -14,6 +14,7 @@ import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 import { teamMembers } from "@shared/schema";
 import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole, requireTeamRole } from "./auth-middleware";
+import { checkApiPermission } from "./permissions-middleware";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -61,6 +62,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register our custom auth routes for email verification and password reset
   app.use('/api/auth', authRoutes);
+  
+  // Add the permissions middleware after authentication is setup
+  app.use(checkApiPermission());
   
   // Register admin routes using the imported admin router that has our fixes
   const adminRouter = createAdminRouter(storage);

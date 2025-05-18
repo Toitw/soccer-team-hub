@@ -9,8 +9,7 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// Add the permissions middleware - this will centralize all API access controls
-app.use(checkApiPermission());
+// We'll add the permissions middleware after authentication setup in registerRoutes
 
 app.use((req, res, next) => {
   const start = Date.now();

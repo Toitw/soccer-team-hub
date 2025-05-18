@@ -33,12 +33,13 @@ export function checkApiPermission() {
   return (req: Request, res: Response, next: NextFunction) => {
     // Skip auth check for non-API routes and auth-related routes
     if (!req.path.startsWith('/api') || req.path.startsWith('/api/auth') || 
-        req.path === '/api/login' || req.path === '/api/logout') {
+        req.path === '/api/login' || req.path === '/api/logout' ||
+        req.path === '/api/health' || req.path === '/api/user') {
       return next();
     }
 
     // Require authentication for all API routes
-    if (!req.isAuthenticated()) {
+    if (!req.user) {
       return res.status(401).json({ error: 'Unauthorized. Please log in.' });
     }
 
