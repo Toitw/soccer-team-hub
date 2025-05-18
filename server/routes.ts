@@ -12,7 +12,7 @@ import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 import { teamMembers } from "@shared/schema";
-import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole } from "./auth-middleware";
+import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole, requireTeamRole } from "./auth-middleware";
 
 // Mock data creation has been disabled
 async function createMockData() {
@@ -1212,7 +1212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a match
   app.patch("/api/teams/:teamId/matches/:matchId", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-
+    
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
@@ -1630,17 +1630,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/teams/:id/announcements", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
+  app.post("/api/teams/:id/announcements", requireTeamRole(["admin", "coach"]), async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
-
-      // Check if user has admin or coach role
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
-        return res.status(403).json({ error: "Not authorized to create announcements" });
-      }
 
       const announcement = await storage.createAnnouncement({
         ...req.body,
