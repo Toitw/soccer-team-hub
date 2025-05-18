@@ -287,13 +287,54 @@ export class DatabaseStorage implements IStorage {
         );
       
       if (teamUser) {
-        // If there's a team_user entry, find the corresponding team member
-        const [teamMember] = await db
-          .select()
-          .from(teamMembers)
-          .where(eq(teamMembers.id, teamUser.teamMemberId));
+        // If the user is associated with this team through team_users table,
+        // create a virtual team member object with appropriate permissions
         
-        return teamMember;
+        // Get the user information
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId));
+        
+        if (user) {
+          // Create a virtual team member with appropriate role
+          // using the user's role (defaulting to player if not admin/coach)
+          const teamRole = (user.role === 'admin' || user.role === 'coach') 
+            ? user.role 
+            : 'player';
+            
+          return {
+            id: -1, // Virtual ID
+            teamId,
+            userId,
+            fullName: user.fullName || '',
+            profilePicture: user.profilePicture || '',
+            position: user.position || '',
+            role: teamRole,
+            jerseyNumber: user.jerseyNumber,
+            isVerified: true,
+            createdAt: teamUser.joinedAt,
+            createdById: userId,
+            notes: `Team user association`
+          };
+        }
+        
+        // If there's a team_users entry but no corresponding team member,
+        // look up the team member by ID to get role information
+        if (teamUser.teamMemberId) {
+          const [teamMember] = await db
+            .select()
+            .from(teamMembers)
+            .where(eq(teamMembers.id, teamUser.teamMemberId));
+          
+          if (teamMember) {
+            // Update the teamMember to include this userId
+            return {
+              ...teamMember,
+              userId // Override with the correct userId
+            };
+          }
+        }
       }
       
       // Check for admin users who should have access to all teams
