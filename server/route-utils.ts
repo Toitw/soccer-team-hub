@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, Router } from 'express';
+import { isAuthenticated, requireRole as authRequireRole } from './auth-middleware';
 
 /**
  * Type for route handler functions
@@ -43,18 +44,14 @@ export function registerRoutes(router: Router, routes: RouteConfig[]): void {
 }
 
 /**
- * Auth middleware to check if a user is authenticated
+ * Auth middleware to check if a user is authenticated (using centralized version)
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  if (!req.isAuthenticated()) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-  next();
+  isAuthenticated(req, res, next);
 }
 
 /**
- * Auth middleware to check if a user has a specific role
+ * Auth middleware to check if a user has a specific role (using centralized version)
  * @param roles - Array of allowed roles
  * @returns A middleware function
  */
