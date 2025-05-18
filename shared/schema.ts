@@ -191,7 +191,7 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   title: text("title").notNull(),
-  type: eventTypeEnum("type").notNull(),
+  eventType: eventTypeEnum("event_type").notNull(),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   location: text("location").notNull(),
@@ -202,7 +202,7 @@ export const events = pgTable("events", {
 export const insertEventSchema = createInsertSchema(events).pick({
   teamId: true,
   title: true,
-  type: true,
+  eventType: true,
   startTime: true,
   endTime: true,
   location: true,
