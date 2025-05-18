@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   firstName: text("first_name"),
   lastName: text("last_name"),
-  role: text("role", { enum: ["superuser", "admin", "coach", "player", "colaborador"] }).notNull().default("player"),
+  role: userRoleEnum("role").notNull().default(UserRole.PLAYER),
   profilePicture: text("profile_picture").default("/default-avatar.png"),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
@@ -73,7 +73,7 @@ export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   fullName: text("full_name").notNull(),
-  role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
+  role: teamMemberRoleEnum("role").notNull().default(TeamMemberRole.PLAYER),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
   profilePicture: text("profile_picture"),
@@ -114,7 +114,7 @@ export const memberClaims = pgTable("member_claims", {
   teamId: integer("team_id").notNull(),
   teamMemberId: integer("team_member_id").notNull(), // The member being claimed
   userId: integer("user_id").notNull(), // The user making the claim
-  status: text("status", { enum: ["pending", "approved", "rejected"] }).notNull().default("pending"),
+  status: memberClaimStatusEnum("status").notNull().default(MemberClaimStatus.PENDING),
   requestedAt: timestamp("requested_at").notNull().defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
   reviewedById: integer("reviewed_by_id"), // Admin/coach who reviewed the claim
@@ -242,7 +242,7 @@ export const invitations = pgTable("invitations", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   email: text("email").notNull(),
-  role: text("role", { enum: ["admin", "coach", "player", "colaborador"] }).notNull().default("player"),
+  role: teamMemberRoleEnum("role").notNull().default(TeamMemberRole.PLAYER),
   status: text("status", { enum: ["pending", "accepted", "declined"] }).notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),

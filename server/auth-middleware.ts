@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { User } from '@shared/schema';
 import { storage } from './storage-implementation';
+import { UserRole, TeamMemberRole, isValidUserRole, isValidTeamMemberRole, canAdministerTeam, isTeamAdminRole } from '@shared/roles';
 
 /**
  * Type guard to check if user has required role
@@ -8,9 +9,9 @@ import { storage } from './storage-implementation';
  * @param roles - Array of allowed roles
  * @returns Boolean indicating if user has one of the required roles
  */
-function hasRole(user: User | undefined, roles: string[]): boolean {
+function hasRole(user: User | undefined, roles: UserRole[]): boolean {
   if (!user || !user.role) return false;
-  return roles.includes(user.role);
+  return roles.includes(user.role as UserRole);
 }
 
 /**
@@ -64,7 +65,7 @@ export function isAdmin(req: Request, res: Response, next: NextFunction) {
   
   const user = req.user as User;
   
-  if (user.role === 'admin' || user.role === 'superuser') {
+  if (user.role === UserRole.ADMIN || user.role === UserRole.SUPERUSER) {
     return next();
   }
   
@@ -89,14 +90,14 @@ export function isTeamAdmin(req: Request, res: Response, next: NextFunction) {
   const user = req.user as User;
   
   // If user is a global admin, always grant access
-  if (user.role === 'admin' || user.role === 'superuser') {
+  if (canAdministerTeam(user.role as UserRole)) {
     return next();
   }
   
   // For regular users, check if they're an admin or coach for this specific team
   storage.getTeamMember(teamId, user.id)
     .then(member => {
-      if (member && (member.role === 'admin' || member.role === 'coach')) {
+      if (member && isTeamAdminRole(member.role as TeamMemberRole)) {
         return next();
       }
       res.status(403).json({ error: 'Not authorized to access this team' });
@@ -134,7 +135,7 @@ export function isTeamMember(req: Request, res: Response, next: NextFunction) {
   const user = req.user as User;
   
   // If user is a global admin, always grant access
-  if (user.role === 'admin' || user.role === 'superuser') {
+  if (canAdministerTeam(user.role as UserRole)) {
     return next();
   }
   
