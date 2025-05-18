@@ -1386,11 +1386,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Not authorized to create events" });
       }
 
-      const event = await storage.createEvent({
-        ...req.body,
+      // Handle potential mismatch between type and eventType
+      const { type, ...otherFields } = req.body;
+      const eventData = {
+        ...otherFields,
         teamId,
         createdById: req.user.id,
-      });
+      };
+      
+      // If the client sent 'type' instead of 'eventType', map it correctly
+      if (type && !eventData.eventType) {
+        eventData.eventType = type;
+      }
+      
+      console.log("Creating event with data:", eventData);
+      
+      const event = await storage.createEvent(eventData);
 
       res.status(201).json(event);
     } catch (error) {
