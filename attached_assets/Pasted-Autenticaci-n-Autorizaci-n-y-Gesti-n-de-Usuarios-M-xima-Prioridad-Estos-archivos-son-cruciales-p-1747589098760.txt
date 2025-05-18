@@ -1,0 +1,105 @@
+Autenticación, Autorización y Gestión de Usuarios (Máxima Prioridad):
+Estos archivos son cruciales para entender y solucionar los problemas de autenticación y roles.
+
+server/auth.ts
+server/optimized-auth.ts (Importante para comparar y entender la "optimización")
+server/auth-middleware.ts
+server/middleware/auth-middleware.ts (Probablemente un duplicado o refactorización, necesito ver ambos)
+server/auth-routes.ts
+server/routes/auth-routes.ts (Probablemente un duplicado o refactorización)
+server/routes/admin-routes.ts (Para entender las acciones de administrador)
+server/routes.ts (Rutas generales que pueden incluir lógica de autenticación)
+shared/auth-utils.ts (Utilidades compartidas para autenticación)
+create-new-superuser.ts
+create-superuser.js
+create-superuser.ts (Necesito comparar estos tres para entender la duplicación)
+initialize-admin.js (Script de inicialización de administrador)
+reset-admin.ts (Script para resetear el administrador)
+create-users.ts
+create-test-users.js
+remove-mock-users.js (Para entender cómo se gestionan los usuarios de prueba)
+update-passwords.js (Relevante para la gestión de credenciales)
+direct-login-server.js (Este nombre sugiere una posible vía alternativa o de prueba para el login)
+cookies.txt (Podría contener información de sesiones o ser relevante para pruebas de autenticación)
+client/src/hooks/use-auth.tsx (Hook de React para la autenticación en el cliente)
+client/src/lib/protected-route.tsx (Componente para proteger rutas en el cliente)
+client/src/pages/auth-page.tsx
+client/src/pages/register-page.tsx
+client/src/pages/forgot-password-page.tsx
+client/src/pages/reset-password-page.tsx
+client/src/pages/verify-email-page.tsx
+client/src/pages/onboarding-page.tsx
+test-login.html y test-login.ts (Archivos de prueba para el login)
+2. Gestión de Equipos y Miembros:
+Archivos relacionados con la creación y gestión de equipos, que a menudo están ligados a roles y permisos.
+
+cleanup-teams.ts (Script para limpiar equipos)
+create-test-team-direct.js
+create-test-team-esm.js
+create-test-team-fixed.js
+create-test-team.ts (Necesito todas las versiones para ver las diferencias)
+remove_duplicate_members.js (¡Muy relevante para tu problema de duplicados!)
+clean-duplicates.js (¡También muy relevante!)
+scripts/add-team-members-columns.ts (Modificación de esquema relacionada con miembros de equipo)
+scripts/update-user-members-schema.ts (Actualización de esquema)
+client/src/components/admin/add-team-form.tsx
+client/src/components/admin/edit-team-form.tsx
+client/src/components/admin/teams-panel.tsx
+client/src/components/admin/team-member-list.tsx
+client/src/components/team/MemberClaimButton.tsx
+client/src/components/team/MemberClaimsManager.tsx
+server/utils/join-code.ts (Lógica para unirse a equipos)
+docs/TEAM_JOIN.md (Documentación sobre cómo unirse a un equipo)
+3. Esquema de Base de Datos, Migraciones y Almacenamiento:
+Para entender la estructura de datos y cómo ha evolucionado, lo cual puede estar causando inconsistencias.
+
+shared/schema.ts
+shared/schema-updated.ts
+shared/optimized-schema.ts (Necesito todas las versiones del esquema)
+push-feedback-schema.ts (Si el feedback está relacionado con usuarios/roles)
+drizzle.config.ts (Configuración del ORM Drizzle)
+server/db.ts (Configuración de la base de datos)
+server/database-storage.ts
+server/storage.ts
+server/optimized-storage.ts
+server/storage-implementation.ts (Implementaciones de almacenamiento)
+shared/storage-utils.ts (Utilidades de almacenamiento)
+update-db-schema.js (Script para actualizar el esquema de la BD)
+DATABASE_MIGRATION.md (Documentación sobre la migración de la BD)
+DATABASE_MIGRATION_FIXES.md (Correcciones a la migración)
+Directorio scripts/:
+db-init.ts
+db-migrate-data.sh y db-migrate-data.ts
+db-push.ts
+migrate-sql.sh
+migrate-to-database.ts
+run-migration-sql.ts
+run-migration.sh y run-migration.ts
+4. Lógica Principal del Servidor y Configuración:
+Archivos que definen el comportamiento general del backend.
+
+server/index.ts (Punto de entrada principal del servidor)
+server/optimized-index.ts (Versión "optimizada" del punto de entrada)
+package.json (Para ver scripts y dependencias)
+tsconfig.json (Configuración de TypeScript)
+vite.config.ts (Configuración de Vite, si se usa para el backend también)
+5. Scripts de "Optimización" y Documentación Relacionada:
+Estos pueden dar pistas sobre los cambios que se intentaron y que pudieron causar problemas.
+
+activate-optimized-code.sh (¿Qué hace este script?)
+show-optimizations.sh
+OPTIMIZATION.md
+6. Archivos en attached_assets/:
+Estos parecen ser fragmentos de código o instrucciones dadas a un asistente (quizás el "agente" que mencionaste). Pueden ser muy útiles para entender el origen de algunos cambios.
+
+Pasted--FormField-control-roleForm-control-name-role--1747474775665.txt (El nombre "role" es indicativo)
+Cualquier otro archivo en este directorio que parezca describir lógica de backend, autenticación o gestión de usuarios/equipos.
+7. Archivos de Cliente Relevantes para Paneles de Administración:
+
+client/src/pages/admin-page.tsx
+client/src/components/admin/database-monitoring-panel.tsx
+client/src/components/admin/feedback-panel.tsx
+client/src/components/admin/stats-panel.tsx
+client/src/components/admin/users-panel.tsx
+client/src/components/admin/add-user-form.tsx
+client/src/components/admin/edit-user-form.tsx
