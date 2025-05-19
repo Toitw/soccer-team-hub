@@ -713,18 +713,58 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined> {
-    const [updatedEvent] = await db
-      .update(events)
-      .set(eventData)
-      .where(eq(events.id, id))
-      .returning();
-    
-    return updatedEvent;
+    try {
+      console.log("Database storage: updating event with data:", JSON.stringify(eventData, null, 2));
+      
+      // Convert any string dates to Date objects
+      const formattedData = { ...eventData };
+      if (typeof formattedData.startTime === 'string') {
+        formattedData.startTime = new Date(formattedData.startTime);
+      }
+      if (typeof formattedData.endTime === 'string') {
+        formattedData.endTime = formattedData.endTime ? new Date(formattedData.endTime) : null;
+      }
+      
+      const [updatedEvent] = await db
+        .update(events)
+        .set(formattedData)
+        .where(eq(events.id, id))
+        .returning();
+      
+      return updatedEvent;
+    } catch (error) {
+      console.error(`Error in database storage updateEvent for event ${id}:`, error);
+      throw error;
+    }
   }
 
   async deleteEvent(id: number): Promise<boolean> {
-    await db.delete(events).where(eq(events.id, id));
-    return true;
+    try {
+      console.log(`Database storage: deleting event with ID ${id}`);
+      
+      // Check if the event exists first
+      const existingEvent = await db
+        .select()
+        .from(events)
+        .where(eq(events.id, id))
+        .limit(1);
+        
+      if (existingEvent.length === 0) {
+        console.error(`Event with ID ${id} not found for deletion`);
+        return false;
+      }
+      
+      // Delete the event
+      const result = await db
+        .delete(events)
+        .where(eq(events.id, id));
+      
+      console.log(`Deletion result:`, result);
+      return true;
+    } catch (error) {
+      console.error(`Error in database storage deleteEvent for event ${id}:`, error);
+      throw error;
+    }
   }
 
   // Attendance methods
