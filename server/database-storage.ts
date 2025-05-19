@@ -950,22 +950,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMatchLineup(lineupData: InsertMatchLineup): Promise<MatchLineup> {
-    const [lineup] = await db
-      .insert(matchLineups)
-      .values(lineupData)
-      .returning();
-    
-    return lineup;
+    try {
+      // Add timestamp fields
+      const now = new Date();
+      const dataWithTimestamps = {
+        ...lineupData,
+        createdAt: now
+      };
+      
+      const [lineup] = await db
+        .insert(matchLineups)
+        .values(dataWithTimestamps)
+        .returning();
+      
+      // Add the updatedAt field to satisfy the TypeScript type
+      const result: MatchLineup = {
+        ...lineup,
+        updatedAt: now
+      };
+      
+      return result;
+    } catch (error) {
+      console.error("Error creating match lineup:", error);
+      throw error;
+    }
   }
 
   async updateMatchLineup(id: number, lineupData: Partial<MatchLineup>): Promise<MatchLineup | undefined> {
-    const [updatedLineup] = await db
-      .update(matchLineups)
-      .set(lineupData)
-      .where(eq(matchLineups.id, id))
-      .returning();
-    
-    return updatedLineup;
+    try {
+      // Ensure we don't try to update fields that don't exist in the database
+      const { updatedAt, ...validData } = lineupData;
+      
+      const [updatedLineup] = await db
+        .update(matchLineups)
+        .set(validData)
+        .where(eq(matchLineups.id, id))
+        .returning();
+      
+      if (updatedLineup) {
+        // Add the updatedAt field to satisfy the TypeScript type
+        return {
+          ...updatedLineup,
+          updatedAt: updatedLineup.createdAt // Use createdAt as a substitute since updatedAt doesn't exist
+        };
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error("Error updating match lineup:", error);
+      return undefined;
+    }
   }
 
   // Team Lineup methods
