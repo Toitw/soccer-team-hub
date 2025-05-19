@@ -1196,11 +1196,32 @@ export class DatabaseStorage implements IStorage {
 
   // League Classification methods
   async getLeagueClassifications(teamId: number): Promise<LeagueClassification[]> {
-    return db
-      .select()
-      .from(leagueClassification)
-      .where(eq(leagueClassification.teamId, teamId))
-      .orderBy(leagueClassification.position);
+    try {
+      // Use specific column selection to avoid the "column season does not exist" error
+      return db
+        .select({
+          id: leagueClassification.id,
+          teamId: leagueClassification.teamId,
+          seasonId: leagueClassification.seasonId,
+          externalTeamName: leagueClassification.externalTeamName,
+          position: leagueClassification.position,
+          gamesPlayed: leagueClassification.gamesPlayed,
+          gamesWon: leagueClassification.gamesWon,
+          gamesDrawn: leagueClassification.gamesDrawn,
+          gamesLost: leagueClassification.gamesLost,
+          goalsFor: leagueClassification.goalsFor,
+          goalsAgainst: leagueClassification.goalsAgainst,
+          points: leagueClassification.points,
+          createdAt: leagueClassification.createdAt,
+          updatedAt: leagueClassification.updatedAt
+        })
+        .from(leagueClassification)
+        .where(eq(leagueClassification.teamId, teamId))
+        .orderBy(leagueClassification.position);
+    } catch (error) {
+      console.error("Error retrieving league classifications:", error);
+      return [];
+    }
   }
 
   async getLeagueClassification(id: number): Promise<LeagueClassification | undefined> {
@@ -1340,16 +1361,37 @@ export class DatabaseStorage implements IStorage {
 
   // Enhanced League Classification methods
   async getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]> {
-    return db
-      .select()
-      .from(leagueClassification)
-      .where(
-        and(
-          eq(leagueClassification.teamId, teamId),
-          eq(leagueClassification.seasonId, seasonId)
+    try {
+      // Use specific column selection to avoid the "column season does not exist" error
+      return db
+        .select({
+          id: leagueClassification.id,
+          teamId: leagueClassification.teamId,
+          seasonId: leagueClassification.seasonId,
+          externalTeamName: leagueClassification.externalTeamName,
+          position: leagueClassification.position,
+          gamesPlayed: leagueClassification.gamesPlayed,
+          gamesWon: leagueClassification.gamesWon,
+          gamesDrawn: leagueClassification.gamesDrawn,
+          gamesLost: leagueClassification.gamesLost,
+          goalsFor: leagueClassification.goalsFor,
+          goalsAgainst: leagueClassification.goalsAgainst,
+          points: leagueClassification.points,
+          createdAt: leagueClassification.createdAt,
+          updatedAt: leagueClassification.updatedAt
+        })
+        .from(leagueClassification)
+        .where(
+          and(
+            eq(leagueClassification.teamId, teamId),
+            eq(leagueClassification.seasonId, seasonId)
+          )
         )
-      )
-      .orderBy(leagueClassification.position);
+        .orderBy(leagueClassification.position);
+    } catch (error) {
+      console.error("Error retrieving league classifications by season:", error);
+      return [];
+    }
   }
 
   // Feedback methods
