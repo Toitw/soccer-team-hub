@@ -697,12 +697,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEvent(eventData: InsertEvent): Promise<Event> {
-    const [event] = await db
-      .insert(events)
-      .values(eventData)
-      .returning();
-    
-    return event;
+    try {
+      console.log("Database storage: creating event with data:", JSON.stringify(eventData, null, 2));
+      
+      const [event] = await db
+        .insert(events)
+        .values(eventData)
+        .returning();
+      
+      return event;
+    } catch (error) {
+      console.error("Error in database storage createEvent:", error);
+      throw error;
+    }
   }
 
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined> {
