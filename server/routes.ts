@@ -1388,6 +1388,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Handle potential mismatch between type and eventType
       const { type, ...otherFields } = req.body;
+      
+      // Create a properly formatted event data object
       const eventData = {
         ...otherFields,
         teamId,
@@ -1405,7 +1407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(event);
     } catch (error) {
-      res.status(500).json({ error: "Failed to create event" });
+      console.error("Error creating event:", error);
+      res.status(500).json({ error: "Failed to create event", details: String(error) });
     }
   });
 
