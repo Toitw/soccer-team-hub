@@ -2080,6 +2080,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const substitutions = await storage.getMatchSubstitutions(matchId);
+      
+      // Return empty array if no substitutions found
+      if (!substitutions || substitutions.length === 0) {
+        return res.json([]);
+      }
 
       // Get player details for substitutions
       const substitutionsWithPlayerDetails = await Promise.all(
@@ -2192,8 +2197,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!match || match.teamId !== teamId) {
         return res.status(404).json({ error: "Match not found" });
       }
-
+      
       const goals = await storage.getMatchGoals(matchId);
+      
+      // Return empty array if no goals found
+      if (!goals || goals.length === 0) {
+        return res.json([]);
+      }
 
       // Get player details for goals
       const goalsWithPlayerDetails = await Promise.all(
