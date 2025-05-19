@@ -70,7 +70,7 @@ const eventSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
   location: z.string().min(1, "Location is required"),
   description: z.string().optional(),
-  eventType: z.enum(["training", "meeting", "other"]).default("training"),
+  eventType: z.enum(["training", "meeting", "match", "other"]).default("training"),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -151,12 +151,14 @@ export default function EventPage() {
         throw new Error("No team selected");
       }
 
-      // Format dates properly for API, ensuring we use the exact date selected
+      // Format dates properly for API by converting HTML datetime-local format to ISO format
       const formattedData = {
         ...data,
-        startTime: data.startTime, // Use the ISO string from the form directly
-        endTime: data.endTime,     // Use the ISO string from the form directly
+        startTime: new Date(data.startTime).toISOString(), // Format as full ISO string
+        endTime: data.endTime ? new Date(data.endTime).toISOString() : undefined, // Format as full ISO string
       };
+
+      console.log("Formatted event data for API:", formattedData);
 
       return await apiRequest(`/api/teams/${selectedTeam.id}/events`, {
         method: "POST",
@@ -192,13 +194,15 @@ export default function EventPage() {
         throw new Error("No team selected");
       }
 
-      // Format dates properly for API, ensuring we use the exact date selected
+      // Format dates properly for API by converting HTML datetime-local format to ISO format
       const { id, ...formData } = data;
       const formattedData = {
         ...formData,
-        startTime: formData.startTime, // Use the ISO string from the form directly
-        endTime: formData.endTime,     // Use the ISO string from the form directly
+        startTime: new Date(formData.startTime).toISOString(), // Format as full ISO string
+        endTime: formData.endTime ? new Date(formData.endTime).toISOString() : undefined, // Format as full ISO string
       };
+
+      console.log("Formatted update event data for API:", formattedData);
 
       return await apiRequest(`/api/teams/${selectedTeam.id}/events/${id}`, {
         method: "PATCH",
