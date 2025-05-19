@@ -924,12 +924,29 @@ export class DatabaseStorage implements IStorage {
 
   // Match Lineup methods
   async getMatchLineup(matchId: number): Promise<MatchLineup | undefined> {
-    const [lineup] = await db
-      .select()
-      .from(matchLineups)
-      .where(eq(matchLineups.matchId, matchId));
-    
-    return lineup;
+    try {
+      // Only select columns that actually exist in the database
+      // This avoids the "column updated_at does not exist" error
+      const [lineup] = await db
+        .select({
+          id: matchLineups.id,
+          matchId: matchLineups.matchId,
+          teamId: matchLineups.teamId,
+          playerIds: matchLineups.playerIds,
+          benchPlayerIds: matchLineups.benchPlayerIds,
+          formation: matchLineups.formation,
+          positionMapping: matchLineups.positionMapping,
+          createdAt: matchLineups.createdAt
+          // Note: updatedAt is in the schema but not in the database table
+        })
+        .from(matchLineups)
+        .where(eq(matchLineups.matchId, matchId));
+      
+      return lineup;
+    } catch (error) {
+      console.error("Error retrieving match lineup:", error);
+      return undefined;
+    }
   }
 
   async createMatchLineup(lineupData: InsertMatchLineup): Promise<MatchLineup> {
@@ -995,11 +1012,25 @@ export class DatabaseStorage implements IStorage {
 
   // Match Substitution methods
   async getMatchSubstitutions(matchId: number): Promise<MatchSubstitution[]> {
-    return db
-      .select()
-      .from(matchSubstitutions)
-      .where(eq(matchSubstitutions.matchId, matchId))
-      .orderBy(matchSubstitutions.minute);
+    try {
+      // Only select fields that actually exist in the database
+      return db
+        .select({
+          id: matchSubstitutions.id,
+          matchId: matchSubstitutions.matchId,
+          playerInId: matchSubstitutions.playerInId,
+          playerOutId: matchSubstitutions.playerOutId,
+          minute: matchSubstitutions.minute,
+          period: matchSubstitutions.period,
+          reason: matchSubstitutions.reason
+        })
+        .from(matchSubstitutions)
+        .where(eq(matchSubstitutions.matchId, matchId))
+        .orderBy(matchSubstitutions.minute);
+    } catch (error) {
+      console.error("Error retrieving match substitutions:", error);
+      return [];
+    }
   }
 
   async createMatchSubstitution(substitutionData: InsertMatchSubstitution): Promise<MatchSubstitution> {
@@ -1028,11 +1059,26 @@ export class DatabaseStorage implements IStorage {
 
   // Match Goal methods
   async getMatchGoals(matchId: number): Promise<MatchGoal[]> {
-    return db
-      .select()
-      .from(matchGoals)
-      .where(eq(matchGoals.matchId, matchId))
-      .orderBy(matchGoals.minute);
+    try {
+      // Only select fields that actually exist in the database
+      return db
+        .select({
+          id: matchGoals.id,
+          matchId: matchGoals.matchId,
+          scorerId: matchGoals.scorerId,
+          assistId: matchGoals.assistId,
+          minute: matchGoals.minute,
+          period: matchGoals.period,
+          isOwnGoal: matchGoals.isOwnGoal,
+          isPenalty: matchGoals.isPenalty
+        })
+        .from(matchGoals)
+        .where(eq(matchGoals.matchId, matchId))
+        .orderBy(matchGoals.minute);
+    } catch (error) {
+      console.error("Error retrieving match goals:", error);
+      return [];
+    }
   }
 
   async createMatchGoal(goalData: InsertMatchGoal): Promise<MatchGoal> {
@@ -1061,11 +1107,25 @@ export class DatabaseStorage implements IStorage {
 
   // Match Card methods
   async getMatchCards(matchId: number): Promise<MatchCard[]> {
-    return db
-      .select()
-      .from(matchCards)
-      .where(eq(matchCards.matchId, matchId))
-      .orderBy(matchCards.minute);
+    try {
+      // Only select fields that actually exist in the database
+      return db
+        .select({
+          id: matchCards.id,
+          matchId: matchCards.matchId,
+          playerId: matchCards.playerId,
+          minute: matchCards.minute,
+          period: matchCards.period,
+          type: matchCards.type,
+          reason: matchCards.reason
+        })
+        .from(matchCards)
+        .where(eq(matchCards.matchId, matchId))
+        .orderBy(matchCards.minute);
+    } catch (error) {
+      console.error("Error retrieving match cards:", error);
+      return [];
+    }
   }
 
   async createMatchCard(cardData: InsertMatchCard): Promise<MatchCard> {
