@@ -1432,10 +1432,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Event not found" });
       }
 
-      const updatedEvent = await storage.updateEvent(eventId, req.body);
+      // Extract the event properties from the request body
+      const { type, eventType, startTime, endTime, ...otherFields } = req.body;
+      
+      // Prepare event data with proper date format conversion
+      const eventData = {
+        ...otherFields,
+        // Convert ISO string dates to Date objects for PostgreSQL
+        ...(startTime && { startTime: new Date(startTime) }),
+        ...(endTime && { endTime: endTime ? new Date(endTime) : null }),
+        // Use either eventType or type, giving priority to eventType
+        ...(eventType || type) && { eventType: eventType || type },
+      };
+      
+      console.log("Updating event with data:", eventData);
+      
+      // Update the event with the formatted data
+      const updatedEvent = await storage.updateEvent(eventId, eventData);
       res.json(updatedEvent);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update event" });
+      console.error("Error updating event:", error);
+      res.status(500).json({ error: "Failed to update event", details: String(error) });
     }
   });
 
@@ -1459,15 +1476,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Event not found" });
       }
 
-      const success = await storage.deleteEvent(eventId);
-
-      if (success) {
-        res.status(200).json({ message: "Event deleted successfully" });
-      } else {
-        res.status(500).json({ error: "Failed to delete event" });
+      try {
+        console.log(`Attempting to delete event ID: ${eventId}`);
+        const success = await storage.deleteEvent(eventId);
+        
+        if (success) {
+          res.status(200).json({ message: "Event deleted successfully" });
+        } else {
+          res.status(500).json({ error: "Failed to delete event - operation returned false" });
+        }
+      } catch (deleteError) {
+        console.error("Error deleting event:", deleteError);
+        res.status(500).json({ error: "Failed to delete event", details: String(deleteError) });
       }
     } catch (error) {
-      res.status(500).json({ error: "Failed to delete event" });
+      console.error("Error in delete event route:", error);
+      res.status(500).json({ error: "Failed to delete event", details: String(error) });
     }
   });
 
