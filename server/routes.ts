@@ -45,29 +45,29 @@ function generateJoinCode(): string {
   const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding 0, 1, I, O
   const codeLength = 6;
   let joinCode = '';
-  
+
   // Generate random characters
   const randomBytesBuffer = randomBytes(codeLength);
   for (let i = 0; i < codeLength; i++) {
     joinCode += characters[randomBytesBuffer[i] % characters.length];
   }
-  
+
   return joinCode;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
-  
+
   // Register our custom auth routes for email verification and password reset
   app.use('/api/auth', authRoutes);
-  
+
   // Add the permissions middleware after authentication is setup
   app.use(checkApiPermission());
-  
+
   // Register admin routes using the imported admin router that has our fixes
   const adminRouter = createAdminRouter(storage);
-  
+
   // Attach admin router to main app
   app.use('/api', adminRouter);
 
@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Run the comprehensive database health check
       const healthData = await checkDatabaseHealth();
-      
+
       res.json(healthData);
     } catch (error) {
       console.error("Error checking database health:", error);
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate a join code for the team
       const joinCode = generateJoinCode();
-      
+
       // Create a basic empty team specifically for this user
       // Use direct SQL to bypass the schema validation with pool.query
       const result = await pool.query(
@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.user.id // Set owner_id to user's ID
         ]
       );
-      
+
       const team = result.rows[0];
 
       console.log(`Created new team: ${team.name} (ID: ${team.id})`);
@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId: team.id,
         userId: req.user.id
       });
-      
+
       // Also add as team admin (member) for now
       await storage.createTeamMember({
         teamId: team.id,
@@ -167,27 +167,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Member claims routes
-  
+
   // Get all claims for a team (admin/coach only)
   app.get("/api/teams/:id/claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Verify user is team admin or coach
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to access team claims" });
       }
-      
+
       const claims = await storage.getMemberClaims(teamId);
-      
+
       // Enhance claims with member and user details
       const enhancedClaims = await Promise.all(claims.map(async (claim) => {
         const member = await storage.getTeamMemberById(claim.teamMemberId);
         const user = await storage.getUser(claim.userId);
-        
+
         return {
           ...claim,
           member: member ? {
@@ -206,36 +206,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } : null
         };
       }));
-      
+
       res.json(enhancedClaims);
     } catch (error) {
       console.error("Error getting member claims:", error);
       res.status(500).json({ error: "Failed to get team member claims" });
     }
   });
-  
+
   // Get my claims for a team
   app.get("/api/teams/:id/my-claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.id);
       const userId = req.user.id;
-      
+
       // Check if user has access to the team
       const teamUser = await storage.getTeamUser(teamId, userId);
       if (!teamUser) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       // Get all claims by this user for this team
       const allUserClaims = await storage.getMemberClaimsByUser(userId);
       const teamClaims = allUserClaims.filter(claim => claim.teamId === teamId);
-      
+
       // Enhance claims with member details
       const enhancedClaims = await Promise.all(teamClaims.map(async (claim) => {
         const member = await storage.getTeamMemberById(claim.teamMemberId);
-        
+
         return {
           ...claim,
           member: member ? {
@@ -247,86 +247,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } : null
         };
       }));
-      
+
       res.json(enhancedClaims);
     } catch (error) {
       console.error("Error getting user claims:", error);
       res.status(500).json({ error: "Failed to get your member claims" });
     }
   });
-  
+
   // Create a claim for a member
   app.post("/api/teams/:id/claims", isAuthenticated, async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
       const userId = req.user.id;
       const { teamMemberId } = req.body;
-      
+
       if (!teamMemberId) {
         return res.status(400).json({ error: "Team member ID is required" });
       }
-      
+
       // Check if user has access to the team
       const teamUser = await storage.getTeamUser(teamId, userId);
       if (!teamUser) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       // Check if the member exists
       const member = await storage.getTeamMemberById(teamMemberId);
       if (!member || member.teamId !== teamId) {
         return res.status(404).json({ error: "Team member not found" });
       }
-      
+
       // Check if claim already exists
       const allUserClaims = await storage.getMemberClaimsByUser(userId);
       const existingClaim = allUserClaims.find(
         claim => claim.teamId === teamId && claim.teamMemberId === teamMemberId
       );
-      
+
       if (existingClaim) {
         return res.status(409).json({ 
           error: "You already have a claim for this team member",
           claim: existingClaim
         });
       }
-      
+
       // Create new claim
       const newClaim = await storage.createMemberClaim({
         teamId,
         teamMemberId,
         userId
       });
-      
+
       res.status(201).json(newClaim);
     } catch (error) {
       console.error("Error creating member claim:", error);
       res.status(500).json({ error: "Failed to create team member claim" });
     }
   });
-  
+
   // Update claim status (admin/coach only)
   app.put("/api/teams/:teamId/claims/:claimId", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.teamId);
       const claimId = parseInt(req.params.claimId);
       const { status, rejectionReason } = req.body;
-      
+
       // We'll replace this check with the requireTeamRole middleware
       // after refactoring the route declaration
-      
+
       // Get the claim
       const claim = await storage.getMemberClaimById(claimId);
       if (!claim || claim.teamId !== teamId) {
         return res.status(404).json({ error: "Claim not found" });
       }
-      
+
       if (!["pending", "approved", "rejected"].includes(status)) {
         return res.status(400).json({ error: "Invalid status value" });
       }
-      
+
       // Update claim
       const updatedClaim = await storage.updateMemberClaim(claimId, {
         status,
@@ -334,7 +334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reviewedAt: new Date(),
         reviewedById: req.user.id
       });
-      
+
       // If approved, update the team member with the userId
       if (status === "approved") {
         await storage.updateTeamMember(claim.teamMemberId, {
@@ -342,34 +342,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isVerified: true
         });
       }
-      
+
       res.json(updatedClaim);
     } catch (error) {
       console.error("Error updating member claim:", error);
       res.status(500).json({ error: "Failed to update claim" });
     }
   });
-  
+
   // Approve claim (shortcut route for admin/coach)
   app.post("/api/teams/:teamId/claims/:claimId/approve", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.teamId);
       const claimId = parseInt(req.params.claimId);
-      
+
       // Verify user is team admin or coach
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to approve claims" });
       }
-      
+
       // Get the claim
       const claim = await storage.getMemberClaimById(claimId);
       if (!claim || claim.teamId !== teamId) {
         return res.status(404).json({ error: "Claim not found" });
       }
-      
+
       // Update claim
       const updatedClaim = await storage.updateMemberClaim(claimId, {
         status: "approved",
@@ -377,41 +377,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reviewedAt: new Date(),
         reviewedById: req.user.id
       });
-      
+
       // Update the team member with the userId
       await storage.updateTeamMember(claim.teamMemberId, {
         userId: claim.userId,
         isVerified: true
       });
-      
+
       res.json(updatedClaim);
     } catch (error) {
       console.error("Error approving member claim:", error);
       res.status(500).json({ error: "Failed to approve claim" });
     }
   });
-  
+
   // Reject claim (shortcut route for admin/coach)
   app.post("/api/teams/:teamId/claims/:claimId/reject", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.teamId);
       const claimId = parseInt(req.params.claimId);
       const { reason } = req.body;
-      
+
       // Verify user is team admin or coach
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to reject claims" });
       }
-      
+
       // Get the claim
       const claim = await storage.getMemberClaimById(claimId);
       if (!claim || claim.teamId !== teamId) {
         return res.status(404).json({ error: "Claim not found" });
       }
-      
+
       // Update claim
       const updatedClaim = await storage.updateMemberClaim(claimId, {
         status: "rejected",
@@ -419,28 +419,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reviewedAt: new Date(),
         reviewedById: req.user.id
       });
-      
+
       res.json(updatedClaim);
     } catch (error) {
       console.error("Error rejecting member claim:", error);
       res.status(500).json({ error: "Failed to reject claim" });
     }
   });
-  
+
   // Get notifications for pending claims
   app.get("/api/notifications/claims", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ error: "User not authenticated" });
       }
-      
+
       // Get all teams where the user is an admin
       const userTeams = await storage.getTeamsByUserId(userId);
       const adminTeams = [];
-      
+
       // Check each team if the user is an admin
       for (const team of userTeams) {
         const teamMember = await storage.getTeamMember(team.id, userId);
@@ -448,24 +448,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           adminTeams.push(team);
         }
       }
-      
+
       if (adminTeams.length === 0) {
         return res.json([]);
       }
-      
+
       // For each team, get the pending claims and count them
       const notifications = [];
-      
+
       for (const team of adminTeams) {
         const claims = await storage.getMemberClaims(team.id);
         const pendingClaims = claims.filter(claim => claim.status === 'pending');
-        
+
         if (pendingClaims.length > 0) {
           // Sort by date to get the latest
           pendingClaims.sort((a, b) => 
             new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime()
           );
-          
+
           notifications.push({
             id: team.id,
             teamId: team.id,
@@ -475,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       res.json(notifications);
     } catch (error) {
       console.error("Error getting claim notifications:", error);
@@ -489,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       console.log("Fetching teams for user ID:", req.user.id);
-      
+
       // During migration, we might need a fallback if the new tables don't exist yet
       try {
         // First try the proper method that uses teamUsers table
@@ -497,23 +497,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(teams);
       } catch (teamsError) {
         console.error("Error using primary team fetch method:", teamsError);
-        
+
         // If that fails, fall back to direct teams query instead
         console.log("Attempting fallback to direct team lookup");
         try {
           // Try fetching all teams for now as a temporary solution during migration
           const allTeams = await storage.getTeams();
-          
+
           // Get all team members the user belongs to
           const userTeamMembers = await db
             .select()
             .from(teamMembers)
             .where(eq(teamMembers.userId, req.user.id));
-            
+
           // Filter to only teams the user is a member of
           const teamIds = userTeamMembers.map(member => member.teamId);
           const teams = allTeams.filter(team => teamIds.includes(team.id));
-          
+
           res.json(teams);
         } catch (fallbackError) {
           console.error("Fallback also failed:", fallbackError);
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Generate a join code for the team
       const joinCode = generateJoinCode();
-      
+
       // Use direct SQL to create team with owner_id using pool.query
       const result = await pool.query(
         `INSERT INTO teams (
@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.body.isPublic || true
         ]
       );
-      
+
       const team = result.rows[0];
 
       // Always add the current user as the admin of the team they create
@@ -575,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: TeamMemberRole.ADMIN,
         isVerified: true
       });
-      
+
       // Create the team_user record for association and access control
       await storage.createTeamUser({
         teamId: team.id,
@@ -587,29 +587,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to create team" });
     }
   });
-  
+
   // Generate a new join code for a team
   app.post("/api/teams/:id/join-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Check if user has admin role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Not authorized to generate join code for this team" });
       }
-      
+
       // Generate a new unique join code
       const joinCode = generateJoinCode();
-      
+
       // Update the team with the new join code
       const updatedTeam = await storage.updateTeam(teamId, { joinCode });
       if (!updatedTeam) {
         return res.status(404).json({ error: "Team not found" });
       }
-      
+
       res.json({ 
         message: "Join code generated successfully", 
         joinCode: updatedTeam.joinCode 
@@ -624,10 +624,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/validate-join-code/:code", async (req, res) => {
     try {
       const joinCode = req.params.code;
-      
+
       // Get the team with this join code, if any
       const team = await storage.getTeamByJoinCode(joinCode);
-      
+
       if (team) {
         // Return minimal team info to avoid exposing sensitive team details
         return res.json({ 
@@ -669,42 +669,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch team" });
     }
   });
-  
+
   // Upload team logo (base64)
   app.post("/api/teams/:id/logo", async (req, res, next) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-      
+
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can update team logo" });
       }
-      
+
       // Get base64 data from request body
       const { imageData } = req.body;
-      
+
       if (!imageData) {
         return res.status(400).json({ error: "No image data provided" });
       }
-      
+
       // Update the team with the new logo (base64 data)
       const updatedTeam = await storage.updateTeam(teamId, {
         logo: imageData
       });
-      
+
       res.json({ success: true, logo: imageData });
     } catch (error) {
       console.error("Error uploading team logo:", error);
@@ -715,29 +715,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update team settings
   app.patch("/api/teams/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-      
+
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can update team settings" });
       }
-      
+
       // Get update data from request body
       const { name, division, seasonYear, logo, teamType, category } = req.body;
-      
+
       // Update the team
       const updatedTeam = await storage.updateTeam(teamId, {
         name,
@@ -747,7 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamType,
         category
       });
-      
+
       res.json(updatedTeam);
     } catch (error) {
       console.error("Error updating team:", error);
@@ -758,34 +758,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Regenerate team join code
   app.post("/api/teams/:id/regenerate-join-code", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Get the team
       const team = await storage.getTeam(teamId);
       if (!team) {
         return res.status(404).json({ error: "Team not found" });
       }
-      
+
       // Check if user is admin of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       if (teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can regenerate join codes" });
       }
-      
+
       // Generate new join code
       const newJoinCode = generateJoinCode();
-      
+
       // Update the team with new join code
       const updatedTeam = await storage.updateTeam(teamId, {
         joinCode: newJoinCode
       });
-      
+
       res.json({ joinCode: newJoinCode });
     } catch (error) {
       console.error("Error regenerating join code:", error);
@@ -831,10 +831,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to the team (either as a team_user or a team_member)
       // First check team_users (users who joined the team)
       const teamUser = await storage.getTeamUser(teamId, req.user.id);
-      
+
       // If not found in team_users, check if they're a team_member with role
       const userTeamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
+
       if (!teamUser && !userTeamMember) {
         console.log(`User ${req.user.id} is not authorized to access team ${teamId}`);
         return res.status(403).json({ error: "Not authorized to access this team" });
@@ -877,7 +877,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 id: member.userId, // Keep the ID reference even if user not found
                 fullName: member.fullName,
                 role: member.role,
-                profilePicture: member.profilePicture || "/default-avatar.png",
+                profilePicture: member<previous_generation>```tool_code
+<previous_generation>
+/default-avatar.png",
                 position: member.position || "",
                 jerseyNumber: member.jerseyNumber || null,
                 email: "",
@@ -949,15 +951,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the member's profile data (position, jerseyNumber, profilePicture)
       // Also update the team member data
       const memberUpdateData: Partial<TeamMember> = { role };
-      
+
       // Add position and profile picture to team member update
       if (position !== undefined) memberUpdateData.position = position;
       if (jerseyNumber !== undefined) memberUpdateData.jerseyNumber = jerseyNumber ? parseInt(jerseyNumber.toString()) : null;
       if (profilePicture !== undefined) memberUpdateData.profilePicture = profilePicture;
-      
+
       // Update member fields
       const updatedMemberWithFields = await storage.updateTeamMember(memberId, memberUpdateData);
-      
+
       // If the member has a linked user, update user data as well
       if (teamMember.userId) {
         const user = await storage.getUser(teamMember.userId);
@@ -999,7 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       // If no user exists or user update failed, return just the team member data
       // with a placeholder user object for API consistency
       const response = {
@@ -1015,7 +1017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phoneNumber: ""
         }
       };
-      
+
       console.log("Sending updated team member response (no user):", JSON.stringify(response, null, 2));
       res.json(response);
     } catch (error) {
@@ -1176,7 +1178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teams/:id/matches", isTeamMember, async (req, res) => {
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // We already verified the user is a team member in the middleware
       const matches = await storage.getMatches(teamId);
       res.json(matches);
@@ -1215,7 +1217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         teamId,
       };
-      
+
       // Ensure matchDate is a valid Date object
       if (matchData.matchDate && typeof matchData.matchDate === 'string') {
         try {
@@ -1230,11 +1232,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid match date format" });
         }
       }
-      
+
       console.log("Creating match with data:", matchData);
-      
+
       const match = await storage.createMatch(matchData);
-      
+
       res.status(201).json(match);
     } catch (error) {
       console.error("Error creating match:", error);
@@ -1245,7 +1247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update a match
   app.patch("/api/teams/:teamId/matches/:matchId", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
@@ -1261,10 +1263,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!match || match.teamId !== teamId) {
         return res.status(404).json({ error: "Match not found" });
       }
-      
+
       // Extract and validate match data
       const matchData = { ...req.body };
-      
+
       // Ensure matchDate is a valid Date object
       if (matchData.matchDate && typeof matchData.matchDate === 'string') {
         try {
@@ -1279,7 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid match date format" });
         }
       }
-      
+
       console.log("Updating match with data:", matchData);
 
       const updatedMatch = await storage.updateMatch(matchId, matchData);
@@ -1332,10 +1334,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to the team (either as a team_user or a team_member)
       // First check team_users (users who joined the team)
       const teamUser = await storage.getTeamUser(teamId, req.user.id);
-      
+
       // If not found in team_users, check if they're a team_member with role
       const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
+
       if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
@@ -1358,10 +1360,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to the team (either as a team_user or a team_member)
       // First check team_users (users who joined the team)
       const teamUser = await storage.getTeamUser(teamId, req.user.id);
-      
+
       // If not found in team_users, check if they're a team_member with role
       const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
+
       if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
@@ -1393,14 +1395,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         teamId,
         createdById: req.user.id,
       };
-      
+
       // If the client sent 'type' instead of 'eventType', map it correctly
       if (type && !eventData.eventType) {
         eventData.eventType = type;
       }
-      
+
+      // Parse dates into proper Date objects
+      const eventData = {
+        ...req.body,
+        teamId,
+        createdById: req.user.id,
+        startTime: new Date(req.body.startTime),
+        endTime: req.body.endTime ? new Date(req.body.endTime) : undefined
+      };
+
       console.log("Creating event with data:", eventData);
-      
+
       const event = await storage.createEvent(eventData);
 
       res.status(201).json(event);
@@ -1489,10 +1500,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const attendance = await storage.getAttendance(eventId);
-      
+
       // Get count of confirmed attendees
       const confirmedCount = attendance.filter(a => a.status === "confirmed").length;
-      
+
       res.json({
         total: attendance.length,
         confirmed: confirmedCount,
@@ -1644,10 +1655,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has access to the team (either as a team_user or a team_member)
       // First check team_users (users who joined the team)
       const teamUser = await storage.getTeamUser(teamId, req.user.id);
-      
+
       // If not found in team_users, check if they're a team_member with role
       const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
+
       if (!teamUser && !teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
@@ -1679,14 +1690,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Check if user has admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to create announcements" });
       }
 
-      const announcement = await storage.createAnnouncement({
+      const announcement<previous_generation>
+ = await storage.createAnnouncement({
         ...req.body,
         teamId,
         createdById: req.user.id,
@@ -1702,7 +1714,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         announcementWithCreator = {
           ...announcement,
           // Adding creator info for UI display purposes
-          // This will be removed by TypeScript but will be in the JSON response
         } as any;
         (announcementWithCreator as any).creator = creatorWithoutPassword;
       }
@@ -1871,7 +1882,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return userWithoutPassword;
         })
       );
-      
+
       // Get player details for bench players if they exist
       let benchPlayersDetails: any[] = [];
       if (lineup.benchPlayerIds && lineup.benchPlayerIds.length > 0) {
@@ -2465,13 +2476,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      
+
       // Get the photo
       const photo = await storage.getMatchPhoto(photoId);
       if (!photo) {
         return res.status(404).json({ error: "Photo not found" });
       }
-      
+
       // Allow deletion only for admin/coach or the original uploader
       if (!teamMember || 
           ((teamMember.role !== "admin" && teamMember.role !== "coach") && 
@@ -2545,7 +2556,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const team = await storage.createTeam({
           name: "Manchester United FC",
           logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
-          division: "Premier League",
+          division: "Premier<previous_generation>
+League",
           seasonYear: "2023/24",
           createdById: adminUser!.id,
         });
@@ -2693,13 +2705,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Check if user is a member of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       const seasons = await storage.getSeasons(teamId);
       res.json(seasons);
     } catch (error) {
@@ -2714,13 +2726,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Check if user is a member of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       const seasons = await storage.getActiveSeasons(teamId);
       res.json(seasons);
     } catch (error) {
@@ -2736,17 +2748,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const seasonId = parseInt(req.params.id);
       const season = await storage.getSeason(seasonId);
-      
+
       if (!season) {
         return res.status(404).json({ error: "Season not found" });
       }
-      
+
       // Check if user is a member of the team that owns this season
       const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this season" });
       }
-      
+
       res.json(season);
     } catch (error) {
       console.error("Error fetching season:", error);
@@ -2760,19 +2772,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const teamId = parseInt(req.params.id);
-      
+
       // Check if user is an admin of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can create seasons" });
       }
-      
+
       // Validate request body
       const { name, startDate } = req.body;
       if (!name || !startDate) {
         return res.status(400).json({ error: "Season name and start date are required" });
       }
-      
+
       // Create the season
       const season = await storage.createSeason({
         name,
@@ -2780,7 +2792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endDate: req.body.endDate ? new Date(req.body.endDate) : null,
         teamId
       });
-      
+
       res.status(201).json(season);
     } catch (error) {
       console.error("Error creating season:", error);
@@ -2795,17 +2807,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const seasonId = parseInt(req.params.id);
       const season = await storage.getSeason(seasonId);
-      
+
       if (!season) {
         return res.status(404).json({ error: "Season not found" });
       }
-      
+
       // Check if user is an admin of the team that owns this season
       const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can update seasons" });
       }
-      
+
       // Update the season
       const updatedSeason = await storage.updateSeason(seasonId, req.body);
       res.json(updatedSeason);
@@ -2822,20 +2834,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const seasonId = parseInt(req.params.id);
       const season = await storage.getSeason(seasonId);
-      
+
       if (!season) {
         return res.status(404).json({ error: "Season not found" });
       }
-      
+
       // Check if user is an admin of the team that owns this season
       const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can delete seasons" });
       }
-      
+
       // Delete the season
       const deleted = await storage.deleteSeason(seasonId);
-      
+
       if (deleted) {
         res.json({ message: "Season deleted successfully" });
       } else {
@@ -2854,20 +2866,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const seasonId = parseInt(req.params.id);
       const season = await storage.getSeason(seasonId);
-      
+
       if (!season) {
         return res.status(404).json({ error: "Season not found" });
       }
-      
+
       // Check if user is an admin of the team that owns this season
       const teamMember = await storage.getTeamMember(season.teamId, req.user.id);
       if (!teamMember || teamMember.role !== "admin") {
         return res.status(403).json({ error: "Only team administrators can finish seasons" });
       }
-      
+
       // Finish the season
       const finishedSeason = await storage.finishSeason(seasonId);
-      
+
       if (finishedSeason) {
         res.json(finishedSeason);
       } else {
@@ -2886,19 +2898,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const seasonId = parseInt(req.params.seasonId);
-      
+
       // Check if user is a member of the team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
-      
+
       // Verify the season exists and belongs to this team
       const season = await storage.getSeason(seasonId);
       if (!season || season.teamId !== teamId) {
         return res.status(404).json({ error: "Season not found for this team" });
       }
-      
+
       const classifications = await storage.getLeagueClassificationsBySeason(teamId, seasonId);
       res.json(classifications);
     } catch (error) {
@@ -2911,16 +2923,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all league classifications for a team
   app.get('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const teamId = parseInt(req.params.teamId);
-    
+
     try {
       // Check if user is a member of this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember) {
         return res.status(403).json({ error: "Not authorized to view this team's classification" });
       }
-      
+
       const classifications = await storage.getLeagueClassifications(teamId);
       res.json(classifications);
     } catch (error) {
@@ -2928,20 +2940,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch league classifications" });
     }
   });
-  
+
   // Add a new league classification entry
   app.post('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const teamId = parseInt(req.params.teamId);
-    
+
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to add classification for this team" });
       }
-      
+
       // Check if a seasonId was provided and validate it belongs to the team
       if (req.body.seasonId) {
         const season = await storage.getSeason(req.body.seasonId);
@@ -2949,38 +2961,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid season ID provided" });
         }
       }
-      
+
       const classification = await storage.createLeagueClassification({
         ...req.body,
         teamId
       });
-      
+
       res.status(201).json(classification);
     } catch (error) {
       console.error("Error creating classification:", error);
       res.status(500).json({ error: "Failed to create league classification entry" });
     }
   });
-  
+
   // Update a league classification entry
   app.put('/api/classification/:id', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const classificationId = parseInt(req.params.id);
-    
+
     try {
       // Get the classification to check team ownership
       const classification = await storage.getLeagueClassification(classificationId);
       if (!classification) {
         return res.status(404).json({ error: "Classification entry not found" });
       }
-      
+
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to update classification for this team" });
       }
-      
+
       // Check if a seasonId was provided and validate it belongs to the team
       if (req.body.seasonId) {
         const season = await storage.getSeason(req.body.seasonId);
@@ -2988,37 +3000,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid season ID provided" });
         }
       }
-      
+
       const updatedClassification = await storage.updateLeagueClassification(classificationId, req.body);
-      
+
       res.json(updatedClassification);
     } catch (error) {
       console.error("Error updating classification:", error);
       res.status(500).json({ error: "Failed to update league classification entry" });
     }
   });
-  
+
   // Delete a league classification entry
   app.delete('/api/classification/:id', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const classificationId = parseInt(req.params.id);
-    
+
     try {
       // Get the classification to check team ownership
       const classification = await storage.getLeagueClassification(classificationId);
       if (!classification) {
         return res.status(404).json({ error: "Classification entry not found" });
       }
-      
+
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(classification.teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to delete classification for this team" });
       }
-      
+
       const deleted = await storage.deleteLeagueClassification(classificationId);
-      
+
       if (deleted) {
         res.json({ message: "Classification entry deleted successfully" });
       } else {
@@ -3029,22 +3041,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete league classification entry" });
     }
   });
-  
+
   // Delete all classification entries for a team
   app.delete('/api/teams/:teamId/classification', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const teamId = parseInt(req.params.teamId);
-    
+
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to delete classifications for this team" });
       }
-      
+
       const deleted = await storage.deleteAllTeamClassifications(teamId);
-      
+
       if (deleted) {
         res.json({ message: "All classification entries deleted successfully" });
       } else {
@@ -3055,26 +3067,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to delete league classification entries" });
     }
   });
-  
+
   // Bulk create league classification entries from CSV
   app.post('/api/teams/:teamId/classification/bulk', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const teamId = parseInt(req.params.teamId);
-    
+
     try {
       // Check if user has admin or coach role for this team
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
         return res.status(403).json({ error: "Not authorized to add classifications for this team" });
       }
-      
+
       const { classifications } = req.body;
-      
+
       if (!Array.isArray(classifications) || classifications.length === 0) {
         return res.status(400).json({ error: "Invalid or empty classifications data" });
       }
-      
+
       // Check if a seasonId was provided for all classifications and validate it belongs to the team
       const { seasonId } = req.body;
       if (seasonId) {
@@ -3086,25 +3098,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Delete all existing classifications for this team before adding new ones
       let existingClassifications = await storage.getLeagueClassifications(teamId);
-      
+
       // If a seasonId is provided, only delete classifications for that season
       if (seasonId) {
         existingClassifications = existingClassifications.filter(c => c.seasonId === seasonId);
       }
-      
+
       for (const classification of existingClassifications) {
         await storage.deleteLeagueClassification(classification.id);
       }
-      
+
       // Add teamId to each classification
       const classificationsWithTeamId = classifications.map(c => ({
         ...c,
         teamId,
         seasonId: seasonId || null
       }));
-      
+
       const createdClassifications = await storage.bulkCreateLeagueClassifications(classificationsWithTeamId);
-      
+
       res.status(201).json({
         message: `Created ${createdClassifications.length} classification entries`,
         classifications: createdClassifications
@@ -3118,9 +3130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get player statistics for a team
   app.get('/api/teams/:teamId/player-stats', async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     const teamId = parseInt(req.params.teamId);
-    
+
     try {
       // Verify team exists
       const team = await storage.getTeam(teamId);
@@ -3131,18 +3143,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all team members who are players
       const teamMembers = await storage.getTeamMembers(teamId);
       const playerMembers = teamMembers.filter(member => member.role === 'player');
-      
+
       // Get all matches for the team
       const matches = await storage.getMatches(teamId);
       const completedMatches = matches.filter(match => match.status === 'completed');
       const matchIds = completedMatches.map(match => match.id);
-      
+
       // For each player, collect their statistics across all matches
       const playerStatsPromises = playerMembers.map(async (member) => {
         // Get user details
         const user = await storage.getUser(member.userId);
         if (!user) return null;
-        
+
         // Initialize player summary
         const playerSummary = {
           id: user.id,
@@ -3156,13 +3168,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           redCards: 0,
           image: user.profilePicture || "/default-avatar.png"
         };
-        
+
         // For each player, get their stats from all matches
         for (const matchId of matchIds) {
           // Check match stats
           const matchStats = await storage.getMatchPlayerStats(matchId);
           const playerStat = matchStats.find(stat => stat.userId === user.id);
-          
+
           if (playerStat) {
             playerSummary.matchesPlayed++;
             playerSummary.goals += playerStat.goals || 0;
@@ -3171,20 +3183,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             playerSummary.redCards += playerStat.redCards || 0;
             playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
           }
-          
+
           // Check for goals in match goals table (ensures we catch everything)
           const matchGoals = await storage.getMatchGoals(matchId);
           // Count goals scored by this player
           const goalsScored = matchGoals.filter(goal => goal.scorerId === user.id).length;
           // Count assists by this player
           const assistsProvided = matchGoals.filter(goal => goal.assistId === user.id).length;
-          
+
           if (goalsScored > 0 || assistsProvided > 0) {
             playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
             playerSummary.goals += goalsScored;
             playerSummary.assists += assistsProvided;
           }
-          
+
           // Check for cards in match cards
           const matchCards = await storage.getMatchCards(matchId);
           const yellowCards = matchCards.filter(card => 
@@ -3193,17 +3205,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const redCards = matchCards.filter(card => 
             card.playerId === user.id && card.type === 'red'
           ).length;
-          
+
           if (yellowCards > 0 || redCards > 0) {
             playerSummary.matchesPlayed = playerSummary.matchesPlayed || 1;  // Ensure we count this match
             playerSummary.yellowCards += yellowCards;
             playerSummary.redCards += redCards;
           }
         }
-        
+
         return playerSummary;
       });
-      
+
       const playerStats = (await Promise.all(playerStatsPromises)).filter(Boolean);
       res.json(playerStats);
     } catch (error) {
@@ -3217,18 +3229,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/feedback", async (req, res) => {
     try {
       const { name, email, type, subject, message } = req.body;
-      
+
       // Validate required fields
       if (!type || !subject || !message) {
         return res.status(400).json({ error: "Type, subject, and message are required" });
       }
-      
+
       // Set userId if authenticated
       let userId = null;
       if (req.isAuthenticated()) {
         userId = req.user.id;
       }
-      
+
       // Create feedback entry
       const feedback = await storage.createFeedback({
         userId,
@@ -3238,10 +3250,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subject,
         message
       });
-      
+
       // We're not sending email notifications anymore, just storing in the database
       console.log(`New feedback received: ${subject} (${type})`); 
-      
+
       res.status(201).json({ 
         success: true, 
         message: "Feedback submitted successfully" 
@@ -3251,17 +3263,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to submit feedback" });
     }
   });
-  
+
   // Get all feedback (admin only)
   app.get("/api/feedback", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       // Verify the user is an admin or superuser
       if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
         return res.status(403).json({ error: "Not authorized to view feedback" });
       }
-      
+
       const feedback = await storage.getAllFeedback();
       res.json(feedback);
     } catch (error) {
@@ -3269,30 +3281,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to fetch feedback" });
     }
   });
-  
+
   // Update feedback status (admin only)
   app.patch("/api/feedback/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
+
     try {
       // Verify the user is an admin or superuser
       if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
         return res.status(403).json({ error: "Not authorized to update feedback" });
       }
-      
+
       const feedbackId = parseInt(req.params.id);
       const { status } = req.body;
-      
+
       if (!status || !["pending", "reviewed", "resolved"].includes(status)) {
         return res.status(400).json({ error: "Valid status is required (pending, reviewed, or resolved)" });
       }
-      
+
       const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
-      
+
       if (!updatedFeedback) {
         return res.status(404).json({ error: "Feedback not found" });
       }
-      
+
       res.json(updatedFeedback);
     } catch (error) {
       console.error("Error updating feedback:", error);
