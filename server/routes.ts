@@ -1387,13 +1387,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Extract the event properties from the request body
-      const { type, eventType, ...otherFields } = req.body;
+      const { type, eventType, startTime, endTime, ...otherFields } = req.body;
       
       // Create a properly formatted event data object
       const eventData = {
         ...otherFields,
         teamId,
         createdById: req.user.id,
+        // Convert ISO string dates to Date objects for PostgreSQL
+        startTime: startTime ? new Date(startTime) : new Date(),
+        endTime: endTime ? new Date(endTime) : undefined,
         // Use either eventType or type, giving priority to eventType
         eventType: eventType || type || 'training',
       };
