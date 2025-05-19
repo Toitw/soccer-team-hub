@@ -1047,22 +1047,17 @@ export class DatabaseStorage implements IStorage {
   // Match Substitution methods
   async getMatchSubstitutions(matchId: number): Promise<MatchSubstitution[]> {
     try {
-      // Only select fields that actually exist in the database
-      return db
-        .select({
-          id: matchSubstitutions.id,
-          matchId: matchSubstitutions.matchId,
-          playerInId: matchSubstitutions.playerInId,
-          playerOutId: matchSubstitutions.playerOutId,
-          minute: matchSubstitutions.minute,
-          period: matchSubstitutions.period,
-          reason: matchSubstitutions.reason
-        })
+      // Use a simpler select without specifying columns to avoid schema mismatch issues
+      const subs = await db
+        .select()
         .from(matchSubstitutions)
         .where(eq(matchSubstitutions.matchId, matchId))
         .orderBy(matchSubstitutions.minute);
+      
+      return subs;
     } catch (error) {
       console.error("Error retrieving match substitutions:", error);
+      // Return empty array instead of throwing an error
       return [];
     }
   }
@@ -1095,7 +1090,7 @@ export class DatabaseStorage implements IStorage {
   async getMatchGoals(matchId: number): Promise<MatchGoal[]> {
     try {
       // Only select fields that actually exist in the database
-      return db
+      const goals = await db
         .select({
           id: matchGoals.id,
           matchId: matchGoals.matchId,
@@ -1104,11 +1099,15 @@ export class DatabaseStorage implements IStorage {
           minute: matchGoals.minute,
           period: matchGoals.period,
           isOwnGoal: matchGoals.isOwnGoal,
-          isPenalty: matchGoals.isPenalty
+          isPenalty: matchGoals.isPenalty,
+          type: matchGoals.type,
+          description: matchGoals.description
         })
         .from(matchGoals)
         .where(eq(matchGoals.matchId, matchId))
         .orderBy(matchGoals.minute);
+      
+      return goals;
     } catch (error) {
       console.error("Error retrieving match goals:", error);
       return [];
@@ -1143,19 +1142,13 @@ export class DatabaseStorage implements IStorage {
   async getMatchCards(matchId: number): Promise<MatchCard[]> {
     try {
       // Only select fields that actually exist in the database
-      return db
-        .select({
-          id: matchCards.id,
-          matchId: matchCards.matchId,
-          playerId: matchCards.playerId,
-          minute: matchCards.minute,
-          period: matchCards.period,
-          type: matchCards.type,
-          reason: matchCards.reason
-        })
+      const cards = await db
+        .select()
         .from(matchCards)
         .where(eq(matchCards.matchId, matchId))
         .orderBy(matchCards.minute);
+      
+      return cards;
     } catch (error) {
       console.error("Error retrieving match cards:", error);
       return [];
