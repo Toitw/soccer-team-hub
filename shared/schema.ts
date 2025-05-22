@@ -216,7 +216,9 @@ export const attendance = pgTable("attendance", {
   eventId: integer("event_id").notNull(),
   userId: integer("user_id").notNull(),
   status: text("status", { enum: ["confirmed", "declined", "pending"] }).notNull().default("pending"),
-  responseTime: timestamp("response_time").defaultNow().notNull(),
+  // Using created_at instead of response_time to match database structure
+  createdAt: timestamp("created_at").defaultNow(), 
+  updatedAt: timestamp("updated_at").defaultNow(),
   notes: text("notes"),
 });
 
