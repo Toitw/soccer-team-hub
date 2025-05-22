@@ -3257,7 +3257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Feedback routes
-  // Submit feedback - public endpoint
+  // Submit feedback
   app.post("/api/feedback", async (req, res) => {
     try {
       const { name, email, type, subject, message } = req.body;
@@ -3267,9 +3267,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Type, subject, and message are required" });
       }
       
-      // Set userId if authenticated, but don't require authentication
+      // Set userId if authenticated
       let userId = null;
-      if (req.user) {
+      if (req.isAuthenticated()) {
         userId = req.user.id;
       }
       
