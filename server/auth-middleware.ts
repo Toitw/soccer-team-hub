@@ -410,9 +410,12 @@ export function checkApiPermission() {
 
     // Use centralized permissions system for non-team endpoints
     const method = req.method as ApiMethod;
+    console.log(`Checking permissions for: ${req.path} ${method} with role: ${user.role}`);
     const hasPermission = hasApiPermission(req.path, method, user.role as UserRole);
+    console.log(`Permission result: ${hasPermission}`);
     
     if (hasPermission) {
+      console.log(`Permission granted for ${req.path}`);
       return next();
     }
 
