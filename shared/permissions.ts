@@ -28,7 +28,8 @@ export type ApiEndpoint =
   | '/api/teams/:teamId/events/:eventId/attendance'
   | '/api/teams/:teamId/settings'
   | '/api/teams/:teamId/claims'
-  | '/api/teams/:teamId/invitations';
+  | '/api/teams/:teamId/invitations'
+  | '/api/feedback';
 
 /**
  * Page permissions - defines which roles can access each frontend page
@@ -392,6 +393,31 @@ export const apiPermissions: Record<ApiEndpoint, {
         UserRole.SUPERUSER,
         UserRole.ADMIN,
         UserRole.COACH
+      ]
+    }
+  },
+
+  // Feedback endpoints - all roles can submit feedback
+  '/api/feedback': {
+    GET: {
+      allowedRoles: [
+        UserRole.SUPERUSER,
+        UserRole.ADMIN
+      ]
+    },
+    POST: {
+      allowedRoles: [
+        UserRole.SUPERUSER,
+        UserRole.ADMIN,
+        UserRole.COACH,
+        UserRole.PLAYER,
+        UserRole.COLABORADOR
+      ]
+    },
+    PATCH: {
+      allowedRoles: [
+        UserRole.SUPERUSER,
+        UserRole.ADMIN
       ]
     }
   }
