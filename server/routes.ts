@@ -1526,7 +1526,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         attendees: attendance
       });
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch attendance" });
+      console.error("Error fetching attendance:", error);
+      res.status(500).json({ error: "Failed to fetch attendance", details: String(error) });
     }
   });
 
@@ -1538,6 +1539,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamId = parseInt(req.params.teamId);
       const eventId = parseInt(req.params.eventId);
       const { status } = req.body;
+
+      console.log(`Processing attendance update: teamId=${teamId}, eventId=${eventId}, userId=${req.user.id}, status=${status}`);
 
       // Check if user is a team member
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -1557,9 +1560,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let attendance;
       if (existingAttendance) {
+        console.log(`Updating existing attendance record: id=${existingAttendance.id}, current status=${existingAttendance.status}, new status=${status}`);
         // Update existing attendance
         attendance = await storage.updateAttendance(existingAttendance.id, { status });
       } else {
+        console.log(`Creating new attendance record for user ${req.user.id} at event ${eventId}`);
         // Create new attendance
         attendance = await storage.createAttendance({
           eventId,
@@ -1568,9 +1573,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      console.log(`Attendance operation successful: ${JSON.stringify(attendance)}`);
       res.status(201).json(attendance);
     } catch (error) {
-      res.status(500).json({ error: "Failed to update attendance" });
+      console.error("Error updating attendance:", error);
+      res.status(500).json({ error: "Failed to update attendance", details: String(error) });
     }
   });
 
