@@ -19,6 +19,62 @@ export function createAdminRouter(storage: IStorage) {
     }
   };
 
+  // Feedback routes - allow authenticated users to submit, superusers to view/manage
+  router.post('/feedback', asyncHandler(async (req: Request, res: Response) => {
+    // Allow any authenticated user to submit feedback
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+    }
+
+    try {
+      const { type, subject, message, priority = 'medium' } = req.body;
+      
+      if (!type || !subject || !message) {
+        return res.status(400).json({ error: 'Type, subject, and message are required' });
+      }
+
+      const feedback = await storage.createFeedback({
+        userId: req.user.id,
+        type,
+        subject,
+        message,
+        status: 'open'
+      });
+
+      res.status(201).json(feedback);
+    } catch (error) {
+      console.error('Error creating feedback:', error);
+      res.status(500).json({ error: 'Failed to submit feedback' });
+    }
+  }));
+
+  router.get('/feedback', requireSuperuser, asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const feedback = await storage.getAllFeedback();
+      return jsonResponse(res, feedback);
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      return errorResponse(res, 'Failed to fetch feedback');
+    }
+  }));
+
+  router.patch('/feedback/:id', requireSuperuser, asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const feedbackId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status) {
+        return errorResponse(res, 'Status is required', 400);
+      }
+
+      const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
+      return jsonResponse(res, updatedFeedback);
+    } catch (error) {
+      console.error('Error updating feedback:', error);
+      return errorResponse(res, 'Failed to update feedback');
+    }
+  }));
+
   // Admin routes - all protected by superuser check
   router.use('/admin', requireSuperuser);
 
