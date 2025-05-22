@@ -328,8 +328,6 @@ export function requireTeamRole(roles: TeamMemberRole[]) {
  */
 export function checkApiPermission() {
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log(`MIDDLEWARE HIT: ${req.method} ${req.path} - baseUrl: ${req.baseUrl}`);
-    
     // Skip auth check for these public endpoints
     const publicPaths = [
       '/api/health', 
@@ -340,8 +338,6 @@ export function checkApiPermission() {
     ];
     
     // Special case for feedback - allow authenticated users to submit feedback
-    console.log(`DEBUG: req.path="${req.path}", req.baseUrl="${req.baseUrl}", method="${req.method}"`);
-    console.log(`DEBUG: Full URL check: "${req.baseUrl + req.path}" === "/api/feedback"?`, req.baseUrl + req.path === '/api/feedback');
     
     if (req.baseUrl + req.path === '/api/feedback' && req.method === 'POST') {
       console.log('Feedback endpoint detected, checking auth...');

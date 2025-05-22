@@ -161,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register admin routes using the imported admin router that has our fixes
   const adminRouter = createAdminRouter(storage);
   
-  // Attach admin router to main app
-  app.use('/api', adminRouter);
+  // Attach admin router to main app - mount at /api/admin to avoid conflicts
+  app.use('/api/admin', adminRouter);
 
   // Database monitoring endpoints
   app.get("/api/health", async (req, res) => {
