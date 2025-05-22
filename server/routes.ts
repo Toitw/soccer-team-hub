@@ -62,6 +62,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register our custom auth routes for email verification and password reset
   app.use('/api/auth', authRoutes);
   
+  // Feedback routes - defined BEFORE global middleware to avoid permission conflicts
+  // Submit feedback
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      // Check authentication
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized. Please log in." });
+      }
+
+      const { name, email, type, subject, message } = req.body;
+      
+      // Validate required fields
+      if (!type || !subject || !message) {
+        return res.status(400).json({ error: "Type, subject, and message are required" });
+      }
+      
+      // Set userId from authenticated user
+      const userId = req.user.id;
+      
+      // Create feedback entry
+      const feedback = await storage.createFeedback({
+        userId,
+        name,
+        email,
+        type,
+        subject,
+        message
+      });
+      
+      console.log(`New feedback received: ${subject} (${type}) from user ${userId}`); 
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Feedback submitted successfully" 
+      });
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      res.status(500).json({ error: "Failed to submit feedback" });
+    }
+  });
+  
+  // Get all feedback (admin only)
+  app.get("/api/feedback", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      // Verify the user is an admin or superuser
+      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
+        return res.status(403).json({ error: "Not authorized to view feedback" });
+      }
+      
+      const feedback = await storage.getAllFeedback();
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      res.status(500).json({ error: "Failed to fetch feedback" });
+    }
+  });
+  
+  // Update feedback status (admin only)
+  app.patch("/api/feedback/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    try {
+      // Verify the user is an admin or superuser
+      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
+        return res.status(403).json({ error: "Not authorized to update feedback" });
+      }
+      
+      const feedbackId = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !["pending", "reviewed", "resolved"].includes(status)) {
+        return res.status(400).json({ error: "Valid status is required (pending, reviewed, or resolved)" });
+      }
+      
+      const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
+      
+      if (!updatedFeedback) {
+        return res.status(404).json({ error: "Feedback not found" });
+      }
+      
+      res.json(updatedFeedback);
+    } catch (error) {
+      console.error("Error updating feedback:", error);
+      res.status(500).json({ error: "Failed to update feedback" });
+    }
+  });
+  
   // Add the permissions middleware after authentication is setup
   app.use(checkApiPermission());
   
@@ -3256,93 +3345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Feedback routes
-  // Submit feedback
-  app.post("/api/feedback", async (req, res) => {
-    try {
-      const { name, email, type, subject, message } = req.body;
-      
-      // Validate required fields
-      if (!type || !subject || !message) {
-        return res.status(400).json({ error: "Type, subject, and message are required" });
-      }
-      
-      // Set userId if authenticated
-      let userId = null;
-      if (req.isAuthenticated()) {
-        userId = req.user.id;
-      }
-      
-      // Create feedback entry
-      const feedback = await storage.createFeedback({
-        userId,
-        name,
-        email,
-        type,
-        subject,
-        message
-      });
-      
-      // We're not sending email notifications anymore, just storing in the database
-      console.log(`New feedback received: ${subject} (${type})`); 
-      
-      res.status(201).json({ 
-        success: true, 
-        message: "Feedback submitted successfully" 
-      });
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      res.status(500).json({ error: "Failed to submit feedback" });
-    }
-  });
-  
-  // Get all feedback (admin only)
-  app.get("/api/feedback", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
-    try {
-      // Verify the user is an admin or superuser
-      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
-        return res.status(403).json({ error: "Not authorized to view feedback" });
-      }
-      
-      const feedback = await storage.getAllFeedback();
-      res.json(feedback);
-    } catch (error) {
-      console.error("Error fetching feedback:", error);
-      res.status(500).json({ error: "Failed to fetch feedback" });
-    }
-  });
-  
-  // Update feedback status (admin only)
-  app.patch("/api/feedback/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    
-    try {
-      // Verify the user is an admin or superuser
-      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUPERUSER) {
-        return res.status(403).json({ error: "Not authorized to update feedback" });
-      }
-      
-      const feedbackId = parseInt(req.params.id);
-      const { status } = req.body;
-      
-      if (!status || !["pending", "reviewed", "resolved"].includes(status)) {
-        return res.status(400).json({ error: "Valid status is required (pending, reviewed, or resolved)" });
-      }
-      
-      const updatedFeedback = await storage.updateFeedbackStatus(feedbackId, status);
-      
-      if (!updatedFeedback) {
-        return res.status(404).json({ error: "Feedback not found" });
-      }
-      
-      res.json(updatedFeedback);
-    } catch (error) {
-      console.error("Error updating feedback:", error);
-      res.status(500).json({ error: "Failed to update feedback" });
-    }
-  });
+
 
   return httpServer;
 }
