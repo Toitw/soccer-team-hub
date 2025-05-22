@@ -337,6 +337,14 @@ export function checkApiPermission() {
       '/api/auth'
     ];
     
+    // Special case for feedback - allow authenticated users to submit feedback
+    if (req.path === '/api/feedback' && req.method === 'POST') {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: 'Unauthorized. Please log in.' });
+      }
+      return next(); // Allow any authenticated user to submit feedback
+    }
+    
     // Skip for non-API routes or public endpoints
     if (!req.path.startsWith('/api') || 
         publicPaths.some(path => req.path === path || req.path.startsWith(path + '/'))) {
