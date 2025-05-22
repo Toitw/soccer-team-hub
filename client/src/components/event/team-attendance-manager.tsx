@@ -125,8 +125,8 @@ export default function TeamAttendanceManager({ teamId, eventId, showLabel = tru
       )}
       <CardContent>
         <div className="space-y-2">
-          {teamMembers?.map(member => (
-            <div key={member.userId} className="flex items-center justify-between p-2 bg-background rounded-md">
+          {teamMembers?.filter(member => member.user && member.userId).map(member => (
+            <div key={member.userId || member.id} className="flex items-center justify-between p-2 bg-background rounded-md">
               <div className="flex items-center gap-2">
                 <img 
                   src={member.user.profilePicture || "/default-avatar.png"} 
