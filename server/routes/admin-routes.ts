@@ -27,7 +27,7 @@ export function createAdminRouter(storage: IStorage) {
     }
 
     try {
-      const { type, subject, message, priority = 'medium' } = req.body;
+      const { name, email, type, subject, message } = req.body;
       
       if (!type || !subject || !message) {
         return res.status(400).json({ error: 'Type, subject, and message are required' });
@@ -35,13 +35,17 @@ export function createAdminRouter(storage: IStorage) {
 
       const feedback = await storage.createFeedback({
         userId: req.user.id,
+        name,
+        email,
         type,
         subject,
-        message,
-        status: 'open'
+        message
       });
 
-      res.status(201).json(feedback);
+      res.status(201).json({ 
+        success: true, 
+        message: "Feedback submitted successfully" 
+      });
     } catch (error) {
       console.error('Error creating feedback:', error);
       res.status(500).json({ error: 'Failed to submit feedback' });
