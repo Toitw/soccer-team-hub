@@ -328,6 +328,8 @@ export function requireTeamRole(roles: TeamMemberRole[]) {
  */
 export function checkApiPermission() {
   return (req: Request, res: Response, next: NextFunction) => {
+    console.log(`MIDDLEWARE HIT: ${req.method} ${req.path} - baseUrl: ${req.baseUrl}`);
+    
     // Skip auth check for these public endpoints
     const publicPaths = [
       '/api/health', 
