@@ -66,8 +66,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Submit feedback
   app.post("/api/feedback", async (req, res) => {
     try {
+      console.log("FEEDBACK ROUTE HIT: user authenticated?", req.isAuthenticated());
+      console.log("FEEDBACK ROUTE HIT: user role:", req.user?.role);
+      
       // Check authentication
       if (!req.isAuthenticated()) {
+        console.log("FEEDBACK: User not authenticated, returning 401");
         return res.status(401).json({ error: "Unauthorized. Please log in." });
       }
 
