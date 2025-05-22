@@ -408,6 +408,14 @@ export function checkApiPermission() {
       }
     }
 
+    // Use centralized permissions system for non-team endpoints
+    const method = req.method as ApiMethod;
+    const hasPermission = hasApiPermission(req.path, method, user.role as UserRole);
+    
+    if (hasPermission) {
+      return next();
+    }
+
     // Check if user is admin or superuser - they can access everything
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPERUSER) {
       return next();
