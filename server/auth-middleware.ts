@@ -338,7 +338,7 @@ export function checkApiPermission() {
     ];
     
     // Special case for feedback - allow authenticated users to submit feedback
-    if (req.path === '/api/feedback' && req.method === 'POST') {
+    if (req.baseUrl + req.path === '/api/feedback' && req.method === 'POST') {
       console.log('Feedback endpoint detected, checking auth...');
       if (!req.isAuthenticated()) {
         console.log('User not authenticated for feedback');
