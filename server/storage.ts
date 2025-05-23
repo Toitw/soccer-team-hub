@@ -125,9 +125,11 @@ export interface IStorage {
   
   // Attendance methods
   getAttendance(eventId: number): Promise<Attendance[]>;
+  getEventAttendance(eventId: number): Promise<Attendance[]>;
   getUserAttendance(userId: number): Promise<Attendance[]>;
   createAttendance(attendance: InsertAttendance): Promise<Attendance>;
   updateAttendance(id: number, attendanceData: Partial<Attendance>): Promise<Attendance | undefined>;
+  updateEventAttendance(eventId: number, memberId: number, status: string): Promise<Attendance>;
   
   // PlayerStat methods
   getPlayerStats(userId: number): Promise<PlayerStat[]>;
@@ -1768,7 +1770,9 @@ export class MemStorage implements IStorage {
     const attendance: Attendance = { 
       ...insertAttendance, 
       id,
-      status
+      status,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     this.attendance.set(id, attendance);
     return attendance;
@@ -1781,6 +1785,46 @@ export class MemStorage implements IStorage {
     const updatedAttendance: Attendance = { ...attendance, ...attendanceData };
     this.attendance.set(id, updatedAttendance);
     return updatedAttendance;
+  }
+
+  async getEventAttendance(eventId: number): Promise<Attendance[]> {
+    return Array.from(this.attendance.values()).filter(
+      (attendance) => attendance.eventId === eventId
+    );
+  }
+
+  async updateEventAttendance(eventId: number, memberId: number, status: string): Promise<Attendance> {
+    // Validate status
+    const validStatuses = ["pending", "confirmed", "declined"];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid attendance status: ${status}`);
+    }
+    
+    const attendanceStatus = status as "pending" | "confirmed" | "declined";
+    
+    // Find existing attendance record for this event and member
+    const existingAttendance = Array.from(this.attendance.values()).find(
+      (attendance) => attendance.eventId === eventId && attendance.userId === memberId
+    );
+
+    if (existingAttendance) {
+      // Update existing attendance
+      const updatedAttendance: Attendance = { 
+        ...existingAttendance, 
+        status: attendanceStatus,
+        updatedAt: new Date()
+      };
+      this.attendance.set(existingAttendance.id, updatedAttendance);
+      return updatedAttendance;
+    } else {
+      // Create new attendance record
+      const newAttendance = await this.createAttendance({
+        eventId,
+        userId: memberId,
+        status: attendanceStatus
+      });
+      return newAttendance;
+    }
   }
 
   // PlayerStat methods
