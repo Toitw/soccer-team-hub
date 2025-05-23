@@ -1231,7 +1231,7 @@ export default function TeamPage() {
                                   {player && (
                                     <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
                                       <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
-                                        {player.user.fullName?.split(" ")[0] ||
+                                        {player.user?.fullName?.split(" ")[0] ||
                                           ""}
                                       </div>
                                     </div>
@@ -1381,10 +1381,10 @@ export default function TeamPage() {
                         ?.filter(
                           (m) =>
                             m.role === "player" &&
-                            (m.user.fullName
+                            (m.user?.fullName
                               ?.toLowerCase()
                               .includes(searchQuery.toLowerCase()) ||
-                              m.user.position
+                              m.user?.position
                                 ?.toLowerCase()
                                 .includes(searchQuery.toLowerCase()) ||
                               !searchQuery),
@@ -1648,7 +1648,7 @@ export default function TeamPage() {
           <DialogHeader>
             <DialogTitle>{t("team.editTeamMember")}</DialogTitle>
             <DialogDescription>
-              Update the information for {memberToEdit?.user.fullName}.
+              Update the information for {memberToEdit?.user?.fullName || memberToEdit?.fullName}.
             </DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
@@ -1784,7 +1784,7 @@ export default function TeamPage() {
           <DialogHeader>
             <DialogTitle>{t("team.removeTeamMember")}</DialogTitle>
             <DialogDescription>
-              {memberToRemove?.user.fullName && t("team.removeConfirmation", {name: memberToRemove.user.fullName})}
+              {(memberToRemove?.user?.fullName || memberToRemove?.fullName) && t("team.removeConfirmation", {name: memberToRemove?.user?.fullName || memberToRemove?.fullName})}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
