@@ -171,7 +171,7 @@ export function createMatchEventRouter(): Router {
         return res.status(400).json({ error: "Invalid start time format" });
       }
 
-      if (endTime && isNaN(parsedEndTime.getTime())) {
+      if (parsedEndTime && isNaN(parsedEndTime.getTime())) {
         return res.status(400).json({ error: "Invalid end time format" });
       }
 
@@ -252,7 +252,7 @@ export function createMatchEventRouter(): Router {
         return res.status(403).json({ error: "Not authorized to access this team" });
       }
 
-      const attendance = await storage.getEventAttendance(eventId);
+      const attendance = await storage.getAttendance(eventId);
       res.json(attendance);
     } catch (error) {
       console.error("Error fetching event attendance:", error);
@@ -279,7 +279,23 @@ export function createMatchEventRouter(): Router {
         return res.status(400).json({ error: "Valid attendance status is required" });
       }
 
-      const attendance = await storage.updateEventAttendance(eventId, teamMember.id, status);
+      // Find existing attendance record or create new one
+      const existingAttendance = await storage.getAttendance(eventId);
+      const userAttendance = existingAttendance.find(a => a.userId === req.user.id);
+      
+      let attendance;
+      if (userAttendance) {
+        // Update existing attendance
+        attendance = await storage.updateAttendance(userAttendance.id, { status });
+      } else {
+        // Create new attendance record
+        attendance = await storage.createAttendance({
+          userId: req.user.id,
+          eventId: eventId,
+          status: status
+        });
+      }
+      
       res.json(attendance);
     } catch (error) {
       console.error("Error updating event attendance:", error);
