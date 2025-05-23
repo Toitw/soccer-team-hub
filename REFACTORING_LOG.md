@@ -60,18 +60,39 @@ Systematic refactoring of the large `server/routes.ts` file to improve maintaina
   - `POST /api/teams/:id/members`
   - `DELETE /api/teams/:teamId/members/:memberId`
 
+### ✅ Step 5: Extract Match/Event Routes (Completed)
+- **Date**: 2025-05-23
+- **Extracted**: All match and event handling endpoints
+- **Lines reduced**: 458 lines
+- **Files created**: `server/routes/match-event-routes.ts`
+- **Files affected**: `server/routes.ts`
+- **Endpoints moved**: 10 match/event endpoints
+  - `GET /api/teams/:id/matches`
+  - `GET /api/teams/:id/matches/recent`
+  - `POST /api/teams/:id/matches`
+  - `PATCH /api/teams/:teamId/matches/:matchId`
+  - `DELETE /api/teams/:teamId/matches/:matchId`
+  - `GET /api/teams/:id/events`
+  - `GET /api/teams/:id/events/upcoming`
+  - `POST /api/teams/:id/events`
+  - `PATCH /api/teams/:teamId/events/:eventId`
+  - `DELETE /api/teams/:teamId/events/:eventId`
+  - `GET /api/teams/:teamId/events/:eventId/attendance`
+  - `POST /api/teams/:teamId/events/:eventId/attendance`
+
 ## File Size Progress
 - **Initial size**: 3,263 lines
 - **After Step 1**: 3,240 lines (-23)
 - **After Step 2**: 2,929 lines (-311)
 - **After Step 3**: 2,552 lines (-377)
 - **After Step 4**: 2,180 lines (-372)
-- **Current total reduction**: 1,083 lines (33.2%)
+- **After Step 5**: 1,722 lines (-458)
+- **Current total reduction**: 1,541 lines (47.2%)
 
 ## Next Steps
-1. Extract match/event routes  
+1. Extract announcement routes
 2. Standardize authorization patterns
-3. Extract announcement routes
+3. Extract remaining specialized routes
 
 ## Benefits Achieved
 - Improved code organization and maintainability
