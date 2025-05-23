@@ -84,8 +84,7 @@ const substitutionSchema = z.object({
   }),
   minute: z.number({
     required_error: "Minute is required"
-  }).int().positive(),
-  reason: z.string().optional()
+  }).int().positive()
 });
 
 const goalSchema = z.object({
@@ -96,23 +95,19 @@ const goalSchema = z.object({
   minute: z.number({
     required_error: "Minute is required"
   }).int().positive(),
-  type: z.enum(["regular", "penalty", "free_kick", "own_goal"], {
-    required_error: "Goal type is required"
-  }),
-  description: z.string().optional()
+  isOwnGoal: z.boolean().default(false),
+  isPenalty: z.boolean().default(false)
 });
 
 const cardSchema = z.object({
   playerId: z.number({
     required_error: "Player is required"
   }),
-  type: z.enum(["yellow", "red"], {
-    required_error: "Card type is required"
-  }),
   minute: z.number({
     required_error: "Minute is required"
   }).int().positive(),
-  reason: z.string().optional()
+  isYellow: z.boolean().default(true),
+  isSecondYellow: z.boolean().default(false)
 });
 
 interface MatchDetailsProps {
@@ -122,7 +117,7 @@ interface MatchDetailsProps {
 }
 
 interface TeamMemberWithUser extends TeamMember {
-  user: User;
+  user?: User;
 }
 
 export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsProps) {
@@ -507,8 +502,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     defaultValues: {
       playerInId: undefined,
       playerOutId: undefined,
-      minute: undefined,
-      reason: ""
+      minute: undefined
     }
   });
   
@@ -518,8 +512,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       scorerId: undefined,
       assistId: null,
       minute: undefined,
-      type: undefined,
-      description: ""
+      isOwnGoal: false,
+      isPenalty: false
     }
   });
   
@@ -527,9 +521,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     resolver: zodResolver(cardSchema),
     defaultValues: {
       playerId: undefined,
-      type: undefined,
       minute: undefined,
-      reason: ""
+      isYellow: true,
+      isSecondYellow: false
     }
   });
 
