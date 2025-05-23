@@ -88,9 +88,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // Route to create a new team for the user
-  });
-
   // Matches routes
   app.get("/api/teams/:id/matches", isTeamMember, async (req, res) => {
     try {

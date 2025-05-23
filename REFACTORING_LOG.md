@@ -47,18 +47,31 @@ Systematic refactoring of the large `server/routes.ts` file to improve maintaina
   - `PATCH /api/teams/:id`
   - `POST /api/teams/:id/regenerate-join-code`
 
+### ✅ Step 4: Extract Member Management Routes (Completed)
+- **Date**: 2025-05-23
+- **Extracted**: All team member CRUD operations
+- **Lines reduced**: 372 lines
+- **Files created**: `server/routes/member-routes.ts`
+- **Files affected**: `server/routes.ts`
+- **Endpoints moved**: 5 member endpoints
+  - `GET /api/teams/:id/members/:userId`
+  - `GET /api/teams/:id/members`
+  - `PATCH /api/teams/:teamId/members/:memberId`
+  - `POST /api/teams/:id/members`
+  - `DELETE /api/teams/:teamId/members/:memberId`
+
 ## File Size Progress
 - **Initial size**: 3,263 lines
 - **After Step 1**: 3,240 lines (-23)
 - **After Step 2**: 2,929 lines (-311)
 - **After Step 3**: 2,552 lines (-377)
-- **Current total reduction**: 711 lines (21.8%)
+- **After Step 4**: 2,180 lines (-372)
+- **Current total reduction**: 1,083 lines (33.2%)
 
 ## Next Steps
-1. Extract team management routes
-2. Extract match/event routes  
-3. Standardize authorization patterns
-4. Extract member management routes
+1. Extract match/event routes  
+2. Standardize authorization patterns
+3. Extract announcement routes
 
 ## Benefits Achieved
 - Improved code organization and maintainability
