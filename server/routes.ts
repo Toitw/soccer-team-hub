@@ -1,8 +1,7 @@
 import express, { type Express, Router } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage-implementation";
-import { hashPassword } from "@shared/auth-utils";
-import { hashPasswordInStorage } from "./optimized-storage";
+
 import { setupAuth } from "./auth";
 import { z } from "zod";
 import { UserRole, TeamMemberRole } from "@shared/roles";
@@ -15,29 +14,7 @@ import { eq } from "drizzle-orm";
 import { teamMembers } from "@shared/schema";
 import { isAuthenticated, isAdmin, isTeamAdmin, isTeamMember, requireRole, requireTeamRole, checkApiPermission } from "./auth-middleware";
 
-// Mock data creation has been disabled
-async function createMockData() {
-  // This function has been modified to no longer create any mock players
-  // It now returns an empty array of users
-  const generateMockPlayers = () => {
-    // Return an empty array instead of generating random players
-    return [];
-  };
 
-  const mockUsers = generateMockPlayers();
-
-  // Create a mock team
-  const mockTeam = {
-    id: Math.floor(Math.random() * 1000) + 100,
-    name: "Team FC",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Football_pictogram.svg",
-    division: "League Division",
-    createdAt: new Date(),
-    createdById: 1
-  };
-
-  return { mockUsers, mockTeam };
-}
 
 // Function to generate a unique, readable join code
 function generateJoinCode(): string {
@@ -97,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Route to create a new team for the user
-  app.post("/api/mock-data", async (req, res) => {
+  app.post("/api/teams/create-default", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
