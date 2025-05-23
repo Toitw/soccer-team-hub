@@ -263,7 +263,7 @@ export default function TeamPage() {
 
   // Update the edit form when memberToEdit changes
   useEffect(() => {
-    if (memberToEdit) {
+    if (memberToEdit && memberToEdit.user) {
       editForm.reset({
         role: memberToEdit.role as "coach" | "player" | "colaborador",
         position: memberToEdit.user.position || "",
