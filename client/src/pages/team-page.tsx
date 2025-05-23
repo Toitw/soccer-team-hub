@@ -227,13 +227,14 @@ export default function TeamPage() {
       const roleMatch = roleFilter === "all" || member.role === roleFilter;
       const searchMatch =
         searchQuery === "" ||
-        member.user.fullName
+        (member.user?.fullName
           ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        member.user.username
+          .includes(searchQuery.toLowerCase())) ||
+        (member.user?.username
           ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        member.user.position?.toLowerCase().includes(searchQuery.toLowerCase());
+          .includes(searchQuery.toLowerCase())) ||
+        (member.user?.position?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        member.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
       return roleMatch && searchMatch;
     });
   }, [teamMembers, roleFilter, searchQuery]);
@@ -631,7 +632,7 @@ export default function TeamPage() {
       setSelectedPosition(null);
       toast({
         title: "Player added to lineup",
-        description: `${member.user.fullName} has been added to the lineup.`,
+        description: `${member.user?.fullName || member.fullName} has been added to the lineup.`,
       });
     }
   };
@@ -1298,24 +1299,24 @@ export default function TeamPage() {
                           >
                             <Avatar className="h-8 w-8 mr-3">
                               <AvatarImage
-                                src={member.user.profilePicture || undefined}
-                                alt={member.user.fullName || ""}
+                                src={member.user?.profilePicture || undefined}
+                                alt={member.user?.fullName || ""}
                               />
                               <AvatarFallback>
-                                {member.user.fullName?.charAt(0) || "U"}
+                                {member.user?.fullName?.charAt(0) || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">
-                                {member.user.fullName}
+                                {member.user?.fullName || member.fullName}
                               </div>
                               <div className="text-xs text-muted-foreground flex items-center">
-                                {member.user.position && (
+                                {member.user?.position && (
                                   <span className="truncate">
                                     {member.user.position}
                                   </span>
                                 )}
-                                {member.user.jerseyNumber && (
+                                {member.user?.jerseyNumber && (
                                   <Badge
                                     variant="outline"
                                     className="text-xs ml-1"
