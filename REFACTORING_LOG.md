@@ -30,17 +30,29 @@ Systematic refactoring of the large `server/routes.ts` file to improve maintaina
   - `POST /api/teams/:teamId/claims/:claimId/reject`
   - `GET /api/notifications/claims`
 
-### 🔄 Step 3: Extract Team Management Routes (In Progress)
+### ✅ Step 3: Extract Team Management Routes (Completed)
 - **Date**: 2025-05-23
-- **Target**: Team-related endpoints
-- **Estimated reduction**: 200+ lines
-- **Files to create**: `server/routes/team-routes.ts`
+- **Extracted**: All team management endpoints
+- **Lines reduced**: 377 lines
+- **Files created**: `server/routes/team-routes.ts`
+- **Files affected**: `server/routes.ts`
+- **Endpoints moved**: 8 team endpoints
+  - `POST /api/teams/create-default`
+  - `GET /api/teams`
+  - `POST /api/teams`
+  - `POST /api/teams/:id/join-code`
+  - `GET /api/validate-join-code/:code`
+  - `GET /api/teams/:id`
+  - `POST /api/teams/:id/logo`
+  - `PATCH /api/teams/:id`
+  - `POST /api/teams/:id/regenerate-join-code`
 
 ## File Size Progress
 - **Initial size**: 3,263 lines
 - **After Step 1**: 3,240 lines (-23)
 - **After Step 2**: 2,929 lines (-311)
-- **Current total reduction**: 334 lines (10.2%)
+- **After Step 3**: 2,552 lines (-377)
+- **Current total reduction**: 711 lines (21.8%)
 
 ## Next Steps
 1. Extract team management routes
