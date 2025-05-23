@@ -1216,7 +1216,7 @@ export default function TeamPage() {
                                     {player ? (
                                       <div className="flex flex-col items-center">
                                         <span className="font-bold text-sm">
-                                          {player.user.jerseyNumber || "?"}
+                                          {player.user?.jerseyNumber || "?"}
                                         </span>
                                       </div>
                                     ) : (
@@ -1535,18 +1535,18 @@ export default function TeamPage() {
                                   member.user?.profilePicture ||
                                   "/default-avatar.png"
                                 }
-                                alt={member.user?.fullName}
+                                alt={member.user?.fullName || member.fullName}
                               />
                               <AvatarFallback>
-                                {member.user?.fullName?.charAt(0) || "U"}
+                                {member.user?.fullName?.charAt(0) || member.fullName?.charAt(0) || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-semibold">
-                                {member.user?.fullName || "Unknown User"}
+                                {member.user?.fullName || member.fullName}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                @{member.user?.username}
+                                {member.user?.username ? `@${member.user.username}` : "No account linked"}
                               </div>
                             </div>
                           </div>
