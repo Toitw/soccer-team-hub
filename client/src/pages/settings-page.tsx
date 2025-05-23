@@ -561,19 +561,19 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
-                                alt={member.user.fullName}
+                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
-                              {member.user.fullName}
+                              {member.user?.fullName || member.fullName}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">{t("settings.administrator")}</Badge>
                             </TableCell>
-                            <TableCell>{member.user.email}</TableCell>
+                            <TableCell>{member.user?.email || "No email linked"}</TableCell>
                             <TableCell className="text-right">
                               {/* Don't show delete button for current user */}
-                              {member.user.id !== user?.id && (
+                              {member.user?.id !== user?.id && (
                                 <Button 
                                   variant="ghost" 
                                   size="icon"
@@ -612,16 +612,16 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Coach&background=4CAF50&color=fff"} 
-                                alt={member.user.fullName}
+                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Coach&background=4CAF50&color=fff"} 
+                                alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
-                              {member.user.fullName}
+                              {member.user?.fullName || member.fullName}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className="bg-[#4CAF50]/10 text-[#4CAF50] hover:bg-[#4CAF50]/20">{t("auth.coach")}</Badge>
                             </TableCell>
-                            <TableCell>{member.user.email}</TableCell>
+                            <TableCell>{member.user?.email || "No email linked"}</TableCell>
                             <TableCell className="text-right">
                               <Button 
                                 variant="ghost" 
@@ -661,15 +661,15 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user.profilePicture || "https://ui-avatars.com/api/?name=Player&background=FFC107&color=fff"} 
-                                alt={member.user.fullName}
+                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Player&background=FFC107&color=fff"} 
+                                alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
-                              {member.user.fullName}
+                              {member.user?.fullName || member.fullName}
                             </TableCell>
-                            <TableCell>{member.user.position || t("common.notAvailable")}</TableCell>
-                            <TableCell>{member.user.jerseyNumber || "-"}</TableCell>
-                            <TableCell>{member.user.email}</TableCell>
+                            <TableCell>{member.user?.position || member.position || t("common.notAvailable")}</TableCell>
+                            <TableCell>{member.user?.jerseyNumber || member.jerseyNumber || "-"}</TableCell>
+                            <TableCell>{member.user?.email || "No email linked"}</TableCell>
                             <TableCell className="text-right">
                               <Button 
                                 variant="ghost" 
