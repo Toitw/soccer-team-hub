@@ -10,6 +10,7 @@ import {
   TeamMember,
   User
 } from "@shared/schema";
+import FootballFieldLineup from "@/components/football-field-lineup";
 import { useLanguage } from "@/hooks/use-language";
 import {
   Card,
@@ -371,128 +372,26 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
 
           {/* Lineup Tab */}
           <TabsContent value="lineup" className="mt-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold flex items-center">
-                <Users className="mr-2 h-5 w-5" />
-                Team Lineup
-              </h3>
-              <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    {lineup ? "Edit Lineup" : "Set Lineup"}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>{lineup ? "Edit Lineup" : "Set Lineup"}</DialogTitle>
-                    <DialogDescription>Select players and formation for this match</DialogDescription>
-                  </DialogHeader>
-                  <Form {...lineupForm}>
-                    <form onSubmit={lineupForm.handleSubmit((data) => saveLineup.mutate(data))} className="space-y-4">
-                      <FormField
-                        control={lineupForm.control}
-                        name="formation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Formation</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select formation" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="4-4-2">4-4-2</SelectItem>
-                                <SelectItem value="4-3-3">4-3-3</SelectItem>
-                                <SelectItem value="3-5-2">3-5-2</SelectItem>
-                                <SelectItem value="4-5-1">4-5-1</SelectItem>
-                                <SelectItem value="5-3-2">5-3-2</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={lineupForm.control}
-                        name="playerIds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Starting Players (Select {field.value?.length || 0}/11)</FormLabel>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {availablePlayers.map((member) => (
-                                <div key={member.id} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={field.value?.includes(member.id) || false}
-                                    onCheckedChange={(checked) => {
-                                      const currentIds = field.value || [];
-                                      if (checked && currentIds.length < 11) {
-                                        field.onChange([...currentIds, member.id]);
-                                      } else if (!checked) {
-                                        field.onChange(currentIds.filter(id => id !== member.id));
-                                      }
-                                    }}
-                                    disabled={!field.value?.includes(member.id) && (field.value?.length || 0) >= 11}
-                                  />
-                                  <span className="text-sm">{getPlayerName(member)}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <DialogFooter>
-                        <Button type="submit" disabled={saveLineup.isPending}>
-                          {saveLineup.isPending ? "Saving..." : "Save Lineup"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-            
-            {!lineup ? (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="mx-auto h-12 w-12 mb-4 opacity-30" />
-                <p>No lineup has been set for this match.</p>
-                <p className="text-sm mt-2">Add a lineup to track player positions.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Formation: {lineup.formation}</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">Starting XI:</span>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {lineup.players?.map((player, index) => (
-                          <Badge key={player.id} variant="secondary">
-                            {player.fullName || `Player ${index + 1}`}
-                          </Badge>
-                        )) || (
-                          <span className="text-sm text-gray-500">No players selected</span>
-                        )}
-                      </div>
-                    </div>
-                    {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
-                      <div className="mt-3">
-                        <span className="text-sm font-medium text-gray-600">Bench:</span>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {lineup.benchPlayers.map((player, index) => (
-                            <Badge key={player.id} variant="outline">
-                              {player.fullName || `Player ${index + 1}`}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            <FootballFieldLineup
+              players={availablePlayers.map(member => ({
+                id: member.id,
+                fullName: getPlayerName(member)
+              }))}
+              initialLineup={lineup ? {
+                formation: lineup.formation || '4-4-2',
+                positionMapping: lineup.positionMapping || {},
+                benchPlayerIds: lineup.benchPlayers?.map(p => p.id) || []
+              } : undefined}
+              onSave={(lineupData) => {
+                saveLineup.mutate({
+                  formation: lineupData.formation,
+                  playerIds: lineupData.playerIds,
+                  benchPlayerIds: lineupData.benchPlayerIds,
+                  positionMapping: lineupData.positionMapping
+                });
+              }}
+              isLoading={saveLineup.isPending}
+            />
           </TabsContent>
 
           {/* Substitutions Tab */}
