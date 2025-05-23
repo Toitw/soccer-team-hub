@@ -319,7 +319,14 @@ export default function EventPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch attendance data');
       }
-      const data: AttendanceData = await response.json();
+      const attendees = await response.json();
+      
+      // Transform the data to match expected format
+      const data: AttendanceData = {
+        attendees: attendees,
+        total: attendees.length,
+        confirmed: attendees.filter((a: any) => a.status === 'confirmed').length
+      };
       
       setAttendanceMap(prev => ({
         ...prev,
@@ -328,7 +335,7 @@ export default function EventPage() {
       
       // Set current user's attendance status
       if (user) {
-        const userAttendance = data.attendees.find(a => a.userId === user.id);
+        const userAttendance = attendees.find((a: any) => a.userId === user.id);
         if (userAttendance) {
           setAttendanceStatus(prev => ({
             ...prev,
