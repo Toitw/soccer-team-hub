@@ -736,9 +736,9 @@ export default function TeamPage() {
 
       // Process the position mapping to place players in their positions
       if (teamLineup.positionMapping) {
-        Object.entries(teamLineup.positionMapping).forEach(([positionId, userId]) => {
-          // Find the team member that matches this user ID
-          const member = teamMembers.find(m => m.userId === userId);
+        Object.entries(teamLineup.positionMapping).forEach(([positionId, memberId]) => {
+          // Find the team member that matches this member ID
+          const member = teamMembers.find(m => m.id === memberId);
           if (member) {
             newLineup[positionId] = member;
           } else {
