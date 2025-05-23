@@ -676,16 +676,16 @@ export default function TeamPage() {
       // Process the lineup object to extract player IDs and position mappings
       Object.entries(lineup).forEach(([positionId, member]) => {
         if (member) {
-          playerIds.push(member.userId);
-          positionMapping[positionId] = member.userId;
+          playerIds.push(member.id);
+          positionMapping[positionId] = member.id;
         }
       });
 
       // Find players who are on the team but not in the starting lineup - they go to the bench
       if (teamMembers) {
         teamMembers.forEach(member => {
-          if (member.role === "player" && !playerIds.includes(member.userId) && !benchPlayerIds.includes(member.userId)) {
-            benchPlayerIds.push(member.userId);
+          if (member.role === "player" && !playerIds.includes(member.id) && !benchPlayerIds.includes(member.id)) {
+            benchPlayerIds.push(member.id);
           }
         });
       }
@@ -1221,8 +1221,7 @@ export default function TeamPage() {
                                   {player && (
                                     <div className="absolute top-full mt-1 left-1/2 transform -translate-x-1/2 w-max">
                                       <div className="text-white text-xs text-center font-semibold bg-black bg-opacity-70 rounded px-2 py-1 whitespace-nowrap">
-                                        {player.user?.fullName?.split(" ")[0] ||
-                                          ""}
+                                        {(player.user?.fullName || player.fullName)?.split(" ")[0] || "Player"}
                                       </div>
                                     </div>
                                   )}
