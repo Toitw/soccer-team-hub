@@ -27,10 +27,10 @@ export function createAdminRouter(storage: IStorage) {
     }
 
     try {
-      const { name, email, type, subject, message } = req.body;
+      const { name, email, type, message } = req.body;
       
-      if (!type || !subject || !message) {
-        return res.status(400).json({ error: 'Type, subject, and message are required' });
+      if (!type || !message) {
+        return res.status(400).json({ error: 'Type and message are required' });
       }
 
       const feedback = await storage.createFeedback({
@@ -38,7 +38,7 @@ export function createAdminRouter(storage: IStorage) {
         name,
         email,
         type,
-        subject,
+        subject: `${type.charAt(0).toUpperCase() + type.slice(1)} feedback`, // Generate subject from type
         message
       });
 
