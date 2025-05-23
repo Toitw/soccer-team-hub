@@ -311,7 +311,7 @@ export default function TeamPage() {
 
   // Add team member mutation
   const addTeamMemberMutation = useMutation({
-    mutationFn: async (data: SimplifiedMemberPayload) => {
+    mutationFn: async (data: any) => {
       if (!selectedTeam) throw new Error("No team selected");
       console.log("Sending team member creation request:", {
         teamId: selectedTeam.id,
@@ -319,15 +319,7 @@ export default function TeamPage() {
       });
       return apiRequest(`/api/teams/${selectedTeam.id}/members`, {
         method: "POST",
-        data: {
-          role: data.role,
-          user: {
-            fullName: data.user.fullName,
-            position: data.user.position,
-            jerseyNumber: data.user.jerseyNumber,
-            profilePicture: data.user.profilePicture,
-          },
-        }
+        data
       });
     },
     onSuccess: (data) => {
@@ -409,14 +401,12 @@ export default function TeamPage() {
     const role = data.role || "player";
     let position = data.position;
     if (position === "none" || !position) position = "";
-    const payload: SimplifiedMemberPayload = {
+    const payload = {
+      fullName,
       role,
-      user: {
-        fullName,
-        position,
-        jerseyNumber: data.jerseyNumber || undefined,
-        profilePicture: data.profilePicture || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
-      },
+      position,
+      jerseyNumber: data.jerseyNumber || undefined,
+      profilePicture: data.profilePicture || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
     };
     addTeamMemberMutation.mutate(payload);
   };
@@ -1524,7 +1514,7 @@ export default function TeamPage() {
                     </TableRow>
                   )}
                   {filteredTeamMembers.map((member) => {
-                    if (!member || !member.user) return null;
+                    if (!member) return null;
                     return (
                       <TableRow key={member.id} className="hover:bg-accent/50">
                         <TableCell className="font-medium">
