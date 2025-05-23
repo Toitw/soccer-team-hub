@@ -12,6 +12,7 @@ import { createClaimsRouter } from "./routes/claims-routes";
 import { createTeamRouter } from "./routes/team-routes";
 import { createMemberRouter } from "./routes/member-routes";
 import { createMatchEventRouter } from "./routes/match-event-routes";
+import { createAnnouncementRouter } from "./routes/announcement-routes";
 import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
@@ -63,12 +64,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register match and event routes
   const matchEventRouter = createMatchEventRouter();
   
+  // Register announcement routes
+  const announcementRouter = createAnnouncementRouter();
+  
   // Attach routers to main app
   app.use('/api', adminRouter);
   app.use('/api', claimsRouter);
   app.use('/api', teamRouter);
   app.use('/api', memberRouter);
   app.use('/api', matchEventRouter);
+  app.use('/api', announcementRouter);
 
   // Database monitoring endpoints
   app.get("/api/health", async (req, res) => {
@@ -94,199 +99,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
 
-  // Announcements routes
-  app.get("/api/teams/:id/announcements", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const teamId = parseInt(req.params.id);
-
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-
-      const announcements = await storage.getAnnouncements(teamId);
-
-      // Get user details for the creator of each announcement
-      const announcementsWithCreator = await Promise.all(
-        announcements.map(async (announcement) => {
-          const user = await storage.getUser(announcement.createdById);
-          if (!user) return announcement;
-
-          const { password, ...creatorWithoutPassword } = user;
-          return {
-            ...announcement,
-            creator: creatorWithoutPassword,
-          };
-        })
-      );
-
-      res.json(announcementsWithCreator);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch announcements" });
-    }
-  });
-
-  app.get("/api/teams/:id/announcements/recent", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const teamId = parseInt(req.params.id);
-      const limit = parseInt(req.query.limit as string) || 1; // Default to 1 to get only the most recent
-
-      // Check if user has access to the team (either as a team_user or a team_member)
-      // First check team_users (users who joined the team)
-      const teamUser = await storage.getTeamUser(teamId, req.user.id);
-      
-      // If not found in team_users, check if they're a team_member with role
-      const teamMember = !teamUser ? await storage.getTeamMember(teamId, req.user.id) : null;
-      
-      if (!teamUser && !teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-
-      const announcements = await storage.getRecentAnnouncements(teamId, limit);
-
-      // Get user details for the creator of each announcement
-      const announcementsWithCreator = await Promise.all(
-        announcements.map(async (announcement) => {
-          const user = await storage.getUser(announcement.createdById);
-          if (!user) return announcement;
-
-          const { password, ...creatorWithoutPassword } = user;
-          return {
-            ...announcement,
-            creator: creatorWithoutPassword,
-          };
-        })
-      );
-
-      res.json(announcementsWithCreator);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch recent announcements" });
-    }
-  });
-
-  app.post("/api/teams/:id/announcements", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const teamId = parseInt(req.params.id);
-      
-      // Check if user has admin or coach role
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
-        return res.status(403).json({ error: "Not authorized to create announcements" });
-      }
-
-      const announcement = await storage.createAnnouncement({
-        ...req.body,
-        teamId,
-        createdById: req.user.id,
-      });
-
-      // Get user details for the creator
-      const user = await storage.getUser(announcement.createdById);
-      let announcementWithCreator = announcement;
-
-      if (user) {
-        const { password, ...creatorWithoutPassword } = user;
-        // Use type assertion to avoid TypeScript error while still adding creator info
-        announcementWithCreator = {
-          ...announcement,
-          // Adding creator info for UI display purposes
-          // This will be removed by TypeScript but will be in the JSON response
-        } as any;
-        (announcementWithCreator as any).creator = creatorWithoutPassword;
-      }
-
-      res.status(201).json(announcementWithCreator);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create announcement" });
-    }
-  });
-
-  app.patch("/api/teams/:id/announcements/:announcementId", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const teamId = parseInt(req.params.id);
-      const announcementId = parseInt(req.params.announcementId);
-
-      // Check if user has admin or coach role
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
-        return res.status(403).json({ error: "Not authorized to update announcements" });
-      }
-
-      // Check if announcement belongs to the team
-      const announcement = await storage.getAnnouncement(announcementId);
-      if (!announcement || announcement.teamId !== teamId) {
-        return res.status(404).json({ error: "Announcement not found" });
-      }
-
-      // Update announcement
-      const updatedAnnouncement = await storage.updateAnnouncement(announcementId, {
-        title: req.body.title,
-        content: req.body.content
-      });
-
-      if (updatedAnnouncement) {
-        // Get user details for the creator
-        const user = await storage.getUser(updatedAnnouncement.createdById);
-        let announcementWithCreator = updatedAnnouncement;
-
-        if (user) {
-          const { password, ...creatorWithoutPassword } = user;
-          // Use type assertion to avoid TypeScript error while still adding creator info
-          announcementWithCreator = {
-            ...updatedAnnouncement,
-            // Adding creator info for UI display purposes
-          } as any;
-          (announcementWithCreator as any).creator = creatorWithoutPassword;
-        }
-
-        res.status(200).json(announcementWithCreator);
-      } else {
-        res.status(500).json({ error: "Failed to update announcement" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update announcement" });
-    }
-  });
-
-  app.delete("/api/teams/:id/announcements/:announcementId", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-
-    try {
-      const teamId = parseInt(req.params.id);
-      const announcementId = parseInt(req.params.announcementId);
-
-      // Check if user has admin or coach role
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
-        return res.status(403).json({ error: "Not authorized to delete announcements" });
-      }
-
-      // Check if announcement belongs to the team
-      const announcement = await storage.getAnnouncement(announcementId);
-      if (!announcement || announcement.teamId !== teamId) {
-        return res.status(404).json({ error: "Announcement not found" });
-      }
-
-      const success = await storage.deleteAnnouncement(announcementId);
-
-      if (success) {
-        res.status(200).json({ message: "Announcement deleted successfully" });
-      } else {
-        res.status(500).json({ error: "Failed to delete announcement" });
-      }
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete announcement" });
-    }
-  });
 
   // Player Stats routes
   app.get("/api/teams/:teamId/matches/:matchId/stats", async (req, res) => {
