@@ -27,9 +27,13 @@ export function createAdminRouter(storage: IStorage) {
     }
 
     try {
+      console.log('ADMIN ROUTER FEEDBACK: Request body received:', req.body);
       const { name, email, type, message } = req.body;
       
+      console.log('ADMIN ROUTER FEEDBACK: Extracted fields:', { name, email, type, message });
+      
       if (!type || !message) {
+        console.log('ADMIN ROUTER FEEDBACK: Validation failed - missing type or message');
         return res.status(400).json({ error: 'Type and message are required' });
       }
 
