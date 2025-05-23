@@ -317,8 +317,7 @@ export const matchSubstitutions = pgTable("match_substitutions", {
   playerInId: integer("player_in_id").notNull(),
   playerOutId: integer("player_out_id").notNull(),
   minute: integer("minute").notNull(),
-  reason: text("reason"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutions).pick({
@@ -326,8 +325,6 @@ export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutio
   playerInId: true,
   playerOutId: true,
   minute: true,
-  reason: true,
-  period: true,
 });
 
 // MatchGoals table for detailed goal information
@@ -337,11 +334,9 @@ export const matchGoals = pgTable("match_goals", {
   scorerId: integer("scorer_id").notNull(),
   assistId: integer("assist_id"), // Optional, not all goals have assists
   minute: integer("minute").notNull(),
-  type: text("type", { enum: ["regular", "penalty", "free_kick", "own_goal"] }).default("regular"),
-  description: text("description"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
   isOwnGoal: boolean("is_own_goal").default(false),
   isPenalty: boolean("is_penalty").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
@@ -349,9 +344,6 @@ export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
   scorerId: true,
   assistId: true,
   minute: true,
-  type: true,
-  description: true,
-  period: true,
   isOwnGoal: true,
   isPenalty: true,
 });
@@ -361,19 +353,18 @@ export const matchCards = pgTable("match_cards", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
   playerId: integer("player_id").notNull(),
-  type: text("type", { enum: ["yellow", "red", "second_yellow"] }).notNull(),
   minute: integer("minute").notNull(),
-  reason: text("reason"),
-  period: text("period", { enum: ["first_half", "second_half", "extra_time"] }),
+  isYellow: boolean("is_yellow").default(true),
+  isSecondYellow: boolean("is_second_yellow").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
   matchId: true,
   playerId: true,
-  type: true,
   minute: true,
-  reason: true,
-  period: true,
+  isYellow: true,
+  isSecondYellow: true,
 });
 
 // MatchPhotos table for storing match photos
