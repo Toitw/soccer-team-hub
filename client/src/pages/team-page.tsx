@@ -652,7 +652,7 @@ export default function TeamPage() {
       setLineup((prev) => ({ ...prev, [available.id]: member }));
       toast({
         title: "Player added to lineup",
-        description: `${member.user.fullName} has been added at position ${available.label}.`,
+        description: `${member.user?.fullName || member.fullName} has been added at position ${available.label}.`,
       });
     } else {
       toast({
@@ -1313,7 +1313,7 @@ export default function TeamPage() {
                               <div className="text-xs text-muted-foreground flex items-center">
                                 {member.user?.position && (
                                   <span className="truncate">
-                                    {member.user.position}
+                                    {member.user?.position}
                                   </span>
                                 )}
                                 {member.user?.jerseyNumber && (
@@ -1321,7 +1321,7 @@ export default function TeamPage() {
                                     variant="outline"
                                     className="text-xs ml-1"
                                   >
-                                    #{member.user.jerseyNumber}
+                                    #{member.user?.jerseyNumber}
                                   </Badge>
                                 )}
                               </div>
@@ -1397,26 +1397,26 @@ export default function TeamPage() {
                           >
                             <Avatar className="h-10 w-10 mr-3">
                               <AvatarImage
-                                src={member.user.profilePicture || undefined}
-                                alt={member.user.fullName || ""}
+                                src={member.user?.profilePicture || undefined}
+                                alt={member.user?.fullName || member.fullName || ""}
                               />
                               <AvatarFallback>
-                                {member.user.fullName?.charAt(0) || "U"}
+                                {member.user?.fullName?.charAt(0) || member.fullName?.charAt(0) || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-medium">
-                                {member.user.fullName}
+                                {member.user?.fullName || member.fullName}
                               </div>
                               <div className="text-sm text-gray-500 flex items-center">
-                                {member.user.position && (
+                                {member.user?.position && (
                                   <span className="mr-2">
-                                    {member.user.position}
+                                    {member.user?.position}
                                   </span>
                                 )}
-                                {member.user.jerseyNumber && (
+                                {member.user?.jerseyNumber && (
                                   <Badge variant="outline" className="text-xs">
-                                    #{member.user.jerseyNumber}
+                                    #{member.user?.jerseyNumber}
                                   </Badge>
                                 )}
                               </div>
@@ -1532,21 +1532,21 @@ export default function TeamPage() {
                             <Avatar className="h-10 w-10 mr-3 border border-primary/30">
                               <AvatarImage
                                 src={
-                                  member.user.profilePicture ||
+                                  member.user?.profilePicture ||
                                   "/default-avatar.png"
                                 }
-                                alt={member.user.fullName}
+                                alt={member.user?.fullName}
                               />
                               <AvatarFallback>
-                                {member.user.fullName?.charAt(0) || "U"}
+                                {member.user?.fullName?.charAt(0) || "U"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-semibold">
-                                {member.user.fullName || "Unknown User"}
+                                {member.user?.fullName || "Unknown User"}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                @{member.user.username}
+                                @{member.user?.username}
                               </div>
                             </div>
                           </div>
@@ -1571,11 +1571,11 @@ export default function TeamPage() {
                             <span className="capitalize">{t(`auth.${member.role}`)}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>{member.user.position ? t(`team.positions.${member.user.position}`) : "-"}</TableCell>
+                        <TableCell>{member.user?.position ? t(`team.positions.${member.user?.position}`) : "-"}</TableCell>
                         <TableCell>
-                          {member.user.jerseyNumber ? (
+                          {member.user?.jerseyNumber ? (
                             <Badge variant="outline">
-                              #{member.user.jerseyNumber}
+                              #{member.user?.jerseyNumber}
                             </Badge>
                           ) : (
                             "-"
@@ -1583,20 +1583,20 @@ export default function TeamPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col space-y-1">
-                            {member.user.email && (
+                            {member.user?.email && (
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <Mail className="h-3 w-3 mr-1" />
-                                <span>{member.user.email}</span>
+                                <span>{member.user?.email}</span>
                               </div>
                             )}
-                            {member.user.phoneNumber && (
+                            {member.user?.phoneNumber && (
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <Phone className="h-3 w-3 mr-1" />
-                                <span>{member.user.phoneNumber}</span>
+                                <span>{member.user?.phoneNumber}</span>
                               </div>
                             )}
-                            {!member.user.email &&
-                              !member.user.phoneNumber &&
+                            {!member.user?.email &&
+                              !member.user?.phoneNumber &&
                               "-"}
                           </div>
                         </TableCell>
