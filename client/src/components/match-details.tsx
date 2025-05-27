@@ -923,10 +923,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           (m) =>
                             m.role === "player" &&
                             !Object.values(lineupPositions).some(p => p?.id === m.id) &&
-                            (m.user.fullName
+                            (m.fullName
                               ?.toLowerCase()
                               .includes(searchQuery.toLowerCase()) ||
-                              m.user.position
+                              m.position
                                 ?.toLowerCase()
                                 .includes(searchQuery.toLowerCase()) ||
                               !searchQuery),
@@ -938,14 +938,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             onClick={() => addPlayerToLineup(member)}
                           >
                             <div className="flex-1">
-                              <div className="font-medium">{member.user.fullName}</div>
+                              <div className="font-medium">{member.fullName}</div>
                               <div className="text-sm text-gray-500 flex items-center">
-                                {member.user.position && (
-                                  <span className="mr-2">{member.user.position}</span>
+                                {member.position && (
+                                  <span className="mr-2">{member.position}</span>
                                 )}
-                                {member.user.jerseyNumber && (
+                                {member.jerseyNumber && (
                                   <span className="text-xs px-1.5 py-0.5 bg-gray-200 rounded">
-                                    #{member.user.jerseyNumber}
+                                    #{member.jerseyNumber}
                                   </span>
                                 )}
                               </div>
