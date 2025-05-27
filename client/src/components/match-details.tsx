@@ -794,6 +794,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   // Form handlers
   // Convert all lineup positions to playerIds and position mapping
   const handleLineupSubmit = (data: z.infer<typeof lineupSchema>) => {
+    console.log("handleLineupSubmit called with data:", data);
+    console.log("Current lineupPositions:", lineupPositions);
+    
     // Create a clean position mapping
     const positionMapping: Record<string, number> = {};
     
@@ -820,8 +823,16 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     };
     
     console.log("Saving lineup with position mapping:", positionMapping);
+    console.log("Player IDs:", playerIds);
     console.log("Bench players:", benchPlayerIds);
-    saveLineup.mutate(dataWithPositions);
+    console.log("Final data to save:", dataWithPositions);
+    
+    try {
+      saveLineup.mutate(dataWithPositions);
+      console.log("saveLineup.mutate called successfully");
+    } catch (error) {
+      console.error("Error calling saveLineup.mutate:", error);
+    }
   };
 
   const handleSubstitutionSubmit = (data: z.infer<typeof substitutionSchema>) => {
