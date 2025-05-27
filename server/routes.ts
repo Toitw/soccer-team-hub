@@ -543,8 +543,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scorerId,
         assistId,
         minute,
-        type,
-        description
+        isOwnGoal: req.body.isOwnGoal || false,
+        isPenalty: req.body.isPenalty || false
       });
 
       res.status(201).json(goal);
