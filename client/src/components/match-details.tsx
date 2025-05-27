@@ -1071,7 +1071,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                       
                                       {/* Player positions */}
                                       <div className="absolute top-0 left-0 w-full h-full">
-                                        {getPositionsByFormation(lineupForm.watch("formation")).map(
+                                        {getPositionsByFormation(lineupForm.watch("formation") || "4-4-2").map(
                                           (position) => {
                                             const player = lineupPositions[position.id];
                                             return (
