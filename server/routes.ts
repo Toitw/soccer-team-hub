@@ -212,6 +212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const matchId = parseInt(req.params.matchId);
       const { playerIds, benchPlayerIds, formation, positionMapping } = req.body;
 
+      console.log("Lineup save request:", { teamId, matchId, playerIds, benchPlayerIds, formation, positionMapping });
+
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
