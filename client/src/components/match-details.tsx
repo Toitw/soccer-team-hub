@@ -1191,13 +1191,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                         >
                                           <div className="flex items-center">
                                             <div className="ml-2">
-                                              <div className="font-medium">{member.user.fullName}</div>
+                                              <div className="font-medium">{member.user?.fullName || member.fullName}</div>
                                               <div className="text-xs text-gray-500 flex">
-                                                {member.user.position && (
-                                                  <span className="mr-2">{member.user.position}</span>
+                                                {(member.user?.position || member.position) && (
+                                                  <span className="mr-2">{member.user?.position || member.position}</span>
                                                 )}
-                                                {member.user.jerseyNumber && (
-                                                  <span>#{member.user.jerseyNumber}</span>
+                                                {(member.user?.jerseyNumber || member.jerseyNumber) && (
+                                                  <span>#{member.user?.jerseyNumber || member.jerseyNumber}</span>
                                                 )}
                                               </div>
                                             </div>
@@ -1242,13 +1242,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                             >
                                               <div className="flex items-center">
                                                 <div>
-                                                  <div className="font-medium">{member.user.fullName}</div>
+                                                  <div className="font-medium">{member.user?.fullName || member.fullName}</div>
                                                   <div className="text-xs text-gray-500 flex">
-                                                    {member.user.position && (
-                                                      <span className="mr-2">{member.user.position}</span>
+                                                    {(member.user?.position || member.position) && (
+                                                      <span className="mr-2">{member.user?.position || member.position}</span>
                                                     )}
-                                                    {member.user.jerseyNumber && (
-                                                      <span>#{member.user.jerseyNumber}</span>
+                                                    {(member.user?.jerseyNumber || member.jerseyNumber) && (
+                                                      <span>#{member.user?.jerseyNumber || member.jerseyNumber}</span>
                                                     )}
                                                   </div>
                                                 </div>
@@ -1274,8 +1274,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                   return member ? (
                                                     <div key={playerId} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
                                                       <div className="text-sm font-medium">
-                                                        {member.user.fullName}
-                                                        {member.user.jerseyNumber && <span className="text-xs ml-1">#{member.user.jerseyNumber}</span>}
+                                                        {member.user?.fullName || member.fullName}
+                                                        {(member.user?.jerseyNumber || member.jerseyNumber) && <span className="text-xs ml-1">#{member.user?.jerseyNumber || member.jerseyNumber}</span>}
                                                       </div>
                                                       <Button
                                                         variant="ghost"
