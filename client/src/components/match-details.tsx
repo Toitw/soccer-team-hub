@@ -407,10 +407,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         [selectedPosition]: member
       }));
       
-      // Add to form's playerIds if not already included
+      // Add to form's playerIds if not already included - use userId if available, otherwise use member id
       const currentIds = lineupForm.getValues().playerIds || [];
-      if (member.userId && !currentIds.includes(member.userId)) {
-        lineupForm.setValue('playerIds', [...currentIds, member.userId]);
+      const playerId = member.userId || member.id;
+      if (playerId && !currentIds.includes(playerId)) {
+        lineupForm.setValue('playerIds', [...currentIds, playerId]);
       }
       
       setShowAddToLineupDialog(false);
@@ -426,10 +427,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const removePlayerFromPosition = (positionId: string) => {
     const player = lineupPositions[positionId];
     if (player) {
-      // Remove from form's playerIds
+      // Remove from form's playerIds - use userId if available, otherwise use member id
       const currentIds = lineupForm.getValues().playerIds || [];
-      if (player.userId) {
-        lineupForm.setValue('playerIds', currentIds.filter(id => id !== player.userId));
+      const playerId = player.userId || player.id;
+      if (playerId) {
+        lineupForm.setValue('playerIds', currentIds.filter(id => id !== playerId));
       }
       
       // Remove from positions
@@ -805,8 +807,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     // Only include valid player assignments in the mapping
     // This ensures no position has multiple players and no player is in multiple positions
     Object.entries(lineupPositions).forEach(([positionId, playerInfo]) => {
-      if (playerInfo && playerInfo.userId) {
-        positionMapping[positionId] = playerInfo.userId;
+      if (playerInfo) {
+        // Use userId if available, otherwise use member id
+        const playerId = playerInfo.userId || playerInfo.id;
+        if (playerId) {
+          positionMapping[positionId] = playerId;
+        }
       }
     });
     
