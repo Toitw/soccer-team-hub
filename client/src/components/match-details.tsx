@@ -1329,7 +1329,17 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         <DialogClose asChild>
                           <Button type="button" variant="outline">{t("common.cancel")}</Button>
                         </DialogClose>
-                        <Button type="submit" disabled={saveLineup.isPending}>
+                        <Button 
+                          type="submit" 
+                          disabled={saveLineup.isPending}
+                          onClick={() => {
+                            console.log("Save button clicked");
+                            console.log("Form errors:", lineupForm.formState.errors);
+                            console.log("Form values:", lineupForm.getValues());
+                            console.log("Form is valid:", lineupForm.formState.isValid);
+                            console.log("Current lineup positions:", lineupPositions);
+                          }}
+                        >
                           {saveLineup.isPending && <span className="mr-2 animate-spin">⟳</span>}
                           {t("matches.saveLineup")}
                         </Button>
