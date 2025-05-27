@@ -893,7 +893,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
           {/* Lineup Tab */}
           <TabsContent value="lineup" className="py-4">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">{t("matches.startingLineup")}</h3>
               
               {/* Add Player to Lineup Dialog */}
