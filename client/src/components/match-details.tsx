@@ -1684,9 +1684,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <option value="">{t("matches.selectPlayerIn")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName} 
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
+                                  <option key={member.userId || member.id} value={member.userId || member.id}>
+                                    {member.user?.fullName || member.fullName} 
+                                    {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
                                   </option>
                                 ))}
                               </select>
@@ -1710,9 +1710,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <option value="">{t("matches.selectPlayerOut")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
+                                  <option key={member.userId || member.id} value={member.userId || member.id}>
+                                    {member.user?.fullName || member.fullName}
+                                    {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
                                   </option>
                                 ))}
                               </select>
@@ -1858,9 +1858,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <option value="">{t("matches.selectGoalScorer")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
+                                  <option key={member.userId || member.id} value={member.userId || member.id}>
+                                    {member.user?.fullName || member.fullName}
+                                    {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
                                   </option>
                                 ))}
                               </select>
@@ -1884,9 +1884,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <option value="">{t("matches.noAssist")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
+                                  <option key={member.userId || member.id} value={member.userId || member.id}>
+                                    {member.user?.fullName || member.fullName}
+                                    {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
                                   </option>
                                 ))}
                               </select>
@@ -2066,9 +2066,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               >
                                 <option value="">{t("matches.selectPlayer")}</option>
                                 {teamMembers?.filter(member => member.role === "player").map((member) => (
-                                  <option key={member.userId} value={member.userId}>
-                                    {member.user.fullName}
-                                    {member.user.jerseyNumber ? ` (#${member.user.jerseyNumber})` : ""}
+                                  <option key={member.userId || member.id} value={member.userId || member.id}>
+                                    {member.user?.fullName || member.fullName}
+                                    {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
                                   </option>
                                 ))}
                               </select>
