@@ -1097,11 +1097,9 @@ export class DatabaseStorage implements IStorage {
           scorerId: matchGoals.scorerId,
           assistId: matchGoals.assistId,
           minute: matchGoals.minute,
-          period: matchGoals.period,
           isOwnGoal: matchGoals.isOwnGoal,
           isPenalty: matchGoals.isPenalty,
-          type: matchGoals.type,
-          description: matchGoals.description
+          createdAt: matchGoals.createdAt
         })
         .from(matchGoals)
         .where(eq(matchGoals.matchId, matchId))
