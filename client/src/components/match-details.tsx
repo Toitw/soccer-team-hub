@@ -162,18 +162,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           // For each position that has a player assigned
           Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
             if (typeof playerId === 'number') {
-              // Find the player and team member
-              const player = lineup.players.find(p => p.id === playerId);
-              const teamMember = teamMembers?.find(m => m.userId === playerId);
+              // Find the team member by userId or member id
+              const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
               
-              if (player && teamMember) {
-                // Set this position with the player
+              if (teamMember) {
+                // Set this position with the team member
                 setLineupPositions(prev => ({
                   ...prev,
-                  [positionId]: {
-                    ...teamMember,
-                    user: player
-                  }
+                  [positionId]: teamMember
                 }));
               }
             }
