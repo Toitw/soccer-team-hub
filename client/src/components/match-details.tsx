@@ -408,8 +408,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       }));
       
       // Add to form's playerIds if not already included
-      const currentIds = lineupForm.getValues().playerIds;
-      if (!currentIds.includes(member.userId)) {
+      const currentIds = lineupForm.getValues().playerIds || [];
+      if (member.userId && !currentIds.includes(member.userId)) {
         lineupForm.setValue('playerIds', [...currentIds, member.userId]);
       }
       
@@ -427,8 +427,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     const player = lineupPositions[positionId];
     if (player) {
       // Remove from form's playerIds
-      const currentIds = lineupForm.getValues().playerIds;
-      lineupForm.setValue('playerIds', currentIds.filter(id => id !== player.userId));
+      const currentIds = lineupForm.getValues().playerIds || [];
+      if (player.userId) {
+        lineupForm.setValue('playerIds', currentIds.filter(id => id !== player.userId));
+      }
       
       // Remove from positions
       setLineupPositions(prev => {
