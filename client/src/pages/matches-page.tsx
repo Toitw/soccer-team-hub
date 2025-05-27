@@ -6,7 +6,7 @@ import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
-import MatchDetails from "@/components/match-details-simple";
+import MatchDetailsFixed from "@/components/match-details-fixed";
 import { SeasonManagement } from "@/components/season/season-management";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -1826,7 +1826,7 @@ export default function MatchesPage() {
                 </DialogDescription>
               </DialogHeader>
               {selectedMatch && selectedTeam && (
-                <MatchDetails
+                <MatchDetailsFixed
                   match={selectedMatch}
                   teamId={selectedTeam.id}
                   onUpdate={refetchMatchesData}
