@@ -10,7 +10,6 @@ import {
   TeamMember,
   User
 } from "@shared/schema";
-import FootballFieldLineup from "@/components/football-field-lineup";
 import { useLanguage } from "@/hooks/use-language";
 import {
   Card,
@@ -63,12 +62,6 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Simplified schemas matching actual database structure
-const lineupSchema = z.object({
-  formation: z.string().min(1, "Formation is required"),
-  playerIds: z.array(z.number()).min(1, "At least one player must be selected"),
-  benchPlayerIds: z.array(z.number()).optional().default([])
-});
-
 const substitutionSchema = z.object({
   playerInId: z.number({
     required_error: "Player coming in is required"
@@ -117,20 +110,11 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
   const [activeTab, setActiveTab] = useState("lineup");
   
   // Dialog states
-  const [lineupDialogOpen, setLineupDialogOpen] = useState(false);
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState(false);
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
 
   // Forms
-  const lineupForm = useForm<z.infer<typeof lineupSchema>>({
-    resolver: zodResolver(lineupSchema),
-    defaultValues: {
-      formation: "4-4-2",
-      playerIds: [],
-      benchPlayerIds: []
-    }
-  });
   const substitutionForm = useForm<z.infer<typeof substitutionSchema>>({
     resolver: zodResolver(substitutionSchema),
     defaultValues: {
@@ -166,14 +150,6 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
     queryKey: [`/api/teams/${teamId}/members`],
   });
 
-  const { data: lineup, isLoading: lineupLoading } = useQuery<MatchLineup & { 
-    players: User[],
-    benchPlayers?: User[] 
-  }>({
-    queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`],
-    enabled: match.status === "completed"
-  });
-
   const { data: substitutions = [], isLoading: substitutionsLoading } = useQuery<(MatchSubstitution & {
     playerIn: User;
     playerOut: User;
@@ -198,33 +174,6 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
   });
 
   // Mutations
-  const saveLineup = useMutation({
-    mutationFn: async (data: z.infer<typeof lineupSchema>) => {
-      const response = await fetch(`/api/teams/${teamId}/matches/${match.id}/lineup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, matchId: match.id, teamId })
-      });
-      if (!response.ok) throw new Error("Failed to save lineup");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`] });
-      setLineupDialogOpen(false);
-      lineupForm.reset();
-      toast({
-        titleKey: "matches.lineupSaved",
-        descriptionKey: "matches.lineupSavedSuccess"
-      });
-    },
-    onError: () => {
-      toast({
-        titleKey: "toasts.error",
-        descriptionKey: "toasts.failedToSaveLineup",
-        variant: "destructive"
-      });
-    }
-  });
   const addSubstitution = useMutation({
     mutationFn: async (data: z.infer<typeof substitutionSchema>) => {
       const response = await fetch(`/api/teams/${teamId}/matches/${match.id}/substitutions`, {
@@ -328,7 +277,7 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
     );
   }
 
-  const isLoading = teamMembersLoading || lineupLoading || substitutionsLoading || goalsLoading || cardsLoading;
+  const isLoading = teamMembersLoading || substitutionsLoading || goalsLoading || cardsLoading;
   if (isLoading) {
     return (
       <Card className="border-gray-300">
@@ -355,10 +304,7 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 min-h-[45px]">
-            <TabsTrigger value="lineup">
-              Lineup
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 min-h-[45px]">
             <TabsTrigger value="substitutions">
               Substitutions
             </TabsTrigger>
@@ -369,30 +315,6 @@ export default function MatchDetailsFixed({ match, teamId, onUpdate }: MatchDeta
               Cards
             </TabsTrigger>
           </TabsList>
-
-          {/* Lineup Tab */}
-          <TabsContent value="lineup" className="mt-4">
-            <FootballFieldLineup
-              players={availablePlayers.map(member => ({
-                id: member.id,
-                fullName: getPlayerName(member)
-              }))}
-              initialLineup={lineup ? {
-                formation: lineup.formation || '4-4-2',
-                positionMapping: lineup.positionMapping || {},
-                benchPlayerIds: lineup.benchPlayers?.map(p => p.id) || []
-              } : undefined}
-              onSave={(lineupData) => {
-                saveLineup.mutate({
-                  formation: lineupData.formation,
-                  playerIds: lineupData.playerIds,
-                  benchPlayerIds: lineupData.benchPlayerIds,
-                  positionMapping: lineupData.positionMapping
-                });
-              }}
-              isLoading={saveLineup.isPending}
-            />
-          </TabsContent>
 
           {/* Substitutions Tab */}
           <TabsContent value="substitutions" className="mt-4">

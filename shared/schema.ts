@@ -297,7 +297,8 @@ export const matchLineups = pgTable("match_lineups", {
   benchPlayerIds: integer("bench_player_ids").array(), // Array of player IDs on the bench
   formation: text("formation"), // e.g., "4-4-2", "4-3-3"
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
