@@ -923,10 +923,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           (m) =>
                             m.role === "player" &&
                             !Object.values(lineupPositions).some(p => p?.id === m.id) &&
-                            (m.user.fullName
+                            (m.user?.fullName
                               ?.toLowerCase()
                               .includes(searchQuery.toLowerCase()) ||
-                              m.user.position
+                              m.user?.position
+                                ?.toLowerCase()
+                                .includes(searchQuery.toLowerCase()) ||
+                              m.fullName
                                 ?.toLowerCase()
                                 .includes(searchQuery.toLowerCase()) ||
                               !searchQuery),
@@ -938,14 +941,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             onClick={() => addPlayerToLineup(member)}
                           >
                             <div className="flex-1">
-                              <div className="font-medium">{member.user.fullName}</div>
+                              <div className="font-medium">{member.user?.fullName || member.fullName}</div>
                               <div className="text-sm text-gray-500 flex items-center">
-                                {member.user.position && (
-                                  <span className="mr-2">{member.user.position}</span>
+                                {(member.user?.position || member.position) && (
+                                  <span className="mr-2">{member.user?.position || member.position}</span>
                                 )}
-                                {member.user.jerseyNumber && (
+                                {(member.user?.jerseyNumber || member.jerseyNumber) && (
                                   <span className="text-xs px-1.5 py-0.5 bg-gray-200 rounded">
-                                    #{member.user.jerseyNumber}
+                                    #{member.user?.jerseyNumber || member.jerseyNumber}
                                   </span>
                                 )}
                               </div>
@@ -1099,7 +1102,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                   {player ? (
                                                     <div className="flex flex-col items-center">
                                                       <span className="font-bold text-xs">
-                                                        {player.user.jerseyNumber || "?"}
+                                                        {player.user?.jerseyNumber || player.jerseyNumber || "?"}
                                                       </span>
                                                     </div>
                                                   ) : (
@@ -1110,7 +1113,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                 {/* Player tooltip - only showing name */}
                                                 {player && (
                                                   <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap shadow-lg">
-                                                    {player.user.fullName}
+                                                    {player.user?.fullName || player.fullName}
                                                   </div>
                                                 )}
                                                 
