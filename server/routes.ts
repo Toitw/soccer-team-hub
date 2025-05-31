@@ -1058,48 +1058,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Season routes
-  // Get all seasons for a team
-  app.get("/api/teams/:id/seasons", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
 
-    try {
-      const teamId = parseInt(req.params.id);
-      
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-      
-      const seasons = await storage.getSeasons(teamId);
-      res.json(seasons);
-    } catch (error) {
-      console.error("Error fetching seasons:", error);
-      res.status(500).json({ error: "Failed to fetch seasons" });
-    }
-  });
 
-  // Get active seasons for a team
-  app.get("/api/teams/:id/seasons/active", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
 
-    try {
-      const teamId = parseInt(req.params.id);
-      
-      // Check if user is a member of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember) {
-        return res.status(403).json({ error: "Not authorized to access this team" });
-      }
-      
-      const seasons = await storage.getActiveSeasons(teamId);
-      res.json(seasons);
-    } catch (error) {
-      console.error("Error fetching active seasons:", error);
-      res.status(500).json({ error: "Failed to fetch active seasons" });
-    }
-  });
 
   // Get a specific season by ID
   app.get("/api/seasons/:id", async (req, res) => {
@@ -1126,39 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a new season for a team
-  app.post("/api/teams/:id/seasons", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
 
-    try {
-      const teamId = parseInt(req.params.id);
-      
-      // Check if user is an admin of the team
-      const teamMember = await storage.getTeamMember(teamId, req.user.id);
-      if (!teamMember || teamMember.role !== "admin") {
-        return res.status(403).json({ error: "Only team administrators can create seasons" });
-      }
-      
-      // Validate request body
-      const { name, startDate } = req.body;
-      if (!name || !startDate) {
-        return res.status(400).json({ error: "Season name and start date are required" });
-      }
-      
-      // Create the season
-      const season = await storage.createSeason({
-        name,
-        startDate: new Date(startDate),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
-        teamId
-      });
-      
-      res.status(201).json(season);
-    } catch (error) {
-      console.error("Error creating season:", error);
-      res.status(500).json({ error: "Failed to create season" });
-    }
-  });
 
   // Update a season
   app.patch("/api/seasons/:id", async (req, res) => {
