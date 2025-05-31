@@ -171,7 +171,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get player details for each player in the starting lineup
       const playersDetails = await Promise.all(
         lineup.playerIds.map(async (playerId) => {
-          const user = await storage.getUser(playerId);
+          // First try to get user directly
+          let user = await storage.getUser(playerId);
+          
+          // If no user found, try to find team member and get associated user
+          if (!user) {
+            const teamMembers = await storage.getTeamMembers(teamId);
+            const teamMember = teamMembers.find(m => m.id === playerId || m.userId === playerId);
+            
+            if (teamMember && teamMember.userId) {
+              user = await storage.getUser(teamMember.userId);
+            } else if (teamMember) {
+              // If team member exists but no linked user, return team member data as user-like object
+              return {
+                id: teamMember.userId || teamMember.id,
+                fullName: teamMember.fullName,
+                position: teamMember.position,
+                jerseyNumber: teamMember.jerseyNumber
+              };
+            }
+          }
+          
           if (!user) return null;
 
           const { password, ...userWithoutPassword } = user;
@@ -184,7 +204,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (lineup.benchPlayerIds && lineup.benchPlayerIds.length > 0) {
         benchPlayersDetails = await Promise.all(
           lineup.benchPlayerIds.map(async (playerId) => {
-            const user = await storage.getUser(playerId);
+            // First try to get user directly
+            let user = await storage.getUser(playerId);
+            
+            // If no user found, try to find team member and get associated user
+            if (!user) {
+              const teamMembers = await storage.getTeamMembers(teamId);
+              const teamMember = teamMembers.find(m => m.id === playerId || m.userId === playerId);
+              
+              if (teamMember && teamMember.userId) {
+                user = await storage.getUser(teamMember.userId);
+              } else if (teamMember) {
+                // If team member exists but no linked user, return team member data as user-like object
+                return {
+                  id: teamMember.userId || teamMember.id,
+                  fullName: teamMember.fullName,
+                  position: teamMember.position,
+                  jerseyNumber: teamMember.jerseyNumber
+                };
+              }
+            }
+            
             if (!user) return null;
 
             const { password, ...userWithoutPassword } = user;
@@ -213,6 +253,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { playerIds, benchPlayerIds, formation, positionMapping } = req.body;
 
       console.log("Lineup save request:", { teamId, matchId, playerIds, benchPlayerIds, formation, positionMapping });
+      
+      // Validate that playerIds is an array and has content
+      if (!Array.isArray(playerIds) || playerIds.length === 0) {
+        console.log("Invalid or empty playerIds:", playerIds);
+        return res.status(400).json({ error: "At least one player must be in the starting lineup" });
+      }
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);

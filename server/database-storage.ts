@@ -45,7 +45,7 @@ export class DatabaseStorage implements IStorage {
       tableName: 'sessions',
       createTableIfMissing: true,
     });
-    
+
     // Assign to sessionStore with appropriate type handling
     this.sessionStore = pgStore;
   }
@@ -60,7 +60,7 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
-  
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
@@ -75,7 +75,7 @@ export class DatabaseStorage implements IStorage {
     if (userData.password && !userData.password.startsWith('$argon2')) {
       userData.password = await hashPassword(userData.password);
     }
-    
+
     const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
@@ -85,13 +85,13 @@ export class DatabaseStorage implements IStorage {
     if (userData.password && !userData.password.startsWith('$argon2')) {
       userData.password = await hashPassword(userData.password);
     }
-    
+
     const [updatedUser] = await db
       .update(users)
       .set(userData)
       .where(eq(users.id, id))
       .returning();
-    
+
     return updatedUser;
   }
 
@@ -113,29 +113,29 @@ export class DatabaseStorage implements IStorage {
   async getTeamsByUserId(userId: number): Promise<Team[]> {
     try {
       console.log(`Getting teams for user ID: ${userId}`);
-      
+
       // Find all team memberships for this user from teamUsers table
       const userTeams = await db
         .select()
         .from(teamUsers)
         .where(eq(teamUsers.userId, userId));
-      
+
       console.log(`Found ${userTeams.length} team associations for user ${userId}`);
-      
+
       // Get all teams for these memberships
       const teamIds = userTeams.map(tu => tu.teamId);
-      
+
       if (teamIds.length === 0) {
         console.log(`No teams found for user ${userId}`);
         return [];
       }
-      
+
       // Use SQL IN clause to fetch all teams at once
       const result = await db
         .select()
         .from(teams)
         .where(sql`${teams.id} IN (${teamIds.join(',')})`);
-      
+
       console.log(`Found ${result.length} teams for user ${userId}`);
       return result;
     } catch (error) {
@@ -148,14 +148,14 @@ export class DatabaseStorage implements IStorage {
           .select()
           .from(teamMembers)
           .where(eq(teamMembers.userId, userId));
-        
+
         // Get all teams for these memberships
         const teamIds = userTeamMembers.map(member => member.teamId);
-        
+
         if (teamIds.length === 0) {
           return [];
         }
-        
+
         return db
           .select()
           .from(teams)
@@ -172,7 +172,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teams)
       .where(eq(teams.joinCode, joinCode));
-    
+
     return team;
   }
 
@@ -182,7 +182,7 @@ export class DatabaseStorage implements IStorage {
       if (!teamData.createdById) {
         throw new Error("createdById is required for team creation");
       }
-      
+
       // Convert Drizzle ORM insert to raw SQL to set owner_id explicitly
       const query = `
         INSERT INTO teams (
@@ -195,7 +195,7 @@ export class DatabaseStorage implements IStorage {
           $9
         ) RETURNING *
       `;
-      
+
       const values = [
         teamData.name,
         teamData.logo || null,
@@ -207,12 +207,12 @@ export class DatabaseStorage implements IStorage {
         teamData.joinCode,
         teamData.createdById // Set owner_id to createdById
       ];
-      
+
       console.log("Executing SQL with values:", values);
-      
+
       // Use the pool directly for this query
       const result = await pool.query(query, values);
-      
+
       if (result.rows && result.rows.length > 0) {
         return result.rows[0];
       } else {
@@ -230,7 +230,7 @@ export class DatabaseStorage implements IStorage {
       .set(teamData)
       .where(eq(teams.id, id))
       .returning();
-    
+
     return updatedTeam;
   }
 
@@ -253,10 +253,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(teamMembers)
       .where(eq(teamMembers.id, id));
-    
+
     return member;
   }
-  
+
   // Get team member by team ID and user ID
   async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
     try {
@@ -270,11 +270,11 @@ export class DatabaseStorage implements IStorage {
             eq(teamMembers.userId, userId)
           )
         );
-      
+
       if (member) {
         return member;
       }
-      
+
       // If not found, check through team_users table
       const [teamUser] = await db
         .select()
@@ -285,19 +285,19 @@ export class DatabaseStorage implements IStorage {
             eq(teamUsers.userId, userId)
           )
         );
-      
+
       if (teamUser) {
         // Get the user information
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.id, userId));
-        
+
         if (user) {
           // Create a virtual team member with appropriate role
           // Map user roles to team member roles correctly
           let teamRole: 'admin' | 'coach' | 'player' | 'colaborador' = 'player';
-          
+
           if (user.role === 'admin' || user.role === 'superuser') {
             teamRole = 'admin';
           } else if (user.role === 'coach') {
@@ -305,7 +305,7 @@ export class DatabaseStorage implements IStorage {
           } else if (user.role === 'colaborador') {
             teamRole = 'colaborador';
           }
-            
+
           return {
             id: -1, // Virtual ID
             teamId,
@@ -321,13 +321,13 @@ export class DatabaseStorage implements IStorage {
           };
         }
       }
-      
+
       // Check for admin users who should have access to all teams
       const [user] = await db
         .select()
         .from(users)
         .where(eq(users.id, userId));
-      
+
       if (user && (user.role === 'admin' || user.role === 'superuser')) {
         // Create a virtual team member for admin/superuser
         return {
@@ -344,7 +344,7 @@ export class DatabaseStorage implements IStorage {
           createdById: userId
         };
       }
-      
+
       // Final check: if user created this team
       const [team] = await db
         .select()
@@ -355,14 +355,14 @@ export class DatabaseStorage implements IStorage {
             eq(teams.createdById, userId)
           )
         );
-      
+
       if (team) {
         // Get user info for team creator
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.id, userId));
-        
+
         if (user) {
           return {
             id: -2, // Virtual ID
@@ -379,7 +379,7 @@ export class DatabaseStorage implements IStorage {
           };
         }
       }
-      
+
       return undefined;
     } catch (error) {
       console.error('Error in getTeamMember:', error);
@@ -393,7 +393,7 @@ export class DatabaseStorage implements IStorage {
       .from(teamMembers)
       .where(eq(teamMembers.userId, userId));
   }
-  
+
   async getTeamMemberByUserId(teamId: number, userId: number): Promise<TeamMember | undefined> {
     const [member] = await db
       .select()
@@ -404,10 +404,10 @@ export class DatabaseStorage implements IStorage {
           eq(teamMembers.userId, userId)
         )
       );
-    
+
     return member;
   }
-  
+
   async getVerifiedTeamMembers(teamId: number): Promise<TeamMember[]> {
     return db
       .select()
@@ -425,7 +425,7 @@ export class DatabaseStorage implements IStorage {
       .insert(teamMembers)
       .values(teamMemberData)
       .returning();
-    
+
     return member;
   }
 
@@ -435,7 +435,7 @@ export class DatabaseStorage implements IStorage {
       .set(teamMemberData)
       .where(eq(teamMembers.id, id))
       .returning();
-    
+
     return updatedMember;
   }
 
@@ -443,7 +443,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teamMembers).where(eq(teamMembers.id, id));
     return true;
   }
-  
+
   // New method to verify a team member (link it to a user)
   async verifyTeamMember(memberId: number, userId: number): Promise<TeamMember | undefined> {
     const [updatedMember] = await db
@@ -454,10 +454,10 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(teamMembers.id, memberId))
       .returning();
-    
+
     return updatedMember;
   }
-  
+
   // TeamUser methods
   async getTeamUsers(teamId: number): Promise<TeamUser[]> {
     return db
@@ -465,7 +465,7 @@ export class DatabaseStorage implements IStorage {
       .from(teamUsers)
       .where(eq(teamUsers.teamId, teamId));
   }
-  
+
   async getTeamUser(teamId: number, userId: number): Promise<TeamUser | undefined> {
     const [teamUser] = await db
       .select()
@@ -476,31 +476,31 @@ export class DatabaseStorage implements IStorage {
           eq(teamUsers.userId, userId)
         )
       );
-    
+
     return teamUser;
   }
-  
+
   async getTeamUsersByUserId(userId: number): Promise<TeamUser[]> {
     return db
       .select()
       .from(teamUsers)
       .where(eq(teamUsers.userId, userId));
   }
-  
+
   async createTeamUser(teamUserData: InsertTeamUser): Promise<TeamUser> {
     const [teamUser] = await db
       .insert(teamUsers)
       .values(teamUserData)
       .returning();
-    
+
     return teamUser;
   }
-  
+
   async deleteTeamUser(id: number): Promise<boolean> {
     await db.delete(teamUsers).where(eq(teamUsers.id, id));
     return true;
   }
-  
+
   // MemberClaim methods
   async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
     return db
@@ -508,7 +508,7 @@ export class DatabaseStorage implements IStorage {
       .from(memberClaims)
       .where(eq(memberClaims.teamId, teamId));
   }
-  
+
   async getMemberClaimsByStatus(teamId: number, status: string): Promise<MemberClaim[]> {
     return db
       .select()
@@ -520,16 +520,16 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
-  
+
   async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
     const [claim] = await db
       .select()
       .from(memberClaims)
       .where(eq(memberClaims.id, id));
-    
+
     return claim;
   }
-  
+
   async getMemberClaimByUserAndMember(userId: number, memberId: number): Promise<MemberClaim | undefined> {
     const [claim] = await db
       .select()
@@ -540,32 +540,32 @@ export class DatabaseStorage implements IStorage {
           eq(memberClaims.teamMemberId, memberId)
         )
       );
-    
+
     return claim;
   }
-  
+
   async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
     const [claim] = await db
       .insert(memberClaims)
       .values(claimData)
       .returning();
-    
+
     return claim;
   }
-  
+
   async updateMemberClaim(id: number, claimData: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
     const [updatedClaim] = await db
       .update(memberClaims)
       .set(claimData)
       .where(eq(memberClaims.id, id))
       .returning();
-    
+
     return updatedClaim;
   }
-  
+
   async approveMemberClaim(id: number, reviewerId: number): Promise<MemberClaim | undefined> {
     const now = new Date();
-    
+
     const [claim] = await db
       .update(memberClaims)
       .set({
@@ -575,18 +575,18 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(memberClaims.id, id))
       .returning();
-      
+
     if (claim) {
       // When a claim is approved, update the team member to link with this user
       await this.verifyTeamMember(claim.teamMemberId, claim.userId);
     }
-    
+
     return claim;
   }
-  
+
   async rejectMemberClaim(id: number, reviewerId: number, reason?: string): Promise<MemberClaim | undefined> {
     const now = new Date();
-    
+
     const [claim] = await db
       .update(memberClaims)
       .set({
@@ -597,7 +597,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(memberClaims.id, id))
       .returning();
-    
+
     return claim;
   }
 
@@ -607,7 +607,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(matches)
       .where(eq(matches.id, id));
-    
+
     return match;
   }
 
@@ -633,7 +633,7 @@ export class DatabaseStorage implements IStorage {
       .insert(matches)
       .values(matchData)
       .returning();
-    
+
     return match;
   }
 
@@ -643,10 +643,10 @@ export class DatabaseStorage implements IStorage {
       .set(matchData)
       .where(eq(matches.id, id))
       .returning();
-    
+
     return updatedMatch;
   }
-  
+
   async deleteMatch(id: number): Promise<boolean> {
     // Delete all related records first to avoid foreign key constraint violations
     await db.delete(matchLineups).where(eq(matchLineups.matchId, id));
@@ -655,7 +655,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(matchCards).where(eq(matchCards.matchId, id));
     await db.delete(matchPhotos).where(eq(matchPhotos.matchId, id));
     await db.delete(playerStats).where(eq(playerStats.matchId, id));
-    
+
     // Finally delete the match itself
     await db.delete(matches).where(eq(matches.id, id));
     return true;
@@ -667,7 +667,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(events)
       .where(eq(events.id, id));
-    
+
     return event;
   }
 
@@ -681,7 +681,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUpcomingEvents(teamId: number, limit: number): Promise<Event[]> {
     const now = new Date();
-    
+
     return db
       .select()
       .from(events)
@@ -698,12 +698,12 @@ export class DatabaseStorage implements IStorage {
   async createEvent(eventData: InsertEvent): Promise<Event> {
     try {
       console.log("Database storage: creating event with data:", JSON.stringify(eventData, null, 2));
-      
+
       const [event] = await db
         .insert(events)
         .values(eventData)
         .returning();
-      
+
       return event;
     } catch (error) {
       console.error("Error in database storage createEvent:", error);
@@ -714,7 +714,7 @@ export class DatabaseStorage implements IStorage {
   async updateEvent(id: number, eventData: Partial<Event>): Promise<Event | undefined> {
     try {
       console.log("Database storage: updating event with data:", JSON.stringify(eventData, null, 2));
-      
+
       // Convert any string dates to Date objects
       const formattedData = { ...eventData };
       if (typeof formattedData.startTime === 'string') {
@@ -723,13 +723,13 @@ export class DatabaseStorage implements IStorage {
       if (typeof formattedData.endTime === 'string') {
         formattedData.endTime = formattedData.endTime ? new Date(formattedData.endTime) : null;
       }
-      
+
       const [updatedEvent] = await db
         .update(events)
         .set(formattedData)
         .where(eq(events.id, id))
         .returning();
-      
+
       return updatedEvent;
     } catch (error) {
       console.error(`Error in database storage updateEvent for event ${id}:`, error);
@@ -740,24 +740,24 @@ export class DatabaseStorage implements IStorage {
   async deleteEvent(id: number): Promise<boolean> {
     try {
       console.log(`Database storage: deleting event with ID ${id}`);
-      
+
       // Check if the event exists first
       const existingEvent = await db
         .select()
         .from(events)
         .where(eq(events.id, id))
         .limit(1);
-        
+
       if (existingEvent.length === 0) {
         console.error(`Event with ID ${id} not found for deletion`);
         return false;
       }
-      
+
       // Delete the event
       const result = await db
         .delete(events)
         .where(eq(events.id, id));
-      
+
       console.log(`Deletion result:`, result);
       return true;
     } catch (error) {
@@ -786,7 +786,7 @@ export class DatabaseStorage implements IStorage {
       .insert(attendance)
       .values(attendanceData)
       .returning();
-    
+
     return record;
   }
 
@@ -796,7 +796,7 @@ export class DatabaseStorage implements IStorage {
       .set(attendanceData)
       .where(eq(attendance.id, id))
       .returning();
-    
+
     return updatedRecord;
   }
 
@@ -820,7 +820,7 @@ export class DatabaseStorage implements IStorage {
       .insert(playerStats)
       .values(playerStatData)
       .returning();
-    
+
     return stat;
   }
 
@@ -830,7 +830,7 @@ export class DatabaseStorage implements IStorage {
       .set(playerStatData)
       .where(eq(playerStats.id, id))
       .returning();
-    
+
     return updatedStat;
   }
 
@@ -840,7 +840,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(announcements)
       .where(eq(announcements.id, id));
-    
+
     return announcement;
   }
 
@@ -866,7 +866,7 @@ export class DatabaseStorage implements IStorage {
       .insert(announcements)
       .values(announcementData)
       .returning();
-    
+
     return announcement;
   }
 
@@ -876,7 +876,7 @@ export class DatabaseStorage implements IStorage {
       .set(announcementData)
       .where(eq(announcements.id, id))
       .returning();
-    
+
     return updatedAnnouncement;
   }
 
@@ -891,7 +891,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(invitations)
       .where(eq(invitations.id, id));
-    
+
     return invitation;
   }
 
@@ -907,7 +907,7 @@ export class DatabaseStorage implements IStorage {
       .insert(invitations)
       .values(invitationData)
       .returning();
-    
+
     return invitation;
   }
 
@@ -917,15 +917,14 @@ export class DatabaseStorage implements IStorage {
       .set(invitationData)
       .where(eq(invitations.id, id))
       .returning();
-    
+
     return updatedInvitation;
   }
 
   // Match Lineup methods
   async getMatchLineup(matchId: number): Promise<MatchLineup | undefined> {
     try {
-      // Only select columns that actually exist in the database
-      // This avoids the "column updated_at does not exist" error
+      console.log("Getting match lineup for match:", matchId);
       const [lineup] = await db
         .select({
           id: matchLineups.id,
@@ -940,8 +939,21 @@ export class DatabaseStorage implements IStorage {
         })
         .from(matchLineups)
         .where(eq(matchLineups.matchId, matchId));
-      
-      return lineup;
+
+      if (!lineup) {
+        console.log("No lineup found for match:", matchId);
+        return undefined;
+      }
+
+      const parsedLineup: MatchLineup = {
+        ...lineup,
+        playerIds: typeof lineup.playerIds === 'string' ? JSON.parse(lineup.playerIds) : lineup.playerIds,
+        benchPlayerIds: typeof lineup.benchPlayerIds === 'string' ? JSON.parse(lineup.benchPlayerIds) : lineup.benchPlayerIds,
+        positionMapping: typeof lineup.positionMapping === 'string' ? JSON.parse(lineup.positionMapping) : lineup.positionMapping,
+        updatedAt: new Date() // Providing a default value
+      };
+      console.log("Retrieved and parsed lineup:", parsedLineup);
+      return parsedLineup;
     } catch (error) {
       console.error("Error retrieving match lineup:", error);
       return undefined;
@@ -956,18 +968,21 @@ export class DatabaseStorage implements IStorage {
         ...lineupData,
         createdAt: now
       };
-      
+      console.log("Creating match lineup with data:", dataWithTimestamps);
+
       const [lineup] = await db
         .insert(matchLineups)
         .values(dataWithTimestamps)
         .returning();
-      
+
       // Add the updatedAt field to satisfy the TypeScript type
       const result: MatchLineup = {
         ...lineup,
         updatedAt: now
       };
-      
+
+      console.log("Created match lineup:", result);
+
       return result;
     } catch (error) {
       console.error("Error creating match lineup:", error);
@@ -979,13 +994,13 @@ export class DatabaseStorage implements IStorage {
     try {
       // Ensure we don't try to update fields that don't exist in the database
       const { updatedAt, ...validData } = lineupData;
-      
+
       const [updatedLineup] = await db
         .update(matchLineups)
         .set(validData)
         .where(eq(matchLineups.id, id))
         .returning();
-      
+
       if (updatedLineup) {
         // Add the updatedAt field to satisfy the TypeScript type
         return {
@@ -993,7 +1008,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: updatedLineup.createdAt // Use createdAt as a substitute since updatedAt doesn't exist
         };
       }
-      
+
       return undefined;
     } catch (error) {
       console.error("Error updating match lineup:", error);
@@ -1016,7 +1031,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(teamLineups)
         .where(eq(teamLineups.teamId, teamId));
-      
+
       return lineup;
     } catch (error) {
       console.error("Error retrieving team lineup:", error);
@@ -1029,7 +1044,7 @@ export class DatabaseStorage implements IStorage {
       .insert(teamLineups)
       .values(lineupData)
       .returning();
-    
+
     return lineup;
   }
 
@@ -1039,7 +1054,7 @@ export class DatabaseStorage implements IStorage {
       .set(lineupData)
       .where(eq(teamLineups.id, id))
       .returning();
-    
+
     return updatedLineup;
   }
 
@@ -1052,7 +1067,7 @@ export class DatabaseStorage implements IStorage {
         .from(matchSubstitutions)
         .where(eq(matchSubstitutions.matchId, matchId))
         .orderBy(matchSubstitutions.minute);
-      
+
       return subs;
     } catch (error) {
       console.error("Error retrieving match substitutions:", error);
@@ -1066,7 +1081,7 @@ export class DatabaseStorage implements IStorage {
       .insert(matchSubstitutions)
       .values(substitutionData)
       .returning();
-    
+
     return substitution;
   }
 
@@ -1076,7 +1091,7 @@ export class DatabaseStorage implements IStorage {
       .set(substitutionData)
       .where(eq(matchSubstitutions.id, id))
       .returning();
-    
+
     return updatedSubstitution;
   }
 
@@ -1103,7 +1118,7 @@ export class DatabaseStorage implements IStorage {
         .from(matchGoals)
         .where(eq(matchGoals.matchId, matchId))
         .orderBy(matchGoals.minute);
-      
+
       return goals;
     } catch (error) {
       console.error("Error retrieving match goals:", error);
@@ -1116,7 +1131,7 @@ export class DatabaseStorage implements IStorage {
       .insert(matchGoals)
       .values(goalData)
       .returning();
-    
+
     return goal;
   }
 
@@ -1126,7 +1141,7 @@ export class DatabaseStorage implements IStorage {
       .set(goalData)
       .where(eq(matchGoals.id, id))
       .returning();
-    
+
     return updatedGoal;
   }
 
@@ -1144,7 +1159,7 @@ export class DatabaseStorage implements IStorage {
         .from(matchCards)
         .where(eq(matchCards.matchId, matchId))
         .orderBy(matchCards.minute);
-      
+
       return cards;
     } catch (error) {
       console.error("Error retrieving match cards:", error);
@@ -1157,7 +1172,7 @@ export class DatabaseStorage implements IStorage {
       .insert(matchCards)
       .values(cardData)
       .returning();
-    
+
     return card;
   }
 
@@ -1167,7 +1182,7 @@ export class DatabaseStorage implements IStorage {
       .set(cardData)
       .where(eq(matchCards.id, id))
       .returning();
-    
+
     return updatedCard;
   }
 
@@ -1182,7 +1197,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(matchPhotos)
       .where(eq(matchPhotos.id, id));
-    
+
     return photo;
   }
 
@@ -1199,7 +1214,7 @@ export class DatabaseStorage implements IStorage {
       .insert(matchPhotos)
       .values(photoData)
       .returning();
-    
+
     return photo;
   }
 
@@ -1209,7 +1224,7 @@ export class DatabaseStorage implements IStorage {
       .set(photoData)
       .where(eq(matchPhotos.id, id))
       .returning();
-    
+
     return updatedPhoto;
   }
 
@@ -1253,7 +1268,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(leagueClassification)
       .where(eq(leagueClassification.id, id));
-    
+
     return classification;
   }
 
@@ -1262,7 +1277,7 @@ export class DatabaseStorage implements IStorage {
       .insert(leagueClassification)
       .values(classificationData)
       .returning();
-    
+
     return classification;
   }
 
@@ -1272,7 +1287,7 @@ export class DatabaseStorage implements IStorage {
       .set(classificationData)
       .where(eq(leagueClassification.id, id))
       .returning();
-    
+
     return updatedClassification;
   }
 
@@ -1292,7 +1307,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(leagueClassification)
       .where(eq(leagueClassification.teamId, teamId));
-    
+
     return true;
   }
 
@@ -1333,7 +1348,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(seasons)
       .where(eq(seasons.id, id));
-    
+
     return season;
   }
 
@@ -1354,7 +1369,7 @@ export class DatabaseStorage implements IStorage {
       .insert(seasons)
       .values(seasonData)
       .returning();
-    
+
     return season;
   }
 
@@ -1364,7 +1379,7 @@ export class DatabaseStorage implements IStorage {
       .set(seasonData)
       .where(eq(seasons.id, id))
       .returning();
-    
+
     return updatedSeason;
   }
 
@@ -1379,7 +1394,7 @@ export class DatabaseStorage implements IStorage {
       .set({ isActive: false })
       .where(eq(seasons.id, id))
       .returning();
-    
+
     return updatedSeason;
   }
 
@@ -1424,7 +1439,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(feedback)
       .where(eq(feedback.id, id));
-    
+
     return result;
   }
 
@@ -1440,16 +1455,16 @@ export class DatabaseStorage implements IStorage {
       .insert(feedback)
       .values(feedbackData)
       .returning();
-    
+
     return result;
   }
-  
+
   async updateFeedbackStatus(id: number, status: string): Promise<Feedback | undefined> {
     // Ensure status is one of the allowed values
     if (!["pending", "reviewed", "resolved"].includes(status)) {
       throw new Error("Invalid status value");
     }
-    
+
     const [updated] = await db
       .update(feedback)
       .set({ 
@@ -1458,18 +1473,18 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(feedback.id, id))
       .returning();
-    
+
     return updated;
   }
-  
+
   async deleteFeedback(id: number): Promise<boolean> {
     await db
       .delete(feedback)
       .where(eq(feedback.id, id));
-    
+
     return true;
   }
-  
+
   // Member claims methods
   async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
     return db
@@ -1478,7 +1493,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memberClaims.teamId, teamId))
       .orderBy(desc(memberClaims.requestedAt));
   }
-  
+
   async getMemberClaimsByUser(userId: number): Promise<MemberClaim[]> {
     return db
       .select()
@@ -1486,7 +1501,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memberClaims.userId, userId))
       .orderBy(desc(memberClaims.requestedAt));
   }
-  
+
   async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
     const [claim] = await db
       .select()
@@ -1494,7 +1509,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(memberClaims.id, id));
     return claim;
   }
-  
+
   async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
     const [claim] = await db
       .insert(memberClaims)
@@ -1502,7 +1517,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return claim;
   }
-  
+
   async updateMemberClaim(id: number, data: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
     const [updated] = await db
       .update(memberClaims)
@@ -1511,7 +1526,7 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
-  
+
   async deleteMemberClaim(id: number): Promise<boolean> {
     const deleted = await db
       .delete(memberClaims)
