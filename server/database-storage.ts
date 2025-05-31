@@ -287,9 +287,6 @@ export class DatabaseStorage implements IStorage {
         );
       
       if (teamUser) {
-        // If the user is associated with this team through team_users table,
-        // create a virtual team member object with appropriate permissions
-        
         // Get the user information
         const [user] = await db
           .select()
@@ -298,10 +295,16 @@ export class DatabaseStorage implements IStorage {
         
         if (user) {
           // Create a virtual team member with appropriate role
-          // using the user's role (defaulting to player if not admin/coach)
-          const teamRole = (user.role === 'admin' || user.role === 'coach') 
-            ? user.role 
-            : 'player';
+          // Map user roles to team member roles correctly
+          let teamRole: 'admin' | 'coach' | 'player' | 'colaborador' = 'player';
+          
+          if (user.role === 'admin' || user.role === 'superuser') {
+            teamRole = 'admin';
+          } else if (user.role === 'coach') {
+            teamRole = 'coach';
+          } else if (user.role === 'colaborador') {
+            teamRole = 'colaborador';
+          }
             
           return {
             id: -1, // Virtual ID
@@ -314,26 +317,8 @@ export class DatabaseStorage implements IStorage {
             jerseyNumber: user.jerseyNumber,
             isVerified: true,
             createdAt: teamUser.joinedAt,
-            createdById: userId,
-            notes: `Team user association`
+            createdById: userId
           };
-        }
-        
-        // If there's a team_users entry but no corresponding team member,
-        // look up the team member by ID to get role information
-        if (teamUser.teamMemberId) {
-          const [teamMember] = await db
-            .select()
-            .from(teamMembers)
-            .where(eq(teamMembers.id, teamUser.teamMemberId));
-          
-          if (teamMember) {
-            // Update the teamMember to include this userId
-            return {
-              ...teamMember,
-              userId // Override with the correct userId
-            };
-          }
         }
       }
       
@@ -353,11 +338,10 @@ export class DatabaseStorage implements IStorage {
           profilePicture: user.profilePicture || '',
           position: user.position || '',
           role: 'admin',
-          jerseyNumber: null,
+          jerseyNumber: user.jerseyNumber,
           isVerified: true,
-          joinDate: new Date(),
-          exitDate: null,
-          notes: 'Global admin access'
+          createdAt: new Date(),
+          createdById: userId
         };
       }
       
@@ -373,21 +357,27 @@ export class DatabaseStorage implements IStorage {
         );
       
       if (team) {
-        // Create a virtual team member for the team creator
-        return {
-          id: -2, // Virtual ID
-          teamId: teamId,
-          userId: userId,
-          fullName: '',
-          profilePicture: '',
-          position: '',
-          role: 'admin',
-          jerseyNumber: null,
-          isVerified: true,
-          joinDate: new Date(),
-          exitDate: null,
-          notes: 'Team creator'
-        };
+        // Get user info for team creator
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, userId));
+        
+        if (user) {
+          return {
+            id: -2, // Virtual ID
+            teamId: teamId,
+            userId: userId,
+            fullName: user.fullName || '',
+            profilePicture: user.profilePicture || '',
+            position: user.position || '',
+            role: 'admin',
+            jerseyNumber: user.jerseyNumber,
+            isVerified: true,
+            createdAt: new Date(),
+            createdById: userId
+          };
+        }
       }
       
       return undefined;
