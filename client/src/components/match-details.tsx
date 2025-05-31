@@ -1404,12 +1404,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
             {lineup ? (
               <div>
                 <div className="bg-gray-50 p-3 rounded-md mb-3">
-                  <div className="font-medium">Formation: {lineup.formation}</div>
+                  <div className="font-medium">{t("team.formation")}: {lineup.formation}</div>
                 </div>
                 
                 {/* Field Visualization */}
                 <div className="mb-6">
-                  <h4 className="font-medium text-sm mb-2">Field Positions</h4>
+                  <h4 className="font-medium text-sm mb-2">{t("matches.fieldPositions")}</h4>
                   <div className="relative bg-gradient-to-b from-green-700 to-green-900 w-full mx-auto rounded-md flex items-center justify-center overflow-hidden" style={{ height: 'min(80vw, 400px)', maxWidth: '100%' }}>
                     <div className="absolute top-0 left-0 w-full h-full">
                       <div className="border-2 border-white border-b-0 mx-4 mt-4 h-full rounded-t-md relative">
@@ -1520,7 +1520,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 {/* Match Statistics: Starting and Bench Players with Stats */}
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-sm mb-2 border-b pb-1">Starting Players</h4>
+                    <h4 className="font-medium text-sm mb-2 border-b pb-1">{t("matches.startingLineup")}</h4>
                     {lineup.players && lineup.players.length > 0 ? (
                       <ul className="divide-y">
                         {lineup.players.map((player) => {
@@ -1618,7 +1618,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   {/* Bench Players with Stats */}
                   {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
                     <div>
-                      <h4 className="font-medium text-sm mb-2 border-b pb-1">Bench Players</h4>
+                      <h4 className="font-medium text-sm mb-2 border-b pb-1">{t("team.bench")}</h4>
                       <ul className="divide-y">
                         {lineup.benchPlayers.map((player) => {
                           // Find stats for bench players

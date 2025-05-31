@@ -670,6 +670,8 @@ export const esES = {
       uploadCsv: "Subir CSV",
       sampleCsv: "Modelo CSV",
     },
+    fieldPositions: "Posiciones en el Campo",
+    penalty: "Penalti"
   },
   events: {
     upcomingEvents: "Próximos Eventos",
