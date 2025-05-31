@@ -1801,22 +1801,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         )}
                       />
                       
-                      <FormField
-                        control={substitutionForm.control}
-                        name="reason"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("matches.reasonOptional")}</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder={t("matches.reasonForSubExample")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
@@ -1841,7 +1826,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       <TableHead className="w-16">{t("matches.min")}</TableHead>
                       <TableHead>{t("matches.playerIn")}</TableHead>
                       <TableHead>{t("matches.playerOut")}</TableHead>
-                      <TableHead className="hidden sm:table-cell">{t("matches.reason")}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1857,7 +1841,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           {sub.playerOut.fullName}
                           {sub.playerOut.jerseyNumber && <span className="text-gray-500 ml-1">#{sub.playerOut.jerseyNumber}</span>}
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">{sub.reason || "-"}</TableCell>
                         <TableCell>
                           <Button 
                             variant="ghost" 
