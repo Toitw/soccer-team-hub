@@ -423,11 +423,6 @@ export const leagueClassification = pgTable("league_classification", {
   goalsAgainst: integer("goals_against").default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  // Fields from optimized schema
-  season: text("season"),
-  wins: integer("wins"),
-  draws: integer("draws"),
-  losses: integer("losses"),
 });
 
 export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
@@ -442,7 +437,6 @@ export const insertLeagueClassificationSchema = createInsertSchema(leagueClassif
   gamesLost: true,
   goalsFor: true,
   goalsAgainst: true,
-  season: true,
 });
 
 // Define relationships
