@@ -420,6 +420,16 @@ export const esES = {
       "Futsal Winger": "Extremo Sala",
       "Futsal Universal": "Universal Sala",
     },
+
+    // Player stats tooltips
+    tooltips: {
+      goals: "goles marcados",
+      assists: "asistencias realizadas",
+      yellowCards: "tarjetas amarillas recibidas",
+      redCard: "tarjeta roja recibida",
+      substitutedOut: "sustituido",
+      substitutedIn: "entró de cambio",
+    },
   },
   matches: {
     matches: "Competición",
@@ -605,23 +615,26 @@ export const esES = {
     selectCardType: "Seleccionar tipo de tarjeta",
 
     // New entries for match-details.tsx
-    noCardsRecorded: "No hay tarjetas registradas para este partido.",
+    noCardsRecorded: "No se registraron tarjetas para este partido.",
     recordCardsHelp:
-      "Registra tarjetas amarillas y rojas recibidas por tu equipo.",
-    noGoalsRecorded: "No hay goles registrados para este partido.",
+      "Registra las tarjetas amarillas y rojas recibidas por tu equipo.",
+    noGoalsRecorded: "No se registraron goles para este partido.",
     recordGoalsHelp: "Añade detalles de cada gol marcado por tu equipo.",
     noSubstitutionsRecorded:
-      "No hay sustituciones registradas para este partido.",
+      "No se registraron sustituciones para este partido.",
     recordSubstitutionsHelp:
-      "Registra sustituciones de jugadores para hacer seguimiento de los cambios durante el partido.",
-    noLineupSet: "No se ha establecido alineación para este partido.",
+      "Registra las sustituciones de jugadores para realizar un seguimiento de los cambios durante el partido.",
+    noLineupSet: "No se ha establecido ninguna alineación para este partido.",
     addLineupHelp:
-      "Añade una alineación para hacer seguimiento de las posiciones de los jugadores.",
-    subs: "Sustituciones",
+      "Añade una alineación para realizar un seguimiento de las posiciones de los jugadores.",
+    subs: "Suplentes",
     lineup: "Alineación",
-    startingLineup: "Alineación Inicial",
+    startingLineup: "Alineación inicial",
     formation: "Formación",
-    teamLineup: "Alineación del Equipo",
+    matchDetailsFormation: "Formación:",
+    fieldPositions: "Posiciones en el campo",
+    startingPlayers: "Jugadores iniciales",
+    teamLineup: "Alineación del equipo",
     saveLineup: "Guardar Alineación",
     addSubstitution: "Añadir Sustitución",
     addGoal: "Añadir Gol",
@@ -671,7 +684,7 @@ export const esES = {
       sampleCsv: "Modelo CSV",
     },
     fieldPositions: "Posiciones en el Campo",
-    penalty: "Penalti"
+    penalty: "Penalti",
   },
   events: {
     upcomingEvents: "Próximos Eventos",

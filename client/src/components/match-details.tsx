@@ -1536,14 +1536,15 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
-                              <div className="flex-1">
+                              
+                                <div className="flex-1">
                                 <div className="flex items-center">
                                   <div className="font-medium">{player.fullName}</div>
                                   {player.jerseyNumber && (
                                     <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
                                   )}
                                   {player.position && (
-                                    <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                    <span className="ml-2 text-xs text-gray-500">{t(`team.positions.${player.position}`) || player.position}</span>
                                   )}
                                 </div>
                               </div>
@@ -1633,14 +1634,15 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
-                              <div className="flex-1">
+                              
+                                <div className="flex-1">
                                 <div className="flex items-center">
                                   <div className="font-medium">{player.fullName}</div>
                                   {player.jerseyNumber && (
                                     <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
                                   )}
                                   {player.position && (
-                                    <span className="ml-2 text-xs text-gray-500">{player.position}</span>
+                                    <span className="ml-2 text-xs text-gray-500">{t(`team.positions.${player.position}`) || player.position}</span>
                                   )}
                                 </div>
                               </div>

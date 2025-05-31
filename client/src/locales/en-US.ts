@@ -388,6 +388,16 @@ export const enUS = {
       "Futsal Pivot": "Futsal Pivot",
       "Futsal Winger": "Futsal Winger",
       "Futsal Universal": "Futsal Universal"
+    },
+
+    // Player stats tooltips
+    tooltips: {
+      goals: "goals scored",
+      assists: "assists provided",
+      yellowCards: "yellow cards received",
+      redCard: "red card received",
+      substitutedOut: "substituted out",
+      substitutedIn: "substituted in"
     }
   },
   matches: {
@@ -506,6 +516,9 @@ export const enUS = {
     lineup: "Lineup",
     startingLineup: "Starting Lineup",
     formation: "Formation",
+    matchDetailsFormation: "Formation:",
+    fieldPositions: "Field Positions",
+    startingPlayers: "Starting Players",
     teamLineup: "Team Lineup",
     saveLineup: "Save Lineup",
     playerAddedToLineup: "Player Added to Lineup",
@@ -530,6 +543,7 @@ export const enUS = {
     freeKickShort: "FK",
     ownGoalShort: "OG",
     unknown: "Unknown",
+    penalty: "Penalty",
     whenCardShown: "When the card was shown",
     reasonForCard: "Reason for the card",
     whenGoalScored: "When the goal was scored",
