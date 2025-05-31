@@ -570,6 +570,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       
       // Populate positions from the lineup data
       const typedPositionMapping = lineup.positionMapping as Record<string, number>;
+      const playerIds: number[] = [];
       
       Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
         if (typeof playerId === 'number') {
@@ -581,9 +582,20 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
               ...prev,
               [positionId]: teamMember
             }));
+            
+            // Add to playerIds array for form validation
+            const memberPlayerId = teamMember.userId || teamMember.id;
+            if (memberPlayerId && !playerIds.includes(memberPlayerId)) {
+              playerIds.push(memberPlayerId);
+            }
           }
         }
       });
+      
+      // Update form with the loaded player IDs
+      lineupForm.setValue('playerIds', playerIds);
+      lineupForm.setValue('formation', lineup.formation || '4-4-2');
+      lineupForm.setValue('benchPlayerIds', lineup.benchPlayerIds || []);
     }
   }, [lineup, teamMembers]);
 
