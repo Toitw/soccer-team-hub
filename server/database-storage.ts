@@ -648,6 +648,15 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteMatch(id: number): Promise<boolean> {
+    // Delete all related records first to avoid foreign key constraint violations
+    await db.delete(matchLineups).where(eq(matchLineups.matchId, id));
+    await db.delete(matchSubstitutions).where(eq(matchSubstitutions.matchId, id));
+    await db.delete(matchGoals).where(eq(matchGoals.matchId, id));
+    await db.delete(matchCards).where(eq(matchCards.matchId, id));
+    await db.delete(matchPhotos).where(eq(matchPhotos.matchId, id));
+    await db.delete(playerStats).where(eq(playerStats.matchId, id));
+    
+    // Finally delete the match itself
     await db.delete(matches).where(eq(matches.id, id));
     return true;
   }

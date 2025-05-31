@@ -44,10 +44,21 @@ export function createMatchEventRouter(): Router {
         return res.status(403).json({ error: "Not authorized to create matches" });
       }
 
+      // Parse and validate the match date
+      const { matchDate, ...otherData } = req.body;
+      if (!matchDate) {
+        return res.status(400).json({ error: "Match date is required" });
+      }
+
+      const parsedMatchDate = new Date(matchDate);
+      if (isNaN(parsedMatchDate.getTime())) {
+        return res.status(400).json({ error: "Invalid match date format" });
+      }
+
       const matchData = {
-        ...req.body,
-        teamId,
-        createdById: req.user.id
+        ...otherData,
+        matchDate: parsedMatchDate,
+        teamId
       };
 
       const newMatch = await storage.createMatch(matchData);
