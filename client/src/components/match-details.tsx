@@ -564,11 +564,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Update lineup positions when lineup data changes (after save)
   useEffect(() => {
-    console.log("useEffect triggered - lineup:", lineup, "teamMembers:", teamMembers);
-    
     if (lineup && teamMembers && lineup.positionMapping) {
-      console.log("Processing lineup with positionMapping:", lineup.positionMapping);
-      
       // Clear existing positions
       setLineupPositions({});
       
@@ -577,24 +573,17 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       
       Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
         if (typeof playerId === 'number') {
-          console.log(`Looking for player ${playerId} for position ${positionId}`);
-          
           // Find the team member by userId or member id
           const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
           
           if (teamMember) {
-            console.log(`Found team member for position ${positionId}:`, teamMember);
             setLineupPositions(prev => ({
               ...prev,
               [positionId]: teamMember
             }));
-          } else {
-            console.log(`No team member found for player ID ${playerId}`);
           }
         }
       });
-    } else {
-      console.log("Missing data - lineup:", !!lineup, "teamMembers:", !!teamMembers, "positionMapping:", lineup?.positionMapping);
     }
   }, [lineup, teamMembers]);
 
@@ -1433,22 +1422,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
-                          {lineup.players && lineup.players.length > 0 && lineup.formation && getPositionsByFormation(lineup.formation).map((position) => {
-                            // Find the player for this position using positionMapping when available
-                            let positionPlayer = null;
-                            
-                            if (lineup.positionMapping && typeof lineup.positionMapping === 'object') {
-                              // Type safety for the position mapping
-                              const typedPositionMapping = lineup.positionMapping as Record<string, number>;
-                              
-                              // Get the player ID for this position
-                              const playerId = typedPositionMapping[position.id];
-                              
-                              if (playerId) {
-                                // Find the player with this ID
-                                positionPlayer = lineup.players.find(player => player.id === playerId);
-                              }
-                            }
+                          {lineup.formation && getPositionsByFormation(lineup.formation).map((position) => {
+                            // Use the lineupPositions state that was populated by the useEffect
+                            const positionPlayer = lineupPositions[position.id];
                             return (
                               <div
                                 key={position.id}
@@ -1476,7 +1452,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                   {positionPlayer ? (
                                     <div className="flex flex-col items-center">
                                       <span className="font-bold text-xs">
-                                        {positionPlayer.jerseyNumber || "?"}
+                                        {(positionPlayer.user?.jerseyNumber || positionPlayer.jerseyNumber) || "?"}
                                       </span>
                                     </div>
                                   ) : (
