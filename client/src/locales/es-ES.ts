@@ -432,6 +432,7 @@ export const esES = {
       substitutedOut: "sustituido",
       substitutedIn: "entró de cambio",
     },
+    noAccountLinked: "Sin cuenta vinculada",
   },
   matches: {
     matches: "Competición",

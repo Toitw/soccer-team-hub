@@ -339,7 +339,6 @@ export const enUS = {
     wideDefender: "Wide Defender",
     centerMidfielder: "Center Midfielder",
     wideMidfielder: "Wide Midfielder",
-
     // Futsal/5-a-side positions
     futsalPositions: "Futsal Positions",
     pivot: "Pivot",
@@ -392,8 +391,6 @@ export const enUS = {
       "Futsal Winger": "Futsal Winger",
       "Futsal Universal": "Futsal Universal"
     },
-
-    // Player stats tooltips
     tooltips: {
       goals: "goals scored",
       assists: "assists provided",
@@ -401,7 +398,8 @@ export const enUS = {
       redCard: "red card received",
       substitutedOut: "substituted out",
       substitutedIn: "substituted in"
-    }
+    },
+    noAccountLinked: "No account linked"
   },
   matches: {
     matches: "Matches",
@@ -823,7 +821,7 @@ export const enUS = {
     // Team management toasts
     teamCreated: "Team Created",
     teamCreatedDesc: "Successfully created team {{name}}.",
-    teamCreateError: "Failed to create team",
+    teamCreateError: "Failed tocreate team",
     teamCreateErrorDesc: "Failed to create team. Please try again.",
     memberCreated: "Member Added",
     memberCreatedDesc: "Successfully added {{name}} to the team.",
@@ -1256,7 +1254,8 @@ export const esES = {
       "Futsal Pivot": "Pívot (FS)",
       "Futsal Winger": "Ala (FS)",
       "Futsal Universal": "Universal (FS)"
-    }
+    },
+    noAccountLinked: "Sin cuenta vinculada"
   },
   matches: {
     matches: "Partidos",
@@ -1563,7 +1562,7 @@ export const esES = {
     areYouSure: "¿Estás seguro?",
     deleteConfirmation: "Esta acción no se puede deshacer. Esto eliminará permanentemente el anuncio.",
     deleteAnnouncementSuccess: "El anuncio se ha eliminado correctamente.",
-    updateAnnouncementSuccess:"Tu anuncio se ha actualizado correctamente.",
+    updateAnnouncementSuccess: "Tu anuncio se ha actualizado correctamente.",
     createAnnouncementSuccess: "Tu anuncio se ha creado correctamente.",
     failedToCreate: "Error al crear el anuncio",
     failedToUpdate: "Error al actualizar el anuncio",
@@ -1708,9 +1707,12 @@ export const esES = {
     // Match details related toast messages
     playerAlreadyInLineup: "El jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
-    removePlayerFirst: "Primero elimina al jugador de la posición en el campo antes de añadirlo al banquillo.",    playerAlreadyOnBench: "El jugador ya está en el banquillo",
+    removePlayerFirst: "Primero elimina al jugador de la posición en el campo antes de añadirlo al banquillo.", playerAlreadyOnBench: "El jugador ya está en el banquillo",
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido se ha guardado correctamente",
   },
+  team: {
+    noAccountLinked: "Sin cuenta vinculada"
+  }
 };

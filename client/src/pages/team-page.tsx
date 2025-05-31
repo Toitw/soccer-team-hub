@@ -1535,7 +1535,7 @@ export default function TeamPage() {
                                 {member.user?.fullName || member.fullName}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {member.user?.username ? `@${member.user.username}` : "No account linked"}
+                                {member.user?.username ? `@${member.user.username}` : t("team.noAccountLinked")}
                               </div>
                             </div>
                           </div>
