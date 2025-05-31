@@ -615,6 +615,8 @@ export const esES = {
     selectCardType: "Seleccionar tipo de tarjeta",
 
     // New entries for match-details.tsx
+    matchDetails: "Detalles del Partido",
+    score: "Marcador",
     noCardsRecorded: "No se registraron tarjetas para este partido.",
     recordCardsHelp:
       "Registra las tarjetas amarillas y rojas recibidas por tu equipo.",

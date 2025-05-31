@@ -504,6 +504,8 @@ export const enUS = {
     vs: "vs",
 
     // New entries for match-details.tsx
+    matchDetails: "Match Details",
+    score: "Score",
     noCardsRecorded: "No cards recorded for this match.",
     recordCardsHelp: "Record yellow and red cards received by your team.",
     noGoalsRecorded: "No goals recorded for this match.",

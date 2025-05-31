@@ -919,9 +919,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     <Card>
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
-          <span>Match Details</span>
+          <span>{t("matches.matchDetails")}</span>
           <div className="text-sm font-normal flex items-center">
-            <span className="mr-2">Score:</span>
+            <span className="mr-2">{t("matches.score")}:</span>
             <Badge className="bg-green-500">{match.goalsScored} - {match.goalsConceded}</Badge>
           </div>
         </CardTitle>
