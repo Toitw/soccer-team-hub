@@ -570,7 +570,26 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Skip option removed */}
+          {/* Logout option */}
+          <div className="mt-6 text-center">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await apiRequest("/api/logout", { method: "POST" });
+                  setLocation("/auth");
+                } catch (error) {
+                  console.error("Logout error:", error);
+                  // Force logout even if API fails
+                  window.location.href = "/auth";
+                }
+              }}
+              disabled={isSubmitting}
+              className="w-full"
+            >
+              Logout
+            </Button>
+          </div>
 
           {/* For team step, add a back button to return to role selection */}
           {onboardingStep === "team" && (

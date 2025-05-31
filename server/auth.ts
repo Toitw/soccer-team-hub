@@ -293,4 +293,24 @@ export function setupAuth(app: Express) {
       });
     }
   });
+
+  // Temporary endpoint to get TEST team join code
+  app.get("/api/get-test-team-code", async (req, res) => {
+    try {
+      const teams = await storage.getAllTeams();
+      const testTeam = teams.find(team => team.name.toLowerCase().includes('test'));
+      
+      if (testTeam) {
+        return res.json({ 
+          teamName: testTeam.name,
+          joinCode: testTeam.joinCode 
+        });
+      } else {
+        return res.json({ message: "No test team found" });
+      }
+    } catch (error) {
+      console.error("Error getting test team:", error);
+      res.status(500).json({ error: "Failed to get test team" });
+    }
+  });
 }
