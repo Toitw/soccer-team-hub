@@ -186,30 +186,18 @@ export default function StatisticsPage() {
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
       
-      // Since we don't have season-specific endpoint for player stats yet,
-      // we'll filter based on the filtered matches from the selected season
-      const response = await fetch(`/api/teams/${selectedTeam.id}/player-stats`);
-      if (!response.ok) throw new Error("Failed to fetch player statistics");
-      
-      const allPlayerStats = await response.json();
-      
-      // If there are no filtered matches, return all player stats
-      if (!matches || matches.length === 0) {
-        return allPlayerStats;
+      // Build URL with season filter if selected
+      let url = `/api/teams/${selectedTeam.id}/player-stats`;
+      if (selectedSeasonId) {
+        url += `?seasonId=${selectedSeasonId}`;
       }
       
-      // Create a set of match IDs from the filtered matches
-      // This will be used to filter player stats to only those that occurred in matches of the selected season
-      const filteredMatchIds = new Set(matches.map(match => match.id));
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch player statistics");
       
-      // For now we don't have match-specific player stats, so this is a placeholder for future implementation
-      // When match-specific player stats are added, we could filter like this:
-      // return allPlayerStats.filter(playerStat => filteredMatchIds.has(playerStat.matchId));
-      
-      // For now, just return all player stats
-      return allPlayerStats;
+      return response.json();
     },
-    enabled: !!selectedTeam && !!matches,
+    enabled: !!selectedTeam,
   });
 
   // Process player statistics
