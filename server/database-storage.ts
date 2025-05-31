@@ -1427,6 +1427,48 @@ export class DatabaseStorage implements IStorage {
     return updatedSeason;
   }
 
+  async deactivateAllSeasons(teamId: number): Promise<void> {
+    await db
+      .update(seasons)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(
+        and(
+          eq(seasons.teamId, teamId),
+          eq(seasons.isActive, true)
+        )
+      );
+  }
+
+  async getMatchesBySeason(seasonId: number): Promise<Match[]> {
+    return db
+      .select()
+      .from(matches)
+      .where(eq(matches.seasonId, seasonId))
+      .orderBy(desc(matches.matchDate));
+  }
+
+  async getSeasonStats(seasonId: number): Promise<any> {
+    // Get matches for this season
+    const seasonMatches = await this.getMatchesBySeason(seasonId);
+    
+    const stats = {
+      totalMatches: seasonMatches.length,
+      completedMatches: seasonMatches.filter(m => m.status === 'completed').length,
+      scheduledMatches: seasonMatches.filter(m => m.status === 'scheduled').length,
+      cancelledMatches: seasonMatches.filter(m => m.status === 'cancelled').length,
+      totalGoalsScored: seasonMatches.reduce((sum, m) => sum + (m.goalsScored || 0), 0),
+      totalGoalsConceded: seasonMatches.reduce((sum, m) => sum + (m.goalsConceded || 0), 0),
+      wins: seasonMatches.filter(m => m.status === 'completed' && (m.goalsScored || 0) > (m.goalsConceded || 0)).length,
+      draws: seasonMatches.filter(m => m.status === 'completed' && (m.goalsScored || 0) === (m.goalsConceded || 0)).length,
+      losses: seasonMatches.filter(m => m.status === 'completed' && (m.goalsScored || 0) < (m.goalsConceded || 0)).length,
+    };
+
+    return stats;
+  }
+
   // Enhanced League Classification methods
   async getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]> {
     try {
