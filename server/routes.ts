@@ -629,7 +629,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
-      const { playerId, type, minute, reason } = req.body;
+      const { playerId, type, minute } = req.body;
+
+      console.log('Card request:', { teamId, matchId, playerId, type, minute, userId: req.user.id });
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -643,17 +645,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Match not found" });
       }
 
+      // Map card type to database fields
+      const isYellow = type === "yellow" || type === "second_yellow";
+      const isSecondYellow = type === "second_yellow";
+
       // Create new card
       const card = await storage.createMatchCard({
         matchId,
         playerId,
-        type,
         minute,
-        reason
+        isYellow,
+        isSecondYellow
       });
 
+      console.log('Card created successfully:', card);
       res.status(201).json(card);
     } catch (error) {
+      console.error('Error creating card:', error);
       res.status(500).json({ error: "Failed to create match card" });
     }
   });
