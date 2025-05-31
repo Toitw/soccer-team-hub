@@ -1526,8 +1526,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
                           const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
                           const playerCards = cards?.filter(c => c.playerId === player.id) || [];
-                          const yellowCards = playerCards.filter(c => c.type === "yellow");
-                          const redCards = playerCards.filter(c => c.type === "red");
+                          const yellowCards = playerCards.filter(c => c.isYellow && !c.isSecondYellow);
+                          const redCards = playerCards.filter(c => !c.isYellow || c.isSecondYellow);
                           const playerSubstitutions = substitutions?.filter(s => 
                             s.playerInId === player.id || s.playerOutId === player.id
                           ) || [];
@@ -1623,8 +1623,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
                           const playerAssists = goals?.filter(g => g.assistId === player.id) || [];
                           const playerCards = cards?.filter(c => c.playerId === player.id) || [];
-                          const yellowCards = playerCards.filter(c => c.type === "yellow");
-                          const redCards = playerCards.filter(c => c.type === "red");
+                          const yellowCards = playerCards.filter(c => c.isYellow && !c.isSecondYellow);
+                          const redCards = playerCards.filter(c => !c.isYellow || c.isSecondYellow);
                           const playerSubstitutions = substitutions?.filter(s => 
                             s.playerInId === player.id || s.playerOutId === player.id
                           ) || [];
@@ -2060,11 +2060,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           ) : "-"}
                         </TableCell>
                         <TableCell>
-                          {goal.type === "regular" ? t("matches.regularShort") : 
-                           goal.type === "penalty" ? t("matches.penaltyShort") : 
-                           goal.type === "free_kick" ? t("matches.freeKickShort") : 
-                           goal.type === "own_goal" ? t("matches.ownGoalShort") : 
-                           t("matches.unknown")}
+                          {goal.isOwnGoal ? t("matches.ownGoalShort") : 
+                           goal.isPenalty ? t("matches.penaltyShort") : 
+                           t("matches.regularShort")}
                         </TableCell>
                         <TableCell>
                           <Button 
@@ -2232,11 +2230,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           {card.player.jerseyNumber && <span className="text-gray-500 ml-1">#{card.player.jerseyNumber}</span>}
                         </TableCell>
                         <TableCell>
-                          <Badge className={card.type === "yellow" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
-                            {card.type === "yellow" ? t("matches.yellow") : t("matches.red")}
+                          <Badge className={(card.isYellow && !card.isSecondYellow) ? "bg-yellow-500 text-white" : "bg-red-600 text-white"}>
+                            {(card.isYellow && !card.isSecondYellow) ? t("matches.yellow") : t("matches.red")}
                           </Badge>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">{card.reason || "-"}</TableCell>
+                        <TableCell className="hidden sm:table-cell">-</TableCell>
                         <TableCell>
                           <Button 
                             variant="ghost" 
