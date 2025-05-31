@@ -160,6 +160,7 @@ export const insertMemberClaimSchema = createInsertSchema(memberClaims)
 export const matches = pgTable("matches", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season this match belongs to
   opponentName: text("opponent_name").notNull(),
   opponentLogo: text("opponent_logo"),
   matchDate: timestamp("match_date").notNull(),
@@ -174,6 +175,7 @@ export const matches = pgTable("matches", {
 
 export const insertMatchSchema = createInsertSchema(matches).pick({
   teamId: true,
+  seasonId: true,
   opponentName: true,
   opponentLogo: true,
   matchDate: true,
@@ -234,6 +236,7 @@ export const playerStats = pgTable("player_stats", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   matchId: integer("match_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these stats belong to
   goals: integer("goals").default(0),
   assists: integer("assists").default(0),
   yellowCards: integer("yellow_cards").default(0),
@@ -245,6 +248,7 @@ export const playerStats = pgTable("player_stats", {
 export const insertPlayerStatSchema = createInsertSchema(playerStats).pick({
   userId: true,
   matchId: true,
+  seasonId: true,
   goals: true,
   assists: true,
   yellowCards: true,
@@ -539,9 +543,6 @@ export type InsertMatchCard = z.infer<typeof insertMatchCardSchema>;
 
 export type MatchPhoto = typeof matchPhotos.$inferSelect;
 export type InsertMatchPhoto = z.infer<typeof insertMatchPhotoSchema>;
-
-export type LeagueClassification = typeof leagueClassification.$inferSelect;
-export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
 
 export type LeagueClassification = typeof leagueClassification.$inferSelect;
 export type InsertLeagueClassification = z.infer<typeof insertLeagueClassificationSchema>;
