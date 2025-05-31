@@ -25,7 +25,7 @@ export default function DashboardPage() {
     queryKey: ["/api/teams"],
   });
 
-  // Create mock data for demonstration if none exists and user has completed onboarding
+  // Handle navigation and data loading
   useEffect(() => {
     // Check localStorage for recently created team
     const recentlyCreatedTeamData = window.localStorage.getItem('team_created');
@@ -55,8 +55,23 @@ export default function DashboardPage() {
       }
     }
     
-    // Only create mock data if user has completed onboarding and has no teams
-    if (teams && teams.length === 0 && user?.onboardingCompleted) {
+    // Check if user just completed onboarding by joining a team
+    const recentlyJoinedTeam = window.localStorage.getItem('team_joined');
+    const hasRecentlyJoined = recentlyJoinedTeam && (Date.now() - parseInt(recentlyJoinedTeam) < 30000); // 30 seconds
+    
+    // If user hasn't completed onboarding, redirect to onboarding page
+    if (user && !user.onboardingCompleted && window.location.pathname !== "/onboarding") {
+      console.log("User hasn't completed onboarding, redirecting to onboarding page");
+      setLocation("/onboarding");
+      return;
+    }
+    
+    // Only create mock data if:
+    // 1. User has completed onboarding 
+    // 2. Has no teams
+    // 3. Teams data has finished loading
+    // 4. User didn't just join a team
+    if (teams && teams.length === 0 && user?.onboardingCompleted && !teamsLoading && !hasRecentlyJoined) {
       apiRequest("/api/mock-data", {
         method: "POST"
       })
@@ -69,14 +84,11 @@ export default function DashboardPage() {
         });
     }
     
-    // If user hasn't completed onboarding, redirect to onboarding page
-    // But only redirect if we're not already on the onboarding page
-    if (user && !user.onboardingCompleted && window.location.pathname !== "/onboarding") {
-      console.log("User hasn't completed onboarding, redirecting to onboarding page");
-      // Use setLocation instead of direct window.location change to prevent refresh loops
-      setLocation("/onboarding");
+    // Clean up the recently joined flag after some time
+    if (hasRecentlyJoined && teams && teams.length > 0) {
+      window.localStorage.removeItem('team_joined');
     }
-  }, [teams, user, setLocation, queryClient]);
+  }, [teams, user, setLocation, queryClient, teamsLoading]);
 
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;

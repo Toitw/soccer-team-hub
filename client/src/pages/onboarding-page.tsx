@@ -124,6 +124,9 @@ export default function OnboardingPage() {
 
       setUser(response.user);
 
+      // Mark that user just joined a team to prevent mock data creation
+      window.localStorage.setItem('team_joined', Date.now().toString());
+
       toast({
         title: "Team joined successfully",
         description: `You have joined ${response.team.name}. Welcome to the team!`,
