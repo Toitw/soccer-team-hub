@@ -1355,6 +1355,7 @@ export const esES = {
 	matchDetailsFormation: "Formación:",
     fieldPositions: "Posiciones en el campo",
 	startingPlayers: "Jugadores iniciales",
+    penalty: "Penalti",
     teamLineup: "Alineación del equipo",
     saveLineup: "Guardar alineación",
     addSubstitution: "Añadir sustitución",
