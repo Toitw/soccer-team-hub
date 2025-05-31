@@ -629,9 +629,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
-      const { playerId, type, minute } = req.body;
+      const { playerId, type, minute, reason } = req.body;
 
-      console.log('Card request:', { teamId, matchId, playerId, type, minute, userId: req.user.id });
+      console.log('Card request:', { teamId, matchId, playerId, type, minute, reason, userId: req.user.id });
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -655,7 +655,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         playerId,
         minute,
         isYellow,
-        isSecondYellow
+        isSecondYellow,
+        reason
       });
 
       console.log('Card created successfully:', card);

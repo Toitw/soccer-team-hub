@@ -356,6 +356,7 @@ export const matchCards = pgTable("match_cards", {
   minute: integer("minute").notNull(),
   isYellow: boolean("is_yellow").default(true),
   isSecondYellow: boolean("is_second_yellow").default(false),
+  reason: text("reason"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -365,6 +366,7 @@ export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
   minute: true,
   isYellow: true,
   isSecondYellow: true,
+  reason: true,
 });
 
 // MatchPhotos table for storing match photos

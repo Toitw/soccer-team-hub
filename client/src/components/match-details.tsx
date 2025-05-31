@@ -106,8 +106,10 @@ const cardSchema = z.object({
   minute: z.number({
     required_error: "Minute is required"
   }).int().positive(),
-  isYellow: z.boolean().default(true),
-  isSecondYellow: z.boolean().default(false)
+  type: z.string({
+    required_error: "Card type is required"
+  }),
+  reason: z.string().optional()
 });
 
 interface MatchDetailsProps {
@@ -522,8 +524,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     defaultValues: {
       playerId: undefined,
       minute: undefined,
-      isYellow: true,
-      isSecondYellow: false
+      type: "",
+      reason: ""
     }
   });
 
