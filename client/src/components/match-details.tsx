@@ -1291,9 +1291,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                             member.userId !== null &&
                                             !Object.values(lineupPositions).some(p => p?.id === member.id) &&
                                             !field.value.includes(member.userId)
-                                          ).map(member => (
+                                          ).map((member, index) => (
                                             <div
-                                              key={member.userId}
+                                              key={`available-player-${member.userId || member.id}-${index}`}
                                               className="flex items-center justify-between p-2 bg-white border rounded-md cursor-pointer hover:bg-gray-50"
                                               onClick={() => addPlayerToBench(member)}
                                             >
@@ -1326,10 +1326,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                             <div className="mt-4">
                                               <h5 className="text-xs font-medium text-gray-500 mb-2">Selected Bench Players:</h5>
                                               <div className="flex flex-col gap-2">
-                                                {field.value.map((playerId) => {
+                                                {field.value.map((playerId, index) => {
                                                   const member = teamMembers?.find(m => m.userId === playerId);
                                                   return member ? (
-                                                    <div key={playerId} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
+                                                    <div key={`bench-player-${playerId}-${index}`} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
                                                       <div className="text-sm font-medium">
                                                         {member.user?.fullName || member.fullName}
                                                         {(member.user?.jerseyNumber || member.jerseyNumber) && <span className="text-xs ml-1">#{member.user?.jerseyNumber || member.jerseyNumber}</span>}
@@ -1345,7 +1345,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                       </Button>
                                                     </div>
                                                   ) : null;
-                                                })}
+                                                }).filter(Boolean)}
                                               </div>
                                             </div>
                                           )}
