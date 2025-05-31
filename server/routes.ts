@@ -371,19 +371,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get player details for substitutions
       const substitutionsWithPlayerDetails = await Promise.all(
         substitutions.map(async (sub) => {
-          const playerIn = await storage.getUser(sub.playerInId);
-          const playerOut = await storage.getUser(sub.playerOutId);
+          const playerIn = await storage.getTeamMemberById(sub.playerInId);
+          const playerOut = await storage.getTeamMemberById(sub.playerOutId);
 
           if (!playerIn || !playerOut) return null;
 
-          // Remove password from user details
-          const { password: p1, ...playerInWithoutPassword } = playerIn;
-          const { password: p2, ...playerOutWithoutPassword } = playerOut;
-
           return {
             ...sub,
-            playerIn: playerInWithoutPassword,
-            playerOut: playerOutWithoutPassword
+            playerIn,
+            playerOut
           };
         })
       );
