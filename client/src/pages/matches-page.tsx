@@ -916,8 +916,7 @@ export default function MatchesPage() {
                 </Card>
               ) : upcomingMatches && upcomingMatches.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {upcomingMatches.map((match) => renderMatchCard(match))}
-                </div>
+                  {upcomingMatches.map((match) => renderMatchCard(match))}                </div>
               ) : (
                 <Card>
                   <CardContent className="pt-6 text-center">

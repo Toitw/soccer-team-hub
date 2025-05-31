@@ -127,7 +127,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("lineup");
-  
+
   // Dialogs state
   const [lineupDialogOpen, setLineupDialogOpen] = useState(false);
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState(false);
@@ -135,38 +135,38 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [showAddToLineupDialog, setShowAddToLineupDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
+
   // Function to handle opening the lineup dialog and initialize form with existing data
   const handleOpenLineupDialog = () => {
     // Always start with clean positions
     setLineupPositions({});
-    
+
     if (lineup) {
       // Initialize form with existing lineup data
       lineupForm.setValue('formation', lineup.formation || '4-4-2');
-      
+
       // Set player IDs and bench player IDs from existing lineup
       const existingPlayerIds = lineup.players.map(player => player.id);
       lineupForm.setValue('playerIds', existingPlayerIds);
-      
+
       const existingBenchPlayerIds = lineup.benchPlayers?.map(player => player.id) || [];
       lineupForm.setValue('benchPlayerIds', existingBenchPlayerIds);
-      
+
       // Populate positions with players based on position mapping
       if (lineup.formation) {
         const formationStr = typeof lineup.formation === 'string' ? lineup.formation : "4-4-2";
-        
+
         // If we have a position mapping, use it
         if (lineup.positionMapping && typeof lineup.positionMapping === 'object') {
           // Safely type the position mapping as a Record<string, number>
           const typedPositionMapping = lineup.positionMapping as Record<string, number>;
-          
+
           // For each position that has a player assigned
           Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
             if (typeof playerId === 'number') {
               // Find the team member by userId or member id
               const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
-              
+
               if (teamMember) {
                 // Set this position with the team member
                 setLineupPositions(prev => ({
@@ -190,15 +190,15 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         : teamData?.teamType === "Futsal"
           ? "5a-1-2-1"
           : "4-4-2";
-          
+
       // Only reset formation, let the useEffect handle playerIds
       lineupForm.setValue('formation', defaultFormation);
       setLineupPositions({});
     }
-    
+
     setLineupDialogOpen(true);
   };
-  
+
   // Forms
   // Function to get available formations based on team type
   const getAvailableFormations = (teamType: string | undefined | null) => {
@@ -234,7 +234,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         ];
     }
   };
-  
+
   // Get the team data to determine team type
   const { data: teamData } = useQuery<Team>({
     queryKey: [`/api/teams/${teamId}`],
@@ -242,12 +242,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Available formations based on team type
   const availableFormations = getAvailableFormations(teamData?.teamType);
-  
+
   // State for the soccer field player positioning
   const [lineupPositions, setLineupPositions] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
-  
+
   // Function to calculate player positions based on formation
   const getPositionsByFormation = (formation: string) => {
     const positions: {
@@ -256,20 +256,20 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       top: number;
       left: number;
     }[] = [];
-    
+
     // Check formation type by prefix
     const isSevenASide = formation.startsWith("7a-");
     const isFutsalOrFiveASide = formation.startsWith("5a-");
-    
+
     if (isSevenASide) {
       // 7-a-side formations
       // Extract pattern after the "7a-" prefix
       const pattern = formation.substring(3);
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
-      
+
       // Add goalkeeper
       positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
-      
+
       // Add defenders - wider spacing for fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
@@ -280,7 +280,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           left: 5 + i * defenderWidth,
         });
       }
-      
+
       // Add midfielders - wider spacing for fewer players
       const midfielderWidth = 90 / (midfielders + 1);
       for (let i = 1; i <= midfielders; i++) {
@@ -291,7 +291,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           left: 5 + i * midfielderWidth,
         });
       }
-      
+
       // Add forwards - wider spacing for fewer players
       const forwardWidth = 90 / (forwards + 1);
       for (let i = 1; i <= forwards; i++) {
@@ -307,10 +307,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       // Extract pattern after the "5a-" prefix
       const pattern = formation.substring(3);
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
-      
+
       // Add goalkeeper
       positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
-      
+
       // Add defenders - wider spacing for even fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
@@ -321,7 +321,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           left: 5 + i * defenderWidth,
         });
       }
-      
+
       // Add midfielders - wider spacing for even fewer players
       const midfielderWidth = 90 / (midfielders + 1);
       for (let i = 1; i <= midfielders; i++) {
@@ -332,7 +332,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           left: 5 + i * midfielderWidth,
         });
       }
-      
+
       // Add forwards - wider spacing for even fewer players
       const forwardWidth = 90 / (forwards + 1);
       for (let i = 1; i <= forwards; i++) {
@@ -375,17 +375,17 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         });
       }
     }
-    
+
     return positions;
   };
-  
+
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  
+
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
     setShowAddToLineupDialog(true);
   };
-  
+
   const addPlayerToLineup = (member: TeamMemberWithUser) => {
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
@@ -401,24 +401,24 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         ...prev,
         [selectedPosition]: member
       }));
-      
+
       // Add to form's playerIds if not already included - use userId if available, otherwise use member id
       const currentIds = lineupForm.getValues().playerIds || [];
       const playerId = member.userId || member.id;
       if (playerId && !currentIds.includes(playerId)) {
         lineupForm.setValue('playerIds', [...currentIds, playerId]);
       }
-      
+
       setShowAddToLineupDialog(false);
       setSelectedPosition(null);
-      
+
       toast({
         titleKey: "matches.playerAddedToLineup",
         descriptionKey: "matches.playerAssigned"
       });
     }
   };
-  
+
   const removePlayerFromPosition = (positionId: string) => {
     const player = lineupPositions[positionId];
     if (player) {
@@ -428,7 +428,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       if (playerId) {
         lineupForm.setValue('playerIds', currentIds.filter(id => id !== playerId));
       }
-      
+
       // Remove from positions
       setLineupPositions(prev => {
         const newPositions = { ...prev };
@@ -437,14 +437,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       });
     }
   };
-  
+
   // State for bench players
   const [benchPlayers, setBenchPlayers] = useState<number[]>([]);
-  
+
   // Add player to bench
   const addPlayerToBench = (member: TeamMemberWithUser) => {
     const currentBenchIds = lineupForm.getValues().benchPlayerIds || [];
-    
+
     // Check if player is already on the field
     if (Object.values(lineupPositions).some(p => p?.id === member.id)) {
       toast({
@@ -454,7 +454,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       });
       return;
     }
-    
+
     // Check if player is already on the bench
     if (member.userId && currentBenchIds.includes(member.userId)) {
       toast({
@@ -464,13 +464,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       });
       return;
     }
-    
+
     if (member.userId) {
       lineupForm.setValue('benchPlayerIds', [...currentBenchIds, member.userId]);
       setBenchPlayers([...benchPlayers, member.userId]);
     }
   };
-  
+
   // Remove player from bench
   const removePlayerFromBench = (userId: number) => {
     const currentBenchIds = lineupForm.getValues().benchPlayerIds || [];
@@ -498,7 +498,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     },
     mode: "onChange"
   });
-  
+
   const substitutionForm = useForm<z.infer<typeof substitutionSchema>>({
     resolver: zodResolver(substitutionSchema),
     defaultValues: {
@@ -507,7 +507,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       minute: undefined
     }
   });
-  
+
   const goalForm = useForm<z.infer<typeof goalSchema>>({
     resolver: zodResolver(goalSchema),
     defaultValues: {
@@ -518,7 +518,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       isPenalty: false
     }
   });
-  
+
   const cardForm = useForm<z.infer<typeof cardSchema>>({
     resolver: zodResolver(cardSchema),
     defaultValues: {
@@ -569,22 +569,22 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     if (lineup && teamMembers && lineup.positionMapping) {
       // Clear existing positions
       setLineupPositions({});
-      
+
       // Populate positions from the lineup data
       const typedPositionMapping = lineup.positionMapping as Record<string, number>;
       const playerIds: number[] = [];
-      
+
       Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
         if (typeof playerId === 'number') {
           // Find the team member by userId or member id
           const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
-          
+
           if (teamMember) {
             setLineupPositions(prev => ({
               ...prev,
               [positionId]: teamMember
             }));
-            
+
             // Add to playerIds array for form validation
             const memberPlayerId = teamMember.userId || teamMember.id;
             if (memberPlayerId && !playerIds.includes(memberPlayerId)) {
@@ -593,7 +593,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           }
         }
       });
-      
+
       // Update form with the loaded player IDs - force update
       setTimeout(() => {
         lineupForm.setValue('playerIds', playerIds, { shouldValidate: true });
@@ -613,11 +613,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to save lineup");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -648,11 +648,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to add substitution");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -679,11 +679,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       const response = await fetch(`/api/teams/${teamId}/matches/${match.id}/substitutions/${substitutionId}`, {
         method: "DELETE"
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete substitution");
       }
-      
+
       return true;
     },
     onSuccess: () => {
@@ -712,11 +712,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to add goal");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -743,11 +743,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       const response = await fetch(`/api/teams/${teamId}/matches/${match.id}/goals/${goalId}`, {
         method: "DELETE"
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete goal");
       }
-      
+
       return true;
     },
     onSuccess: () => {
@@ -776,11 +776,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to add card");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -807,11 +807,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       const response = await fetch(`/api/teams/${teamId}/matches/${match.id}/cards/${cardId}`, {
         method: "DELETE"
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete card");
       }
-      
+
       return true;
     },
     onSuccess: () => {
@@ -836,10 +836,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const handleLineupSubmit = (data: z.infer<typeof lineupSchema>) => {
     console.log("handleLineupSubmit called with data:", data);
     console.log("Current lineupPositions:", lineupPositions);
-    
+
     // Create a clean position mapping
     const positionMapping: Record<string, number> = {};
-    
+
     // Only include valid player assignments in the mapping
     // This ensures no position has multiple players and no player is in multiple positions
     Object.entries(lineupPositions).forEach(([positionId, playerInfo]) => {
@@ -851,26 +851,29 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         }
       }
     });
-    
+
     // Get unique player IDs from the position mapping
     const playerIds = Array.from(new Set(Object.values(positionMapping)));
-    
+
     // Get bench player IDs (maintaining any that were already set in the form)
     const benchPlayerIds = Array.isArray(data.benchPlayerIds) ? data.benchPlayerIds : [];
-    
+
+    // Filter out null values from benchPlayerIds
+    const filteredBenchPlayerIds = benchPlayerIds.filter(id => id !== null);
+
     // Create the complete data object
     const dataWithPositions = {
       ...data,
       playerIds,
-      benchPlayerIds,
+      benchPlayerIds: filteredBenchPlayerIds,
       positionMapping
     };
-    
+
     console.log("Saving lineup with position mapping:", positionMapping);
     console.log("Player IDs:", playerIds);
     console.log("Bench players:", benchPlayerIds);
     console.log("Final data to save:", dataWithPositions);
-    
+
     try {
       saveLineup.mutate(dataWithPositions);
       console.log("saveLineup.mutate called successfully");
@@ -950,7 +953,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           <TabsContent value="lineup" className="py-4">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">{t("matches.startingLineup")}</h3>
-              
+
               {/* Add Player to Lineup Dialog */}
               <Dialog
                 open={showAddToLineupDialog}
@@ -1033,7 +1036,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              
+
               <Dialog open={lineupDialogOpen} onOpenChange={setLineupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" onClick={handleOpenLineupDialog}>
@@ -1050,7 +1053,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">
 
-                      
+
                       <FormField
                         control={lineupForm.control}
                         name="formation"
@@ -1082,7 +1085,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={lineupForm.control}
                         name="playerIds"
@@ -1090,7 +1093,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           <FormItem>
                             <FormLabel>{t("team.teamLineup")}</FormLabel>
                             <FormMessage />
-                            
+
                             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mt-2">
                               {/* Soccer Field */}
                               <div className="lg:col-span-3">
@@ -1126,7 +1129,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
                                         </>
                                       )}
-                                      
+
                                       {/* Player positions */}
                                       <div className="absolute top-0 left-0 w-full h-full">
                                         {getPositionsByFormation(lineupForm.watch("formation") || "4-4-2").map(
@@ -1167,14 +1170,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                     <div className="opacity-50 text-sm">+</div>
                                                   )}
                                                 </div>
-                                                
+
                                                 {/* Player tooltip - only showing name */}
                                                 {player && (
                                                   <div className="opacity-0 bg-black text-white text-xs rounded py-1 px-2 absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 pointer-events-none group-hover:opacity-100 whitespace-nowrap shadow-lg">
                                                     {player.user?.fullName || player.fullName}
                                                   </div>
                                                 )}
-                                                
+
                                                 {/* Remove player button (red X) */}
                                                 {player && (
                                                   <div
@@ -1197,7 +1200,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </div>
                                   </div>
                                 </div>
-                                
+
                                 <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
                                   <div className="flex items-center mr-3 mb-1">
                                     <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
@@ -1217,7 +1220,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                   </div>
                                 </div>
                               </div>
-                              
+
                               {/* Available Players */}
                               <div className="lg:col-span-2">
                                 <div className="bg-muted/30 rounded-md p-2">
@@ -1228,7 +1231,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                         <p>Select a player for position: <span className="font-bold">{selectedPosition}</span></p>
                                       </div>
                                     )}
-                                    
+
                                     {teamMembers
                                       ?.filter(
                                         (member) =>
@@ -1262,7 +1265,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           </div>
                                         </div>
                                       ))}
-                                      
+
                                     {/* Empty state */}
                                     {teamMembers?.filter(
                                       (member) =>
@@ -1277,7 +1280,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     )}
                                   </div>
                                 </div>
-                                
+
                                 {/* Bench section */}
                                 <FormField
                                   control={lineupForm.control}
@@ -1322,7 +1325,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                               </Button>
                                             </div>
                                           ))}
-                                          
+
                                           {/* Show bench players */}
                                           {field.value.length > 0 && (
                                             <div className="mt-4">
@@ -1351,7 +1354,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                               </div>
                                             </div>
                                           )}
-                                          
+
                                           {/* Empty state */}
                                           {teamMembers?.filter(member => 
                                             member.role === "player" && 
@@ -1373,7 +1376,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
                           <Button type="button" variant="outline">{t("common.cancel")}</Button>
@@ -1387,7 +1390,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               .filter(player => player)
                               .map(player => player!.userId || player!.id)
                               .filter(id => id) as number[];
-                            
+
                             lineupForm.setValue('playerIds', playerIds, { shouldValidate: true });
                           }}
                         >
@@ -1400,13 +1403,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {lineup ? (
               <div>
                 <div className="bg-gray-50 p-3 rounded-md mb-3">
                   <div className="font-medium">Formation: {lineup.formation}</div>
                 </div>
-                
+
                 {/* Field Visualization */}
                 <div className="mb-6">
                   <h4 className="font-medium text-sm mb-2">Field Positions</h4>
@@ -1442,7 +1445,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"></div>
                           </>
                         )}
-                        
+
                         {/* Player positions */}
                         <div className="absolute top-0 left-0 w-full h-full">
                           {lineup.formation && getPositionsByFormation(lineup.formation).map((position) => {
@@ -1482,7 +1485,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     <div className="opacity-50 text-xs">?</div>
                                   )}
                                 </div>
-                                
+
                                 {/* Player name below icon - only showing name */}
                                 {positionPlayer && (
                                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black/80 text-white text-[10px] rounded px-1 py-0.5 whitespace-nowrap max-w-[100px] truncate shadow-lg">
@@ -1496,7 +1499,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-2 text-sm text-muted-foreground flex flex-wrap justify-center">
                     <div className="flex items-center mr-3 mb-1">
                       <span className="inline-block w-3 h-3 bg-blue-500 rounded-full mr-1"></span>
@@ -1516,7 +1519,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Match Statistics: Starting and Bench Players with Stats */}
                 <div className="space-y-4">
                   <div>
@@ -1533,7 +1536,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           const playerSubstitutions = substitutions?.filter(s => 
                             s.playerInId === player.id || s.playerOutId === player.id
                           ) || [];
-                          
+
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
                               <div className="flex-1">
@@ -1547,7 +1550,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex space-x-2 items-center">
                                 {/* Show goals as soccer ball icons */}
                                 {playerGoals.length > 0 && (
@@ -1560,7 +1563,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </svg>
                                   </div>
                                 )}
-                                
+
                                 {/* Show assists */}
                                 {playerAssists.length > 0 && (
                                   <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
@@ -1571,7 +1574,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </svg>
                                   </div>
                                 )}
-                                
+
                                 {/* Show yellow cards */}
                                 {yellowCards.length > 0 && (
                                   <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
@@ -1579,14 +1582,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
                                   </div>
                                 )}
-                                
+
                                 {/* Show red cards */}
                                 {redCards.length > 0 && (
                                   <div className="flex items-center" title="Red card">
                                     <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
                                   </div>
                                 )}
-                                
+
                                 {/* Show substitutions */}
                                 {playerSubstitutions.some(s => s.playerOutId === player.id) && (
                                   <div className="flex items-center" title="Substituted out">
@@ -1596,7 +1599,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </svg>
                                   </div>
                                 )}
-                                
+
                                 {playerSubstitutions.some(s => s.playerInId === player.id) && (
                                   <div className="flex items-center" title="Substituted in">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1614,7 +1617,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                       <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
                     )}
                   </div>
-                  
+
                   {/* Bench Players with Stats */}
                   {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
                     <div>
@@ -1630,7 +1633,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           const playerSubstitutions = substitutions?.filter(s => 
                             s.playerInId === player.id || s.playerOutId === player.id
                           ) || [];
-                          
+
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
                               <div className="flex-1">
@@ -1644,7 +1647,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex space-x-2 items-center">
                                 {/* Show goals for bench players (might score after substitution) */}
                                 {playerGoals.length > 0 && (
@@ -1657,7 +1660,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </svg>
                                   </div>
                                 )}
-                                
+
                                 {/* Show assists */}
                                 {playerAssists.length > 0 && (
                                   <div className="flex items-center" title={`${playerAssists.length} assist${playerAssists.length > 1 ? 's' : ''}`}>
@@ -1668,7 +1671,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     </svg>
                                   </div>
                                 )}
-                                
+
                                 {/* Show yellow cards */}
                                 {yellowCards.length > 0 && (
                                   <div className="flex items-center" title={`${yellowCards.length} yellow card${yellowCards.length > 1 ? 's' : ''}`}>
@@ -1676,14 +1679,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     <div className="h-4 w-3 bg-yellow-400 rounded-sm"></div>
                                   </div>
                                 )}
-                                
+
                                 {/* Show red cards */}
                                 {redCards.length > 0 && (
                                   <div className="flex items-center" title="Red card">
                                     <div className="h-4 w-3 bg-red-600 rounded-sm"></div>
                                   </div>
                                 )}
-                                
+
                                 {/* Show substitutions */}
                                 {playerSubstitutions.some(s => s.playerInId === player.id) && (
                                   <div className="flex items-center" title="Substituted in">
@@ -1754,7 +1757,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={substitutionForm.control}
                         name="playerOutId"
@@ -1780,7 +1783,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={substitutionForm.control}
                         name="minute"
@@ -1802,9 +1805,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
 
-                      
+
+
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
                           <Button type="button" variant="outline">{t("common.cancel")}</Button>
@@ -1819,7 +1822,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {substitutions && substitutions.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <Table className="w-full min-w-full">
@@ -1911,7 +1914,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={goalForm.control}
                         name="assistId"
@@ -1937,7 +1940,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={goalForm.control}
                         name="minute"
@@ -1959,7 +1962,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="flex space-x-4">
                         <FormField
                           control={goalForm.control}
@@ -1978,7 +1981,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={goalForm.control}
                           name="isPenalty"
@@ -1997,7 +2000,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           )}
                         />
                       </div>
-                      
+
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
                           <Button type="button" variant="outline">{t("common.cancel")}</Button>
@@ -2012,7 +2015,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {goals && goals.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <Table className="w-full min-w-full">
@@ -2114,7 +2117,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={cardForm.control}
                         name="type"
@@ -2136,7 +2139,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={cardForm.control}
                         name="minute"
@@ -2158,7 +2161,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={cardForm.control}
                         name="reason"
@@ -2175,7 +2178,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
                           <Button type="button" variant="outline">{t("common.cancel")}</Button>
@@ -2190,7 +2193,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </DialogContent>
               </Dialog>
             </div>
-            
+
             {cards && cards.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <Table className="w-full min-w-full">
