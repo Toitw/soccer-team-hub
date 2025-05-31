@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
@@ -133,31 +133,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [showAddToLineupDialog, setShowAddToLineupDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  
-  // Update lineup positions when lineup data changes (after save)
-  useEffect(() => {
-    if (lineup && teamMembers && lineup.positionMapping) {
-      // Clear existing positions
-      setLineupPositions({});
-      
-      // Populate positions from the lineup data
-      const typedPositionMapping = lineup.positionMapping as Record<string, number>;
-      
-      Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
-        if (typeof playerId === 'number') {
-          // Find the team member by userId or member id
-          const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
-          
-          if (teamMember) {
-            setLineupPositions(prev => ({
-              ...prev,
-              [positionId]: teamMember
-            }));
-          }
-        }
-      });
-    }
-  }, [lineup, teamMembers]);
   
   // Function to handle opening the lineup dialog and initialize form with existing data
   const handleOpenLineupDialog = () => {
@@ -587,6 +562,31 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     queryKey: [`/api/teams/${teamId}/matches/${match.id}/cards`],
     enabled: match.status === "completed"
   });
+
+  // Update lineup positions when lineup data changes (after save)
+  useEffect(() => {
+    if (lineup && teamMembers && lineup.positionMapping) {
+      // Clear existing positions
+      setLineupPositions({});
+      
+      // Populate positions from the lineup data
+      const typedPositionMapping = lineup.positionMapping as Record<string, number>;
+      
+      Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
+        if (typeof playerId === 'number') {
+          // Find the team member by userId or member id
+          const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
+          
+          if (teamMember) {
+            setLineupPositions(prev => ({
+              ...prev,
+              [positionId]: teamMember
+            }));
+          }
+        }
+      });
+    }
+  }, [lineup, teamMembers]);
 
   // Mutations
   const saveLineup = useMutation({
