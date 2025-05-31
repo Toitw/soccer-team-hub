@@ -67,18 +67,10 @@ export default function StatisticsPage() {
       
       const allMatches = await response.json();
       
-      // If a season is selected, filter matches based on date range
-      if (selectedSeasonId && seasons) {
-        const season = seasons.find(s => s.id.toString() === selectedSeasonId);
-        if (season) {
-          const startDate = new Date(season.startDate);
-          const endDate = season.endDate ? new Date(season.endDate) : new Date();
-          
-          return allMatches.filter((match: Match) => {
-            const matchDate = new Date(match.matchDate);
-            return matchDate >= startDate && matchDate <= endDate;
-          });
-        }
+      // If a season is selected, filter matches based on seasonId field
+      if (selectedSeasonId) {
+        const seasonId = parseInt(selectedSeasonId);
+        return allMatches.filter((match: Match) => match.seasonId === seasonId);
       }
       
       return allMatches;
