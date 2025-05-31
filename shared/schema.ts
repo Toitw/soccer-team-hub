@@ -297,6 +297,7 @@ export const matchLineups = pgTable("match_lineups", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
   teamId: integer("team_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these lineups belong to
   playerIds: integer("player_ids").array().notNull(), // Array of player IDs in the lineup
   benchPlayerIds: integer("bench_player_ids").array(), // Array of player IDs on the bench
   formation: text("formation"), // e.g., "4-4-2", "4-3-3"
@@ -308,6 +309,7 @@ export const matchLineups = pgTable("match_lineups", {
 export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
   matchId: true,
   teamId: true,
+  seasonId: true,
   playerIds: true,
   benchPlayerIds: true,
   formation: true,
@@ -318,6 +320,7 @@ export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
 export const matchSubstitutions = pgTable("match_substitutions", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these substitutions belong to
   playerInId: integer("player_in_id").notNull(),
   playerOutId: integer("player_out_id").notNull(),
   minute: integer("minute").notNull(),
@@ -326,6 +329,7 @@ export const matchSubstitutions = pgTable("match_substitutions", {
 
 export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutions).pick({
   matchId: true,
+  seasonId: true,
   playerInId: true,
   playerOutId: true,
   minute: true,
@@ -335,6 +339,7 @@ export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutio
 export const matchGoals = pgTable("match_goals", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these goals belong to
   scorerId: integer("scorer_id").notNull(),
   assistId: integer("assist_id"), // Optional, not all goals have assists
   minute: integer("minute").notNull(),
@@ -345,6 +350,7 @@ export const matchGoals = pgTable("match_goals", {
 
 export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
   matchId: true,
+  seasonId: true,
   scorerId: true,
   assistId: true,
   minute: true,
@@ -356,6 +362,7 @@ export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
 export const matchCards = pgTable("match_cards", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these cards belong to
   playerId: integer("player_id").notNull(),
   minute: integer("minute").notNull(),
   isYellow: boolean("is_yellow").default(true),
@@ -366,6 +373,7 @@ export const matchCards = pgTable("match_cards", {
 
 export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
   matchId: true,
+  seasonId: true,
   playerId: true,
   minute: true,
   isYellow: true,
