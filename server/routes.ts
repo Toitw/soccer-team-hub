@@ -400,31 +400,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const teamId = parseInt(req.params.teamId);
       const matchId = parseInt(req.params.matchId);
-      const { playerInId, playerOutId, minute, reason } = req.body;
+      const { playerInId, playerOutId, minute } = req.body;
+
+      console.log('Substitution request:', { teamId, matchId, playerInId, playerOutId, minute, userId: req.user.id });
 
       // Check if user is a member of the team with admin or coach role
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      console.log('Team member check result:', teamMember);
+      
       if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        console.log('Authorization failed - user role:', teamMember?.role);
         return res.status(403).json({ error: "Not authorized to modify team data" });
       }
 
       // Check if match belongs to the team
       const match = await storage.getMatch(matchId);
       if (!match || match.teamId !== teamId) {
+        console.log('Match not found or wrong team:', { match, expectedTeamId: teamId });
         return res.status(404).json({ error: "Match not found" });
       }
 
-      // Create new substitution
+      // Create new substitution (removed reason field as it doesn't exist in database)
       const substitution = await storage.createMatchSubstitution({
         matchId,
         playerInId,
         playerOutId,
-        minute,
-        reason
+        minute
       });
 
+      console.log('Substitution created successfully:', substitution);
       res.status(201).json(substitution);
     } catch (error) {
+      console.error('Error creating substitution:', error);
       res.status(500).json({ error: "Failed to create match substitution" });
     }
   });
