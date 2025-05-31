@@ -1960,46 +1960,43 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         )}
                       />
                       
-                      <FormField
-                        control={goalForm.control}
-                        name="type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("matches.goalType")}</FormLabel>
-                            <FormControl>
-                              <select
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value as any)}
-                              >
-                                <option value="">{t("matches.selectGoalType")}</option>
-                                <option value="regular">{t("matches.regularGoal")}</option>
-                                <option value="penalty">{t("matches.penaltyGoal")}</option>
-                                <option value="free_kick">{t("matches.freeKickGoal")}</option>
-                                <option value="own_goal">{t("matches.ownGoal")}</option>
-                              </select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={goalForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("matches.descriptionOptional")}</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder={t("matches.briefGoalDescription")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="flex space-x-4">
+                        <FormField
+                          control={goalForm.control}
+                          name="isOwnGoal"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value || false}
+                                  onChange={field.onChange}
+                                  className="h-4 w-4 rounded border border-input"
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">{t("matches.ownGoal")}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={goalForm.control}
+                          name="isPenalty"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value || false}
+                                  onChange={field.onChange}
+                                  className="h-4 w-4 rounded border border-input"
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">{t("matches.penalty")}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                       
                       <div className="flex justify-end gap-2">
                         <DialogClose asChild>
