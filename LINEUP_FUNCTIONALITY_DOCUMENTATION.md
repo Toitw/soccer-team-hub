@@ -176,11 +176,42 @@ const playerId = member.userId || member.id;
 5. **Flexible Formation Support**: Easy to extend with new formation types
 6. **User Experience**: Intuitive drag-and-click interface with visual feedback
 
+## Recent Updates and Fixes (May 2025)
+
+### Match Functionality Integration
+The lineup functionality is now fully integrated with the comprehensive match management system. Key improvements include:
+
+1. **Date Handling**: Fixed match creation and update endpoints to properly parse date strings from frontend
+2. **Cascading Deletes**: Implemented proper cleanup of lineup data when matches are deleted
+3. **Data Integrity**: Enhanced referential integrity between matches and their associated lineups
+
+### Backend API Improvements
+- **Enhanced Error Handling**: Better validation and error messages for date formats
+- **Cascading Operations**: Match deletions now properly clean up related lineup data
+- **Type Safety**: Improved date handling prevents runtime errors
+
+### Database Relationships
+The lineup system maintains proper foreign key relationships with:
+- `matches` table (parent relationship)
+- `team_members` table (player references)
+- Related match data (`match_goals`, `match_cards`, `match_substitutions`)
+
 ## API Endpoints Used
 
+### Lineup Management
 - `GET /api/teams/{teamId}/matches/{matchId}/lineup` - Fetch existing lineup
 - `POST /api/teams/{teamId}/matches/{matchId}/lineup` - Save/update lineup
 - `GET /api/teams/{teamId}/members` - Get available team members
+
+### Match Management (Integrated)
+- `POST /api/teams/{teamId}/matches` - Create match (with date validation)
+- `PATCH /api/teams/{teamId}/matches/{matchId}` - Update match (with date parsing)
+- `DELETE /api/teams/{teamId}/matches/{matchId}` - Delete match (with cascade cleanup)
+
+### Match Events (Related to Lineups)
+- `GET /api/teams/{teamId}/matches/{matchId}/goals` - Fetch match goals
+- `GET /api/teams/{teamId}/matches/{matchId}/cards` - Fetch match cards
+- `GET /api/teams/{teamId}/matches/{matchId}/substitutions` - Fetch substitutions
 
 ## Performance Considerations
 
