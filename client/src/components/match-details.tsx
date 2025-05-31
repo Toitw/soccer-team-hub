@@ -959,8 +959,6 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 open={showAddToLineupDialog}
                 onOpenChange={setShowAddToLineupDialog}
               >
-                The component is updated to use the correct locale for date formatting, ensuring that weekdays and months are translated according to the selected language.```text
-
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
@@ -1599,7 +1597,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <polyline points="7 11 12 6 17 11" />
                                       <polyline points="7 17 12 12 17 17" />
-                                    </svg                                  </div>
+                                    </svg>
+                                  </div>
                                 )}
 
                                 {playerSubstitutions.some(s => s.playerInId === player.id) && (
