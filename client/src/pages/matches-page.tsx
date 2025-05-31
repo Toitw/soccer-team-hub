@@ -193,18 +193,39 @@ export default function MatchesPage() {
   // React Query client
   const queryClient = useQueryClient();
 
+  // Fetch seasons for the team first
+  const {
+    data: seasons,
+    isLoading: seasonsLoading,
+  } = useQuery({
+    queryKey: ['/api/teams', selectedTeam?.id, 'seasons'],
+    queryFn: () => apiRequest<Season[]>(`/api/teams/${selectedTeam?.id}/seasons`),
+    enabled: !!selectedTeam,
+  });
+
+  // Get active season
+  const activeSeason = seasons?.find(s => s.isActive);
+
   const {
     data: matches,
     isLoading: matchesLoading,
     refetch: refetchMatches,
   } = useQuery<Match[]>({
-    queryKey: ["matches", selectedTeam?.id],
+    queryKey: ["matches", selectedTeam?.id, activeSeason?.id],
     enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
       if (!response.ok) throw new Error(t("matches.errors.failedFetchMatches"));
-      return await response.json();
+      const allMatches = await response.json();
+      
+      // Filter matches by active season if one exists
+      if (activeSeason) {
+        return allMatches.filter((match: Match) => match.seasonId === activeSeason.id);
+      }
+      
+      // If no active season, only show matches without a season (legacy matches)
+      return allMatches.filter((match: Match) => !match.seasonId);
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -223,7 +244,7 @@ export default function MatchesPage() {
     isLoading: classificationsLoading,
     refetch: refetchClassifications,
   } = useQuery<LeagueClassification[]>({
-    queryKey: ["classifications", selectedTeam?.id],
+    queryKey: ["classifications", selectedTeam?.id, activeSeason?.id],
     enabled: !!selectedTeam,
     queryFn: async () => {
       if (!selectedTeam) return [];
@@ -231,21 +252,19 @@ export default function MatchesPage() {
         `/api/teams/${selectedTeam.id}/classification`,
       );
       if (!response.ok) throw new Error(t("matches.errors.failedFetchClassifications"));
-      return await response.json();
+      const allClassifications = await response.json();
+      
+      // Filter classifications by active season if one exists
+      if (activeSeason) {
+        return allClassifications.filter((classification: LeagueClassification) => classification.seasonId === activeSeason.id);
+      }
+      
+      // If no active season, only show classifications without a season (legacy classifications)
+      return allClassifications.filter((classification: LeagueClassification) => !classification.seasonId);
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     staleTime: 0,
-  });
-
-  // Fetch seasons for the team
-  const {
-    data: seasons,
-    isLoading: seasonsLoading,
-  } = useQuery({
-    queryKey: ['/api/teams', selectedTeam?.id, 'seasons'],
-    queryFn: () => apiRequest<Season[]>(`/api/teams/${selectedTeam?.id}/seasons`),
-    enabled: !!selectedTeam,
   });
 
   // Ensure we're on the seasons tab when no seasons exist
