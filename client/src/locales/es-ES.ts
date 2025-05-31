@@ -617,6 +617,7 @@ export const esES = {
     // New entries for match-details.tsx
     matchDetails: "Detalles del Partido",
     score: "Marcador",
+    dateTimeFormat: "EEEE, d 'de' MMMM 'de' yyyy 'a las' H:mm",
     noCardsRecorded: "No se registraron tarjetas para este partido.",
     recordCardsHelp:
       "Registra las tarjetas amarillas y rojas recibidas por tu equipo.",

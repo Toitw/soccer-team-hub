@@ -926,7 +926,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </div>
         </CardTitle>
         <CardDescription>
-          {format(new Date(match.matchDate), "EEEE, MMMM d, yyyy 'at' h:mm a")}
+          {format(new Date(match.matchDate), t("matches.dateTimeFormat"))}
         </CardDescription>
       </CardHeader>
       <CardContent>
