@@ -13,6 +13,7 @@ import { createTeamRouter } from "./routes/team-routes";
 import { createMemberRouter } from "./routes/member-routes";
 import { createMatchEventRouter } from "./routes/match-event-routes";
 import { createAnnouncementRouter } from "./routes/announcement-routes";
+import { createSeasonRouter } from "./routes/season-routes";
 import { checkDatabaseHealth } from "./db-health";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
@@ -67,6 +68,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register announcement routes
   const announcementRouter = createAnnouncementRouter();
   
+  // Register season routes
+  const seasonRouter = createSeasonRouter();
+  
   // Attach routers to main app
   app.use('/api', adminRouter);
   app.use('/api', claimsRouter);
@@ -74,6 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', memberRouter);
   app.use('/api', matchEventRouter);
   app.use('/api', announcementRouter);
+  app.use('/api', seasonRouter);
 
   // Database monitoring endpoints
   app.get("/api/health", async (req, res) => {

@@ -204,10 +204,14 @@ export interface IStorage {
   getSeasons(teamId: number): Promise<Season[]>;
   getSeason(id: number): Promise<Season | undefined>;
   getActiveSeasons(teamId: number): Promise<Season[]>;
+  getActiveSeason(teamId: number): Promise<Season | undefined>;
   createSeason(seasonData: InsertSeason): Promise<Season>;
   updateSeason(id: number, seasonData: Partial<Season>): Promise<Season | undefined>;
   deleteSeason(id: number): Promise<boolean>;
   finishSeason(id: number): Promise<Season | undefined>;
+  deactivateAllSeasons(teamId: number): Promise<void>;
+  getMatchesBySeason(seasonId: number): Promise<Match[]>;
+  getSeasonStats(seasonId: number): Promise<any>;
   
   // Enhanced League Classification methods
   getLeagueClassificationsBySeason(teamId: number, seasonId: number): Promise<LeagueClassification[]>;
@@ -2038,6 +2042,45 @@ export class MemStorage implements IStorage {
     
     this.seasons.set(id, updatedSeason);
     return updatedSeason;
+  }
+
+  async getActiveSeason(teamId: number): Promise<Season | undefined> {
+    return Array.from(this.seasons.values()).find(season => 
+      season.teamId === teamId && season.isActive === true
+    );
+  }
+
+  async deactivateAllSeasons(teamId: number): Promise<void> {
+    for (const season of this.seasons.values()) {
+      if (season.teamId === teamId && season.isActive) {
+        const updatedSeason: Season = {
+          ...season,
+          isActive: false,
+          updatedAt: new Date()
+        };
+        this.seasons.set(season.id, updatedSeason);
+      }
+    }
+  }
+
+  async getMatchesBySeason(seasonId: number): Promise<Match[]> {
+    return Array.from(this.matches.values()).filter(match => match.seasonId === seasonId);
+  }
+
+  async getSeasonStats(seasonId: number): Promise<any> {
+    const matches = await this.getMatchesBySeason(seasonId);
+    const goals = Array.from(this.matchGoals.values()).filter(goal => goal.seasonId === seasonId);
+    const cards = Array.from(this.matchCards.values()).filter(card => card.seasonId === seasonId);
+    
+    return {
+      totalMatches: matches.length,
+      completedMatches: matches.filter(m => m.status === 'completed').length,
+      totalGoals: goals.length,
+      totalCards: cards.length,
+      wins: matches.filter(m => m.status === 'completed' && (m.goalsScored ?? 0) > (m.goalsConceded ?? 0)).length,
+      draws: matches.filter(m => m.status === 'completed' && (m.goalsScored ?? 0) === (m.goalsConceded ?? 0)).length,
+      losses: matches.filter(m => m.status === 'completed' && (m.goalsScored ?? 0) < (m.goalsConceded ?? 0)).length
+    };
   }
 
   // Feedback methods

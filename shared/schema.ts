@@ -385,6 +385,7 @@ export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
 export const matchPhotos = pgTable("match_photos", {
   id: serial("id").primaryKey(),
   matchId: integer("match_id").notNull(),
+  seasonId: integer("season_id"), // Reference to the season these photos belong to
   url: text("url").notNull(),
   caption: text("caption"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
@@ -393,6 +394,7 @@ export const matchPhotos = pgTable("match_photos", {
 
 export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
   matchId: true,
+  seasonId: true,
   url: true,
   caption: true,
   uploadedById: true,
