@@ -454,7 +454,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     }
     
     // Check if player is already on the bench
-    if (currentBenchIds.includes(member.userId)) {
+    if (member.userId && currentBenchIds.includes(member.userId)) {
       toast({
         titleKey: "toasts.playerAlreadyOnBench",
         descriptionKey: "toasts.playerAlreadyOnBenchDesc",
@@ -1039,6 +1039,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 <DialogContent className="max-w-6xl w-[90vw] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>{lineup ? t("matches.editMatchLineup") : t("matches.addMatchLineup")}</DialogTitle>
+                    <DialogDescription>
+                      {t("matches.matchDetailsDescription")}
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...lineupForm}>
                     <form onSubmit={lineupForm.handleSubmit(handleLineupSubmit)} className="space-y-4">

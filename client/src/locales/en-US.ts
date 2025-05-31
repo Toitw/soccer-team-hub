@@ -508,6 +508,8 @@ export const enUS = {
     formation: "Formation",
     teamLineup: "Team Lineup",
     saveLineup: "Save Lineup",
+    playerAddedToLineup: "Player Added to Lineup",
+    playerAssigned: "Player has been assigned to the selected position",
     addSubstitution: "Add Substitution",
     addGoal: "Add Goal",
     addCard: "Add Card",
