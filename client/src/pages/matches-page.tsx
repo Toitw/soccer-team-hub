@@ -127,7 +127,7 @@ type ClassificationFormData = z.infer<typeof classificationSchema>;
 export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState("seasons");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
@@ -777,7 +777,7 @@ export default function MatchesPage() {
               <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
               <span className="text-sm text-muted-foreground">
                 {format(matchDate, t("matches.dateFormat"), { 
-                  locale: t("common.language") === "Español" ? es : enUS 
+                  locale: currentLanguage === "es" ? es : enUS 
                 })}
               </span>
               {getMatchTypeBadge(match.matchType)}
@@ -824,7 +824,7 @@ export default function MatchesPage() {
             <div className="flex items-center text-sm">
               <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
               <span>{format(matchDate, t("matches.timeFormat"), { 
-                locale: t("common.language") === "Español" ? es : enUS 
+                locale: currentLanguage === "es" ? es : enUS 
               })}</span>
             </div>
             {match.notes && (
