@@ -378,7 +378,7 @@ export default function StatisticsPage() {
                             {season.name}
                             {season.isActive && (
                               <span className="ml-2 text-primary text-xs">
-                                ({t("statistics.active")})
+                                ({t("seasons.active")})
                               </span>
                             )}
                           </SelectItem>
