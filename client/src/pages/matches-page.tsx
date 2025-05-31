@@ -59,6 +59,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isPast } from "date-fns";
+import { es, enUS } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -775,7 +776,9 @@ export default function MatchesPage() {
             <div className="flex items-center">
               <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
               <span className="text-sm text-muted-foreground">
-                {format(matchDate, t("matches.dateFormat"))}
+                {format(matchDate, t("matches.dateFormat"), { 
+                  locale: t("common.language") === "Español" ? es : enUS 
+                })}
               </span>
               {getMatchTypeBadge(match.matchType)}
             </div>
@@ -820,7 +823,9 @@ export default function MatchesPage() {
             </div>
             <div className="flex items-center text-sm">
               <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-              <span>{format(matchDate, t("matches.timeFormat"))}</span>
+              <span>{format(matchDate, t("matches.timeFormat"), { 
+                locale: t("common.language") === "Español" ? es : enUS 
+              })}</span>
             </div>
             {match.notes && (
               <div className="mt-2 text-sm text-muted-foreground">
