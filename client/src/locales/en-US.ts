@@ -30,7 +30,9 @@ export const enUS = {
     useLeagueTab: "Use the \"League Standings\" tab to add teams to the standings for this season.",
     deleteConfirmation: "Are you sure you want to delete this season? This action cannot be undone.",
     deleteNote: "Note: Seasons with associated classifications cannot be deleted. You'll need to delete any classification entries for this season first.",
-    active: "Active"
+    active: "Active",
+    viewPrevious: "View previous seasons",
+    selectSeason: "Select a season",
   },
   statistics: {
     teamStats: "Team Statistics",
@@ -894,7 +896,9 @@ export const esES = {
     useLeagueTab: "Utiliza la pestaña \"Clasificación de la Liga\" para añadir equipos a la clasificación de esta temporada.",
     deleteConfirmation: "¿Estás seguro de que quieres eliminar esta temporada? Esta acción no se puede deshacer.",
     deleteNote: "Nota: Las temporadas con clasificaciones asociadas no se pueden eliminar. Primero tendrás que eliminar las entradas de clasificación de esta temporada.",
-    active: "Activa"
+    active: "Activa",
+    viewPrevious: "Ver temporadas anteriores",
+    selectSeason: "Seleccionar temporada",
   },
   statistics: {
     teamStats: "Estadísticas del Equipo",

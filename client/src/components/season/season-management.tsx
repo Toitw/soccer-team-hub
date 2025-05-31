@@ -34,6 +34,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useTranslation } from '@/hooks/use-translation';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Season form schema
 const seasonFormSchema = z.object({
@@ -330,20 +331,53 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
           onValueChange={(value) => setActiveSeason(parseInt(value))}
           className="w-full"
         >
-          <TabsList className="mb-4 w-full justify-start overflow-x-auto">
-            {seasons.map((season) => (
-              <TabsTrigger
-                key={season.id}
-                value={season.id.toString()}
-                className={`relative ${season.isActive ? 'font-bold' : ''}`}
-              >
-                {season.name}
-                {season.isActive && (
-                  <span className="ml-1 text-green-500 text-xs">({t('seasons.active')})</span>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="mb-4 flex items-center justify-between">
+            {(() => {
+              const activeSeasonData = seasons.find(s => s.isActive);
+              const inactiveSeasons = seasons
+                .filter(s => !s.isActive)
+                .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+              
+              return (
+                <>
+                  {activeSeasonData && (
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold">{activeSeasonData.name}</h3>
+                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        {t('seasons.active')}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {inactiveSeasons.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">{t('seasons.viewPrevious')}:</span>
+                      <Select
+                        value={activeSeason?.toString() || ""}
+                        onValueChange={(value) => setActiveSeason(parseInt(value))}
+                      >
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue placeholder={t('seasons.selectSeason')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {activeSeasonData && (
+                            <SelectItem value={activeSeasonData.id.toString()}>
+                              {activeSeasonData.name} ({t('seasons.active')})
+                            </SelectItem>
+                          )}
+                          {inactiveSeasons.map((season) => (
+                            <SelectItem key={season.id} value={season.id.toString()}>
+                              {season.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
 
           {seasons.map((season) => (
             <TabsContent key={season.id} value={season.id.toString()}>

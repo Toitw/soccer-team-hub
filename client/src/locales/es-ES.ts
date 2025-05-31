@@ -34,8 +34,10 @@ export const esES = {
     deleteConfirmation:
       "¿Estás seguro de que quieres eliminar esta temporada? Esta acción no se puede deshacer.",
     deleteNote:
-      "Nota: Las temporadas con clasificaciones asociadas no se pueden eliminar. Primero deberás eliminar cualquier entrada de clasificación para esta temporada.",
+      "Esta acción también eliminará todos los partidos y estadísticas asociadas con esta temporada.",
     active: "Activa",
+    viewPrevious: "Ver temporadas anteriores",
+    selectSeason: "Seleccionar temporada",
   },
   statistics: {
     teamStats: "Estadísticas del Equipo",
