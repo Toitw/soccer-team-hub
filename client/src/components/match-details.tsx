@@ -67,6 +67,7 @@ import {
   Trash
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { es } from 'date-fns/locale';
 
 // Define schemas for the various forms
 const lineupSchema = z.object({
@@ -125,7 +126,7 @@ interface TeamMemberWithUser extends TeamMember {
 export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState("lineup");
 
   // Dialogs state
@@ -926,7 +927,9 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </div>
         </CardTitle>
         <CardDescription>
-          {format(new Date(match.matchDate), t("matches.dateTimeFormat"))}
+          {format(new Date(match.matchDate), t("matches.dateTimeFormat"), {
+            locale: currentLanguage === "es" ? es : undefined
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -956,6 +959,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 open={showAddToLineupDialog}
                 onOpenChange={setShowAddToLineupDialog}
               >
+                The component is updated to use the correct locale for date formatting, ensuring that weekdays and months are translated according to the selected language.```text
+
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
@@ -1536,7 +1541,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
-                              
+
                                 <div className="flex-1">
                                 <div className="flex items-center">
                                   <div className="font-medium">{player.fullName}</div>
@@ -1594,8 +1599,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                       <polyline points="7 11 12 6 17 11" />
                                       <polyline points="7 17 12 12 17 17" />
-                                    </svg>
-                                  </div>
+                                    </svg                                  </div>
                                 )}
 
                                 {playerSubstitutions.some(s => s.playerInId === player.id) && (
@@ -1634,7 +1638,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
                           return (
                             <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
-                              
+
                                 <div className="flex-1">
                                 <div className="flex items-center">
                                   <div className="font-medium">{player.fullName}</div>
