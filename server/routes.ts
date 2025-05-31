@@ -1140,17 +1140,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate request body
-      const { name, startDate } = req.body;
-      if (!name || !startDate) {
-        return res.status(400).json({ error: "Season name and start date are required" });
+      const { name, startDate, endDate } = req.body;
+      if (!name || !startDate || !endDate) {
+        return res.status(400).json({ error: "Season name, start date, and end date are required" });
+      }
+      
+      const parsedStartDate = new Date(startDate);
+      const parsedEndDate = new Date(endDate);
+      
+      if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+        return res.status(400).json({ error: "Invalid date format" });
+      }
+      
+      if (parsedStartDate >= parsedEndDate) {
+        return res.status(400).json({ error: "Start date must be before end date" });
       }
       
       // Create the season
       const season = await storage.createSeason({
         name,
-        startDate: new Date(startDate),
-        endDate: req.body.endDate ? new Date(req.body.endDate) : null,
-        teamId
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
+        teamId,
+        isActive: true,
+        description: req.body.description || null
       });
       
       res.status(201).json(season);
