@@ -564,7 +564,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Update lineup positions when lineup data changes (after save)
   useEffect(() => {
+    console.log('useEffect triggered - updating form and positions');
+    console.log('lineup:', lineup);
+    console.log('teamMembers:', teamMembers);
+    
     if (lineup && teamMembers && lineup.positionMapping) {
+      console.log('Processing lineup with positionMapping:', lineup.positionMapping);
+      
       // Clear existing positions
       setLineupPositions({});
       
@@ -592,12 +598,20 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         }
       });
       
+      console.log('Setting form playerIds to:', playerIds);
+      console.log('Setting form formation to:', lineup.formation || '4-4-2');
+      console.log('Setting form benchPlayerIds to:', lineup.benchPlayerIds || []);
+      
       // Update form with the loaded player IDs
       lineupForm.setValue('playerIds', playerIds);
       lineupForm.setValue('formation', lineup.formation || '4-4-2');
       lineupForm.setValue('benchPlayerIds', lineup.benchPlayerIds || []);
+      
+      console.log('Form updated, current values:', lineupForm.getValues());
+    } else {
+      console.log('Conditions not met for form update');
     }
-  }, [lineup, teamMembers]);
+  }, [lineup, teamMembers, lineupForm]);
 
   // Mutations
   const saveLineup = useMutation({
