@@ -2219,7 +2219,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             {(card.isYellow && !card.isSecondYellow) ? t("matches.yellow") : t("matches.red")}
                           </Badge>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell">-</TableCell>
+                        <TableCell className="hidden sm:table-cell">{card.reason || "-"}</TableCell>
                         <TableCell>
                           <Button 
                             variant="ghost" 
