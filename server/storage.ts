@@ -1985,10 +1985,14 @@ export class MemStorage implements IStorage {
     
     const season: Season = {
       id,
-      ...seasonData,
+      teamId: seasonData.teamId,
+      name: seasonData.name,
+      startDate: seasonData.startDate,
+      endDate: seasonData.endDate,
+      isActive: seasonData.isActive ?? true,
+      description: seasonData.description ?? null,
       createdAt,
-      updatedAt,
-      isActive: true
+      updatedAt
     };
     
     this.seasons.set(id, season);

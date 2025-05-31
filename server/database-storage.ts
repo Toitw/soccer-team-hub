@@ -1379,6 +1379,20 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  async getActiveSeason(teamId: number): Promise<Season | undefined> {
+    const [season] = await db
+      .select()
+      .from(seasons)
+      .where(
+        and(
+          eq(seasons.teamId, teamId),
+          eq(seasons.isActive, true)
+        )
+      )
+      .limit(1);
+    return season;
+  }
+
   async createSeason(seasonData: InsertSeason): Promise<Season> {
     const [season] = await db
       .insert(seasons)
