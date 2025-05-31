@@ -536,8 +536,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     players: User[],
     benchPlayers?: User[] 
   }>({
-    queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`],
-    enabled: match.status === "completed"
+    queryKey: [`/api/teams/${teamId}/matches/${match.id}/lineup`]
   });
 
   const { data: substitutions, isLoading: substitutionsLoading } = useQuery<(MatchSubstitution & {
@@ -565,7 +564,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Update lineup positions when lineup data changes (after save)
   useEffect(() => {
+    console.log("useEffect triggered - lineup:", lineup, "teamMembers:", teamMembers);
+    
     if (lineup && teamMembers && lineup.positionMapping) {
+      console.log("Processing lineup with positionMapping:", lineup.positionMapping);
+      
       // Clear existing positions
       setLineupPositions({});
       
@@ -574,17 +577,24 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       
       Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
         if (typeof playerId === 'number') {
+          console.log(`Looking for player ${playerId} for position ${positionId}`);
+          
           // Find the team member by userId or member id
           const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
           
           if (teamMember) {
+            console.log(`Found team member for position ${positionId}:`, teamMember);
             setLineupPositions(prev => ({
               ...prev,
               [positionId]: teamMember
             }));
+          } else {
+            console.log(`No team member found for player ID ${playerId}`);
           }
         }
       });
+    } else {
+      console.log("Missing data - lineup:", !!lineup, "teamMembers:", !!teamMembers, "positionMapping:", lineup?.positionMapping);
     }
   }, [lineup, teamMembers]);
 
