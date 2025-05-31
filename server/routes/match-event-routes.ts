@@ -44,6 +44,15 @@ export function createMatchEventRouter(): Router {
         return res.status(403).json({ error: "Not authorized to create matches" });
       }
 
+      // Check if there is an active season
+      const activeSeason = await storage.getActiveSeason(teamId);
+      if (!activeSeason) {
+        return res.status(400).json({ 
+          error: "No active season found", 
+          message: "You must create and activate a season before adding matches. Go to the Seasons tab to create one."
+        });
+      }
+
       // Parse and validate the match date
       const { matchDate, ...otherData } = req.body;
       if (!matchDate) {
@@ -58,7 +67,8 @@ export function createMatchEventRouter(): Router {
       const matchData = {
         ...otherData,
         matchDate: parsedMatchDate,
-        teamId
+        teamId,
+        seasonId: activeSeason.id // Automatically assign to active season
       };
 
       const newMatch = await storage.createMatch(matchData);
