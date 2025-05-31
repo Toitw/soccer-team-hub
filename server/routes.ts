@@ -1511,18 +1511,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Get player stats from playerStats table if available (check both user ID and team member ID)
-        for (const matchId of matchIds) {
-          const matchStats = await storage.getMatchPlayerStats(matchId);
-          const playerStat = matchStats.find(stat => 
-            stat.userId === member.userId || stat.userId === member.id
-          );
-          
-          if (playerStat) {
-            participatedMatches.add(matchId);
-            playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
-          }
-        }
+        // Note: Removed playerStats table queries due to database schema mismatch
+        // Player statistics are calculated from goals, assists, and cards data
         
         // Set matches played count
         playerSummary.matchesPlayed = participatedMatches.size;

@@ -147,8 +147,14 @@ export default function StatisticsPage() {
       form: []
     };
 
+    // Filter matches by selected season if a season is selected
+    let filteredMatches = matches;
+    if (selectedSeasonId) {
+      filteredMatches = matches.filter(m => m.seasonId === parseInt(selectedSeasonId));
+    }
+
     // Only count completed matches
-    const completedMatches = matches.filter(m => m.status === "completed");
+    const completedMatches = filteredMatches.filter(m => m.status === "completed");
     
     const won = completedMatches.filter(m => (m.goalsScored || 0) > (m.goalsConceded || 0)).length;
     const drawn = completedMatches.filter(m => (m.goalsScored || 0) === (m.goalsConceded || 0)).length;
