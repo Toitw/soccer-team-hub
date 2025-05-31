@@ -463,8 +463,10 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       return;
     }
     
-    lineupForm.setValue('benchPlayerIds', [...currentBenchIds, member.userId]);
-    setBenchPlayers([...benchPlayers, member.userId]);
+    if (member.userId) {
+      lineupForm.setValue('benchPlayerIds', [...currentBenchIds, member.userId]);
+      setBenchPlayers([...benchPlayers, member.userId]);
+    }
   };
   
   // Remove player from bench
@@ -1286,6 +1288,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           {/* Players not in the field lineup or on bench */}
                                           {teamMembers?.filter(member => 
                                             member.role === "player" && 
+                                            member.userId !== null &&
                                             !Object.values(lineupPositions).some(p => p?.id === member.id) &&
                                             !field.value.includes(member.userId)
                                           ).map(member => (
@@ -1350,6 +1353,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           {/* Empty state */}
                                           {teamMembers?.filter(member => 
                                             member.role === "player" && 
+                                            member.userId !== null &&
                                             !Object.values(lineupPositions).some(p => p?.id === member.id) &&
                                             !field.value.includes(member.userId)
                                           ).length === 0 && field.value.length === 0 && (
