@@ -38,28 +38,35 @@ export function createSeasonRouter(): Router {
     try {
       const teamId = parseInt(req.params.teamId);
       
-      // Validate request body
-      const validatedData = insertSeasonSchema.parse({
-        ...req.body,
-        teamId
-      });
+      // Parse dates first before validation
+      const { startDate, endDate, ...otherData } = req.body;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ error: "Start date and end date are required" });
+      }
 
-      // Parse dates
-      const seasonData = {
-        ...validatedData,
-        startDate: new Date(validatedData.startDate),
-        endDate: new Date(validatedData.endDate)
-      };
+      const parsedStartDate = new Date(startDate);
+      const parsedEndDate = new Date(endDate);
+
+      if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+        return res.status(400).json({ error: "Invalid date format" });
+      }
 
       // Validate date logic
-      if (seasonData.startDate >= seasonData.endDate) {
+      if (parsedStartDate >= parsedEndDate) {
         return res.status(400).json({ error: "Start date must be before end date" });
       }
 
+      const seasonData = {
+        ...otherData,
+        teamId,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
+        isActive: true // Default to active for new seasons
+      };
+
       // If this season is being set as active, deactivate other seasons
-      if (seasonData.isActive) {
-        await storage.deactivateAllSeasons(teamId);
-      }
+      await storage.deactivateAllSeasons(teamId);
 
       const newSeason = await storage.createSeason(seasonData);
       res.status(201).json(newSeason);
