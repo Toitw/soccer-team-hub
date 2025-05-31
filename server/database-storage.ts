@@ -1265,7 +1265,22 @@ export class DatabaseStorage implements IStorage {
 
   async getLeagueClassification(id: number): Promise<LeagueClassification | undefined> {
     const [classification] = await db
-      .select()
+      .select({
+        id: leagueClassification.id,
+        teamId: leagueClassification.teamId,
+        seasonId: leagueClassification.seasonId,
+        externalTeamName: leagueClassification.externalTeamName,
+        position: leagueClassification.position,
+        gamesPlayed: leagueClassification.gamesPlayed,
+        gamesWon: leagueClassification.gamesWon,
+        gamesDrawn: leagueClassification.gamesDrawn,
+        gamesLost: leagueClassification.gamesLost,
+        goalsFor: leagueClassification.goalsFor,
+        goalsAgainst: leagueClassification.goalsAgainst,
+        points: leagueClassification.points,
+        createdAt: leagueClassification.createdAt,
+        updatedAt: leagueClassification.updatedAt
+      })
       .from(leagueClassification)
       .where(eq(leagueClassification.id, id));
 
