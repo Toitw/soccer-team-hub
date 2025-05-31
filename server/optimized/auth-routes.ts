@@ -500,4 +500,60 @@ router.post("/onboarding/update-role", isAuthenticated, async (req: Request, res
   }
 });
 
+/**
+ * Join team with code during onboarding
+ * POST /api/auth/onboarding/join-team
+ */
+router.post("/onboarding/join-team", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const { teamCode } = req.body;
+    const userId = (req.user as any).id;
+    
+    if (!teamCode) {
+      return res.status(400).json({ error: "Team code is required" });
+    }
+    
+    // Find team by code
+    const team = await storage.getTeamByJoinCode(teamCode);
+    
+    if (!team) {
+      return res.status(404).json({ error: "Invalid team code" });
+    }
+    
+    // Check if user is already a member of this team
+    const existingTeamUser = await storage.getTeamUser(team.id, userId);
+    
+    if (existingTeamUser) {
+      return res.status(400).json({ error: "Already a member of this team" });
+    }
+    
+    // Get user to determine role
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Create team_user relationship (for team access)
+    await storage.createTeamUser({
+      teamId: team.id,
+      userId: userId
+    });
+    
+    // Mark onboarding as completed
+    const updatedUser = await storage.updateUser(userId, { onboardingCompleted: true });
+    
+    // Return updated user and team info
+    const { password, ...userWithoutPassword } = updatedUser!;
+    return res.json({ 
+      user: userWithoutPassword,
+      team
+    });
+
+  } catch (error) {
+    console.error("Team join error:", error);
+    return res.status(500).json({ error: "Failed to join team" });
+  }
+});
+
 export default router;
