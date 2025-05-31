@@ -477,26 +477,16 @@ interface SeasonClassificationsProps {
 
 // Component to display classifications for a specific season
 function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps) {
-  const { data: classifications, isLoading } = useQuery({
-    queryKey: ['/api/teams', teamId, 'seasons', seasonId, 'classifications'],
-    queryFn: () => apiRequest(`/api/teams/${teamId}/seasons/${seasonId}/classifications`),
-  });
-  
-  // Fetch team's general classifications as fallback
-  const { data: teamClassifications } = useQuery({
+  // Fetch team's general classifications and filter by season
+  const { data: teamClassifications, isLoading } = useQuery({
     queryKey: ['/api/teams', teamId, 'classification'],
     queryFn: () => apiRequest(`/api/teams/${teamId}/classification`),
   });
   
   const { t } = useTranslation();
   
-  // Use season-specific classifications if available, otherwise filter team classifications by season
-  const filteredClassifications = classifications?.length ? classifications : 
-    (teamClassifications || []).filter(c => c.seasonId === seasonId);
-  
-  console.log("Season specific classifications:", classifications);
-  console.log("Team classifications:", teamClassifications);
-  console.log("Filtered classifications:", filteredClassifications);
+  // Filter team classifications by the current season
+  const filteredClassifications = (teamClassifications || []).filter(c => c.seasonId === seasonId);
   
   return (
     <ClassificationTable 
