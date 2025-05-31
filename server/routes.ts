@@ -493,25 +493,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get player details for goals
       const goalsWithPlayerDetails = await Promise.all(
         goals.map(async (goal) => {
-          const scorer = await storage.getUser(goal.scorerId);
+          const scorer = await storage.getTeamMemberById(goal.scorerId);
           if (!scorer) return null;
 
-          // Remove password from user details
-          const { password, ...scorerWithoutPassword } = scorer;
-
-          let assistPlayerWithoutPassword = null;
+          let assistPlayer = null;
           if (goal.assistId) {
-            const assistPlayer = await storage.getUser(goal.assistId);
-            if (assistPlayer) {
-              const { password, ...assistDetails } = assistPlayer;
-              assistPlayerWithoutPassword = assistDetails;
-            }
+            assistPlayer = await storage.getTeamMemberById(goal.assistId);
           }
 
           return {
             ...goal,
-            scorer: scorerWithoutPassword,
-            assistPlayer: assistPlayerWithoutPassword
+            scorer,
+            assistPlayer
           };
         })
       );
@@ -614,15 +607,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get player details for cards
       const cardsWithPlayerDetails = await Promise.all(
         cards.map(async (card) => {
-          const player = await storage.getUser(card.playerId);
+          const player = await storage.getTeamMemberById(card.playerId);
           if (!player) return null;
-
-          // Remove password from user details
-          const { password, ...playerWithoutPassword } = player;
 
           return {
             ...card,
-            player: playerWithoutPassword
+            player
           };
         })
       );
