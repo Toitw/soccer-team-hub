@@ -507,8 +507,8 @@ export const enUS = {
     vs: "vs",
 
     // New entries for match-details.tsx
-    matchDetails: "Match Details",
-    score: "Score",
+    matchDetailsPage: "Match Details",
+    matchScore: "Score",
     dateTimeFormat: "EEEE, MMMM d, yyyy 'at' h:mm a",
     noCardsRecorded: "No cards recorded for this match.",
     recordCardsHelp: "Record yellow and red cards received by your team.",
