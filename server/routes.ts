@@ -1446,7 +1446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const playerStatsPromises = playerMembers.map(async (member) => {
         // Initialize player summary using team member data
         const playerSummary = {
-          id: member.userId || member.id, // Use userId if available, otherwise use member id
+          id: member.id, // Use team member id
           name: member.fullName,
           position: member.position || "Unknown",
           matchesPlayed: 0,
@@ -1458,66 +1458,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
           image: member.profilePicture || "/default-avatar.png"
         };
         
-        // If member is linked to a user, get additional stats
+        // Track which matches this player participated in
+        const participatedMatches = new Set();
+        
+        // Get goals scored by this player in these matches (using team member ID)
+        for (const matchId of matchIds) {
+          const matchGoals = await storage.getMatchGoals(matchId);
+          const goalsScored = matchGoals.filter(goal => goal.scorerId === member.id);
+          const assistsProvided = matchGoals.filter(goal => goal.assistId === member.id);
+          
+          if (goalsScored.length > 0) {
+            playerSummary.goals += goalsScored.length;
+            participatedMatches.add(matchId);
+          }
+          
+          if (assistsProvided.length > 0) {
+            playerSummary.assists += assistsProvided.length;
+            participatedMatches.add(matchId);
+          }
+        }
+        
+        // Get cards received by this player in these matches (using team member ID)
+        for (const matchId of matchIds) {
+          const matchCards = await storage.getMatchCards(matchId);
+          const yellowCards = matchCards.filter(card => 
+            card.playerId === member.id && card.isYellow && !card.isSecondYellow
+          );
+          const redCards = matchCards.filter(card => 
+            card.playerId === member.id && (!card.isYellow || card.isSecondYellow)
+          );
+          
+          if (yellowCards.length > 0) {
+            playerSummary.yellowCards += yellowCards.length;
+            participatedMatches.add(matchId);
+          }
+          
+          if (redCards.length > 0) {
+            playerSummary.redCards += redCards.length;
+            participatedMatches.add(matchId);
+          }
+        }
+        
+        // Check if this player appears in any match lineups (this indicates participation)
+        for (const matchId of matchIds) {
+          const matchLineups = await storage.getMatchLineups(matchId);
+          const teamLineup = matchLineups.find(lineup => lineup.teamId === member.teamId);
+          
+          if (teamLineup && (
+            teamLineup.playerIds?.includes(member.id) || 
+            teamLineup.benchPlayerIds?.includes(member.id)
+          )) {
+            participatedMatches.add(matchId);
+          }
+        }
+        
+        // Get player stats from playerStats table if available (check both user ID and team member ID)
+        for (const matchId of matchIds) {
+          const matchStats = await storage.getMatchPlayerStats(matchId);
+          const playerStat = matchStats.find(stat => 
+            stat.userId === member.userId || stat.userId === member.id
+          );
+          
+          if (playerStat) {
+            participatedMatches.add(matchId);
+            playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
+          }
+        }
+        
+        // Set matches played count
+        playerSummary.matchesPlayed = participatedMatches.size;
+        
+        // If member is linked to a user, get additional profile info
         if (member.userId) {
           const user = await storage.getUser(member.userId);
           if (user) {
             playerSummary.image = user.profilePicture || playerSummary.image;
-            
-            // Track which matches this player participated in
-            const participatedMatches = new Set();
-            
-            // Get goals scored by this player in these matches
-            for (const matchId of matchIds) {
-              const matchGoals = await storage.getMatchGoals(matchId);
-              const goalsScored = matchGoals.filter(goal => goal.scorerId === user.id);
-              const assistsProvided = matchGoals.filter(goal => goal.assistId === user.id);
-              
-              if (goalsScored.length > 0) {
-                playerSummary.goals += goalsScored.length;
-                participatedMatches.add(matchId);
-              }
-              
-              if (assistsProvided.length > 0) {
-                playerSummary.assists += assistsProvided.length;
-                participatedMatches.add(matchId);
-              }
-            }
-            
-            // Get cards received by this player in these matches
-            for (const matchId of matchIds) {
-              const matchCards = await storage.getMatchCards(matchId);
-              const yellowCards = matchCards.filter(card => 
-                card.playerId === user.id && card.isYellow && !card.isSecondYellow
-              );
-              const redCards = matchCards.filter(card => 
-                card.playerId === user.id && (!card.isYellow || card.isSecondYellow)
-              );
-              
-              if (yellowCards.length > 0) {
-                playerSummary.yellowCards += yellowCards.length;
-                participatedMatches.add(matchId);
-              }
-              
-              if (redCards.length > 0) {
-                playerSummary.redCards += redCards.length;
-                participatedMatches.add(matchId);
-              }
-            }
-            
-            // Get player stats from playerStats table if available
-            for (const matchId of matchIds) {
-              const matchStats = await storage.getMatchPlayerStats(matchId);
-              const playerStat = matchStats.find(stat => stat.userId === user.id);
-              
-              if (playerStat) {
-                participatedMatches.add(matchId);
-                playerSummary.minutesPlayed += playerStat.minutesPlayed || 0;
-              }
-            }
-            
-            // Set matches played count
-            playerSummary.matchesPlayed = participatedMatches.size;
           }
         }
         
