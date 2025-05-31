@@ -1373,11 +1373,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           type="submit" 
                           disabled={saveLineup.isPending}
                           onClick={() => {
-                            console.log("Save button clicked");
-                            console.log("Form errors:", lineupForm.formState.errors);
-                            console.log("Form values:", lineupForm.getValues());
-                            console.log("Form is valid:", lineupForm.formState.isValid);
-                            console.log("Current lineup positions:", lineupPositions);
+                            // Sync form with current lineup positions before validation
+                            const playerIds = Object.values(lineupPositions)
+                              .filter(player => player)
+                              .map(player => player!.userId || player!.id)
+                              .filter(id => id) as number[];
+                            
+                            lineupForm.setValue('playerIds', playerIds, { shouldValidate: true });
                           }}
                         >
                           {saveLineup.isPending && <span className="mr-2 animate-spin">⟳</span>}
