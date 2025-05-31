@@ -83,7 +83,17 @@ export function createMatchEventRouter(): Router {
         return res.status(403).json({ error: "Not authorized to update matches" });
       }
 
-      const updatedMatch = await storage.updateMatch(matchId, req.body);
+      // Parse the match date if it's being updated
+      const updateData = { ...req.body };
+      if (updateData.matchDate) {
+        const parsedMatchDate = new Date(updateData.matchDate);
+        if (isNaN(parsedMatchDate.getTime())) {
+          return res.status(400).json({ error: "Invalid match date format" });
+        }
+        updateData.matchDate = parsedMatchDate;
+      }
+
+      const updatedMatch = await storage.updateMatch(matchId, updateData);
       res.json(updatedMatch);
     } catch (error) {
       console.error("Error updating match:", error);
