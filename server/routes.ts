@@ -1501,10 +1501,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Check if this player appears in any match lineups (this indicates participation)
         for (const matchId of matchIds) {
-          const matchLineups = await storage.getMatchLineups(matchId);
-          const teamLineup = matchLineups.find(lineup => lineup.teamId === member.teamId);
+          const teamLineup = await storage.getMatchLineup(matchId);
           
-          if (teamLineup && (
+          if (teamLineup && teamLineup.teamId === member.teamId && (
             teamLineup.playerIds?.includes(member.id) || 
             teamLineup.benchPlayerIds?.includes(member.id)
           )) {
