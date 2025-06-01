@@ -762,7 +762,7 @@ export default function TeamPage() {
   const isAdmin =
     user?.role === "admin" ||
     teamMembers?.some(
-      (member) => member.userId === user?.id && member.role === "admin",
+      (member) => member.userId === user?.id && (member.role === "admin" || member.role === "coach"),
     );
 
   return (
