@@ -57,7 +57,7 @@ export default function DashboardPage() {
     
     // Check if user just completed onboarding by joining a team
     const recentlyJoinedTeam = window.localStorage.getItem('team_joined');
-    const hasRecentlyJoined = recentlyJoinedTeam && (Date.now() - parseInt(recentlyJoinedTeam) < 30000); // 30 seconds
+    const hasRecentlyJoined = recentlyJoinedTeam && (Date.now() - parseInt(recentlyJoinedTeam) < 60000); // 60 seconds
     
     // If user hasn't completed onboarding, redirect to onboarding page
     if (user && !user.onboardingCompleted && window.location.pathname !== "/onboarding") {

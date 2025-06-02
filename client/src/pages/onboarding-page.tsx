@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserRoundCog, UserRound, Users } from "lucide-react";
 
 // Schema for user role selection
@@ -63,6 +64,7 @@ export default function OnboardingPage() {
   const { toast } = useToast();
   const { user, setUser } = useAuth();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("join");
   // State to track the onboarding step
@@ -127,13 +129,18 @@ export default function OnboardingPage() {
       // Mark that user just joined a team to prevent mock data creation
       window.localStorage.setItem('team_joined', Date.now().toString());
 
+      // Force immediate cache invalidation for teams
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+
       toast({
         title: "Team joined successfully",
         description: `You have joined ${response.team.name}. Welcome to the team!`,
       });
 
-      // Redirect to dashboard
-      setLocation("/");
+      // Small delay to ensure cache invalidation completes before redirect
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     } catch (error: any) {
       console.error("Error joining team:", error);
       toast({
@@ -169,13 +176,18 @@ export default function OnboardingPage() {
         }),
       );
 
+      // Force immediate cache invalidation for teams
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+
       toast({
         title: "Team created successfully",
         description: `Your team "${response.team.name}" has been created! Team code: ${response.team.joinCode}`,
       });
 
-      // Redirect to dashboard
-      setLocation("/");
+      // Small delay to ensure cache invalidation completes before redirect
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     } catch (error: any) {
       console.error("Error creating team:", error);
       toast({
