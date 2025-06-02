@@ -116,8 +116,8 @@ export default function MobileNavigation() {
                   </Link>
                 </div>
 
-                {/* Only admin users can access settings */}
-                {user?.role === "admin" && (
+                {/* Admin and coach users can access settings */}
+                {(user?.role === "admin" || user?.role === "coach") && (
                   <div className="flex flex-col items-center">
                     <Link href="/settings">
                       <div className={`flex flex-col items-center px-4 py-2 ${location === '/settings' ? 'text-primary' : 'text-gray-700'}`}>
