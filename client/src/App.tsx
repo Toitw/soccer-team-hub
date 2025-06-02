@@ -61,12 +61,12 @@ function Router() {
         component={StatisticsPage}
       />
 
-      {/* Settings - restricted to admin only */}
+      {/* Settings - accessible to admin and coach */}
       <ProtectedRoute 
         path="/settings" 
         component={SettingsPage} 
         requiredRole="admin" 
-        allowedRoles={["admin"]} 
+        allowedRoles={["admin", "coach"]} 
       />
 
       {/* Admin panel - restricted to superuser only */}
