@@ -65,7 +65,6 @@ function Router() {
       <ProtectedRoute 
         path="/settings" 
         component={SettingsPage} 
-        requiredRole="admin" 
         allowedRoles={["admin", "coach"]} 
       />
 
