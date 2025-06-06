@@ -934,7 +934,8 @@ export default function EventPage() {
                                     <div className="flex space-x-1">
                                       <Button 
                                         variant="ghost" 
-                                        size="icon                                        onClick={(e) => {
+                                        size="icon"
+                                        onClick={(e) => {
                                           e.stopPropagation();
                                           handleEditEvent(event);
                                         }}
