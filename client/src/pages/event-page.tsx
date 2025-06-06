@@ -112,11 +112,7 @@ export default function EventPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  const {
-    data: events,
-    isLoading: eventsLoading,
-    refetch: refetchEvents,
-  } = useQuery<Event[]>({
+  const { data: events, isLoading: eventsLoading, refetch: refetchEvents } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
     queryFn: async () => {
@@ -303,7 +299,7 @@ export default function EventPage() {
   // Computed values - always compute these, don't make them conditional
   const isLoading = teamsLoading || eventsLoading;
   const trainingEvents = events?.filter((event) => event.eventType === "training") || [];
-  
+
   // Get events for the selected date - always compute this
   const eventsForSelectedDate = events?.filter((event) => {
     if (!selectedDate || !event.startTime) return false;
@@ -320,19 +316,19 @@ export default function EventPage() {
         throw new Error('Failed to fetch attendance data');
       }
       const attendees = await response.json();
-      
+
       // Transform the data to match expected format
       const data: AttendanceData = {
         attendees: attendees,
         total: attendees.length,
         confirmed: attendees.filter((a: any) => a.status === 'confirmed').length
       };
-      
+
       setAttendanceMap(prev => ({
         ...prev,
         [eventId]: data
       }));
-      
+
       // Set current user's attendance status
       if (user) {
         const userAttendance = attendees.find((a: any) => a.userId === user.id);
@@ -344,7 +340,7 @@ export default function EventPage() {
           }));
         }
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error fetching attendance:', error);
@@ -355,7 +351,7 @@ export default function EventPage() {
   const handleEditEvent = (event: Event) => {
     setIsEditMode(true);
     setCurrentEvent(event);
-    
+
     form.reset({
       title: event.title,
       startTime: new Date(event.startTime).toISOString().slice(0, 16),
@@ -364,7 +360,7 @@ export default function EventPage() {
       description: event.description || "",
       eventType: event.eventType,
     });
-    
+
     setDialogOpen(true);
   };
 
@@ -386,7 +382,7 @@ export default function EventPage() {
       ...prev,
       [eventId]: attending ? "attending" : "notAttending"
     }));
-    
+
     // Call API to update attendance
     updateAttendanceMutation.mutate({ 
       eventId, 
@@ -414,7 +410,7 @@ export default function EventPage() {
       }
     }
   }, [events, selectedDate]);
-  
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -453,12 +449,12 @@ export default function EventPage() {
                         // Create date at noon on the selected day to avoid timezone issues
                         const localDate = new Date(selectedDate);
                         localDate.setHours(12, 0, 0, 0);
-                        
+
                         const selectedDateString = localDate.toISOString().slice(0, 16);
                         const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
                           .toISOString()
                           .slice(0, 16);
-                        
+
                         form.setValue("startTime", selectedDateString);
                         form.setValue("endTime", endTime);
                       }
@@ -665,12 +661,12 @@ export default function EventPage() {
                                 // Create date at noon on the selected day to avoid timezone issues
                                 const localDate = new Date(selectedDate);
                                 localDate.setHours(12, 0, 0, 0);
-                                
+
                                 const selectedDateString = localDate.toISOString().slice(0, 16);
                                 const endTime = new Date(localDate.getTime() + 90 * 60 * 1000)
                                   .toISOString()
                                   .slice(0, 16);
-                                
+
                                 form.setValue("startTime", selectedDateString);
                                 form.setValue("endTime", endTime);
                               }
@@ -721,8 +717,8 @@ export default function EventPage() {
                                     </Badge>
                                   </div>
                                 )}
-                                
-                                
+
+
                               </div>
                               <div className="flex flex-col items-end">
                                 <span
@@ -736,7 +732,7 @@ export default function EventPage() {
                                 >
                                   {t(`events.types.${event.eventType}`)}
                                 </span>
-                                
+
                                 {/* Admin controls */}
                                 {user && (selectedTeam?.createdById === user.id || user.role === 'admin' || user.role === 'coach') && (
                                   <div className="flex space-x-1">
@@ -840,12 +836,12 @@ export default function EventPage() {
                             // Use current date if no date is selected
                             const today = new Date();
                             today.setHours(12, 0, 0, 0);
-                            
+
                             const selectedDateString = today.toISOString().slice(0, 16);
                             const endTime = new Date(today.getTime() + 90 * 60 * 1000)
                               .toISOString()
                               .slice(0, 16);
-                            
+
                             form.setValue("startTime", selectedDateString);
                             form.setValue("endTime", endTime);
                             setDialogOpen(true);
@@ -932,14 +928,13 @@ export default function EventPage() {
                                   >
                                     {t(`events.types.${event.eventType}`)}
                                   </span>
-                                  
+
                                   {/* Admin controls */}
                                   {user && (selectedTeam?.createdById === user.id || user.role === 'admin' || user.role === 'coach') && (
                                     <div className="flex space-x-1">
                                       <Button 
                                         variant="ghost" 
-                                        size="icon" 
-                                        onClick={(e) => {
+                                        size="icon                                        onClick={(e) => {
                                           e.stopPropagation();
                                           handleEditEvent(event);
                                         }}

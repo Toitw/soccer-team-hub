@@ -102,6 +102,9 @@ export default function DashboardPage() {
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
+    staleTime: 0, // Always consider data stale
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!selectedTeam) return [];
       const response = await fetch(`/api/teams/${selectedTeam.id}/events`);
@@ -159,7 +162,10 @@ export default function DashboardPage() {
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
               <TeamSummary team={selectedTeam} />
-              <UpcomingEvents events={upcomingEvents || []} />
+              <UpcomingEvents 
+                events={upcomingEvents || []} 
+                onRefresh={() => queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "events"] })}
+              />
               <NextMatch teamId={selectedTeam?.id} /> {/* Use NextMatch with teamId */}
             </div>
 

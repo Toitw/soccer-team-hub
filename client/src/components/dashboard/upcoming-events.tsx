@@ -10,9 +10,10 @@ import { useLanguage } from "@/hooks/use-language";
 interface UpcomingEventsProps {
   events: Event[];
   isDemoMode?: boolean;
+  onRefresh?: () => void;
 }
 
-export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingEventsProps) {
+export default function UpcomingEvents({ events, isDemoMode = false, onRefresh }: UpcomingEventsProps) {
   const { t, currentLanguage } = useLanguage();
   const getEventTypeColor = (type: string) => {
     switch(type) {
@@ -76,12 +77,24 @@ export default function UpcomingEvents({ events, isDemoMode = false }: UpcomingE
       <CardContent className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">{t("dashboard.upcomingEvents")}</h2>
-          <div
-            onClick={() => window.location.href = '/events'}
-            className="text-sm text-primary cursor-pointer"
-          >
-            {t("common.viewAll")}
+          <div className="flex items-center gap-2">
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="text-sm text-gray-500 hover:text-primary cursor-pointer"
+                title="Refresh events"
+              >
+                ↻
+              </button>
+            )}
+            <div
+              onClick={() => window.location.href = '/events'}
+              className="text-sm text-primary cursor-pointer"
+            >
+              {t("common.viewAll")}
+            </div>
           </div>
+        </div></div>
         </div>
         
         {events.length === 0 ? (
