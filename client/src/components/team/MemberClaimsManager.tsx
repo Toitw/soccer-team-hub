@@ -91,8 +91,8 @@ export default function MemberClaimsManager({ teamId }: { teamId?: number }) {
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${actualTeamId}/claims`] });
       queryClient.invalidateQueries({ queryKey: [`/api/teams/${actualTeamId}/members`] });
       toast({
-        title: "Reclamación aprobada",
-        description: "Se ha aprobado la reclamación del miembro correctamente.",
+        titleKey: "toasts.claimApproved",
+        descriptionKey: "toasts.claimApprovedDesc",
       });
     },
     onError: (error: any) => {

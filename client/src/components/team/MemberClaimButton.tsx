@@ -49,14 +49,14 @@ export function MemberClaimButton({ member }: { member: TeamMember }) {
       
       setOpen(false);
       toast({
-        title: "Solicitud enviada",
-        description: "Tu solicitud para reclamar este jugador ha sido enviada. Un administrador la revisará pronto.",
+        titleKey: "toasts.claimSubmitted",
+        descriptionKey: "toasts.claimSubmittedDesc",
       });
     },
     onError: (error: any) => {
       const errorMsg = error?.error || "Ha ocurrido un error al enviar la solicitud.";
       toast({
-        title: "Error",
+        titleKey: "toasts.error",
         description: errorMsg,
         variant: "destructive",
       });

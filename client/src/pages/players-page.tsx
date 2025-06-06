@@ -59,14 +59,14 @@ export default function PlayersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/players"] });
       toast({
-        title: "Player profile created",
-        description: "The player has been added to the roster.",
+        titleKey: "toasts.success",
+        description: "Jugador añadido al equipo",
       });
       playerForm.reset();
     },
     onError: (error) => {
       toast({
-        title: "Failed to create player profile",
+        titleKey: "toasts.error",
         description: error.message,
         variant: "destructive",
       });

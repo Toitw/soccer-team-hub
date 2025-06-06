@@ -112,15 +112,15 @@ export function AddUserForm({ onSuccess, onCancel }: AddUserFormProps) {
       });
       
       toast({
-        title: 'User Created',
-        description: `Successfully created user ${data.fullName}.`,
+        titleKey: "toasts.success",
+        description: `Usuario creado: ${data.fullName}`,
       });
       onSuccess();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to create user. Please try again.',
+        titleKey: 'toasts.error',
+        descriptionKey: 'toasts.actionFailed',
         variant: 'destructive',
       });
     },
