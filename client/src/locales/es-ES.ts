@@ -1098,6 +1098,14 @@ export const esES = {
     permissionDenied: "Permiso denegado",
     permissionDeniedDesc: "No tienes permisos para realizar esta acción",
     unauthorized: "No autorizado",
+
+    // Mensajes específicos para el panel de administración
+    errorLoadingUsersDesc: "Hubo un problema al cargar los datos de usuarios",
+    errorLoadingTeamsDesc: "Hubo un problema al cargar los datos de equipos",
+    userDeleted: "Usuario eliminado",
+    userDeletedDesc: "El usuario ha sido eliminado exitosamente",
+    teamDeleted: "Equipo eliminado", 
+    teamDeletedDesc: "El equipo ha sido eliminado exitosamente",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
   },
 };
