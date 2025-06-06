@@ -45,14 +45,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: credentials 
       });
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: async (user: SelectUser) => {
       // Set the user data
       queryClient.setQueryData(["/api/user"], user);
       
-      // Invalidate all team-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/teams", undefined, "members"] });
-      queryClient.removeQueries({ queryKey: ["/api/teams", undefined, "members"] });
+      // Prefetch teams data immediately after login
+      try {
+        const teams = await queryClient.fetchQuery({
+          queryKey: ["/api/teams"],
+          queryFn: getQueryFn({ on401: "throw" }),
+          staleTime: 5 * 60 * 1000, // 5 minutes
+        });
+        
+        // If user has teams, prefetch events for the first team
+        if (teams && Array.isArray(teams) && teams.length > 0) {
+          const firstTeam = teams[0];
+          if (firstTeam && firstTeam.id) {
+            // Prefetch events for immediate availability
+            queryClient.prefetchQuery({
+              queryKey: ["/api/teams", firstTeam.id, "events"],
+              queryFn: async () => {
+                const response = await fetch(`/api/teams/${firstTeam.id}/events`, {
+                  credentials: "include"
+                });
+                if (!response.ok) throw new Error("Failed to fetch events");
+                return await response.json();
+              },
+              staleTime: 2 * 60 * 1000, // 2 minutes
+            });
+            
+            // Also prefetch other team data
+            queryClient.prefetchQuery({
+              queryKey: ["/api/teams", firstTeam.id, "matches/recent"],
+              queryFn: getQueryFn({ on401: "throw" }),
+              staleTime: 2 * 60 * 1000,
+            });
+            
+            queryClient.prefetchQuery({
+              queryKey: ["/api/teams", firstTeam.id, "announcements/recent"],
+              queryFn: getQueryFn({ on401: "throw" }),
+              staleTime: 2 * 60 * 1000,
+            });
+          }
+        }
+      } catch (error) {
+        console.log("Prefetch failed, will load normally:", error);
+      }
       
       toast({
         titleKey: "toasts.loginSuccess",

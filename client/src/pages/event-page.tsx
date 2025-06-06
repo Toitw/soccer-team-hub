@@ -115,14 +115,19 @@ export default function EventPage() {
   const { data: events, isLoading: eventsLoading, refetch: refetchEvents } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
     queryFn: async () => {
       if (!selectedTeam) return [];
-      const response = await fetch(`/api/teams/${selectedTeam.id}/events`);
+      console.log("Events page: Fetching events for team", selectedTeam.id);
+      const response = await fetch(`/api/teams/${selectedTeam.id}/events`, {
+        credentials: "include"
+      });
       if (!response.ok) throw new Error("Failed to fetch events");
-      return await response.json();
+      const allEvents = await response.json();
+      console.log("Events page: Retrieved events:", allEvents);
+      return allEvents;
     },
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   });
 
   // Form setup

@@ -23,7 +23,38 @@ export default function DashboardPage() {
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Prefetch team data when teams load
+  useEffect(() => {
+    if (teams && teams.length > 0 && !teamsLoading) {
+      const firstTeam = teams[0];
+      if (firstTeam?.id) {
+        // Prefetch events immediately when team is available
+        queryClient.prefetchQuery({
+          queryKey: ["/api/teams", firstTeam.id, "events"],
+          queryFn: async () => {
+            const response = await fetch(`/api/teams/${firstTeam.id}/events`);
+            if (!response.ok) throw new Error("Failed to fetch events");
+            return await response.json();
+          },
+          staleTime: 2 * 60 * 1000,
+        });
+        
+        // Prefetch other data too
+        queryClient.prefetchQuery({
+          queryKey: ["/api/teams", firstTeam.id, "matches/recent"],
+          staleTime: 2 * 60 * 1000,
+        });
+        
+        queryClient.prefetchQuery({
+          queryKey: ["/api/teams", firstTeam.id, "announcements/recent"],
+          staleTime: 2 * 60 * 1000,
+        });
+      }
+    }
+  }, [teams, teamsLoading, queryClient]);
 
   // Handle navigation and data loading
   useEffect(() => {
@@ -102,20 +133,25 @@ export default function DashboardPage() {
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "events"],
     enabled: !!selectedTeam,
-    staleTime: 0, // Always consider data stale
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
     queryFn: async () => {
       if (!selectedTeam) return [];
-      const response = await fetch(`/api/teams/${selectedTeam.id}/events`);
+      console.log("Dashboard: Fetching events for team", selectedTeam.id);
+      const response = await fetch(`/api/teams/${selectedTeam.id}/events`, {
+        credentials: "include"
+      });
       if (!response.ok) throw new Error("Failed to fetch events");
       // Use only the most recent events (next 3 upcoming events)
       const allEvents = await response.json();
+      console.log("Dashboard: Retrieved events:", allEvents);
       const now = new Date();
-      return allEvents
+      const upcomingEvents = allEvents
         .filter((event: Event) => new Date(event.startTime) >= now)
         .sort((a: Event, b: Event) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-        .slice(0, 2); // Mostrar solo los 2 próximos eventos
+        .slice(0, 2); // Show only next 2 events
+      console.log("Dashboard: Filtered upcoming events:", upcomingEvents);
+      return upcomingEvents;
     }
   });
 
