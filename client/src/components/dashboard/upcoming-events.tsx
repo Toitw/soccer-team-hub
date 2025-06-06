@@ -94,7 +94,6 @@ export default function UpcomingEvents({ events, isDemoMode = false, onRefresh }
               {t("common.viewAll")}
             </div>
           </div>
-        </div></div>
         </div>
         
         {events.length === 0 ? (
