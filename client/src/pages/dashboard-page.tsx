@@ -150,8 +150,8 @@ export default function DashboardPage() {
       const upcomingEvents = allEvents
         .filter((event: Event) => new Date(event.startTime) >= now)
         .sort((a: Event, b: Event) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-        .slice(0, 2); // Show only next 2 events
-      console.log("Dashboard: Filtered upcoming events:", upcomingEvents);
+        .slice(0, 2); // Limit to maximum 2 upcoming events
+      console.log("Dashboard: Filtered upcoming events (max 2):", upcomingEvents);
       return upcomingEvents;
     }
   });
