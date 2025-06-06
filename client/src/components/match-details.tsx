@@ -1598,8 +1598,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                       <polyline points="7 11 12 6 17 11" />
                                       <polyline points="7 17 12 12 17 17" />
                                     </svg>
-                                  </div>
-                                )}
+                                  </div>                                )}
 
                                 {playerSubstitutions.some(s => s.playerInId === player.id) && (
                                   <div className="flex items-center" title="Substituted in">

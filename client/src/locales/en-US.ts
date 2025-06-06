@@ -918,6 +918,8 @@ export const enUS = {
     playerAlreadyOnBenchDesc: "This player is already on the bench.",
     lineupSaved: "Lineup saved",
     lineupSavedDesc: "Match lineup has been saved successfully",
+    playerAddedToLineup: "Player Added to Lineup",
+    playerAssigned: "Player has been assigned to the selected position",
     goalAdded: "Goal added",
     goalAddedDesc: "Goal has been recorded successfully",
     cardAdded: "Card added",

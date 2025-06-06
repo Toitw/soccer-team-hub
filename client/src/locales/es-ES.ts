@@ -1059,6 +1059,8 @@ export const esES = {
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
+    playerAddedToLineup: "Jugador Añadido a la Alineación",
+    playerAssigned: "El jugador ha sido asignado a la posición seleccionada",
     goalAdded: "Gol añadido",
     goalAddedDesc: "El gol ha sido registrado exitosamente",
     cardAdded: "Tarjeta añadida",
