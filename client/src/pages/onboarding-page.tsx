@@ -133,8 +133,8 @@ export default function OnboardingPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
 
       toast({
-        title: "Team joined successfully",
-        description: `You have joined ${response.team.name}. Welcome to the team!`,
+        titleKey: "toasts.success",
+        description: `${t("onboarding.joinTeam")}: ${response.team.name}`,
       });
 
       // Small delay to ensure cache invalidation completes before redirect
@@ -145,10 +145,8 @@ export default function OnboardingPage() {
       console.error("Error joining team:", error);
       toast({
         variant: "destructive",
-        title: "Failed to join team",
-        description:
-          error.message ||
-          "Invalid team code or server error. Please try again.",
+        titleKey: "toasts.error",
+        description: error.message || t("toasts.actionFailed"),
       });
     } finally {
       setIsSubmitting(false);
@@ -180,8 +178,9 @@ export default function OnboardingPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
 
       toast({
-        title: "Team created successfully",
-        description: `Your team "${response.team.name}" has been created! Team code: ${response.team.joinCode}`,
+        titleKey: "toasts.teamCreated",
+        descriptionKey: "toasts.teamCreatedDesc",
+        descriptionParams: { name: response.team.name },
       });
 
       // Small delay to ensure cache invalidation completes before redirect
@@ -192,8 +191,8 @@ export default function OnboardingPage() {
       console.error("Error creating team:", error);
       toast({
         variant: "destructive",
-        title: "Failed to create team",
-        description: error.message || "Something went wrong. Please try again.",
+        titleKey: "toasts.teamCreateError",
+        descriptionKey: "toasts.teamCreateErrorDesc",
       });
     } finally {
       setIsSubmitting(false);

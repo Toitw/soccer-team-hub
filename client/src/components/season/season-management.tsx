@@ -90,15 +90,15 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
       queryClient.invalidateQueries({ queryKey: ['/api/teams', teamId, 'seasons'] });
       setIsCreateDialogOpen(false);
       toast({
-        title: "Season created",
-        description: "The season has been created successfully",
+        titleKey: "toasts.seasonCreated",
+        descriptionKey: "toasts.seasonCreatedDesc",
       });
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to create season: " + String(error),
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${String(error)}`,
         variant: "destructive",
       });
     }
@@ -113,14 +113,14 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams', teamId, 'seasons'] });
       toast({
-        title: "Season finished",
-        description: "The season has been marked as completed",
+        titleKey: "toasts.success",
+        description: t("seasons.markAsFinished"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to finish season: " + String(error),
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${String(error)}`,
         variant: "destructive",
       });
     }
@@ -135,14 +135,14 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/teams', teamId, 'seasons'] });
       toast({
-        title: "Season deleted",
-        description: "The season has been deleted successfully",
+        titleKey: "toasts.seasonDeleted",
+        descriptionKey: "toasts.seasonDeletedDesc",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to delete season: " + String(error),
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${String(error)}`,
         variant: "destructive",
       });
     }
