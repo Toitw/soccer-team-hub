@@ -124,10 +124,12 @@ export default function DashboardPage() {
   // Select the first team by default
   const selectedTeam = teams && teams.length > 0 ? teams[0] : null;
 
-  // If we have a selected team, fetch related data
+  // If we have a selected team, fetch related data with optimized caching
   const { data: recentMatches, isLoading: matchesLoading } = useQuery<Match[]>({
     queryKey: ["/api/teams", selectedTeam?.id, "matches/recent"],
     enabled: !!selectedTeam,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
   });
 
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
@@ -142,7 +144,6 @@ export default function DashboardPage() {
         credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to fetch events");
-      // Use only the most recent events (next 3 upcoming events)
       const allEvents = await response.json();
       console.log("Dashboard: Retrieved events:", allEvents);
       const now = new Date();
@@ -159,24 +160,28 @@ export default function DashboardPage() {
     (Announcement & { creator?: any })[]
   >({
     queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
+    enabled: !!selectedTeam,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
     queryFn: async () => {
       if (!selectedTeam?.id) {
         return [];
       }
       try {
+        console.log("Dashboard: Fetching announcements for team", selectedTeam.id);
         const response = await apiRequest(`/api/teams/${selectedTeam.id}/announcements/recent`);
-        // Ensure we have a valid array response
         const data = Array.isArray(response) ? response : [];
+        console.log("Dashboard: Retrieved announcements:", data);
         return data as (Announcement & { creator?: any })[];
       } catch (error) {
-        console.error("Failed to fetch announcements:", error);
+        console.error("Dashboard: Failed to fetch announcements:", error);
         return [];
       }
     },
-    enabled: !!selectedTeam,
   });
 
-  const isLoading = teamsLoading || matchesLoading || eventsLoading || announcementsLoading;
+  const isLoading = teamsLoading;
+  const isDataLoading = matchesLoading || eventsLoading || announcementsLoading;
 
   if (isLoading) {
     return (

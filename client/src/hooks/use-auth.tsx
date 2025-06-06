@@ -49,48 +49,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set the user data
       queryClient.setQueryData(["/api/user"], user);
       
-      // Prefetch teams data immediately after login
-      try {
-        const teams = await queryClient.fetchQuery({
-          queryKey: ["/api/teams"],
-          queryFn: getQueryFn({ on401: "throw" }),
-          staleTime: 5 * 60 * 1000, // 5 minutes
-        });
-        
-        // If user has teams, prefetch events for the first team
-        if (teams && Array.isArray(teams) && teams.length > 0) {
-          const firstTeam = teams[0];
-          if (firstTeam && firstTeam.id) {
-            // Prefetch events for immediate availability
-            queryClient.prefetchQuery({
-              queryKey: ["/api/teams", firstTeam.id, "events"],
-              queryFn: async () => {
-                const response = await fetch(`/api/teams/${firstTeam.id}/events`, {
-                  credentials: "include"
-                });
-                if (!response.ok) throw new Error("Failed to fetch events");
-                return await response.json();
-              },
-              staleTime: 2 * 60 * 1000, // 2 minutes
-            });
-            
-            // Also prefetch other team data
-            queryClient.prefetchQuery({
-              queryKey: ["/api/teams", firstTeam.id, "matches/recent"],
-              queryFn: getQueryFn({ on401: "throw" }),
-              staleTime: 2 * 60 * 1000,
-            });
-            
-            queryClient.prefetchQuery({
-              queryKey: ["/api/teams", firstTeam.id, "announcements/recent"],
-              queryFn: getQueryFn({ on401: "throw" }),
-              staleTime: 2 * 60 * 1000,
-            });
+      // Prefetch teams and team data immediately after login to avoid cascading delays
+      setTimeout(async () => {
+        try {
+          console.log("Auth: Starting post-login data prefetch");
+          const teams = await queryClient.fetchQuery({
+            queryKey: ["/api/teams"],
+            queryFn: getQueryFn({ on401: "throw" }),
+            staleTime: 5 * 60 * 1000, // 5 minutes
+          });
+          
+          // If user has teams, prefetch all related data in parallel
+          if (teams && Array.isArray(teams) && teams.length > 0) {
+            const firstTeam = teams[0];
+            if (firstTeam?.id) {
+              console.log("Auth: Prefetching data for team", firstTeam.id);
+              
+              // Prefetch all team data in parallel to avoid sequential loading delays
+              await Promise.allSettled([
+                // Events
+                queryClient.prefetchQuery({
+                  queryKey: ["/api/teams", firstTeam.id, "events"],
+                  queryFn: async () => {
+                    const response = await fetch(`/api/teams/${firstTeam.id}/events`, {
+                      credentials: "include"
+                    });
+                    if (!response.ok) throw new Error("Failed to fetch events");
+                    return await response.json();
+                  },
+                  staleTime: 5 * 60 * 1000,
+                }),
+                
+                // Matches
+                queryClient.prefetchQuery({
+                  queryKey: ["/api/teams", firstTeam.id, "matches/recent"],
+                  queryFn: getQueryFn({ on401: "throw" }),
+                  staleTime: 5 * 60 * 1000,
+                }),
+                
+                // Announcements
+                queryClient.prefetchQuery({
+                  queryKey: ["/api/teams", firstTeam.id, "announcements/recent"],
+                  queryFn: getQueryFn({ on401: "throw" }),
+                  staleTime: 5 * 60 * 1000,
+                }),
+                
+                // Team members
+                queryClient.prefetchQuery({
+                  queryKey: ["/api/teams", firstTeam.id, "members"],
+                  queryFn: getQueryFn({ on401: "throw" }),
+                  staleTime: 5 * 60 * 1000,
+                })
+              ]);
+              
+              console.log("Auth: Completed prefetching team data");
+            }
           }
+        } catch (error) {
+          console.log("Auth: Prefetch failed, data will load normally:", error);
         }
-      } catch (error) {
-        console.log("Prefetch failed, will load normally:", error);
-      }
+      }, 100); // Small delay to allow login to complete
       
       toast({
         titleKey: "toasts.loginSuccess",
