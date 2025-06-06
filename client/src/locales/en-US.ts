@@ -821,12 +821,23 @@ export const enUS = {
     // Team management toasts
     teamCreated: "Team Created",
     teamCreatedDesc: "Successfully created team {{name}}.",
-    teamCreateError: "Failed tocreate team",
+    teamCreateError: "Failed to create team",
     teamCreateErrorDesc: "Failed to create team. Please try again.",
     memberCreated: "Member Added",
     memberCreatedDesc: "Successfully added {{name}} to the team.",
     memberCreateError: "Failed to add member",
     memberCreateErrorDesc: "Failed to add member. Please try again.",
+    memberRemoved: "Member removed",
+    memberRemovedDesc: "Team member has been removed successfully.",
+    teamUpdated: "Team updated",
+    teamUpdatedDesc: "Team settings have been updated successfully.",
+    logoUpdated: "Logo updated",
+    logoUpdatedDesc: "Your team logo has been updated successfully.",
+    joinCodeRegenerated: "Join code regenerated",
+    joinCodeRegeneratedDesc: "New join code generated successfully.",
+    copiedToClipboard: "Copied to clipboard",
+    clipboardDesc: "Team join code has been copied to clipboard.",
+
     // Auth related toast messages
     loginSuccess: "Login successful",
     loginFailed: "Login failed",
@@ -835,6 +846,10 @@ export const enUS = {
     registrationFailed: "Registration failed",
     welcomeToTeamKick: "Welcome to TeamKick, {{name}}",
     logoutSuccess: "Logged out successfully",
+    passwordResetSuccess: "Password reset successfully",
+    passwordResetError: "Password reset error",
+    emailVerified: "Email verified",
+    emailVerificationFailed: "Email verification failed",
 
     // Announcements related toast messages
     announcementCreated: "Announcement created",
@@ -845,7 +860,42 @@ export const enUS = {
     announcementDeletedDesc: "The announcement has been removed",
     refreshingAnnouncements: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
     announcementsLoaded: "{{count}} announcements loaded successfully.",
+    failedToRefresh: "Failed to refresh",
     failedToRefreshAnnouncements: "Failed to refresh announcements",
+
+    // Event related toast messages
+    eventCreated: "Event created",
+    eventCreatedDesc: "Event has been created successfully",
+    eventUpdated: "Event updated",
+    eventUpdatedDesc: "Event has been updated successfully",
+    eventDeleted: "Event deleted",
+    eventDeletedDesc: "Event has been deleted successfully",
+    attendanceUpdated: "Attendance updated",
+    attendanceUpdatedDesc: "Your attendance response has been updated",
+
+    // Match related toast messages
+    matchCreated: "Match created",
+    matchCreatedDesc: "Match has been created successfully",
+    matchUpdated: "Match updated",
+    matchUpdatedDesc: "Match has been updated successfully",
+    matchDeleted: "Match deleted",
+    matchDeletedDesc: "Match has been deleted successfully",
+    csvUploaded: "CSV uploaded successfully",
+    csvUploadedDesc: "CSV data has been processed successfully",
+    classificationCreated: "Classification created",
+    classificationCreatedDesc: "Classification entry has been created successfully",
+    classificationUpdated: "Classification updated",
+    classificationUpdatedDesc: "Classification has been updated successfully",
+    classificationDeleted: "Classification deleted",
+    classificationDeletedDesc: "Classification entry has been deleted successfully",
+
+    // Season related toast messages
+    seasonCreated: "Season created",
+    seasonCreatedDesc: "Season has been created successfully",
+    seasonUpdated: "Season updated",
+    seasonUpdatedDesc: "Season has been updated successfully",
+    seasonDeleted: "Season deleted",
+    seasonDeletedDesc: "Season has been deleted successfully",
 
     // General action messages
     dataSaved: "Data saved",
@@ -853,13 +903,59 @@ export const enUS = {
     actionCompleted: "Action completed",
     actionFailed: "Action failed",
 
+    // Validation messages
+    validationError: "Validation error",
+    requiredField: "This field is required",
+    invalidEmail: "Invalid email address",
+    passwordTooShort: "Password must be at least 8 characters",
+    passwordsDoNotMatch: "Passwords do not match",
+
     // Match details related toast messages
     playerAlreadyInLineup: "Player already in lineup",
     playerAlreadyAssigned: "This player is already assigned to a position.",
-    removePlayerFirst: "Remove the player from the field position first before adding to bench.",    playerAlreadyOnBench: "Player already on bench",
+    removePlayerFirst: "Remove the player from the field position first before adding to bench.",
+    playerAlreadyOnBench: "Player already on bench",
     playerAlreadyOnBenchDesc: "This player is already on the bench.",
     lineupSaved: "Lineup saved",
     lineupSavedDesc: "Match lineup has been saved successfully",
+    goalAdded: "Goal added",
+    goalAddedDesc: "Goal has been recorded successfully",
+    cardAdded: "Card added",
+    cardAddedDesc: "Card has been recorded successfully",
+    substitutionAdded: "Substitution added",
+    substitutionAddedDesc: "Substitution has been recorded successfully",
+
+    // Invitation related toast messages
+    invitationSent: "Invitation sent",
+    invitationSentDesc: "Invitation has been sent to {{email}}",
+    invitationError: "Invitation error",
+    invitationErrorDesc: "Failed to send invitation. Please try again.",
+
+    // Member claims related toast messages
+    claimApproved: "Claim approved",
+    claimApprovedDesc: "Member claim has been approved",
+    claimRejected: "Claim rejected",
+    claimRejectedDesc: "Member claim has been rejected",
+    claimSubmitted: "Claim submitted",
+    claimSubmittedDesc: "Your claim has been submitted for review",
+
+    // Feedback related toast messages
+    feedbackSubmitted: "Feedback submitted",
+    feedbackSubmittedDesc: "Thank you for your feedback! We'll review it soon.",
+    feedbackError: "Feedback error",
+    feedbackErrorDesc: "Failed to submit feedback. Please try again.",
+
+    // Network and connection messages
+    networkError: "Network error",
+    networkErrorDesc: "Please check your connection and try again",
+    serverError: "Server error",
+    serverErrorDesc: "A server error occurred. Please try again later",
+
+    // Permission messages
+    permissionDenied: "Permission denied",
+    permissionDeniedDesc: "You don't have permission to perform this action",
+    unauthorized: "Unauthorized",
+    unauthorizedDesc: "You must be logged in to access this feature",
   },
 };
 
@@ -1678,6 +1774,17 @@ export const esES = {
     memberCreatedDesc: "{{name}} añadido correctamente al equipo.",
     memberCreateError: "Error al añadir miembro",
     memberCreateErrorDesc: "Error al añadir miembro. Por favor, inténtalo de nuevo.",
+    memberRemoved: "Miembro eliminado",
+    memberRemovedDesc: "Miembro del equipo eliminado correctamente.",
+    teamUpdated: "Equipo actualizado",
+    teamUpdatedDesc: "La configuración del equipo se ha actualizado correctamente.",
+    logoUpdated: "Logo actualizado",
+    logoUpdatedDesc: "El logo de tu equipo se ha actualizado correctamente.",
+    joinCodeRegenerated: "Código de unión regenerado",
+    joinCodeRegeneratedDesc: "Nuevo código de unión generado correctamente.",
+    copiedToClipboard: "Copiado al portapapeles",
+    clipboardDesc: "El código de unión del equipo se ha copiado al portapapeles.",
+
     // Auth related toast messages
     loginSuccess: "Inicio de sesión correcto",
     loginFailed: "Error al iniciar sesión",

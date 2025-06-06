@@ -963,13 +963,21 @@ export const esES = {
     teamCreated: "Equipo Creado",
     teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
     teamCreateError: "Error al crear equipo",
-    teamCreateErrorDesc:
-      "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
+    teamCreateErrorDesc: "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
     memberCreated: "Miembro Añadido",
     memberCreatedDesc: "{{name}} ha sido añadido al equipo exitosamente.",
     memberCreateError: "Error al añadir miembro",
-    memberCreateErrorDesc:
-      "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
+    memberCreateErrorDesc: "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
+    memberRemoved: "Miembro eliminado",
+    memberRemovedDesc: "El miembro del equipo ha sido eliminado correctamente.",
+    teamUpdated: "Equipo actualizado",
+    teamUpdatedDesc: "La configuración del equipo ha sido actualizada correctamente.",
+    logoUpdated: "Logo actualizado",
+    logoUpdatedDesc: "El logo de tu equipo ha sido actualizado correctamente.",
+    joinCodeRegenerated: "Código de unión regenerado",
+    joinCodeRegeneratedDesc: "Nuevo código de unión generado correctamente.",
+    copiedToClipboard: "Copiado al portapapeles",
+    clipboardDesc: "El código de unión del equipo ha sido copiado al portapapeles.",
 
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
@@ -979,6 +987,10 @@ export const esES = {
     registrationFailed: "Error al registrarse",
     welcomeToTeamKick: "Bienvenido a TeamKick, {{name}}",
     logoutSuccess: "Sesión cerrada correctamente",
+    passwordResetSuccess: "Contraseña restablecida correctamente",
+    passwordResetError: "Error al restablecer contraseña",
+    emailVerified: "Correo electrónico verificado",
+    emailVerificationFailed: "Error en la verificación del correo electrónico",
 
     // Mensajes relacionados con anuncios
     announcementCreated: "Anuncio creado",
@@ -987,25 +999,103 @@ export const esES = {
     announcementUpdatedDesc: "Tu anuncio ha sido actualizado",
     announcementDeleted: "Anuncio eliminado",
     announcementDeletedDesc: "El anuncio ha sido eliminado",
-    refreshingAnnouncements:
-      "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
+    refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
     failedToRefresh: "Error al actualizar",
+    failedToRefreshAnnouncements: "Error al actualizar los anuncios",
+
+    // Mensajes relacionados con eventos
+    eventCreated: "Evento creado",
+    eventCreatedDesc: "El evento ha sido creado exitosamente",
+    eventUpdated: "Evento actualizado", 
+    eventUpdatedDesc: "El evento ha sido actualizado exitosamente",
+    eventDeleted: "Evento eliminado",
+    eventDeletedDesc: "El evento ha sido eliminado exitosamente",
+    attendanceUpdated: "Asistencia actualizada",
+    attendanceUpdatedDesc: "Tu respuesta de asistencia ha sido actualizada",
+
+    // Mensajes relacionados con partidos
+    matchCreated: "Partido creado",
+    matchCreatedDesc: "El partido ha sido creado exitosamente",
+    matchUpdated: "Partido actualizado",
+    matchUpdatedDesc: "El partido ha sido actualizado exitosamente", 
+    matchDeleted: "Partido eliminado",
+    matchDeletedDesc: "El partido ha sido eliminado exitosamente",
+    csvUploaded: "CSV subido exitosamente",
+    csvUploadedDesc: "Los datos del CSV han sido procesados correctamente",
+    classificationCreated: "Clasificación creada",
+    classificationCreatedDesc: "La entrada de clasificación ha sido creada exitosamente",
+    classificationUpdated: "Clasificación actualizada",
+    classificationUpdatedDesc: "La clasificación ha sido actualizada exitosamente",
+    classificationDeleted: "Clasificación eliminada", 
+    classificationDeletedDesc: "La entrada de clasificación ha sido eliminada exitosamente",
+
+    // Mensajes relacionados con temporadas
+    seasonCreated: "Temporada creada",
+    seasonCreatedDesc: "La temporada ha sido creada exitosamente",
+    seasonUpdated: "Temporada actualizada",
+    seasonUpdatedDesc: "La temporada ha sido actualizada exitosamente",
+    seasonDeleted: "Temporada eliminada",
+    seasonDeletedDesc: "La temporada ha sido eliminada exitosamente",
 
     // Mensajes generales de acciones
     dataSaved: "Datos guardados",
     changesSaved: "Cambios guardados correctamente",
     actionCompleted: "Acción completada",
     actionFailed: "Error en la acción",
+    
+    // Mensajes de validación
+    validationError: "Error de validación",
+    requiredField: "Este campo es obligatorio",
+    invalidEmail: "Dirección de correo electrónico inválida",
+    passwordTooShort: "La contraseña debe tener al menos 8 caracteres",
+    passwordsDoNotMatch: "Las contraseñas no coinciden",
 
     // Mensajes relacionados con detalles de partido
     playerAlreadyInLineup: "Jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
-    removePlayerFirst:
-      "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
+    removePlayerFirst: "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
     playerAlreadyOnBench: "Jugador ya está en el banquillo",
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
+    goalAdded: "Gol añadido",
+    goalAddedDesc: "El gol ha sido registrado exitosamente",
+    cardAdded: "Tarjeta añadida",
+    cardAddedDesc: "La tarjeta ha sido registrada exitosamente",
+    substitutionAdded: "Sustitución añadida",
+    substitutionAddedDesc: "La sustitución ha sido registrada exitosamente",
+
+    // Mensajes relacionados con invitaciones
+    invitationSent: "Invitación enviada",
+    invitationSentDesc: "La invitación ha sido enviada a {{email}}",
+    invitationError: "Error al enviar invitación",
+    invitationErrorDesc: "No se pudo enviar la invitación. Por favor, inténtalo de nuevo.",
+
+    // Mensajes relacionados con reclamaciones de miembros
+    claimApproved: "Reclamación aprobada",
+    claimApprovedDesc: "La reclamación de miembro ha sido aprobada",
+    claimRejected: "Reclamación rechazada", 
+    claimRejectedDesc: "La reclamación de miembro ha sido rechazada",
+    claimSubmitted: "Reclamación enviada",
+    claimSubmittedDesc: "Tu reclamación ha sido enviada para revisión",
+
+    // Mensajes relacionados con comentarios
+    feedbackSubmitted: "Comentario enviado",
+    feedbackSubmittedDesc: "¡Gracias por tu comentario! Lo revisaremos pronto.",
+    feedbackError: "Error al enviar comentario",
+    feedbackErrorDesc: "No se pudo enviar el comentario. Por favor, inténtalo de nuevo.",
+
+    // Mensajes de red y conexión
+    networkError: "Error de red",
+    networkErrorDesc: "Por favor, verifica tu conexión e inténtalo de nuevo",
+    serverError: "Error del servidor",
+    serverErrorDesc: "Ocurrió un error en el servidor. Por favor, inténtalo más tarde",
+    
+    // Mensajes de permisos
+    permissionDenied: "Permiso denegado",
+    permissionDeniedDesc: "No tienes permisos para realizar esta acción",
+    unauthorized: "No autorizado",
+    unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
   },
 };
