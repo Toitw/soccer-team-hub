@@ -90,8 +90,8 @@ export default function DatabaseMonitoringPanel() {
   const handleRefresh = () => {
     refetch();
     toast({
-      title: 'Refreshing',
-      description: 'Fetching the latest database health information',
+      titleKey: 'toasts.refreshing',
+      descriptionKey: 'toasts.refreshingDesc',
     });
   };
 

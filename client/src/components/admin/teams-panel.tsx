@@ -84,8 +84,8 @@ export default function TeamsPanel() {
   useEffect(() => {
     if (error) {
       toast({
-        title: 'Error loading teams',
-        description: 'There was a problem loading the team data.',
+        titleKey: 'toasts.errorLoading',
+        descriptionKey: 'toasts.errorLoadingTeamsDesc',
         variant: 'destructive',
       });
       console.error('Error loading teams:', error);
@@ -100,8 +100,8 @@ export default function TeamsPanel() {
     mutationFn: (teamId: number) => apiRequest(`/api/admin/teams/${teamId}`, { method: 'DELETE' }),
     onSuccess: () => {
       toast({
-        title: 'Team deleted',
-        description: 'The team has been deleted successfully.',
+        titleKey: 'toasts.teamDeleted',
+        descriptionKey: 'toasts.teamDeletedDesc',
       });
       setIsDeleteDialogOpen(false);
       setExpandedTeam(null);
@@ -109,8 +109,8 @@ export default function TeamsPanel() {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete team. Please try again.',
+        titleKey: 'toasts.error',
+        descriptionKey: 'toasts.actionFailed',
         variant: 'destructive',
       });
     },

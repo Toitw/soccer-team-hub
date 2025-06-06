@@ -54,8 +54,9 @@ export default function FeedbackPanel() {
       }
 
       toast({
-        title: "Status updated",
-        description: `Feedback status changed to ${status}`,
+        titleKey: "toasts.statusUpdated",
+        descriptionKey: "toasts.statusUpdatedDesc",
+        titleParams: { status }
       });
 
       // Update the cache
@@ -68,8 +69,8 @@ export default function FeedbackPanel() {
     } catch (error) {
       console.error('Failed to update feedback status:', error);
       toast({
-        title: "Update failed",
-        description: "Could not update feedback status. Please try again.",
+        titleKey: "toasts.updateFailed",
+        descriptionKey: "toasts.actionFailed",
         variant: "destructive",
       });
     }

@@ -119,8 +119,8 @@ export default function UsersPanel() {
   useEffect(() => {
     if (error) {
       toast({
-        title: 'Error loading users',
-        description: 'There was a problem loading the user data.',
+        titleKey: 'toasts.errorLoading',
+        descriptionKey: 'toasts.errorLoadingUsersDesc',
         variant: 'destructive',
       });
       console.error('Error loading users:', error);
@@ -154,15 +154,15 @@ export default function UsersPanel() {
       });
       
       toast({
-        title: 'User deleted',
-        description: 'The user has been deleted successfully.',
+        titleKey: 'toasts.userDeleted',
+        descriptionKey: 'toasts.userDeletedDesc',
       });
       setIsDeleteDialogOpen(false);
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete user. Please try again.',
+        titleKey: 'toasts.error',
+        descriptionKey: 'toasts.actionFailed',
         variant: 'destructive',
       });
     },
