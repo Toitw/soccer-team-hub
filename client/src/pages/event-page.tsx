@@ -175,15 +175,15 @@ export default function EventPage() {
       }
       setDialogOpen(false);
       toast({
-        title: "Event created",
-        description: "Event has been scheduled successfully",
+        titleKey: "toasts.eventCreated",
+        descriptionKey: "toasts.eventCreatedDesc",
       });
       form.reset();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to create event: ${error.message}`,
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -221,15 +221,15 @@ export default function EventPage() {
       setIsEditMode(false);
       setCurrentEvent(null);
       toast({
-        title: "Event updated",
-        description: "Event has been updated successfully",
+        titleKey: "toasts.eventUpdated",
+        descriptionKey: "toasts.eventUpdatedDesc",
       });
       form.reset();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to update event: ${error.message}`,
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -255,14 +255,14 @@ export default function EventPage() {
       setDeleteDialogOpen(false);
       setCurrentEvent(null);
       toast({
-        title: "Event deleted",
-        description: "Event has been deleted successfully",
+        titleKey: "toasts.eventDeleted",
+        descriptionKey: "toasts.eventDeletedDesc",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to delete event: ${error.message}`,
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -294,8 +294,8 @@ export default function EventPage() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: `Failed to update attendance: ${error.message}`,
+        titleKey: "toasts.error",
+        description: `${t("toasts.actionFailed")}: ${error.message}`,
         variant: "destructive",
       });
     },
