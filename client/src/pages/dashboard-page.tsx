@@ -133,25 +133,22 @@ export default function DashboardPage() {
   });
 
   const { data: upcomingEvents, isLoading: eventsLoading } = useQuery<Event[]>({
-    queryKey: ["/api/teams", selectedTeam?.id, "events"],
+    queryKey: ["/api/teams", selectedTeam?.id, "events", "dashboard"],
     enabled: !!selectedTeam,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
     queryFn: async () => {
       if (!selectedTeam) return [];
-      console.log("Dashboard: Fetching events for team", selectedTeam.id);
       const response = await fetch(`/api/teams/${selectedTeam.id}/events`, {
         credentials: "include"
       });
       if (!response.ok) throw new Error("Failed to fetch events");
       const allEvents = await response.json();
-      console.log("Dashboard: Retrieved events:", allEvents);
       const now = new Date();
       const upcomingEvents = allEvents
         .filter((event: Event) => new Date(event.startTime) >= now)
         .sort((a: Event, b: Event) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
         .slice(0, 2); // Show only next 2 events
-      console.log("Dashboard: Filtered upcoming events:", upcomingEvents);
       return upcomingEvents;
     }
   });
@@ -205,7 +202,7 @@ export default function DashboardPage() {
               <TeamSummary team={selectedTeam} />
               <UpcomingEvents 
                 events={upcomingEvents || []} 
-                onRefresh={() => queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "events"] })}
+                onRefresh={() => queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeam?.id, "events", "dashboard"] })}
               />
               <NextMatch teamId={selectedTeam?.id} /> {/* Use NextMatch with teamId */}
             </div>

@@ -15,6 +15,9 @@ interface UpcomingEventsProps {
 
 export default function UpcomingEvents({ events, isDemoMode = false, onRefresh }: UpcomingEventsProps) {
   const { t, currentLanguage } = useLanguage();
+  
+  // Debug logging to see what events are being passed to the component
+  console.log("UpcomingEvents component received events:", events);
   const getEventTypeColor = (type: string) => {
     switch(type) {
       case "match":
