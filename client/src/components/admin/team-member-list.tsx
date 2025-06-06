@@ -53,8 +53,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
       }),
     onSuccess: () => {
       toast({
-        title: 'Member Removed',
-        description: 'Team member has been removed successfully.',
+        titleKey: 'toasts.memberRemoved',
+        descriptionKey: 'toasts.memberRemovedDesc',
       });
       setIsDeleteDialogOpen(false);
       queryClient.invalidateQueries({
@@ -63,8 +63,8 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to remove team member. Please try again.',
+        titleKey: 'toasts.error',
+        descriptionKey: 'toasts.actionFailed',
         variant: 'destructive',
       });
     },

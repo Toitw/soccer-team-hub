@@ -58,15 +58,15 @@ export function EditTeamForm({ team, onSuccess, onCancel }: EditTeamFormProps) {
     },
     onSuccess: (data) => {
       toast({
-        title: 'Team Updated',
-        description: `Successfully updated team ${data.name}.`,
+        titleKey: 'toasts.teamUpdated',
+        descriptionKey: 'toasts.teamUpdatedDesc',
       });
       onSuccess();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Failed to update team. Please try again.',
+        titleKey: 'toasts.error',
+        descriptionKey: 'toasts.actionFailed',
         variant: 'destructive',
       });
     },

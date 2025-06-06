@@ -97,8 +97,8 @@ export default function MemberClaimsManager({ teamId }: { teamId?: number }) {
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error?.error || "Ha ocurrido un error al aprobar la reclamación.",
+        titleKey: "toasts.error",
+        description: error?.error || "Error al aprobar la reclamación",
         variant: "destructive"
       });
     }
@@ -119,14 +119,14 @@ export default function MemberClaimsManager({ teamId }: { teamId?: number }) {
       setRejectionReason("");
       setSelectedClaim(null);
       toast({
-        title: "Reclamación rechazada",
-        description: "Se ha rechazado la reclamación del miembro.",
+        titleKey: "toasts.claimRejected",
+        descriptionKey: "toasts.claimRejectedDesc",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error?.error || "Ha ocurrido un error al rechazar la reclamación.",
+        titleKey: "toasts.error",
+        description: error?.error || "Error al rechazar la reclamación",
         variant: "destructive"
       });
     }

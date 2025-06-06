@@ -154,13 +154,17 @@ export function EditUserForm({ user, onSuccess, onCancel }: EditUserFormProps) {
       // 5) Invalidate auth context
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       
-      toast({ title: "User Updated", description: `Updated ${data.fullName}` });
+      toast({ 
+        titleKey: "toasts.userUpdated", 
+        descriptionKey: "toasts.userUpdatedDesc",
+        titleParams: { name: data.fullName }
+      });
       onSuccess();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to update user",
+        titleKey: "toasts.error",
+        descriptionKey: "toasts.actionFailed",
         variant: "destructive",
       });
     },
