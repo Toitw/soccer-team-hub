@@ -1,8 +1,15 @@
+import { config } from "dotenv";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
 import { isDatabaseHealthy } from "./db-health";
+
+// Load environment variables from .env.local in development
+// In production, environment variables should be set via deployment configuration
+if (process.env.NODE_ENV !== 'production') {
+  config({ path: '.env.local' });
+}
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));

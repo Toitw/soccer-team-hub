@@ -1,5 +1,10 @@
-import { storage } from "../server/storage.js";
+import { config } from "dotenv";
+import { storage } from "../server/storage.ts";
 import { hashPassword, isMockUsername } from "../shared/js-utils.js";
+
+// Load environment variables from .env.local file in development
+config({ path: '.env.local' });
+
 // La función hashPassword ya fue actualizada para usar Argon2id en shared/js-utils.js
 
 const ADMIN_USERNAME = "admin";
