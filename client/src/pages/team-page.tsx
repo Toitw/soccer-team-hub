@@ -194,7 +194,7 @@ export default function TeamPage() {
 
   // Get team members
   const teamMembersQueryKey = ["/api/teams", selectedTeam?.id, "members"];
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
+  const { data: teamMembers, isLoading: teamMembersLoading, refetch: refetchTeamMembers } = useQuery<
     TeamMemberWithUser[]
   >({
     queryKey: teamMembersQueryKey,
@@ -218,7 +218,17 @@ export default function TeamPage() {
     enabled: !!selectedTeam?.id,
     retry: 1,
     staleTime: 1000 * 60 * 5,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
+
+  // Force refetch team members when selectedTeam changes to ensure fresh data
+  useEffect(() => {
+    if (selectedTeam?.id && teamMembers === undefined) {
+      console.log(`Team selected but no members data, forcing refetch for team ${selectedTeam.id}`);
+      refetchTeamMembers();
+    }
+  }, [selectedTeam?.id, teamMembers, refetchTeamMembers]);
 
   // Filtered team members based on role and search query
   const filteredTeamMembers = useMemo(() => {

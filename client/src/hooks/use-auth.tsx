@@ -97,7 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Team members
                 queryClient.prefetchQuery({
                   queryKey: ["/api/teams", firstTeam.id, "members"],
-                  queryFn: getQueryFn({ on401: "throw" }),
+                  queryFn: async () => {
+                    const response = await fetch(`/api/teams/${firstTeam.id}/members`, {
+                      credentials: "include"
+                    });
+                    if (!response.ok) throw new Error("Failed to fetch team members");
+                    return await response.json();
+                  },
                   staleTime: 5 * 60 * 1000,
                 })
               ]);
