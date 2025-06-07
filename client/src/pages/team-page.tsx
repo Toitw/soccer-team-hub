@@ -225,16 +225,23 @@ export default function TeamPage() {
     if (!teamMembers) return [];
     return teamMembers.filter((member) => {
       const roleMatch = roleFilter === "all" || member.role === roleFilter;
-      const searchMatch =
-        searchQuery === "" ||
-        (member.user?.fullName
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase())) ||
-        (member.user?.username
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase())) ||
-        (member.user?.position?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        member.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (searchQuery === "") {
+        return roleMatch;
+      }
+      
+      const searchLower = searchQuery.toLowerCase();
+      const searchMatch = 
+        // Search in member's direct properties (for unlinked members)
+        member.fullName?.toLowerCase().includes(searchLower) ||
+        member.position?.toLowerCase().includes(searchLower) ||
+        // Search in linked user properties (for linked members)
+        member.user?.fullName?.toLowerCase().includes(searchLower) ||
+        member.user?.username?.toLowerCase().includes(searchLower) ||
+        member.user?.position?.toLowerCase().includes(searchLower) ||
+        // Search in jersey number
+        member.jerseyNumber?.toString().includes(searchQuery);
+        
       return roleMatch && searchMatch;
     });
   }, [teamMembers, roleFilter, searchQuery]);
@@ -1206,7 +1213,7 @@ export default function TeamPage() {
                                     {player ? (
                                       <div className="flex flex-col items-center">
                                         <span className="font-bold text-sm">
-                                          {player.user?.jerseyNumber || "?"}
+                                          {player.user?.jerseyNumber || player.jerseyNumber || "?"}
                                         </span>
                                       </div>
                                     ) : (
@@ -1560,11 +1567,14 @@ export default function TeamPage() {
                             <span className="capitalize">{t(`auth.${member.role}`)}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>{member.user?.position ? t(`team.positions.${member.user?.position}`) : "-"}</TableCell>
                         <TableCell>
-                          {member.user?.jerseyNumber ? (
+                          {(member.user?.position || member.position) ? 
+                            (member.user?.position || member.position) : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {(member.user?.jerseyNumber || member.jerseyNumber) ? (
                             <Badge variant="outline">
-                              #{member.user?.jerseyNumber}
+                              #{member.user?.jerseyNumber || member.jerseyNumber}
                             </Badge>
                           ) : (
                             "-"
