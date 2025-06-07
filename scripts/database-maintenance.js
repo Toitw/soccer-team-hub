@@ -3,7 +3,9 @@ import { hashPassword, isMockUsername } from "../shared/js-utils.js";
 // La función hashPassword ya fue actualizada para usar Argon2id en shared/js-utils.js
 
 const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (() => {
+  throw new Error("ADMIN_PASSWORD environment variable is required for security");
+})();
 const ADMIN_FULL_NAME = "System Administrator";
 
 /**
