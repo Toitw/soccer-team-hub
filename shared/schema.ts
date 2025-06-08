@@ -110,16 +110,20 @@ export const teamMembers = pgTable("team_members", {
   // User association fields (for verified members)
   userId: integer("user_id"), // Nullable - only set when a member is verified/claimed
   isVerified: boolean("is_verified").default(false), // Indicates if this member is verified/linked to a user
+  // Soft delete fields
+  isActive: boolean("is_active").default(true), // False when member is removed but data is preserved
+  deletedAt: timestamp("deleted_at"), // When the member was marked as deleted
 });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)
-  .omit({ id: true, createdAt: true })
+  .omit({ id: true, createdAt: true, deletedAt: true })
   .extend({
     position: z.string().optional().nullable(),
     jerseyNumber: z.number().int().optional().nullable(),
     profilePicture: z.string().optional().nullable(),
     userId: z.number().optional().nullable(),
     isVerified: z.boolean().optional().nullable(),
+    isActive: z.boolean().optional(),
   });
 
 // TeamUsers table for team access through joining with code

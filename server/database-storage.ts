@@ -244,7 +244,12 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(teamMembers)
-      .where(eq(teamMembers.teamId, teamId));
+      .where(
+        and(
+          eq(teamMembers.teamId, teamId),
+          eq(teamMembers.isActive, true)
+        )
+      );
   }
 
   // Get team member by ID
@@ -391,7 +396,12 @@ export class DatabaseStorage implements IStorage {
     return db
       .select()
       .from(teamMembers)
-      .where(eq(teamMembers.userId, userId));
+      .where(
+        and(
+          eq(teamMembers.userId, userId),
+          eq(teamMembers.isActive, true)
+        )
+      );
   }
 
   async getTeamMemberByUserId(teamId: number, userId: number): Promise<TeamMember | undefined> {
@@ -441,50 +451,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: number): Promise<boolean> {
     try {
-      // Start a transaction to ensure data integrity
-      await db.transaction(async (tx) => {
-        // Delete related match data in the correct order to respect foreign key constraints
-        
-        // 1. Delete match substitutions where this member was involved
-        await tx.delete(matchSubstitutions)
-          .where(or(
-            eq(matchSubstitutions.playerInId, id),
-            eq(matchSubstitutions.playerOutId, id)
-          ));
+      // Soft delete: mark the member as inactive and set deletion timestamp
+      // This preserves all historical match data while removing the member from active views
+      const [updatedMember] = await db
+        .update(teamMembers)
+        .set({ 
+          isActive: false,
+          deletedAt: new Date()
+        })
+        .where(eq(teamMembers.id, id))
+        .returning();
 
-        // 2. Delete match goals where this member was involved
-        await tx.delete(matchGoals)
-          .where(or(
-            eq(matchGoals.scorerId, id),
-            eq(matchGoals.assistId, id)
-          ));
-
-        // 3. Delete match cards for this member
-        await tx.delete(matchCards)
-          .where(eq(matchCards.playerId, id));
-
-        // 4. Delete member claims for this member
-        await tx.delete(memberClaims)
-          .where(eq(memberClaims.teamMemberId, id));
-
-        // 5. Delete player stats for this member
-        await tx.delete(playerStats)
-          .where(eq(playerStats.userId, id));
-
-        // 6. Delete attendance records for this member (if userId matches)
-        const member = await tx.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
-        if (member[0]?.userId) {
-          await tx.delete(attendance)
-            .where(eq(attendance.userId, member[0].userId));
-        }
-
-        // 7. Finally, delete the team member
-        await tx.delete(teamMembers).where(eq(teamMembers.id, id));
-      });
-
-      return true;
+      return !!updatedMember;
     } catch (error) {
-      console.error('Error deleting team member:', error);
+      console.error('Error soft deleting team member:', error);
       return false;
     }
   }
