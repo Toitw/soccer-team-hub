@@ -1312,11 +1312,21 @@ export default function TeamPage() {
                           >
                             <Avatar className="h-8 w-8 mr-3">
                               <AvatarImage
-                                src={member.user?.profilePicture || undefined}
-                                alt={member.user?.fullName || ""}
+                                src={
+                                  member.user?.profilePicture || 
+                                  member.profilePicture ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`
+                                }
+                                alt={member.user?.fullName || member.fullName || ""}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  if (!target.src.includes('ui-avatars.com')) {
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`;
+                                  }
+                                }}
                               />
                               <AvatarFallback>
-                                {member.user?.fullName?.charAt(0) || "U"}
+                                {getInitials(member.user?.fullName || member.fullName)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
@@ -1410,11 +1420,21 @@ export default function TeamPage() {
                           >
                             <Avatar className="h-10 w-10 mr-3">
                               <AvatarImage
-                                src={member.user?.profilePicture || undefined}
+                                src={
+                                  member.user?.profilePicture || 
+                                  member.profilePicture ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`
+                                }
                                 alt={member.user?.fullName || member.fullName || ""}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  if (!target.src.includes('ui-avatars.com')) {
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`;
+                                  }
+                                }}
                               />
                               <AvatarFallback>
-                                {member.user?.fullName?.charAt(0) || member.fullName?.charAt(0) || "U"}
+                                {getInitials(member.user?.fullName || member.fullName)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -1545,13 +1565,20 @@ export default function TeamPage() {
                             <Avatar className="h-10 w-10 mr-3 border border-primary/30">
                               <AvatarImage
                                 src={
-                                  member.user?.profilePicture ||
-                                  "/default-avatar.png"
+                                  member.user?.profilePicture || 
+                                  member.profilePicture ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`
                                 }
                                 alt={member.user?.fullName || member.fullName}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  if (!target.src.includes('ui-avatars.com')) {
+                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName || 'User')}&background=0D47A1&color=fff`;
+                                  }
+                                }}
                               />
                               <AvatarFallback>
-                                {member.user?.fullName?.charAt(0) || member.fullName?.charAt(0) || "U"}
+                                {getInitials(member.user?.fullName || member.fullName)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
