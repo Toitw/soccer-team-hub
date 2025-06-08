@@ -1381,7 +1381,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If no seasonId provided, try to get the active season for the team
       if (!seasonId) {
-        const seasons = await storage.getSeasonsByTeamId(teamId);
+        const seasons = await storage.getSeasons(teamId);
         const activeSeason = seasons.find(s => s.isActive) || seasons[0];
         if (activeSeason) {
           seasonId = activeSeason.id;
