@@ -146,10 +146,6 @@ export default function TeamPage() {
   const [lineup, setLineup] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
-  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [showAddToLineupDialog, setShowAddToLineupDialog] =
-    useState<boolean>(false);
-  const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
 
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
@@ -907,8 +903,7 @@ export default function TeamPage() {
                                       {t("team.wideMidfielder")} (7-a-side)
                                     </SelectItem>
                                     <SelectItem value="7-a-side Forward">
-                                      {```text
-Team.forward (7-a-side)
+                                      {t("team.forward")} (7-a-side)
                                     </SelectItem>
                                   </SelectGroup>
                                 )}
@@ -1750,8 +1745,7 @@ Team.forward (7-a-side)
                         <SelectItem value="Goalkeeper">{t("team.goalkeeper")}</SelectItem>
                         <SelectItem value="Defender">{t("team.defender")}</SelectItem>
                         <SelectItem value="Midfielder">{t("team.midfielder")}</SelectItem>
-                        <SelectItem value```text
-="Forward">{t("team.forward")}</SelectItem>
+                        <SelectItem value="Forward">{t("team.forward")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
