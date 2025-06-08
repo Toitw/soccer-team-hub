@@ -697,8 +697,8 @@ export const esES = {
     uploadAndProcess: "Subir y Procesar",
     noteLabel: "Nota",
     uploadingNewCsv: "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
-      },
-      penalty: "Penalti",
+    fieldPositions: "Posiciones en el campo",
+    penalty: "Penalti",
   },
   events: {
     upcomingEvents: "Próximos Eventos",
