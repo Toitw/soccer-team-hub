@@ -263,10 +263,8 @@ export default function MatchesPage() {
         );
       }
 
-      // If no active season, only show classifications without a season (legacy classifications)
-      return allClassifications.filter(
-        (classification: LeagueClassification) => !classification.seasonId,
-      );
+      // If no active season, show all classifications (including those without seasonId)
+      return allClassifications;
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -484,7 +482,7 @@ export default function MatchesPage() {
           const result = await response.json();
           setCsvUploadDialogOpen(false);
           setCsvFile(null);
-          await refetchClassificationsData();
+          await refetchClassifications();
           toast({
             title: "CSV data uploaded",
             description: `Successfully created ${result.classifications.length} classification entries`,

@@ -1377,7 +1377,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if a seasonId was provided for all classifications and validate it belongs to the team
-      const { seasonId } = req.body;
+      let { seasonId } = req.body;
+      
+      // If no seasonId provided, try to get the active season for the team
+      if (!seasonId) {
+        const seasons = await storage.getSeasonsByTeamId(teamId);
+        const activeSeason = seasons.find(s => s.isActive) || seasons[0];
+        if (activeSeason) {
+          seasonId = activeSeason.id;
+        }
+      }
+      
       if (seasonId) {
         const season = await storage.getSeason(seasonId);
         if (!season || season.teamId !== teamId) {
