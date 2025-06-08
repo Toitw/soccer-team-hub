@@ -21,7 +21,7 @@ import {
   type Feedback, type InsertFeedback, feedback
 } from "@shared/schema";
 import { db, pool } from "./db";
-import { eq, and, desc, lte, gte, sql } from "drizzle-orm";
+import { eq, and, or, desc, lte, gte, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 import session from "express-session";
 import { Store as SessionStore } from "express-session";
@@ -440,8 +440,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeamMember(id: number): Promise<boolean> {
-    await db.delete(teamMembers).where(eq(teamMembers.id, id));
-    return true;
+    try {
+      // Start a transaction to ensure data integrity
+      await db.transaction(async (tx) => {
+        // Delete related match data in the correct order to respect foreign key constraints
+        
+        // 1. Delete match substitutions where this member was involved
+        await tx.delete(matchSubstitutions)
+          .where(or(
+            eq(matchSubstitutions.playerInId, id),
+            eq(matchSubstitutions.playerOutId, id)
+          ));
+
+        // 2. Delete match goals where this member was involved
+        await tx.delete(matchGoals)
+          .where(or(
+            eq(matchGoals.scorerId, id),
+            eq(matchGoals.assistId, id)
+          ));
+
+        // 3. Delete match cards for this member
+        await tx.delete(matchCards)
+          .where(eq(matchCards.playerId, id));
+
+        // 4. Delete member claims for this member
+        await tx.delete(memberClaims)
+          .where(eq(memberClaims.teamMemberId, id));
+
+        // 5. Delete player stats for this member
+        await tx.delete(playerStats)
+          .where(eq(playerStats.userId, id));
+
+        // 6. Delete attendance records for this member (if userId matches)
+        const member = await tx.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
+        if (member[0]?.userId) {
+          await tx.delete(attendance)
+            .where(eq(attendance.userId, member[0].userId));
+        }
+
+        // 7. Finally, delete the team member
+        await tx.delete(teamMembers).where(eq(teamMembers.id, id));
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting team member:', error);
+      return false;
+    }
   }
 
   // New method to verify a team member (link it to a user)
