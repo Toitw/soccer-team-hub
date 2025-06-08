@@ -711,6 +711,11 @@ export default function EventPage() {
                                   <MapPin className="h-4 w-4 mr-1" />
                                   {event.location}
                                 </div>
+                                {event.description && (
+                                  <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
+                                    {event.description}
+                                  </div>
+                                )}
                                 {attendanceMap[event.id] && (
                                   <div className="text-sm text-gray-600 flex items-center mt-2">
                                     <Users className="h-4 w-4 mr-1" />
@@ -905,9 +910,9 @@ export default function EventPage() {
                                     {event.location}
                                   </div>
                                   {event.description && (
-                                    <p className="text-sm mt-2 text-gray-700">
+                                    <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded">
                                       {event.description}
-                                    </p>
+                                    </div>
                                   )}
                                   {attendanceMap[event.id] && (
                                     <div className="text-sm text-gray-600 flex items-center mt-2">
