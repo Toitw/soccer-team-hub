@@ -411,7 +411,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(teamMembers.teamId, teamId),
-          eq(teamMembers.userId, userId)
+          eq(teamMembers.userId, userId),
+          eq(teamMembers.isActive, true)
         )
       );
 
@@ -425,7 +426,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(teamMembers.teamId, teamId),
-          eq(teamMembers.isVerified, true)
+          eq(teamMembers.isVerified, true),
+          eq(teamMembers.isActive, true)
         )
       );
   }
