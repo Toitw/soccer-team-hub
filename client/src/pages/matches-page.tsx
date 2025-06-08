@@ -1742,8 +1742,8 @@ export default function MatchesPage() {
                     
                     <div className="rounded-md bg-muted p-3">
                       <div className="text-sm font-medium mb-2">Example CSV Format:</div>
-                      <div className="bg-background rounded border p-2">
-                        <pre className="text-xs text-muted-foreground whitespace-pre font-mono">
+                      <div className="bg-background rounded border p-2 overflow-x-auto">
+                        <pre className="text-xs text-muted-foreground whitespace-nowrap font-mono">
 Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
 Team A,21,10,7,0,3,22,12
 Team B,18,10,6,0,4,20,15
