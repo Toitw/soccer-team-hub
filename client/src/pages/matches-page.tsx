@@ -218,12 +218,12 @@ export default function MatchesPage() {
       const response = await fetch(`/api/teams/${selectedTeam.id}/matches`);
       if (!response.ok) throw new Error(t("matches.errors.failedFetchMatches"));
       const allMatches = await response.json();
-      
+
       // Filter matches by active season if one exists
       if (activeSeason) {
         return allMatches.filter((match: Match) => match.seasonId === activeSeason.id);
       }
-      
+
       // If no active season, only show matches without a season (legacy matches)
       return allMatches.filter((match: Match) => !match.seasonId);
     },
@@ -253,12 +253,12 @@ export default function MatchesPage() {
       );
       if (!response.ok) throw new Error(t("matches.errors.failedFetchClassifications"));
       const allClassifications = await response.json();
-      
+
       // Filter classifications by active season if one exists
       if (activeSeason) {
         return allClassifications.filter((classification: LeagueClassification) => classification.seasonId === activeSeason.id);
       }
-      
+
       // If no active season, only show classifications without a season (legacy classifications)
       return allClassifications.filter((classification: LeagueClassification) => !classification.seasonId);
     },
@@ -1700,7 +1700,7 @@ export default function MatchesPage() {
             <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden px-6 py-6">
               <DialogHeader className="space-y-3">
                 <DialogTitle>{t("matches.uploadClassificationData")}</DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="pr-4">
                   {t("matches.uploadClassificationDescription")}
                 </DialogDescription>
               </DialogHeader>
