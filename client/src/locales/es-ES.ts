@@ -690,13 +690,16 @@ export const esES = {
       sampleCsv: "Modelo CSV",
     },
     uploadClassificationData: "Subir Datos de Clasificación",
-    uploadClassificationDescription: "Sube un archivo CSV con datos de clasificación de equipos. El archivo debe tener columnas para el nombre del equipo y los puntos.",
+    uploadClassificationDescription:
+      "Sube un archivo CSV con datos de clasificación de equipos. El archivo debe tener columnas para el nombre del equipo y los puntos.",
     warningReplaceData: "Advertencia: Esto reemplazará los datos existentes",
-    uploadWillReplace: "Subir este archivo reemplazará todos los datos de clasificación existentes para este equipo.",
+    uploadWillReplace:
+      "Subir este archivo reemplazará todos los datos de clasificación existentes para este equipo.",
     csvFileLabel: "Archivo CSV",
     uploadAndProcess: "Subir y Procesar",
     noteLabel: "Nota",
-    uploadingNewCsv: "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
+    uploadingNewCsv:
+      "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
     fieldPositions: "Posiciones en el campo",
     penalty: "Penalti",
   },
@@ -755,7 +758,7 @@ export const esES = {
     deleting: "Eliminando...",
   },
   announcements: {
-    latestAnnouncements: "Últimos Anunciios",
+    latestAnnouncements: "Últimos Anuncios",
     teamAnnouncements: "Anuncios del Equipo",
     addAnnouncement: "Añadir Anuncio",
     createAnnouncement: "Crear Anuncio",
@@ -784,7 +787,8 @@ export const esES = {
     failedToUpdate: "Error al actualizar el anuncio",
     failedToDelete: "Error al eliminar el anuncio",
     refreshed: "Actualizado",
-    announcementsUpdated: "Los anuncios han sido actualizados.",  },
+    announcementsUpdated: "Los anuncios han sido actualizados.",
+  },
   teams: {
     createTeam: "Crear Equipo",
     name: "Nombre del Equipo",
@@ -794,17 +798,17 @@ export const esES = {
     categories: {
       amateur: "Amateur",
       federated: "Federado",
-      professional: "Profesional"
+      professional: "Profesional",
     },
     type: "Tipo de Equipo",
     typePlaceholder: "Seleccionar tipo de equipo",
     types: {
       "11aside": "Fútbol 11",
       "7aside": "Fútbol 7",
-      "futsal": "Fútbol Sala"
+      futsal: "Fútbol Sala",
     },
     division: "División",
-    divisionPlaceholder: "ej., Primera División"
+    divisionPlaceholder: "ej., Primera División",
   },
   onboarding: {
     welcome: "Bienvenido a Cancha+",
@@ -971,21 +975,25 @@ export const esES = {
     teamCreated: "Equipo Creado",
     teamCreatedDesc: "El equipo {{name}} ha sido creado exitosamente.",
     teamCreateError: "Error al crear equipo",
-    teamCreateErrorDesc: "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
+    teamCreateErrorDesc:
+      "No se pudo crear el equipo. Por favor, inténtalo de nuevo.",
     memberCreated: "Miembro Añadido",
     memberCreatedDesc: "{{name}} ha sido añadido al equipo exitosamente.",
     memberCreateError: "Error al añadir miembro",
-    memberCreateErrorDesc: "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
+    memberCreateErrorDesc:
+      "No se pudo añadir el miembro. Por favor, inténtalo de nuevo.",
     memberRemoved: "Miembro eliminado",
     memberRemovedDesc: "El miembro del equipo ha sido eliminado correctamente.",
     teamUpdated: "Equipo actualizado",
-    teamUpdatedDesc: "La configuración del equipo ha sido actualizada correctamente.",
+    teamUpdatedDesc:
+      "La configuración del equipo ha sido actualizada correctamente.",
     logoUpdated: "Logo actualizado",
     logoUpdatedDesc: "El logo de tu equipo ha sido actualizado correctamente.",
     joinCodeRegenerated: "Código de unión regenerado",
     joinCodeRegeneratedDesc: "Nuevo código de unión generado correctamente.",
     copiedToClipboard: "Copiado al portapapeles",
-    clipboardDesc: "El código de unión del equipo ha sido copiado al portapapeles.",
+    clipboardDesc:
+      "El código de unión del equipo ha sido copiado al portapapeles.",
 
     // Mensajes relacionados con autenticación
     loginSuccess: "Inicio de sesión exitoso",
@@ -1007,7 +1015,8 @@ export const esES = {
     announcementUpdatedDesc: "Tu anuncio ha sido actualizado",
     announcementDeleted: "Anuncio eliminado",
     announcementDeletedDesc: "El anuncio ha sido eliminado",
-    refreshingAnnouncements: "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
+    refreshingAnnouncements:
+      "Actualizando anuncios desde el panel. Visita la página de Anuncios para más opciones.",
     announcementsLoaded: "{{count}} anuncios cargados correctamente.",
     failedToRefresh: "Error al actualizar",
     failedToRefreshAnnouncements: "Error al actualizar los anuncios",
@@ -1015,7 +1024,7 @@ export const esES = {
     // Mensajes relacionados con eventos
     eventCreated: "Evento creado",
     eventCreatedDesc: "El evento ha sido creado exitosamente",
-    eventUpdated: "Evento actualizado", 
+    eventUpdated: "Evento actualizado",
     eventUpdatedDesc: "El evento ha sido actualizado exitosamente",
     eventDeleted: "Evento eliminado",
     eventDeletedDesc: "El evento ha sido eliminado exitosamente",
@@ -1026,17 +1035,20 @@ export const esES = {
     matchCreated: "Partido creado",
     matchCreatedDesc: "El partido ha sido creado exitosamente",
     matchUpdated: "Partido actualizado",
-    matchUpdatedDesc: "El partido ha sido actualizado exitosamente", 
+    matchUpdatedDesc: "El partido ha sido actualizado exitosamente",
     matchDeleted: "Partido eliminado",
     matchDeletedDesc: "El partido ha sido eliminado exitosamente",
     csvUploaded: "CSV subido exitosamente",
     csvUploadedDesc: "Los datos del CSV han sido procesados correctamente",
     classificationCreated: "Clasificación creada",
-    classificationCreatedDesc: "La entrada de clasificación ha sido creada exitosamente",
+    classificationCreatedDesc:
+      "La entrada de clasificación ha sido creada exitosamente",
     classificationUpdated: "Clasificación actualizada",
-    classificationUpdatedDesc: "La clasificación ha sido actualizada exitosamente",
-    classificationDeleted: "Clasificación eliminada", 
-    classificationDeletedDesc: "La entrada de clasificación ha sido eliminada exitosamente",
+    classificationUpdatedDesc:
+      "La clasificación ha sido actualizada exitosamente",
+    classificationDeleted: "Clasificación eliminada",
+    classificationDeletedDesc:
+      "La entrada de clasificación ha sido eliminada exitosamente",
 
     // Mensajes relacionados con temporadas
     seasonCreated: "Temporada creada",
@@ -1062,7 +1074,8 @@ export const esES = {
     // Mensajes relacionados con detalles de partido
     playerAlreadyInLineup: "Jugador ya está en la alineación",
     playerAlreadyAssigned: "Este jugador ya está asignado a una posición.",
-    removePlayerFirst: "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
+    removePlayerFirst:
+      "Retire al jugador de la posición en el campo antes de añadirlo al banquillo.",
     playerAlreadyOnBench: "Jugador ya está en el banquillo",
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
@@ -1080,12 +1093,13 @@ export const esES = {
     invitationSent: "Invitación enviada",
     invitationSentDesc: "La invitación ha sido enviada a {{email}}",
     invitationError: "Error al enviar invitación",
-    invitationErrorDesc: "No se pudo enviar la invitación. Por favor, inténtalo de nuevo.",
+    invitationErrorDesc:
+      "No se pudo enviar la invitación. Por favor, inténtalo de nuevo.",
 
     // Mensajes relacionados con reclamaciones de miembros
     claimApproved: "Reclamación aprobada",
     claimApprovedDesc: "La reclamación de miembro ha sido aprobada",
-    claimRejected: "Reclamación rechazada", 
+    claimRejected: "Reclamación rechazada",
     claimRejectedDesc: "La reclamación de miembro ha sido rechazada",
     claimSubmitted: "Reclamación enviada",
     claimSubmittedDesc: "Tu reclamación ha sido enviada para revisión",
@@ -1094,13 +1108,15 @@ export const esES = {
     feedbackSubmitted: "Comentario enviado",
     feedbackSubmittedDesc: "¡Gracias por tu comentario! Lo revisaremos pronto.",
     feedbackError: "Error al enviar comentario",
-    feedbackErrorDesc: "No se pudo enviar el comentario. Por favor, inténtalo de nuevo.",
+    feedbackErrorDesc:
+      "No se pudo enviar el comentario. Por favor, inténtalo de nuevo.",
 
     // Mensajes de red y conexión
     networkError: "Error de red",
     networkErrorDesc: "Por favor, verifica tu conexión e inténtalo de nuevo",
     serverError: "Error del servidor",
-    serverErrorDesc: "Ocurrió un error en el servidor. Por favor, inténtalo más tarde",
+    serverErrorDesc:
+      "Ocurrió un error en el servidor. Por favor, inténtalo más tarde",
 
     // Mensajes de permisos
     permissionDenied: "Permiso denegado",
@@ -1112,7 +1128,7 @@ export const esES = {
     errorLoadingTeamsDesc: "Hubo un problema al cargar los datos de equipos",
     userDeleted: "Usuario eliminado",
     userDeletedDesc: "El usuario ha sido eliminado exitosamente",
-    teamDeleted: "Equipo eliminado", 
+    teamDeleted: "Equipo eliminado",
     teamDeletedDesc: "El equipo ha sido eliminado exitosamente",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
   },
