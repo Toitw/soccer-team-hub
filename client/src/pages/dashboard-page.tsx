@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Team, Match, Event, Announcement } from "@shared/schema";
+import { Team, Match, Event } from "@shared/schema";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -48,10 +48,7 @@ export default function DashboardPage() {
           staleTime: 2 * 60 * 1000,
         });
         
-        queryClient.prefetchQuery({
-          queryKey: ["/api/teams", firstTeam.id, "announcements/recent"],
-          staleTime: 2 * 60 * 1000,
-        });
+        
       }
     }
   }, [teams, teamsLoading, queryClient]);
@@ -153,32 +150,10 @@ export default function DashboardPage() {
     }
   });
 
-  const { data: announcements, isLoading: announcementsLoading } = useQuery<
-    (Announcement & { creator?: any })[]
-  >({
-    queryKey: ["/api/teams", selectedTeam?.id, "announcements/recent"],
-    enabled: !!selectedTeam,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
-    queryFn: async () => {
-      if (!selectedTeam?.id) {
-        return [];
-      }
-      try {
-        console.log("Dashboard: Fetching announcements for team", selectedTeam.id);
-        const response = await apiRequest(`/api/teams/${selectedTeam.id}/announcements/recent`);
-        const data = Array.isArray(response) ? response : [];
-        console.log("Dashboard: Retrieved announcements:", data);
-        return data as (Announcement & { creator?: any })[];
-      } catch (error) {
-        console.error("Dashboard: Failed to fetch announcements:", error);
-        return [];
-      }
-    },
-  });
+  
 
   const isLoading = teamsLoading;
-  const isDataLoading = matchesLoading || eventsLoading || announcementsLoading;
+  const isDataLoading = matchesLoading || eventsLoading;
 
   if (isLoading) {
     return (
@@ -209,7 +184,7 @@ export default function DashboardPage() {
 
             {/* Right Column */}
             <div className="space-y-6">
-              <Announcements teamId={selectedTeam?.id} announcements={announcements || []} />
+              <Announcements teamId={selectedTeam?.id} />
             </div>
           </div>
         </div>
