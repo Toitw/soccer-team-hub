@@ -901,7 +901,7 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-x-hidden">
       <Sidebar />
       <div className="flex-1 ml-0 md:ml-64 z-30 min-w-0">
         <Header title="Matches" translationKey="matches.matches" />
@@ -1793,7 +1793,7 @@ export default function MatchesPage() {
             onOpenChange={setCsvUploadDialogOpen}
           >
             <DialogContent
-              className="w-full max-w-[95vw] sm:max-w-[500px] md:max-w-[600px]
+              className="w-full max-w-[90vw] sm:max-w-[500px] md:max-w-[600px]
                          overflow-y-auto overflow-x-hidden max-h-[95vh]
                          px-4 py-4 sm:px-6 sm:py-6"
             >
