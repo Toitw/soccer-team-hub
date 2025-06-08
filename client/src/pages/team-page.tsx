@@ -146,6 +146,10 @@ export default function TeamPage() {
   const [lineup, setLineup] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [showAddToLineupDialog, setShowAddToLineupDialog] =
+    useState<boolean>(false);
+  const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
 
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
