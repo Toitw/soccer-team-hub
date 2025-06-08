@@ -690,15 +690,15 @@ export const esES = {
       sampleCsv: "Modelo CSV",
     },
     uploadClassificationData: "Subir Datos de Clasificación",
-    uploadClassificationDescription: "Sube un archivo CSV con datos de clasificación de equipos. El archivo debe tener columnas para nombre de equipo y puntos.",
+    uploadClassificationDescription: "Sube un archivo CSV con datos de clasificación de equipos. El archivo debe tener columnas para el nombre del equipo y los puntos.",
     warningReplaceData: "Advertencia: Esto reemplazará los datos existentes",
     uploadWillReplace: "Subir este archivo reemplazará todos los datos de clasificación existentes para este equipo.",
     csvFileLabel: "Archivo CSV",
     uploadAndProcess: "Subir y Procesar",
     noteLabel: "Nota",
     uploadingNewCsv: "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
-    fieldPositions: "Posiciones en el Campo",
-    penalty: "Penalti",
+      },
+      penalty: "Penalti",
   },
   events: {
     upcomingEvents: "Próximos Eventos",
@@ -755,7 +755,7 @@ export const esES = {
     deleting: "Eliminando...",
   },
   announcements: {
-    latestAnnouncements: "Últimos Anuncios",
+    latestAnnouncements: "Últimos Anunciios",
     teamAnnouncements: "Anuncios del Equipo",
     addAnnouncement: "Añadir Anuncio",
     createAnnouncement: "Crear Anuncio",
@@ -1051,7 +1051,7 @@ export const esES = {
     changesSaved: "Cambios guardados correctamente",
     actionCompleted: "Acción completada",
     actionFailed: "Error en la acción",
-    
+
     // Mensajes de validación
     validationError: "Error de validación",
     requiredField: "Este campo es obligatorio",
@@ -1101,7 +1101,7 @@ export const esES = {
     networkErrorDesc: "Por favor, verifica tu conexión e inténtalo de nuevo",
     serverError: "Error del servidor",
     serverErrorDesc: "Ocurrió un error en el servidor. Por favor, inténtalo más tarde",
-    
+
     // Mensajes de permisos
     permissionDenied: "Permiso denegado",
     permissionDeniedDesc: "No tienes permisos para realizar esta acción",
