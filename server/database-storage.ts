@@ -453,18 +453,82 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTeamMember(id: number): Promise<boolean> {
     try {
-      // Soft delete: mark the member as inactive and set deletion timestamp
-      // This preserves all historical match data while removing the member from active views
-      const [updatedMember] = await db
-        .update(teamMembers)
-        .set({ 
-          isActive: false,
-          deletedAt: new Date()
-        })
-        .where(eq(teamMembers.id, id))
-        .returning();
+      // Start a transaction to ensure data integrity
+      await db.transaction(async (tx) => {
+        // 1. Soft delete: mark the member as inactive and set deletion timestamp
+        await tx
+          .update(teamMembers)
+          .set({ 
+            isActive: false,
+            deletedAt: new Date()
+          })
+          .where(eq(teamMembers.id, id));
 
-      return !!updatedMember;
+        // 2. Clean up match lineups - remove the deleted member from lineup arrays and position mappings
+        const lineups = await tx
+          .select()
+          .from(matchLineups)
+          .where(sql`${id} = ANY(player_ids) OR ${id} = ANY(bench_player_ids)`);
+
+        for (const lineup of lineups) {
+          // Remove member from playerIds array
+          const updatedPlayerIds = (lineup.playerIds || []).filter(playerId => playerId !== id);
+          
+          // Remove member from benchPlayerIds array
+          const updatedBenchPlayerIds = (lineup.benchPlayerIds || []).filter(playerId => playerId !== id);
+          
+          // Remove member from position mapping
+          const positionMapping = (lineup.positionMapping as any) || {};
+          const updatedPositionMapping = { ...positionMapping };
+          
+          // Find and remove positions that reference the deleted member
+          for (const [position, playerId] of Object.entries(updatedPositionMapping)) {
+            if (playerId === id) {
+              delete updatedPositionMapping[position];
+            }
+          }
+
+          // Update the lineup with cleaned data
+          await tx
+            .update(matchLineups)
+            .set({
+              playerIds: updatedPlayerIds,
+              benchPlayerIds: updatedBenchPlayerIds,
+              positionMapping: updatedPositionMapping,
+              updatedAt: new Date()
+            })
+            .where(eq(matchLineups.id, lineup.id));
+        }
+
+        // 3. Also clean up team lineups if they reference the deleted member
+        const teamLineup = await tx
+          .select()
+          .from(teamLineups)
+          .where(eq(teamLineups.teamId, (await tx.select({ teamId: teamMembers.teamId }).from(teamMembers).where(eq(teamMembers.id, id)).limit(1))[0]?.teamId || 0));
+
+        for (const lineup of teamLineup) {
+          const positionMapping = (lineup.positionMapping as any) || {};
+          const updatedPositionMapping = { ...positionMapping };
+          
+          // Find and remove positions that reference the deleted member
+          for (const [position, playerId] of Object.entries(updatedPositionMapping)) {
+            if (playerId === id) {
+              delete updatedPositionMapping[position];
+            }
+          }
+
+          // Update the team lineup with cleaned data
+          await tx
+            .update(teamLineups)
+            .set({
+              positionMapping: updatedPositionMapping,
+              updatedAt: new Date()
+            })
+            .where(eq(teamLineups.id, lineup.id));
+        }
+      });
+
+      return true;
     } catch (error) {
       console.error('Error soft deleting team member:', error);
       return false;
