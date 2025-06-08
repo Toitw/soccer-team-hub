@@ -646,6 +646,9 @@ export const enUS = {
     uploadAndProcess: "Upload and Process",
     noteLabel: "Note",
     uploadingNewCsv: "Uploading a new CSV will replace all existing classification data.",
+    fieldPositions: "Field Positions",
+    penalty: "Penalty",
+  },
   events: {
     upcomingEvents: "Upcoming Events",
     pastEvents: "Past Events",
@@ -1593,7 +1596,15 @@ export const esES = {
       addEntry: "Añadir entrada",
       uploadCsv: "Subir CSV",
       sampleCsv: "CSV de ejemplo"
-    }
+    },
+    uploadClassificationData: "Subir datos de clasificación",
+    uploadClassificationDescription: "Sube un archivo CSV con los datos de clasificación del equipo. El archivo debe tener columnas para el nombre del equipo y los puntos.",
+    warningReplaceData: "Advertencia: Esto reemplazará los datos existentes",
+    uploadWillReplace: "Al subir este archivo se reemplazarán todos los datos de clasificación existentes para este equipo.",
+    csvFileLabel: "Archivo CSV",
+    uploadAndProcess: "Subir y procesar",
+    noteLabel: "Nota",
+    uploadingNewCsv: "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
   },
   events: {
     upcomingEvents: "Próximos eventos",
@@ -1827,6 +1838,46 @@ export const esES = {
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido se ha guardado correctamente",
+    playerAddedToLineup: "Jugador Añadido a la Alineación",
+    playerAssigned: "El jugador ha sido asignado a la posición seleccionada",
+    goalAdded: "Gol añadido",
+    goalAddedDesc: "El gol se ha registrado correctamente",
+    cardAdded: "Tarjeta añadida",
+    cardAddedDesc: "La tarjeta se ha registrado correctamente",
+    substitutionAdded: "Sustitución añadida",
+    substitutionAddedDesc: "La sustitución se ha registrado correctamente",
+
+    // Invitation related toast messages
+    invitationSent: "Invitación enviada",
+    invitationSentDesc: "Se ha enviado una invitación a {{email}}",
+    invitationError: "Error de invitación",
+    invitationErrorDesc: "Error al enviar la invitación. Por favor, inténtalo de nuevo.",
+
+    // Member claims related toast messages
+    claimApproved: "Reclamación aprobada",
+    claimApprovedDesc: "La reclamación del miembro ha sido aprobada",
+    claimRejected: "Reclamación rechazada",
+    claimRejectedDesc: "La reclamación del miembro ha sido rechazada",
+    claimSubmitted: "Reclamación enviada",
+    claimSubmittedDesc: "Su reclamación ha sido enviada para su revisión",
+
+    // Feedback related toast messages
+    feedbackSubmitted: "Comentarios enviados",
+    feedbackSubmittedDesc: "¡Gracias por sus comentarios! Los revisaremos pronto.",
+    feedbackError: "Error de comentarios",
+    feedbackErrorDesc: "Error al enviar los comentarios. Por favor, inténtalo de nuevo.",
+
+    // Network and connection messages
+    networkError: "Error de red",
+    networkErrorDesc: "Por favor, comprueba tu conexión e inténtalo de nuevo",
+    serverError: "Error del servidor",
+    serverErrorDesc: "Se ha producido un error del servidor. Por favor, inténtalo de nuevo más tarde",
+
+    // Permission messages
+    permissionDenied: "Permiso denegado",
+    permissionDeniedDesc: "No tienes permiso para realizar esta acción",
+    unauthorized: "No autorizado",
+    unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
   },
   team: {
     noAccountLinked: "Sin cuenta vinculada"
