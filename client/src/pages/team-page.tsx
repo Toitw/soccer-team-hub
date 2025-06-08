@@ -609,7 +609,6 @@ export default function TeamPage() {
           "3-5-2",
           "3-4-3",
           "5-3-2",
-          "4-2-3-1",
         ];
     }
   };
