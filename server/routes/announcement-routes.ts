@@ -10,7 +10,24 @@ export function createAnnouncementRouter(): Router {
     try {
       const teamId = parseInt(req.params.id);
       const announcements = await storage.getAnnouncements(teamId);
-      res.json(announcements);
+      
+      // Populate creator information
+      const announcementsWithCreators = await Promise.all(
+        announcements.map(async (announcement) => {
+          try {
+            const creator = await storage.getUserById(announcement.createdById);
+            return {
+              ...announcement,
+              creator: creator ? { fullName: creator.fullName } : null
+            };
+          } catch (error) {
+            console.error(`Error fetching creator for announcement ${announcement.id}:`, error);
+            return announcement;
+          }
+        })
+      );
+      
+      res.json(announcementsWithCreators);
     } catch (error) {
       console.error("Error fetching announcements:", error);
       res.status(500).json({ error: "Failed to fetch announcements" });
@@ -24,7 +41,24 @@ export function createAnnouncementRouter(): Router {
       const limit = parseInt(req.query.limit as string) || 5;
       
       const announcements = await storage.getRecentAnnouncements(teamId, limit);
-      res.json(announcements);
+      
+      // Populate creator information
+      const announcementsWithCreators = await Promise.all(
+        announcements.map(async (announcement) => {
+          try {
+            const creator = await storage.getUserById(announcement.createdById);
+            return {
+              ...announcement,
+              creator: creator ? { fullName: creator.fullName } : null
+            };
+          } catch (error) {
+            console.error(`Error fetching creator for announcement ${announcement.id}:`, error);
+            return announcement;
+          }
+        })
+      );
+      
+      res.json(announcementsWithCreators);
     } catch (error) {
       console.error("Error fetching recent announcements:", error);
       res.status(500).json({ error: "Failed to fetch recent announcements" });
