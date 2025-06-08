@@ -637,8 +637,15 @@ export const enUS = {
       addEntry: "Add Entry",
       uploadCsv: "Upload CSV",
       sampleCsv: "Sample CSV"
-    }
-  },
+    },
+    uploadClassificationData: "Upload Classification Data",
+    uploadClassificationDescription: "Upload a CSV file with team classification data. The file should have columns for team name and points.",
+    warningReplaceData: "Warning: This will replace existing data",
+    uploadWillReplace: "Uploading this file will replace all existing classification data for this team.",
+    csvFileLabel: "CSV File",
+    uploadAndProcess: "Upload and Process",
+    noteLabel: "Note",
+    uploadingNewCsv: "Uploading a new CSV will replace all existing classification data.",
   events: {
     upcomingEvents: "Upcoming Events",
     pastEvents: "Past Events",

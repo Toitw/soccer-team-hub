@@ -1697,31 +1697,29 @@ export default function MatchesPage() {
             open={csvUploadDialogOpen}
             onOpenChange={setCsvUploadDialogOpen}
           >
-            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden">
-              <DialogHeader>
-                <DialogTitle>Upload Classification Data</DialogTitle>
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden px-6 py-6">
+              <DialogHeader className="space-y-3">
+                <DialogTitle>{t("matches.uploadClassificationData")}</DialogTitle>
                 <DialogDescription>
-                  Upload a CSV file with team classification data. The file
-                  should have columns for team name and points.
+                  {t("matches.uploadClassificationDescription")}
                 </DialogDescription>
               </DialogHeader>
-              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 p-3 rounded-md my-3">
+              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 p-3 rounded-md my-4">
                 <div className="flex items-start">
-                  <InfoIcon className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <InfoIcon className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
                     <p className="font-medium">
-                      Warning: This will replace existing data
+                      {t("matches.warningReplaceData")}
                     </p>
                     <p className="text-sm">
-                      Uploading this file will replace all existing
-                      classification data for this team.
+                      {t("matches.uploadWillReplace")}
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 pr-2">
                 <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="csv-file">CSV File</Label>
+                  <Label htmlFor="csv-file">{t("matches.csvFileLabel")}</Label>
                   <Input
                     id="csv-file"
                     type="file"
@@ -1758,33 +1756,31 @@ export default function MatchesPage() {
                     className="p-0 h-auto ml-1"
                     onClick={generateSampleCsv}
                   >
-                    Download sample CSV
+                    {t("matches.classificationSection.sampleCsv")}
                   </Button>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800 mr-2">
                   <div className="flex items-start">
-                    <InfoIcon className="h-4 w-4 mr-2 text-blue-500 dark:text-blue-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm mb-1">Note</p>
+                    <InfoIcon className="h-4 w-4 mr-3 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{t("matches.noteLabel")}</p>
                       <p className="text-blue-700 dark:text-blue-300">
-                        Uploading a new CSV will replace all existing
-                        classification data.
+                        {t("matches.uploadingNewCsv")}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-              <DialogFooter className="mt-4 sm:mt-6">
+              <DialogFooter className="mt-6 gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setCsvUploadDialogOpen(false)}
-                  className="mr-2"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button type="button" onClick={handleCsvUpload}>
-                  Upload and Process
+                  {t("matches.uploadAndProcess")}
                 </Button>
               </DialogFooter>
             </DialogContent>
