@@ -131,7 +131,7 @@ export default function TeamPage() {
   );
   const [memberToRemove, setMemberToRemove] =
     useState<TeamMemberWithUser | null>(null);
-  
+
 
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
@@ -156,7 +156,7 @@ export default function TeamPage() {
       );
     }
   }, [selectedTeam?.teamType]);
-  
+
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [showAddToLineupDialog, setShowAddToLineupDialog] =
     useState<boolean>(false);
@@ -235,11 +235,11 @@ export default function TeamPage() {
     if (!teamMembers) return [];
     return teamMembers.filter((member) => {
       const roleMatch = roleFilter === "all" || member.role === roleFilter;
-      
+
       if (searchQuery === "") {
         return roleMatch;
       }
-      
+
       const searchLower = searchQuery.toLowerCase();
       const searchMatch = 
         // Search in member's direct properties (for unlinked members)
@@ -251,7 +251,7 @@ export default function TeamPage() {
         member.user?.position?.toLowerCase().includes(searchLower) ||
         // Search in jersey number
         member.jerseyNumber?.toString().includes(searchQuery);
-        
+
       return roleMatch && searchMatch;
     });
   }, [teamMembers, roleFilter, searchQuery]);
@@ -781,6 +781,13 @@ export default function TeamPage() {
     teamMembers?.some(
       (member) => member.userId === user?.id && (member.role === "admin" || member.role === "coach"),
     );
+
+  const getInitials = (fullName: string | undefined | null): string => {
+    if (!fullName) return "U";
+    const names = fullName.split(" ");
+    const initials = names.map((name) => name.charAt(0).toUpperCase()).join("");
+    return initials.substring(0, 2);
+  };
 
   return (
     <div className="flex h-screen bg-background">

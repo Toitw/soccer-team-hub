@@ -94,9 +94,13 @@ export default function PlayerProfilePage() {
                   <div className="flex flex-col items-center">
                     <div className="relative">
                       <img 
-                        src={player.profilePicture} 
+                        src={player.profilePicture || "https://ui-avatars.com/api/?name=" + encodeURIComponent(player.fullName) + "&background=0D47A1&color=fff"} 
                         alt={player.fullName} 
-                        className="w-32 h-32 rounded-full object-cover border-4 border-primary" 
+                        className="w-32 h-32 rounded-full object-cover border-4 border-primary"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(player.fullName) + "&background=0D47A1&color=fff";
+                        }}
                       />
                       {canEdit && (
                         <button className="absolute bottom-0 right-0 bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center">

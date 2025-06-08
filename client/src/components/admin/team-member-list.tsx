@@ -163,24 +163,31 @@ export function TeamMemberList({ team }: TeamMemberListProps) {
               return (
                 <TableRow key={member.id}>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {displayData.profilePicture ? (
-                        <img
-                          src={displayData.profilePicture}
-                          alt={displayData.fullName}
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                          <UserCog className="h-4 w-4" />
-                        </div>
-                      )}
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                        {displayData.profilePicture ? (
+                          <img 
+                            src={displayData.profilePicture} 
+                            alt={displayData.fullName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `<div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">${displayData.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}</div>`;
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                            {displayData.fullName?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <div className="font-medium">{displayData.fullName}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {!user && <span className="text-amber-500 font-semibold">Unclaimed</span>}
-                          {user && displayData.username}
-                        </div>
+                        <p className="font-medium">{displayData.fullName}</p>
+                        <p className="text-sm text-gray-500">@{displayData.username}</p>
                       </div>
                     </div>
                   </TableCell>
