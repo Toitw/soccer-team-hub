@@ -211,13 +211,15 @@ export default function TeamPage() {
 
   // Set default formation when team type changes and no saved lineup exists
   useEffect(() => {
-    if (selectedTeam?.teamType && !teamLineup) {
-      // Only set default formation if no saved lineup exists
-      setSelectedFormation(
-        selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
-        selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
-        "4-3-3"
-      );
+    if (selectedTeam?.teamType && teamLineup !== undefined) {
+      if (!teamLineup) {
+        // Only set default formation if no saved lineup exists
+        setSelectedFormation(
+          selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
+          selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
+          "4-3-3"
+        );
+      }
     }
   }, [selectedTeam?.teamType, teamLineup]);
 
@@ -615,8 +617,11 @@ export default function TeamPage() {
   // Get available formations based on selected team type
   const availableFormations = getAvailableFormations(selectedTeam?.teamType);
 
-  const handleFormationChange = (formation: string) =>
+  const handleFormationChange = (formation: string) => {
     setSelectedFormation(formation);
+    // Clear lineup when formation changes to force repositioning
+    setLineup({});
+  };
   const handlePositionClick = (positionId: string) => {
     setSelectedPosition(positionId);
     setShowAddToLineupDialog(true);
@@ -742,7 +747,7 @@ export default function TeamPage() {
   useEffect(() => {
     if (teamLineup && teamMembers) {
       // Set the formation from the saved data
-      if (teamLineup.formation) {
+      if (teamLineup.formation && teamLineup.formation !== selectedFormation) {
         setSelectedFormation(teamLineup.formation);
       }
 
@@ -763,7 +768,7 @@ export default function TeamPage() {
       }
 
       setLineup(newLineup);
-    } else if (selectedTeam?.teamType && !teamLineup && selectedFormation === "") {
+    } else if (selectedTeam?.teamType && teamLineup === null && selectedFormation === "") {
       // Set default formation only if no saved lineup and no formation set yet
       setSelectedFormation(
         selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
@@ -771,7 +776,7 @@ export default function TeamPage() {
         "4-3-3"
       );
     }
-  }, [teamLineup, teamMembers, selectedTeam?.teamType, selectedFormation]);
+  }, [teamLineup, teamMembers, selectedTeam?.teamType]);
 
   if (teamsLoading || teamMembersLoading) {
     return (
