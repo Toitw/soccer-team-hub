@@ -69,7 +69,7 @@ const eventSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   location: z.string().min(1, "Location is required"),
-  description: z.string().optional(),
+  description: z.string().max(500, "Description must be 500 characters or less").optional(),
   eventType: z.enum(["training", "meeting", "match", "other"]).default("training"),
 });
 
@@ -568,11 +568,17 @@ export default function EventPage() {
                         <FormItem>
                           <FormLabel>{t("events.description")}</FormLabel>
                           <FormControl>
-                            <textarea
-                              className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              placeholder={t("events.enterDescription")}
-                              {...field}
-                            ></textarea>
+                            <div className="relative">
+                              <textarea
+                                className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                placeholder={t("events.enterDescription")}
+                                maxLength={500}
+                                {...field}
+                              ></textarea>
+                              <div className="absolute bottom-2 right-2 text-xs text-gray-500">
+                                {field.value?.length || 0}/500
+                              </div>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
