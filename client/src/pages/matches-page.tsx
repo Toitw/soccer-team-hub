@@ -1793,9 +1793,15 @@ export default function MatchesPage() {
             onOpenChange={setCsvUploadDialogOpen}
           >
             <DialogContent
-              className="w-full max-w-[90vw] sm:max-w-[500px] md:max-w-[600px]
-                         overflow-y-auto overflow-x-hidden max-h-[95vh]
-                         px-4 py-4 sm:px-6 sm:py-6"
+              className="w-full
+  max-w-[92vw]            /* phone: 92 % of viewport */
+  sm:max-w-[500px]
+  md:max-w-[600px]
+  overflow-y-auto
+  overflow-x-hidden       /* block horizontal overflow inside */
+  max-h-[95vh]
+  px-4 py-4               /* safe padding (already inside 92 vw) */
+  sm:px-6 sm:py-6"
             >
               <DialogHeader className="space-y-2 sm:space-y-3">
                 <DialogTitle className="text-base sm:text-lg leading-tight">
@@ -1934,7 +1940,7 @@ export default function MatchesPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteClassification}>
+                Adding the overflow-x-hidden class to the top-level div and modifying the DialogContent className and the CSV example code block to prevent horizontal scrolling and modal widening.                <AlertDialogAction onClick={handleDeleteClassification}>
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
