@@ -1697,10 +1697,10 @@ export default function MatchesPage() {
             open={csvUploadDialogOpen}
             onOpenChange={setCsvUploadDialogOpen}
           >
-            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden px-6 py-6 pr-8">
-              <DialogHeader className="space-y-3 pr-4">
-                <DialogTitle className="pr-4">{t("matches.uploadClassificationData")}</DialogTitle>
-                <DialogDescription className="pr-6">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden px-6 py-6">
+              <DialogHeader className="space-y-3">
+                <DialogTitle>{t("matches.uploadClassificationData")}</DialogTitle>
+                <DialogDescription className="pr-4">
                   {t("matches.uploadClassificationDescription")}
                 </DialogDescription>
               </DialogHeader>
@@ -1717,8 +1717,8 @@ export default function MatchesPage() {
                   </div>
                 </div>
               </div>
-              <div className="space-y-4 pr-6">
-                <div className="grid w-full items-center gap-1.5 pr-2">
+              <div className="space-y-4 pr-2">
+                <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="csv-file">{t("matches.csvFileLabel")}</Label>
                   <Input
                     id="csv-file"
@@ -1729,9 +1729,8 @@ export default function MatchesPage() {
                         setCsvFile(e.target.files[0]);
                       }
                     }}
-                    className="mr-2"
                   />
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1 pr-2">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                     Required format: "Team,Points" with optional columns for
                     games played, won, drawn, lost, and goals.
                   </p>
@@ -1760,10 +1759,10 @@ export default function MatchesPage() {
                     {t("matches.classificationSection.sampleCsv")}
                   </Button>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800 mr-4">
+                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800 mr-2">
                   <div className="flex items-start">
                     <InfoIcon className="h-4 w-4 mr-3 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                    <div className="space-y-1 pr-2">
+                    <div className="space-y-1">
                       <p className="font-medium text-sm">{t("matches.noteLabel")}</p>
                       <p className="text-blue-700 dark:text-blue-300">
                         {t("matches.uploadingNewCsv")}
