@@ -142,20 +142,21 @@ export default function TeamPage() {
 
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedFormation, setSelectedFormation] = useState<string>("4-3-3");
+  const [selectedFormation, setSelectedFormation] = useState<string>("");
   const [lineup, setLineup] = useState<{
     [position: string]: TeamMemberWithUser | null;
   }>({});
 
   useEffect(() => {
-    if (selectedTeam?.teamType) {
+    if (selectedTeam?.teamType && !teamLineup) {
+      // Only set default formation if no saved lineup exists
       setSelectedFormation(
         selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
         selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
         "4-3-3"
       );
     }
-  }, [selectedTeam?.teamType]);
+  }, [selectedTeam?.teamType, teamLineup]);
 
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
   const [showAddToLineupDialog, setShowAddToLineupDialog] =
@@ -764,8 +765,15 @@ export default function TeamPage() {
       }
 
       setLineup(newLineup);
+    } else if (selectedTeam?.teamType && !teamLineup && selectedFormation === "") {
+      // Set default formation only if no saved lineup and no formation set yet
+      setSelectedFormation(
+        selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
+        selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
+        "4-3-3"
+      );
     }
-  }, [teamLineup, teamMembers]);
+  }, [teamLineup, teamMembers, selectedTeam?.teamType, selectedFormation]);
 
   if (teamsLoading || teamMembersLoading) {
     return (
