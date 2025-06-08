@@ -1792,7 +1792,11 @@ export default function MatchesPage() {
             open={csvUploadDialogOpen}
             onOpenChange={setCsvUploadDialogOpen}
           >
-            <DialogContent className="w-[98vw] max-w-[98vw] sm:max-w-[500px] md:max-w-[600px] overflow-y-auto max-h-[95vh] mx-1 px-3 py-4 sm:px-6 sm:py-6">
+            <DialogContent
+              className="w-full max-w-[95vw] sm:max-w-[500px] md:max-w-[600px]
+                         overflow-y-auto overflow-x-hidden max-h-[95vh]
+                         px-4 py-4 sm:px-6 sm:py-6"
+            >
               <DialogHeader className="space-y-2 sm:space-y-3">
                 <DialogTitle className="text-base sm:text-lg leading-tight">
                   {t("matches.uploadClassificationData")}
@@ -1814,7 +1818,9 @@ export default function MatchesPage() {
               </div>
               <div className="space-y-3 sm:space-y-4">
                 <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="csv-file" className="text-xs sm:text-sm">{t("matches.csvFileLabel")}</Label>
+                  <Label htmlFor="csv-file" className="text-xs sm:text-sm">
+                    {t("matches.csvFileLabel")}
+                  </Label>
                   <Input
                     id="csv-file"
                     type="file"
@@ -1827,14 +1833,19 @@ export default function MatchesPage() {
                     }}
                   />
                   <p className="text-xs text-muted-foreground mt-1 break-words">
-                    Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
+                    Required format: "Team,Points" with optional columns for
+                    games played, won, drawn, lost, and goals.
                   </p>
                 </div>
                 <div className="rounded-md bg-muted p-2 sm:p-3">
-                  <div className="text-xs sm:text-sm font-medium mb-2">Example CSV Format:</div>
-                  <div className="bg-background rounded border p-2 overflow-x-auto">
+                  <div className="text-xs sm:text-sm font-medium mb-2">
+                    Example CSV Format:
+                  </div>
+                  <div className="bg-background rounded border p-2 overflow-x-auto max-w-full">
                     <div className="text-xs font-mono text-muted-foreground whitespace-nowrap min-w-0">
-                      <div>Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst</div>
+                      <div>
+                        Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
+                      </div>
                       <div>Team A,21,10,7,0,3,22,12</div>
                       <div>Team B,18,10,6,0,4,20,15</div>
                       <div>Team C,15,10,5,0,5,17,18</div>
@@ -1874,8 +1885,8 @@ export default function MatchesPage() {
                 >
                   {t("common.cancel")}
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   className="w-full sm:w-auto text-xs sm:text-sm"
                   onClick={handleCsvUpload}
                 >
