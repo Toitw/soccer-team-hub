@@ -1697,101 +1697,89 @@ export default function MatchesPage() {
             open={csvUploadDialogOpen}
             onOpenChange={setCsvUploadDialogOpen}
           >
-            <DialogContent className="w-full max-w-[95vw] sm:max-w-[500px] md:max-w-[550px] max-h-[85vh] flex flex-col">
-              <DialogHeader className="space-y-3 flex-shrink-0">
-                <DialogTitle className="text-lg sm:text-xl pr-8">{t("matches.uploadClassificationData")}</DialogTitle>
-                <DialogDescription className="text-sm">
+            <DialogContent className="w-full max-w-[95vw] overflow-y-auto max-h-[90vh] sm:max-w-[500px] md:max-w-[550px] overflow-x-hidden px-6 py-6">
+              <DialogHeader className="space-y-3">
+                <DialogTitle>{t("matches.uploadClassificationData")}</DialogTitle>
+                <DialogDescription className="pr-4">
                   {t("matches.uploadClassificationDescription")}
                 </DialogDescription>
               </DialogHeader>
-              
-              <div className="flex-1 overflow-y-auto min-h-0 pr-2">
-                <div className="space-y-4">
-                  <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 p-3 rounded-md">
-                    <div className="flex items-start">
-                      <InfoIcon className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
-                      <div className="space-y-1 min-w-0">
-                        <p className="font-medium text-sm">
-                          {t("matches.warningReplaceData")}
-                        </p>
-                        <p className="text-xs sm:text-sm">
-                          {t("matches.uploadWillReplace")}
-                        </p>
-                      </div>
-                    </div>
+              <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300 p-3 rounded-md my-4">
+                <div className="flex items-start">
+                  <InfoIcon className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {t("matches.warningReplaceData")}
+                    </p>
+                    <p className="text-sm">
+                      {t("matches.uploadWillReplace")}
+                    </p>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="grid w-full items-center gap-1.5">
-                      <Label htmlFor="csv-file" className="text-sm font-medium">{t("matches.csvFileLabel")}</Label>
-                      <Input
-                        id="csv-file"
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            setCsvFile(e.target.files[0]);
-                          }
-                        }}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Required format: "Team,Points" with optional columns for games played, won, drawn, lost, and goals.
+                </div>
+              </div>
+              <div className="space-y-4 pr-2">
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="csv-file">{t("matches.csvFileLabel")}</Label>
+                  <Input
+                    id="csv-file"
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setCsvFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    Required format: "Team,Points" with optional columns for
+                    games played, won, drawn, lost, and goals.
+                  </p>
+                </div>
+                <div className="rounded-md bg-muted p-3">
+                  <div className="text-sm font-medium">Example CSV Format:</div>
+                  <div className="max-h-32 overflow-y-auto custom-scrollbar">
+                    <pre className="mt-2 text-xs text-muted-foreground whitespace-pre overflow-x-auto px-2">
+                      Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
+                      <br />
+                      Team A,21,10,7,0,3,22,12
+                      <br />
+                      Team B,18,10,6,0,4,20,15
+                      <br />
+                      Team C,15,10,5,0,5,17,18
+                    </pre>
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground flex items-center">
+                  <span>Need a template?</span>
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto ml-1"
+                    onClick={generateSampleCsv}
+                  >
+                    {t("matches.classificationSection.sampleCsv")}
+                  </Button>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950 text-xs sm:text-sm p-3 rounded-md border border-blue-200 dark:border-blue-800 mr-2">
+                  <div className="flex items-start">
+                    <InfoIcon className="h-4 w-4 mr-3 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{t("matches.noteLabel")}</p>
+                      <p className="text-blue-700 dark:text-blue-300">
+                        {t("matches.uploadingNewCsv")}
                       </p>
-                    </div>
-                    
-                    <div className="rounded-md bg-muted p-3">
-                      <div className="text-sm font-medium mb-2">Example CSV Format:</div>
-                      <div className="bg-background rounded border p-2 overflow-x-auto">
-                        <pre className="text-xs text-muted-foreground whitespace-nowrap font-mono">
-Team,Points,GamesPlayed,GamesWon,GamesDrawn,GamesLost,GoalsFor,GoalsAgainst
-Team A,21,10,7,0,3,22,12
-Team B,18,10,6,0,4,20,15
-Team C,15,10,5,0,5,17,18
-                        </pre>
-                      </div>
-                    </div>
-                    
-                    <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
-                      <span>Need a template?</span>
-                      <Button
-                        variant="link"
-                        className="p-0 h-auto text-sm"
-                        onClick={generateSampleCsv}
-                      >
-                        {t("matches.classificationSection.sampleCsv")}
-                      </Button>
-                    </div>
-                    
-                    <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-start">
-                        <InfoIcon className="h-4 w-4 mr-3 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                        <div className="space-y-1 min-w-0">
-                          <p className="font-medium text-sm">{t("matches.noteLabel")}</p>
-                          <p className="text-blue-700 dark:text-blue-300 text-xs sm:text-sm">
-                            {t("matches.uploadingNewCsv")}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              <DialogFooter className="gap-2 flex-col sm:flex-row flex-shrink-0 mt-4 pt-4 border-t">
+              <DialogFooter className="mt-6 gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setCsvUploadDialogOpen(false)}
-                  className="w-full sm:w-auto"
                 >
                   {t("common.cancel")}
                 </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleCsvUpload}
-                  className="w-full sm:w-auto"
-                >
+                <Button type="button" onClick={handleCsvUpload}>
                   {t("matches.uploadAndProcess")}
                 </Button>
               </DialogFooter>
