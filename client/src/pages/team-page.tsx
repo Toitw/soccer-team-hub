@@ -147,24 +147,6 @@ export default function TeamPage() {
     [position: string]: TeamMemberWithUser | null;
   }>({});
 
-  useEffect(() => {
-    if (selectedTeam?.teamType && !teamLineup) {
-      // Only set default formation if no saved lineup exists
-      setSelectedFormation(
-        selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
-        selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
-        "4-3-3"
-      );
-    }
-  }, [selectedTeam?.teamType, teamLineup]);
-
-  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
-  const [showAddToLineupDialog, setShowAddToLineupDialog] =
-    useState<boolean>(false);
-  const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
-
-
-
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
   const { data: teamLineup, isLoading: teamLineupLoading } = useQuery({
@@ -222,6 +204,18 @@ export default function TeamPage() {
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
+
+  // Set default formation when team type changes and no saved lineup exists
+  useEffect(() => {
+    if (selectedTeam?.teamType && !teamLineup) {
+      // Only set default formation if no saved lineup exists
+      setSelectedFormation(
+        selectedTeam.teamType === "Futsal" ? "5a-1-2-1" : 
+        selectedTeam.teamType === "7-a-side" ? "7a-2-3-1" : 
+        "4-3-3"
+      );
+    }
+  }, [selectedTeam?.teamType, teamLineup]);
 
   // Force refetch team members when selectedTeam changes to ensure fresh data
   useEffect(() => {
