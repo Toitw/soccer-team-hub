@@ -1080,14 +1080,27 @@ export const esES = {
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
-    playerAddedToLineup: "Jugador Añadido a la Alineación",
+    playerAddedToLineup: "Jugador Añadido a la Alineación", 
     playerAssigned: "El jugador ha sido asignado a la posición seleccionada",
     goalAdded: "Gol añadido",
     goalAddedDesc: "El gol ha sido registrado exitosamente",
+    goalRecorded: "Gol registrado",
+    goalRecordedDesc: "El gol ha sido registrado exitosamente",
     cardAdded: "Tarjeta añadida",
     cardAddedDesc: "La tarjeta ha sido registrada exitosamente",
     substitutionAdded: "Sustitución añadida",
     substitutionAddedDesc: "La sustitución ha sido registrada exitosamente",
+
+    // Mensajes específicos adicionales requeridos
+    teamMemberRemoved: "Miembro del equipo eliminado",
+    teamMemberRemovedDesc: "El miembro del equipo ha sido eliminado correctamente",
+    teamMemberAdded: "Miembro del equipo añadido", 
+    teamMemberAddedDesc: "El nuevo miembro del equipo ha sido añadido correctamente",
+    teamMemberUpdated: "Miembro del equipo actualizado",
+    teamMemberUpdatedDesc: "El miembro del equipo ha sido actualizado correctamente",
+    playerAddedToLineupDesc: "El jugador ha sido añadido a la alineación",
+    csvDataUploaded: "Datos CSV subidos",
+    csvDataUploadedDesc: "Los datos del CSV han sido subidos correctamente",
 
     // Mensajes relacionados con invitaciones
     invitationSent: "Invitación enviada",
