@@ -696,7 +696,7 @@ export const esES = {
     uploadWillReplace:
       "Subir este archivo reemplazará todos los datos de clasificación existentes para este equipo.",
     csvFileLabel: "Archivo CSV",
-    uploadAndProcess: "Subir y Procesar",
+    uploadAndProcessClassification: "Subir y Procesar",
     noteLabel: "Nota",
     uploadingNewCsv:
       "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",

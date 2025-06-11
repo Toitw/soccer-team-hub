@@ -643,11 +643,11 @@ export const enUS = {
     warningReplaceData: "Warning: This will replace existing data",
     uploadWillReplace: "Uploading this file will replace all existing classification data for this team.",
     csvFileLabel: "CSV File",
-    uploadAndProcess: "Upload and Process",
+    uploadAndProcessClassification: "Upload and Process",
     noteLabel: "Note",
     uploadingNewCsv: "Uploading a new CSV will replace all existing classification data.",
-    fieldPositions: "Field Positions",
-    penalty: "Penalty",
+    fieldPositionsLineup: "Field Positions",
+    penaltyGoal: "Penalty",
   },
   events: {
     upcomingEvents: "Upcoming Events",
@@ -1597,14 +1597,7 @@ export const esES = {
       uploadCsv: "Subir CSV",
       sampleCsv: "CSV de ejemplo"
     },
-    uploadClassificationData: "Subir datos de clasificación",
-    uploadClassificationDescription: "Sube un archivo CSV con los datos de clasificación del equipo. El archivo debe tener columnas para el nombre del equipo y los puntos.",
-    warningReplaceData: "Advertencia: Esto reemplazará los datos existentes",
-    uploadWillReplace: "Al subir este archivo se reemplazarán todos los datos de clasificación existentes para este equipo.",
-    csvFileLabel: "Archivo CSV",
-    uploadAndProcess: "Subir y procesar",
-    noteLabel: "Nota",
-    uploadingNewCsv: "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
+
   },
   events: {
     upcomingEvents: "Próximos eventos",
