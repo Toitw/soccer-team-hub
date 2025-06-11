@@ -109,16 +109,16 @@ export default function SettingsPage() {
       }
 
       toast({
-        title: "Join code regenerated",
-        description: "New join code has been generated successfully",
+        title: translate("toasts.joinCodeRegenerated"),
+        description: translate("toasts.joinCodeRegeneratedDesc"),
       });
       setIsGeneratingJoinCode(false);
     },
     onError: (error) => {
       console.error("Failed to regenerate join code:", error);
       toast({
-        title: "Error",
-        description: "Failed to regenerate join code. Please try again.",
+        title: translate("toasts.error"),
+        description: translate("toasts.actionFailed"),
         variant: "destructive",
       });
       setIsGeneratingJoinCode(false);
@@ -138,15 +138,15 @@ export default function SettingsPage() {
     navigator.clipboard.writeText(selectedTeam.joinCode)
       .then(() => {
         toast({
-          title: "Copied to clipboard",
-          description: "Team join code has been copied to clipboard",
+          title: translate("toasts.copiedToClipboard"),
+          description: translate("toasts.clipboardDesc"),
         });
       })
       .catch(err => {
         console.error("Failed to copy join code:", err);
         toast({
-          title: "Error",
-          description: "Failed to copy join code to clipboard",
+          title: translate("toasts.error"),
+          description: translate("toasts.actionFailed"),
           variant: "destructive",
         });
       });
@@ -283,15 +283,15 @@ export default function SettingsPage() {
       }
 
       toast({
-        title: "Team updated",
-        description: "Team settings have been updated successfully.",
+        title: translate("toasts.teamUpdated"),
+        description: translate("toasts.teamUpdatedDesc"),
       });
       setTeamSettingsChanged(false);
     },
     onError: (error) => {
       toast({
-        title: "Error updating team",
-        description: error.message || "There was an error updating the team settings.",
+        title: translate("toasts.error"),
+        description: error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
     },
@@ -312,14 +312,14 @@ export default function SettingsPage() {
         forceRefreshTeamMembers();
       }, 300);
       toast({
-        title: "Member removed",
-        description: "Team member has been removed successfully.",
+        title: translate("toasts.memberRemoved"),
+        description: translate("toasts.memberRemovedDesc"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error removing member",
-        description: error.message || "There was an error removing the team member.",
+        title: translate("toasts.error"),
+        description: error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
     },
@@ -363,8 +363,8 @@ export default function SettingsPage() {
     },
     onError: (error) => {
       toast({
-        title: "Error updating logo",
-        description: error.message || "There was an error updating the team logo.",
+        title: translate("toasts.error"),
+        description: error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
       setIsUploadingLogo(false);
@@ -438,8 +438,8 @@ export default function SettingsPage() {
     // In a real implementation, you would make an API call to send the invitation
     console.log("Invitation data:", data);
     toast({
-      title: "Invitation sent",
-      description: `Invitation sent to ${data.email}`,
+      title: translate("toasts.invitationSent"),
+      description: translate("toasts.invitationSentDesc", { email: data.email }),
     });
     form.reset();
   };
