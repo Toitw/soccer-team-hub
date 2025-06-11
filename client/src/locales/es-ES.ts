@@ -1144,5 +1144,12 @@ export const esES = {
     teamDeleted: "Equipo eliminado",
     teamDeletedDesc: "El equipo ha sido eliminado exitosamente",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
+    
+    // Additional toast messages
+    noTeamOrMemberSelected: "No hay equipo o miembro seleccionado para editar",
+    noAvailablePosition: "No hay posición disponible",
+    noAvailablePositionDesc: "No hay ninguna posición disponible en la alineación",
+    playerRemovedFromLineup: "Jugador eliminado de la alineación",
+    playerRemovedFromLineupDesc: "El jugador ha sido eliminado de la alineación",
   },
 };

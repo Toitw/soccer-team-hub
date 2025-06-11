@@ -6,6 +6,7 @@ import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { useTranslation } from "@/hooks/use-translation";
 import MatchDetails from "@/components/match-details";
 import { SeasonManagement } from "@/components/season/season-management";
 import { apiRequest } from "@/lib/queryClient";
@@ -128,6 +129,7 @@ export default function MatchesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t, currentLanguage } = useLanguage();
+  const { t: translate } = useTranslation();
   const [activeTab, setActiveTab] = useState("seasons");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);

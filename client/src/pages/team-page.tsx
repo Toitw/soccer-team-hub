@@ -678,8 +678,8 @@ export default function TeamPage() {
   const removePlayerFromLineup = (positionId: string) => {
     setLineup((prev) => ({ ...prev, [positionId]: null }));
     toast({
-      title: "Player removed from lineup",
-      description: "Player has been removed from the lineup.",
+      title: translate("toasts.playerRemovedFromLineup"),
+      description: translate("toasts.playerRemovedFromLineupDesc"),
     });
   };
 
@@ -724,16 +724,16 @@ export default function TeamPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Lineup saved",
-        description: "The team lineup has been saved successfully.",
+        title: translate("toasts.lineupSaved"),
+        description: translate("toasts.lineupSavedDesc"),
       });
       queryClient.invalidateQueries({ queryKey: teamLineupQueryKey });
       setIsSavingLineup(false);
     },
     onError: (error) => {
       toast({
-        title: "Error saving lineup",
-        description: error.message || "There was an error saving the lineup.",
+        title: translate("toasts.error"),
+        description: error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
       setIsSavingLineup(false);
