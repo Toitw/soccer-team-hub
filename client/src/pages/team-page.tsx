@@ -124,6 +124,7 @@ export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { t: translate } = useTranslation();
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
   const [openEditMemberDialog, setOpenEditMemberDialog] = useState(false);
   const [openRemoveMemberDialog, setOpenRemoveMemberDialog] = useState(false);
@@ -303,8 +304,8 @@ export default function TeamPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Team member removed",
-        description: "The team member has been removed successfully.",
+        title: translate("toasts.teamMemberRemoved"),
+        description: translate("toasts.teamMemberRemovedDesc"),
       });
       setOpenRemoveMemberDialog(false);
       setMemberToRemove(null);
@@ -314,9 +315,9 @@ export default function TeamPage() {
     },
     onError: (error) => {
       toast({
-        title: "Error removing team member",
+        title: translate("toasts.error"),
         description:
-          error.message || "There was an error removing the team member.",
+          error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
     },
@@ -344,8 +345,8 @@ export default function TeamPage() {
     onSuccess: (data) => {
       console.log("Team member added successfully. Response data:", data);
       toast({
-        title: "Team member added",
-        description: "The new team member has been added successfully.",
+        title: translate("toasts.teamMemberAdded"),
+        description: translate("toasts.teamMemberAddedDesc"),
       });
       setOpenAddMemberDialog(false);
       form.reset();
@@ -363,9 +364,9 @@ export default function TeamPage() {
     },
     onError: (error) => {
       toast({
-        title: "Error adding team member",
+        title: translate("toasts.error"),
         description:
-          error.message || "There was an error adding the team member.",
+          error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
     },
@@ -388,8 +389,8 @@ export default function TeamPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Team member updated",
-        description: "The team member has been updated successfully.",
+        title: translate("toasts.teamMemberUpdated"),
+        description: translate("toasts.teamMemberUpdatedDesc"),
       });
       setOpenEditMemberDialog(false);
       setMemberToEdit(null);
