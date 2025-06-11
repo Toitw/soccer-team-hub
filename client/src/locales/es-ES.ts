@@ -488,7 +488,7 @@ export const esES = {
     exampleCsvFormat: "Ejemplo de formato CSV:",
     needTemplate: "¿Necesitas una plantilla?",
     downloadSampleCsv: "Descargar CSV de ejemplo",
-    uploadAndProcess: "Subir y Procesar",
+    uploadAndProcessMatch: "Subir y Procesar",
     leagueTable: "Tabla de la Liga",
     standings: "Clasificación",
     leagueClassification: "Liga",
@@ -618,8 +618,8 @@ export const esES = {
     selectCardType: "Seleccionar tipo de tarjeta",
 
     // New entries for match-details.tsx
-    matchDetails: "Detalles del Partido",
-    score: "Marcador",
+    matchDetailsPage: "Detalles del Partido",
+    matchScore: "Marcador",
     dateTimeFormat: "EEEE, d 'de' MMMM 'de' yyyy 'a las' H:mm",
     noCardsRecorded: "No se registraron tarjetas para este partido.",
     recordCardsHelp:
@@ -700,7 +700,7 @@ export const esES = {
     noteLabel: "Nota",
     uploadingNewCsv:
       "Subir un nuevo CSV reemplazará todos los datos de clasificación existentes.",
-    fieldPositions: "Posiciones en el campo",
+    fieldPositionsMatch: "Posiciones en el campo",
     penalty: "Penalti",
   },
   events: {
