@@ -434,8 +434,8 @@ export default function TeamPage() {
   const onEditSubmit = (data: EditTeamMemberFormData) => {
     if (!selectedTeam || !memberToEdit) {
       toast({
-        title: "Error",
-        description: "No team or member selected to edit",
+        title: translate("toasts.error"),
+        description: translate("toasts.noTeamOrMemberSelected"),
         variant: "destructive",
       });
       return;
@@ -632,8 +632,8 @@ export default function TeamPage() {
   const addPlayerToLineup = (member: TeamMemberWithUser) => {
     if (Object.values(lineup).some((p) => p?.id === member.id)) {
       toast({
-        title: "Player already in lineup",
-        description: "This player is already assigned to a position.",
+        title: translate("toasts.playerAlreadyInLineup"),
+        description: translate("toasts.playerAlreadyAssigned"),
         variant: "destructive",
       });
       return;
@@ -643,8 +643,8 @@ export default function TeamPage() {
       setShowAddToLineupDialog(false);
       setSelectedPosition(null);
       toast({
-        title: "Player added to lineup",
-        description: `${member.user?.fullName || member.fullName} has been added to the lineup.`,
+        title: translate("toasts.playerAddedToLineup"),
+        description: translate("toasts.playerAddedToLineupDesc"),
       });
     }
   };
@@ -652,8 +652,8 @@ export default function TeamPage() {
   const addPlayerToFirstAvailablePosition = (member: TeamMemberWithUser) => {
     if (Object.values(lineup).some((p) => p?.id === member.id)) {
       toast({
-        title: "Player already in lineup",
-        description: "This player is already assigned to a position.",
+        title: translate("toasts.playerAlreadyInLineup"),
+        description: translate("toasts.playerAlreadyAssigned"),
         variant: "destructive",
       });
       return;
@@ -663,13 +663,13 @@ export default function TeamPage() {
     if (available) {
       setLineup((prev) => ({ ...prev, [available.id]: member }));
       toast({
-        title: "Player added to lineup",
-        description: `${member.user?.fullName || member.fullName} has been added at position ${available.label}.`,
+        title: translate("toasts.playerAddedToLineup"),
+        description: translate("toasts.playerAssigned"),
       });
     } else {
       toast({
-        title: "No available position",
-        description: "There is no available position in the lineup.",
+        title: translate("toasts.noAvailablePosition"),
+        description: translate("toasts.noAvailablePositionDesc"),
         variant: "destructive",
       });
     }
