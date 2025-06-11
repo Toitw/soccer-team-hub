@@ -251,10 +251,10 @@ export function createTeamRouter(): Router {
     
     try {
       const teamId = parseInt(req.params.id);
-      const { logo } = req.body;
+      const { imageData } = req.body;
       
-      if (!logo) {
-        return res.status(400).json({ error: "Logo URL is required" });
+      if (!imageData) {
+        return res.status(400).json({ error: "Image data is required" });
       }
 
       // Verify user is team admin
@@ -263,8 +263,8 @@ export function createTeamRouter(): Router {
         return res.status(403).json({ error: "Not authorized to update team logo" });
       }
 
-      const updatedTeam = await storage.updateTeam(teamId, { logo });
-      res.json(updatedTeam);
+      const updatedTeam = await storage.updateTeam(teamId, { logo: imageData });
+      res.json({ logo: imageData });
     } catch (error) {
       console.error("Error updating team logo:", error);
       res.status(500).json({ error: "Failed to update team logo" });
