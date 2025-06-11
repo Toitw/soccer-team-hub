@@ -400,9 +400,9 @@ export default function TeamPage() {
     },
     onError: (error) => {
       toast({
-        title: "Error updating team member",
+        title: translate("toasts.error"),
         description:
-          error.message || "There was an error updating the team member.",
+          error.message || translate("toasts.actionFailed"),
         variant: "destructive",
       });
     },
