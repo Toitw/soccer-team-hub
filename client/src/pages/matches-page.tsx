@@ -372,17 +372,17 @@ export default function MatchesPage() {
 
       toast({
         title: isEditingClassification
-          ? "Classification updated"
-          : "Classification created",
+          ? translate("toasts.classificationUpdated")
+          : translate("toasts.classificationCreated"),
         description: successMessage,
       });
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error",
+        title: translate("toasts.error"),
         description: isEditingClassification
-          ? "Failed to update classification"
-          : "Failed to create classification",
+          ? translate("errors.failedUpdateClassification")
+          : translate("errors.failedCreateClassification"),
         variant: "destructive",
       });
     }
@@ -401,14 +401,14 @@ export default function MatchesPage() {
       setDeleteClassificationDialogOpen(false);
       setClassificationToDelete(null);
       toast({
-        title: "Classification deleted",
-        description: "The classification entry has been deleted successfully",
+        title: translate("toasts.classificationDeleted"),
+        description: translate("toasts.classificationDeletedDesc"),
       });
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error",
-        description: "Failed to delete classification",
+        title: translate("toasts.error"),
+        description: translate("errors.failedDeleteClassification"),
         variant: "destructive",
       });
     }
@@ -418,8 +418,8 @@ export default function MatchesPage() {
   const handleCsvUpload = async () => {
     if (!csvFile || !selectedTeam) {
       toast({
-        title: "Error",
-        description: "Please select a CSV file first",
+        title: translate("toasts.error"),
+        description: translate("errors.selectCsvFirst"),
         variant: "destructive",
       });
       return;
@@ -486,14 +486,14 @@ export default function MatchesPage() {
           setCsvFile(null);
           await refetchClassifications();
           toast({
-            title: "CSV data uploaded",
-            description: `Successfully created ${result.classifications.length} classification entries`,
+            title: translate("toasts.csvUploaded"),
+            description: translate("success.entriesCreated", { count: result.classifications.length }),
           });
         } catch (error) {
           console.error(error);
           toast({
-            title: "Error",
-            description: "Failed to process CSV file",
+            title: translate("toasts.error"),
+            description: translate("errors.failedProcessCsvFile"),
             variant: "destructive",
           });
         }
@@ -502,8 +502,8 @@ export default function MatchesPage() {
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error",
-        description: "Failed to upload CSV file",
+        title: translate("toasts.error"),
+        description: translate("errors.failedUploadCsvFile"),
         variant: "destructive",
       });
     }

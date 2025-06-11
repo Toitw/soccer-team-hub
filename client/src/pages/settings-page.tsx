@@ -6,6 +6,7 @@ import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { useTranslation } from "@/hooks/use-translation";
 import { 
   Card, 
   CardContent, 
@@ -68,6 +69,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { t: translate } = useTranslation();
   const [activeTab, setActiveTab] = useState("members");
   const [isGeneratingJoinCode, setIsGeneratingJoinCode] = useState(false);
   const [joinCodeVisible, setJoinCodeVisible] = useState(false);
