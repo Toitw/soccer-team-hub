@@ -353,8 +353,8 @@ export default function SettingsPage() {
       }, 300);
 
       toast({
-        title: "Logo updated",
-        description: "Your team logo has been updated successfully.",
+        title: t("toasts.logoUpdated"),
+        description: t("toasts.logoUpdatedDesc"),
       });
       setIsUploadingLogo(false);
       setIsLogoDialogOpen(false);
