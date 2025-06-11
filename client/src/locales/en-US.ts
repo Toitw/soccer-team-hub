@@ -1363,6 +1363,9 @@ export const esES = {
       "Futsal Winger": "Ala (FS)",
       "Futsal Universal": "Universal (FS)"
     },
+    administratorsDescription: "Los administradores del equipo tienen acceso completo a todos los ajustes del equipo y pueden gestionar a otros miembros.",
+    noAdministrators: "No se encontraron administradores.",
+    coaches: "Entrenadores",
     noAccountLinked: "Sin cuenta vinculada"
   },
   matches: {

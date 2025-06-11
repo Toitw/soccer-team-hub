@@ -451,9 +451,14 @@ export default function SettingsPage() {
   }
 
   // Group members by role
-  const adminMembers = teamMembers?.filter(member => member.role === "admin") || [];
+  const adminMembers = teamMembers?.filter(member => member.role === "admin" || member.role === "superuser") || [];
   const coachMembers = teamMembers?.filter(member => member.role === "coach") || [];
   const playerMembers = teamMembers?.filter(member => member.role === "player") || [];
+
+  // Debug logging for admin members
+  console.log("Team members:", teamMembers);
+  console.log("Admin members:", adminMembers);
+  console.log("All member roles:", teamMembers?.map(m => ({ id: m.id, role: m.role, name: m.fullName })));
 
   return (
     <div className="flex h-screen bg-background">
@@ -557,35 +562,43 @@ export default function SettingsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {adminMembers.map(member => (
-                          <TableRow key={member.id}>
-                            <TableCell className="font-medium flex items-center gap-2">
-                              <img 
-                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
-                                alt={member.user?.fullName || member.fullName}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                              {member.user?.fullName || member.fullName}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline">{t("settings.administrator")}</Badge>
-                            </TableCell>
-                            <TableCell>{member.user?.email || "No email linked"}</TableCell>
-                            <TableCell className="text-right">
-                              {/* Don't show delete button for current user */}
-                              {member.user?.id !== user?.id && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => handleDeleteMember(member)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
+                        {adminMembers && adminMembers.length > 0 ? (
+                          adminMembers.map(member => (
+                            <TableRow key={member.id}>
+                              <TableCell className="font-medium flex items-center gap-2">
+                                <img 
+                                  src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                  alt={member.user?.fullName || member.fullName}
+                                  className="w-8 h-8 rounded-full object-cover"
+                                />
+                                {member.user?.fullName || member.fullName}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{t("settings.administrator")}</Badge>
+                              </TableCell>
+                              <TableCell>{member.user?.email || "No email linked"}</TableCell>
+                              <TableCell className="text-right">
+                                {/* Don't show delete button for current user */}
+                                {member.user?.id !== user?.id && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleDeleteMember(member)}
+                                    className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center">
+                              {t("settings.noAdministrators")}
                             </TableCell>
                           </TableRow>
-                        ))}
+                        )}
                       </TableBody>
                     </Table>
                   </CardContent>
