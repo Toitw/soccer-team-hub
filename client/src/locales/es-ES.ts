@@ -757,7 +757,7 @@ export const esES = {
       "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     deleting: "Eliminando...",
   },
-    announcements: {
+  announcements: {
     latestAnnouncements: "Últimos Anuncios",
     teamAnnouncements: "Anuncios del Equipo",
     addAnnouncement: "Añadir Anuncio",
@@ -873,8 +873,8 @@ export const esES = {
     // Settings page
     teamMembers: "Miembros del Equipo",
     administrators: "Administradores",
-    administratorsDescription: "Los administradores del equipo tienen acceso completo a toda la configuración del equipo y pueden gestionar otros miembros.",
-    noAdministrators: "No se encontraron administradores.",
+    administratorsDescription:
+      "Administradores del equipo con acceso completo a la configuración",
     coaches: "Entrenadores",
     coachesDescription:
       "Entrenadores del equipo que gestionan sesiones de entrenamiento y partidos",
