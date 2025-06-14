@@ -458,6 +458,18 @@ export default function SettingsPage() {
   const playerMembers = teamMembers?.filter(member => member.role === "player") || [];
   const colaboradorMembers = teamMembers?.filter(member => member.role === "colaborador") || [];
 
+  // Debug logging to understand member roles
+  console.log("All team members:", teamMembers?.map(m => ({ name: m.fullName, role: m.role, userId: m.userId })));
+  console.log("Current user:", user);
+  console.log("Admin members count:", adminMembers.length);
+  console.log("Coach members count:", coachMembers.length);
+  console.log("Player members count:", playerMembers.length);
+  console.log("Colaborador members count:", colaboradorMembers.length);
+  
+  // Check if current user is in any of the member lists
+  const currentUserInMembers = teamMembers?.find(m => m.userId === user?.id);
+  console.log("Current user in team members:", currentUserInMembers);
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />

@@ -882,6 +882,7 @@ export const esES = {
     playersDescription: "Plantilla de jugadores del equipo",
     colaboradores: "Colaboradores",
     colaboradoresDescription: "Colaboradores del equipo que apoyan en tareas específicas",
+    administrator: "Administrador",
     inviteMember: "Invitar Miembro",
     inviteTeamMember: "Invitar Miembro al Equipo",
     inviteDescription:
@@ -892,7 +893,6 @@ export const esES = {
     sendInvitation: "Enviar Invitación",
     invitationSent: "Invitación enviada",
     invitationSentDescription: "Invitación enviada a {email}",
-    administrator: "Administrador",
     teamInformation: "Información del Equipo",
     teamName: "Nombre del Equipo",
     division: "División",
