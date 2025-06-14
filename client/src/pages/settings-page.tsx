@@ -458,17 +458,7 @@ export default function SettingsPage() {
   const playerMembers = teamMembers?.filter(member => member.role === "player") || [];
   const colaboradorMembers = teamMembers?.filter(member => member.role === "colaborador") || [];
 
-  // Debug logging to understand member roles
-  console.log("All team members:", teamMembers?.map(m => ({ name: m.fullName, role: m.role, userId: m.userId })));
-  console.log("Current user:", user);
-  console.log("Admin members count:", adminMembers.length);
-  console.log("Coach members count:", coachMembers.length);
-  console.log("Player members count:", playerMembers.length);
-  console.log("Colaborador members count:", colaboradorMembers.length);
-  
-  // Check if current user is in any of the member lists
-  const currentUserInMembers = teamMembers?.find(m => m.userId === user?.id);
-  console.log("Current user in team members:", currentUserInMembers);
+
 
   return (
     <div className="flex h-screen bg-background">
@@ -572,6 +562,13 @@ export default function SettingsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
+                        {adminMembers.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
+                              No administrators found
+                            </TableCell>
+                          </TableRow>
+                        )}
                         {adminMembers.map(member => (
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
@@ -583,7 +580,7 @@ export default function SettingsPage() {
                               {member.user?.fullName || member.fullName}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">{t("settings.administrator")}</Badge>
+                              <Badge variant="outline" className="bg-[#0D47A1]/10 text-[#0D47A1] hover:bg-[#0D47A1]/20">{t("auth.admin")}</Badge>
                             </TableCell>
                             <TableCell>{member.user?.email || "No email linked"}</TableCell>
                             <TableCell className="text-right">
@@ -601,6 +598,26 @@ export default function SettingsPage() {
                             </TableCell>
                           </TableRow>
                         ))}
+                        {/* Show current user as admin if they have admin role but aren't in team members */}
+                        {user?.role === "admin" && !teamMembers?.find(m => m.userId === user.id) && (
+                          <TableRow>
+                            <TableCell className="font-medium flex items-center gap-2">
+                              <img 
+                                src={user.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                alt={user.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              {user.fullName} (You)
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-[#0D47A1]/10 text-[#0D47A1] hover:bg-[#0D47A1]/20">{t("auth.admin")}</Badge>
+                            </TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell className="text-right">
+                              {/* Current user cannot delete themselves */}
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </CardContent>
