@@ -952,9 +952,6 @@ export const esES = {
     scheduleMatch: "Programar Partido",
     createAnnouncement: "Crear Anuncio",
     teamSummary: "Resumen del Equipo",
-    createTeam: "Crear Equipo",
-    createTeamFirst: "Crear equipo primero",
-    season: "Temporada",
     players: "Jugadores",
     matches: "Partidos",
     wins: "Victorias",
@@ -962,6 +959,10 @@ export const esES = {
     teamDetails: "Detalles del Equipo",
     addNewEvent: "Añadir Nuevo Evento",
     noUpcomingEvents: "No hay próximos eventos programados",
+    createTeam: "Crear Equipo",
+    createTeamFirst: "Crear equipo primero",
+    season: "Temporada",
+    noActiveSeason: "No se encontró temporada activa. Crea una nueva temporada en la sección de Partidos para comenzar a rastrear datos específicos de la temporada.",
   },
   toasts: {
     // Mensajes comunes de toast
@@ -1144,7 +1145,7 @@ export const esES = {
     teamDeleted: "Equipo eliminado",
     teamDeletedDesc: "El equipo ha sido eliminado exitosamente",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
-    
+
     // Additional toast messages
     noTeamOrMemberSelected: "No hay equipo o miembro seleccionado para editar",
     noAvailablePosition: "No hay posición disponible",

@@ -119,6 +119,15 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
           {/* Removed season display as per requirements - now managed in competitions page */}
         </div>
 
+        {/* Show message when no active season exists */}
+        {!isDemoMode && seasons && seasons.length > 0 && !activeSeason && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              {t("dashboard.noActiveSeason")}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="text-center p-2 rounded-lg bg-background">
             <p className="text-sm text-gray-500">{t("dashboard.players")}</p>
