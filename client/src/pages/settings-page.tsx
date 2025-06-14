@@ -566,7 +566,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=0D47A1&color=fff`} 
+                                src={member.user?.profilePicture || member.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=0D47A1&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -637,7 +637,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=4CAF50&color=fff`} 
+                                src={member.user?.profilePicture || member.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=4CAF50&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -686,7 +686,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=FFC107&color=fff`} 
+                                src={member.user?.profilePicture || member.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=FFC107&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -733,7 +733,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=9C27B0&color=fff`} 
+                                src={member.user?.profilePicture || member.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=9C27B0&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
