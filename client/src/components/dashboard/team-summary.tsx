@@ -6,6 +6,19 @@ import { Match } from "@shared/schema";
 import { Link } from "wouter";
 import { useLanguage } from "@/hooks/use-language";
 
+// Interface for Season data
+interface Season {
+  id: number;
+  teamId: number;
+  name: string;
+  startDate: string;
+  endDate: string | null;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface TeamSummaryProps {
   team: Team | null;
   isDemoMode?: boolean;
@@ -14,7 +27,23 @@ interface TeamSummaryProps {
 export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryProps) {
   const { t } = useLanguage();
 
-  const { data: matches } = useQuery<Match[]>({
+  // Fetch active season
+  const { data: seasons } = useQuery<Season[]>({
+    queryKey: ["/api/teams", team?.id, "seasons"],
+    enabled: !!team && !isDemoMode,
+    queryFn: async () => {
+      if (!team?.id) return [];
+      const response = await fetch(`/api/teams/${team.id}/seasons`, {
+        credentials: "include",
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+  });
+
+  const activeSeason = seasons?.find(s => s.isActive);
+
+  const { data: allMatches } = useQuery<Match[]>({
     queryKey: ["/api/teams", team?.id, "matches"],
     enabled: !!team && !isDemoMode,
     queryFn: async () => {
@@ -32,6 +61,15 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
       return matchData;
     },
   });
+
+  // Filter matches by active season (same logic as matches page)
+  const matches = allMatches ? (() => {
+    if (activeSeason) {
+      return allMatches.filter(match => match.seasonId === activeSeason.id);
+    }
+    // If no active season, show legacy data (matches without seasonId)
+    return allMatches.filter(match => !match.seasonId);
+  })() : [];
 
   // Get team members to show accurate player count
   const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
