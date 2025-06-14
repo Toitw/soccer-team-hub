@@ -456,6 +456,7 @@ export default function SettingsPage() {
   const adminMembers = teamMembers?.filter(member => member.role === "admin") || [];
   const coachMembers = teamMembers?.filter(member => member.role === "coach") || [];
   const playerMembers = teamMembers?.filter(member => member.role === "player") || [];
+  const colaboradorMembers = teamMembers?.filter(member => member.role === "colaborador") || [];
 
   return (
     <div className="flex h-screen bg-background">
@@ -671,6 +672,54 @@ export default function SettingsPage() {
                             </TableCell>
                             <TableCell>{member.user?.position || member.position || t("common.notAvailable")}</TableCell>
                             <TableCell>{member.user?.jerseyNumber || member.jerseyNumber || "-"}</TableCell>
+                            <TableCell>{member.user?.email || "No email linked"}</TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteMember(member)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Colaboradores */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle>{t("settings.colaboradores")}</CardTitle>
+                    <CardDescription>{t("settings.colaboradoresDescription")}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t("settings.name")}</TableHead>
+                          <TableHead>{t("settings.position")}</TableHead>
+                          <TableHead>{t("settings.contact")}</TableHead>
+                          <TableHead className="text-right">{t("settings.actions")}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {colaboradorMembers.map(member => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium flex items-center gap-2">
+                              <img 
+                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Colaborador&background=9C27B0&color=fff"} 
+                                alt={member.user?.fullName || member.fullName}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                              {member.user?.fullName || member.fullName}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-[#9C27B0]/10 text-[#9C27B0] hover:bg-[#9C27B0]/20">{t("auth.colaborador")}</Badge>
+                            </TableCell>
                             <TableCell>{member.user?.email || "No email linked"}</TableCell>
                             <TableCell className="text-right">
                               <Button 

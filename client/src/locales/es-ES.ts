@@ -880,6 +880,8 @@ export const esES = {
       "Entrenadores del equipo que gestionan sesiones de entrenamiento y partidos",
     players: "Jugadores",
     playersDescription: "Plantilla de jugadores del equipo",
+    colaboradores: "Colaboradores",
+    colaboradoresDescription: "Colaboradores del equipo que apoyan en tareas específicas",
     inviteMember: "Invitar Miembro",
     inviteTeamMember: "Invitar Miembro al Equipo",
     inviteDescription:
