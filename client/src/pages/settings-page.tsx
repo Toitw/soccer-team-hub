@@ -562,18 +562,11 @@ export default function SettingsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {adminMembers.length === 0 && (
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
-                              No administrators found
-                            </TableCell>
-                          </TableRow>
-                        )}
                         {adminMembers.map(member => (
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=0D47A1&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -603,11 +596,11 @@ export default function SettingsPage() {
                           <TableRow>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={user.profilePicture || "https://ui-avatars.com/api/?name=Admin+User&background=0D47A1&color=fff"} 
+                                src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=0D47A1&color=fff`} 
                                 alt={user.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
-                              {user.fullName} (You)
+                              {user.fullName}
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className="bg-[#0D47A1]/10 text-[#0D47A1] hover:bg-[#0D47A1]/20">{t("auth.admin")}</Badge>
@@ -644,7 +637,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Coach&background=4CAF50&color=fff"} 
+                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=4CAF50&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -693,7 +686,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Player&background=FFC107&color=fff"} 
+                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=FFC107&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -740,7 +733,7 @@ export default function SettingsPage() {
                           <TableRow key={member.id}>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
-                                src={member.user?.profilePicture || "https://ui-avatars.com/api/?name=Colaborador&background=9C27B0&color=fff"} 
+                                src={member.user?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.user?.fullName || member.fullName)}&background=9C27B0&color=fff`} 
                                 alt={member.user?.fullName || member.fullName}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
