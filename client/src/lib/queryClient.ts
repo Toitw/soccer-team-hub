@@ -20,6 +20,13 @@ async function throwIfResNotOk(res: Response) {
       // Attach the parsed error data to the error object
       Object.assign(error, errorObj);
       console.log("Throwing auth error:", error);
+      
+      // For email already registered errors, ensure proper error message
+      if (errorObj.error === 'EMAIL_ALREADY_REGISTERED') {
+        error.message = 'EMAIL_ALREADY_REGISTERED';
+        error.name = 'EMAIL_ALREADY_REGISTERED';
+      }
+      
       throw error;
     }
     
