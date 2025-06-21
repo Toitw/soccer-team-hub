@@ -89,14 +89,14 @@ export default function RegisterPage() {
       let errorMessage = error.message || t('toasts.actionFailed');
       
       // Handle specific error cases with translations
-      // Check various possible error structures - the API response might be wrapped
-      const errorCode = error.error || error.message || error.code || 
+      // The error object now has the parsed JSON error attached directly to it
+      const errorCode = error.error || error.code || 
                        (error.response && error.response.error) ||
                        (error.data && error.data.error);
       console.log("Error code detected:", errorCode);
       
       if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
-        errorMessage = t('validation.emailAlreadyRegistered');
+        errorMessage = t('toasts.emailAlreadyRegistered');
         console.log("Using translated message:", errorMessage);
       }
       
