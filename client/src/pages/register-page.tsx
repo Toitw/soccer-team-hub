@@ -40,6 +40,14 @@ const ERROR_TO_TRANSLATION: Record<string, string> = {
   // add more codes here as needed
 };
 
+// Returns the first key that is contained in the raw error string
+const findTranslationKey = (rawCode: string): string | undefined => {
+  if (!rawCode) return undefined;
+  return Object.keys(ERROR_TO_TRANSLATION).find((key) =>
+    rawCode.includes(key)
+  );
+};
+
 const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
   fullName: z.string().min(1, "Full name is required"),
@@ -111,15 +119,16 @@ export default function RegisterPage() {
     } catch (error: any) {
       console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===", error);
 
-      // Normalise the code: prefer the custom field, else the message string
-      const code = error?.error ?? error?.message ?? "";
-      const translationKey = ERROR_TO_TRANSLATION[code];
+      const rawCode = error?.error ?? error?.message ?? "";
+      console.log("Derived rawCode →", rawCode, JSON.stringify(rawCode));
+
+      const matchedKey = findTranslationKey(rawCode);
 
       toast({
         variant: "destructive",
         title: t("toasts.registrationFailed"),
-        description: translationKey
-          ? t(translationKey)
+        description: matchedKey
+          ? t(ERROR_TO_TRANSLATION[matchedKey])
           : t("toasts.actionFailed"),
       });
     } finally {
