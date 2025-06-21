@@ -829,7 +829,7 @@ export default function SettingsPage() {
                         name="teamType"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Team Type</FormLabel>
+                            <FormLabel>{t("teams.type")}</FormLabel>
                             <FormControl>
                               <select 
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -839,9 +839,9 @@ export default function SettingsPage() {
                                   setTeamSettingsChanged(true);
                                 }}
                               >
-                                <option value="11-a-side">11-a-side</option>
-                                <option value="7-a-side">7-a-side</option>
-                                <option value="Futsal">Futsal</option>
+                                <option value="11-a-side">{t("teams.types.11aside")}</option>
+                                <option value="7-a-side">{t("teams.types.7aside")}</option>
+                                <option value="Futsal">{t("teams.types.futsal")}</option>
                               </select>
                             </FormControl>
                             <FormMessage />
@@ -854,7 +854,7 @@ export default function SettingsPage() {
                         name="category"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Category</FormLabel>
+                            <FormLabel>{t("teams.category")}</FormLabel>
                             <FormControl>
                               <select 
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -864,9 +864,9 @@ export default function SettingsPage() {
                                   setTeamSettingsChanged(true);
                                 }}
                               >
-                                <option value="PROFESSIONAL">Professional</option>
-                                <option value="FEDERATED">Federated</option>
-                                <option value="AMATEUR">Amateur</option>
+                                <option value="PROFESSIONAL">{t("teams.categories.professional")}</option>
+                                <option value="FEDERATED">{t("teams.categories.federated")}</option>
+                                <option value="AMATEUR">{t("teams.categories.amateur")}</option>
                               </select>
                             </FormControl>
                             <FormMessage />

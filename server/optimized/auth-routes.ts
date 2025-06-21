@@ -601,6 +601,12 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
       joinCode
     });
     
+    // Create team_user relationship (for team access)
+    await storage.createTeamUser({
+      teamId: team.id,
+      userId: userId
+    });
+    
     // Add current user as team admin with required fields
     await storage.createTeamMember({
       teamId: team.id,
