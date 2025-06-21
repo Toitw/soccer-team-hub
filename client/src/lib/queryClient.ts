@@ -8,14 +8,23 @@ async function throwIfResNotOk(res: Response) {
     try {
       // Try to parse the response as JSON to extract error details
       errorObj = JSON.parse(text);
+      console.log("Parsed error object:", errorObj);
     } catch {
       // If it's not JSON, use the text as is
       errorObj = { message: text };
     }
     
-    // Create an error with the parsed error object
+    // For registration/authentication errors, throw the parsed error directly
+    if (res.url.includes('/api/auth/register') || res.url.includes('/api/login')) {
+      const error = new Error(errorObj.error || errorObj.message || text);
+      // Attach the parsed error data to the error object
+      Object.assign(error, errorObj);
+      console.log("Throwing auth error:", error);
+      throw error;
+    }
+    
+    // For other errors, use the original format
     const error = new Error(`${res.status}: ${text}`);
-    // Attach the parsed error data to the error object
     Object.assign(error, errorObj);
     throw error;
   }
