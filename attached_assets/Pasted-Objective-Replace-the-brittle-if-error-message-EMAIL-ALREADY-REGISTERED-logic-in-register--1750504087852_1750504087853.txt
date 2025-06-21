@@ -1,0 +1,71 @@
+Objective
+Replace the brittle if (error.message === "EMAIL_ALREADY_REGISTERED" …) logic in register-page.tsx with a clean error-code → translation-key map so the toast always shows the right language string (and future codes are easy to add).
+
+Where the bug lives
+File: client/src/pages/register-page.tsx (or the path where that component actually exists).
+
+In the current catch (error: any) block we have this flow:
+
+ts
+Copiar
+Editar
+if (
+  error.message === "EMAIL_ALREADY_REGISTERED" ||
+  error.error === "EMAIL_ALREADY_REGISTERED" ||
+  (error.message && error.message.includes("EMAIL_ALREADY_REGISTERED"))
+) {
+  errorMessage = t("toasts.emailAlreadyRegistered");
+} else {
+  errorMessage = error.message || t("toasts.actionFailed");
+}
+– error.error rarely survives serialization, so the first clause fails.
+– Eventually errorMessage falls back to the raw error.message, which is why the toast shows EMAIL_ALREADY_REGISTERED instead of the Spanish string.
+
+Replace that logic with this (TypeScript-safe) solution
+
+Add the dictionary near the top of the component (just after the imports is fine):
+
+ts
+Copiar
+Editar
+// Maps backend error codes → i18n keys
+const ERROR_TO_TRANSLATION: Record<string, string> = {
+  EMAIL_ALREADY_REGISTERED: "toasts.emailAlreadyRegistered",
+  EMAIL_NOT_VERIFIED:      "toasts.emailNotVerified",
+  // add more codes here as needed
+};
+Rewrite the entire catch block like so (keep the surrounding try/ finally):
+
+ts
+Copiar
+Editar
+} catch (error: any) {
+  console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===", error);
+
+  // Normalise the code: prefer the custom field, else the message string
+  const code = error?.error ?? error?.message ?? "";
+  const translationKey = ERROR_TO_TRANSLATION[code];
+
+  toast({
+    variant: "destructive",
+    title: t("toasts.registrationFailed"),
+    description: translationKey
+      ? t(translationKey)
+      : t("toasts.actionFailed"),
+  });
+} finally {
+  setIsSubmitting(false);
+}
+No more long if/else chains; a single lookup decides everything.
+
+Remove the old if (error.message === …) block entirely to avoid dead code.
+
+Run the app, try to register with an already-registered email → the toast description should now read Correo electrónico ya registrado (or the equivalent translation in the current language).
+
+Extra notes
+
+No changes are required in queryClient.ts; we’re only fixing the UI side.
+
+Any new backend error code just needs one extra line in ERROR_TO_TRANSLATION.
+
+If you later switch to a formal i18n library, this map still works—just change the values to the new translation IDs.

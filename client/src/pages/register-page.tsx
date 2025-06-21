@@ -33,6 +33,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 
+// Maps backend error codes → i18n keys
+const ERROR_TO_TRANSLATION: Record<string, string> = {
+  EMAIL_ALREADY_REGISTERED: "toasts.emailAlreadyRegistered",
+  EMAIL_NOT_VERIFIED: "toasts.emailNotVerified",
+  // add more codes here as needed
+};
+
 const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
   fullName: z.string().min(1, "Full name is required"),
@@ -102,26 +109,18 @@ export default function RegisterPage() {
       // Use setLocation that's less likely to cause refresh loops
       setLocation("/onboarding");
     } catch (error: any) {
-      console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===");
-      console.error("Registration error caught in register page:", error);
+      console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===", error);
 
-      let errorMessage = t("toasts.actionFailed");
-
-      // Check if this is an email already registered error
-      if (
-        error.message === "EMAIL_ALREADY_REGISTERED" ||
-        error.error === "EMAIL_ALREADY_REGISTERED" ||
-        (error.message && error.message.includes("EMAIL_ALREADY_REGISTERED"))
-      ) {
-        errorMessage = t("toasts.emailAlreadyRegistered");
-      } else {
-        errorMessage = error.message || t("toasts.actionFailed");
-      }
+      // Normalise the code: prefer the custom field, else the message string
+      const code = error?.error ?? error?.message ?? "";
+      const translationKey = ERROR_TO_TRANSLATION[code];
 
       toast({
         variant: "destructive",
         title: t("toasts.registrationFailed"),
-        description: errorMessage,
+        description: translationKey
+          ? t(translationKey)
+          : t("toasts.actionFailed"),
       });
     } finally {
       setIsSubmitting(false);
