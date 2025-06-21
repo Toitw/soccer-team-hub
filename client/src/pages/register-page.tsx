@@ -82,6 +82,7 @@ export default function RegisterPage() {
       // Use setLocation that's less likely to cause refresh loops
       setLocation("/onboarding");
     } catch (error: any) {
+      console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===");
       console.error("Registration error caught in register page:", error);
       
       let errorMessage = t('toasts.actionFailed');
