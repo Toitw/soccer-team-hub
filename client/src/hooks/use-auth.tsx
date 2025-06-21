@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: credentials
       });
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: (user: SelectUser & { emailVerificationSent?: boolean }) => {
       queryClient.setQueryData(["/api/user"], user);
       
       // Invalidate all team-related queries to ensure fresh data
@@ -151,18 +151,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // component handles the redirection based on onboardingCompleted
       // This prevents double redirecting and potential race conditions
       
-      toast({
-        titleKey: "toasts.registrationSuccess",
-        descriptionKey: "toasts.welcomeToTeamKick",
-        descriptionParams: { name: user.fullName },
-      });
+      // Show different messages based on email verification status
+      if (user.emailVerificationSent) {
+        toast({
+          titleKey: "toasts.registrationSuccess",
+          descriptionKey: "toasts.verificationEmailSentDesc",
+        });
+      } else {
+        toast({
+          titleKey: "toasts.registrationSuccess",
+          descriptionKey: "toasts.welcomeToTeamKick",
+          descriptionParams: { name: user.fullName },
+        });
+      }
     },
     onError: (error: Error) => {
-      toast({
-        titleKey: "toasts.registrationFailed",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Handle specific email-related errors
+      if (error.message.includes("EMAIL_SEND_FAILED")) {
+        toast({
+          titleKey: "toasts.emailSendFailed",
+          descriptionKey: "toasts.emailSendFailedDesc",
+          variant: "destructive",
+        });
+      } else if (error.message.includes("EMAIL_ALREADY_REGISTERED")) {
+        toast({
+          titleKey: "toasts.registrationFailed",
+          descriptionKey: "toasts.emailAlreadyRegistered",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          titleKey: "toasts.registrationFailed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -201,16 +224,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       toast({
-        title: "Verification email sent",
-        description: "Please check your inbox for the verification email",
+        titleKey: "toasts.verificationEmailSent",
+        descriptionKey: "toasts.verificationEmailSentDesc",
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Failed to send verification email",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.message.includes("EMAIL_SEND_FAILED")) {
+        toast({
+          titleKey: "toasts.emailSendFailed",
+          descriptionKey: "toasts.emailSendFailedDesc",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to send verification email",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     },
   });
 

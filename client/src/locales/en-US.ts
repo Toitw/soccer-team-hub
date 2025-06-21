@@ -938,6 +938,10 @@ export const enUS = {
     passwordResetError: "Password reset error",
     emailVerified: "Email verified",
     emailVerificationFailed: "Email verification failed",
+    emailSendFailed: "Email send failed",
+    emailSendFailedDesc: "Could not send verification email. Please try again.",
+    verificationEmailSent: "Verification email sent",
+    verificationEmailSentDesc: "Check your inbox to verify your email address.",
 
     // Announcements related toast messages
     announcementCreated: "Announcement created",

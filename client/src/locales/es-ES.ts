@@ -1019,6 +1019,10 @@ export const esES = {
     emailVerified: "Correo electrónico verificado",
     emailVerificationFailed: "Error en la verificación del correo electrónico",
     emailAlreadyRegistered: "Correo electrónico ya registrado",
+    emailSendFailed: "Error al enviar correo",
+    emailSendFailedDesc: "No se pudo enviar el correo de verificación. Por favor, inténtalo de nuevo.",
+    verificationEmailSent: "Correo de verificación enviado",
+    verificationEmailSentDesc: "Revisa tu bandeja de entrada para verificar tu correo electrónico.",
 
     // Mensajes relacionados con anuncios
     announcementCreated: "Anuncio creado",

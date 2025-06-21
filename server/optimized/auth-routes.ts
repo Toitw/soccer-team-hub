@@ -76,10 +76,19 @@ router.post("/verify-email/request", isAuthenticated, async (req: Request, res: 
     );
 
     if (!emailResult.success) {
-      return res.status(500).json({ error: "Failed to send verification email", message: emailResult.message });
+      console.error("Failed to send verification email:", emailResult.message);
+      return res.status(500).json({ 
+        error: "EMAIL_SEND_FAILED", 
+        message: "Failed to send verification email. Please try again." 
+      });
     }
 
-    return res.status(200).json({ success: true, message: "Verification email sent" });
+    console.log("Verification email sent successfully to:", user.email);
+    return res.status(200).json({ 
+      success: true, 
+      message: "Verification email sent",
+      emailSent: true 
+    });
   } catch (error) {
     console.error("Email verification request error:", error);
     return res.status(500).json({ error: "Server error", message: "Failed to process verification request" });
