@@ -937,7 +937,6 @@ export const enUS = {
     passwordResetError: "Password reset error",
     emailVerified: "Email verified",
     emailVerificationFailed: "Email verification failed",
-    emailAlreadyRegistered: "Email already registered",
 
     // Announcements related toast messages
     announcementCreated: "Announcement created",
@@ -1061,9 +1060,6 @@ export const enUS = {
     permissionDeniedDesc: "You don't have permission to perform this action",
     unauthorized: "Unauthorized",
     unauthorizedDesc: "You must be logged in to access this feature",
-    emailAlreadyRegistered: "Email already registered",
-    emailAlreadyRegisteredDesc:
-      "This email address is already registered. Please use a different email or log in.",
   },
 };
 

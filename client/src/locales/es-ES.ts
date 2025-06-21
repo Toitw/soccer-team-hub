@@ -1148,8 +1148,5 @@ export const esES = {
     permissionDeniedDesc: "No tienes permisos para realizar esta acción",
     unauthorized: "No autorizado",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta funcionalidad",
-    emailAlreadyRegistered: "Email ya registrado",
-    emailAlreadyRegisteredDesc:
-      "Esta dirección de email ya está registrada. Por favor usa un email diferente o inicia sesión.",
   },
 };
