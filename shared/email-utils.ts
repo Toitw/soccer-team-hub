@@ -10,11 +10,27 @@ import * as path from 'path';
 // Initialize the SendGrid mail service
 const mailService = new MailService();
 
-// Check if SendGrid API key is available
-if (process.env.SENDGRID_API_KEY) {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
-} else {
-  console.warn('SENDGRID_API_KEY environment variable is not set. Email functionality will not work.');
+// Flag to track if SendGrid has been initialized
+let isInitialized = false;
+
+/**
+ * Initialize SendGrid with API key
+ * This ensures proper timing for environment variable loading
+ */
+function initializeMailService() {
+  if (isInitialized) {
+    return true;
+  }
+  
+  if (process.env.SENDGRID_API_KEY) {
+    mailService.setApiKey(process.env.SENDGRID_API_KEY);
+    isInitialized = true;
+    console.log('SendGrid email service initialized successfully');
+    return true;
+  } else {
+    console.warn('SENDGRID_API_KEY environment variable is not set. Email functionality will not work.');
+    return false;
+  }
 }
 
 /**
@@ -34,8 +50,8 @@ export async function sendEmail(
   text?: string,
   fromEmail: string = 'canchaplusapp@gmail.com'
 ): Promise<{ success: boolean; message?: string }> {
-  // If SENDGRID_API_KEY is not set, return error
-  if (!process.env.SENDGRID_API_KEY) {
+  // Initialize SendGrid service with proper timing
+  if (!initializeMailService()) {
     return { 
       success: false, 
       message: 'SendGrid API key is not configured. Email could not be sent.' 

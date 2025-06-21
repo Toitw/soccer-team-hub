@@ -1,8 +1,8 @@
 /**
  * Test script to diagnose email sending issues
  */
-const { config } = require('dotenv');
-const sgMail = require('@sendgrid/mail');
+import { config } from 'dotenv';
+import sgMail from '@sendgrid/mail';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -22,8 +22,8 @@ async function testEmailSending() {
   // Set the API key
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   
-  // Generate test email content
-  const verificationUrl = 'https://your-app.com/verify-email?token=test-token-123';
+  // Generate test email content with actual verification token
+  const verificationUrl = 'https://d985c910-be15-4a53-9b2c-481d78aa3062-00-29aoyq49zmm0j.worf.replit.dev/verify-email?token=bc5764c79840fa3b0bff4701bd7005812d9b5eb886151196e9a107d95002fe43';
   
   const emailContent = {
     subject: 'Cancha+ Verificación de Correo Electrónico',
