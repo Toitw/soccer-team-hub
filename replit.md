@@ -135,6 +135,14 @@ Changelog:
   * Added missing translation keys (teams.creating)
   * Resolved duplicate translation key errors
   * Fixed form data population in settings page with proper translations
+- June 21, 2025. Fixed email confirmation and password recovery functionality:
+  * Fixed asynchronous email sending in registration (was not waiting for email result)
+  * Added proper error handling for email send failures during registration
+  * Improved user feedback with specific error messages for email issues
+  * Added translation keys for email-related error messages (both ES and EN)
+  * Enhanced registration flow to delete user if email verification fails
+  * Verified password recovery functionality is working correctly
+  * Added comprehensive error handling for different email failure scenarios
 ```
 
 ## User Preferences
