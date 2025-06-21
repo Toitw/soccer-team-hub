@@ -85,6 +85,13 @@ export default function RegisterPage() {
       console.error("Registration error:", error);
       console.error("Error message:", error.message);
       console.error("Error object:", JSON.stringify(error, null, 2));
+      console.log("Error properties:", {
+        error: error.error,
+        code: error.code,
+        message: error.message,
+        response: error.response,
+        data: error.data
+      });
       
       let errorMessage = error.message || t('toasts.actionFailed');
       
@@ -94,10 +101,19 @@ export default function RegisterPage() {
                        (error.response && error.response.error) ||
                        (error.data && error.data.error);
       console.log("Error code detected:", errorCode);
+      console.log("Available translation:", t('toasts.emailAlreadyRegistered'));
       
       if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
         errorMessage = t('toasts.emailAlreadyRegistered');
         console.log("Using translated message:", errorMessage);
+      } else {
+        console.log("Error code did not match EMAIL_ALREADY_REGISTERED, errorCode:", errorCode);
+        console.log("Type of errorCode:", typeof errorCode);
+        // Try to extract from error message directly
+        if (error.message && error.message.includes('EMAIL_ALREADY_REGISTERED')) {
+          errorMessage = t('toasts.emailAlreadyRegistered');
+          console.log("Using translated message from error.message fallback:", errorMessage);
+        }
       }
       
       toast({
