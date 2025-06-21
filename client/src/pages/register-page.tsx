@@ -106,6 +106,15 @@ export default function RegisterPage() {
     }
   }
 
+  // Wrapper function to handle form submission with proper error handling
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    form.handleSubmit(onSubmit, (errors) => {
+      console.log("Form validation errors:", errors);
+      // Handle form validation errors if needed
+    })();
+  };
+
   // Redirect if already logged in
   if (user) {
     setLocation("/");
@@ -123,7 +132,7 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               <FormField
                 control={form.control}
                 name="username"
