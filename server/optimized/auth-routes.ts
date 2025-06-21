@@ -429,21 +429,26 @@ router.post("/register", async (req: Request, res: Response) => {
       language
     );
 
-    // Send the verification email
-    sendEmail(
+    // Send the verification email and wait for result
+    const emailResult = await sendEmail(
       user.email || '',
       emailContent.subject,
       emailContent.html,
       emailContent.text
-    ).then(emailResult => {
-      if (!emailResult.success) {
-        console.error("Failed to send verification email:", emailResult.message);
-      } else {
-        console.log("Verification email sent successfully");
-      }
-    }).catch(err => {
-      console.error("Error sending verification email:", err);
-    });
+    );
+
+    // Check if email sending failed
+    if (!emailResult.success) {
+      console.error("Failed to send verification email:", emailResult.message);
+      // Delete the created user since email verification failed
+      await storage.deleteUser(user.id);
+      return res.status(500).json({ 
+        error: "EMAIL_SEND_FAILED", 
+        message: "Failed to send verification email. Please try again." 
+      });
+    }
+
+    console.log("Verification email sent successfully");
 
     // Start session
     req.login(user, (err) => {
@@ -452,9 +457,12 @@ router.post("/register", async (req: Request, res: Response) => {
         return res.status(500).json({ error: "Failed to create session" });
       }
       
-      // Return user data without password
+      // Return user data without password and include email verification status
       const { password, ...userWithoutPassword } = user;
-      return res.status(201).json(userWithoutPassword);
+      return res.status(201).json({
+        ...userWithoutPassword,
+        emailVerificationSent: true
+      });
     });
   } catch (error) {
     console.error("Registration error:", error);
