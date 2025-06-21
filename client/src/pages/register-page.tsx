@@ -100,10 +100,10 @@ export default function RegisterPage() {
       setUser(response);
 
       toast({
-        title: "Registration successful",
+        title: t("toasts.registrationSuccess"),
         description: response.onboardingCompleted
-          ? "Welcome to Cancha+"
-          : "Let's complete your onboarding process",
+          ? t("toasts.welcomeToCancha", { name: response.fullName })
+          : t("toasts.letsCompleteOnboarding"),
       });
 
       // Redirect based on onboarding status
