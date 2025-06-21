@@ -88,11 +88,18 @@ export default function RegisterPage() {
       
       let errorMessage = error.message || t('toasts.actionFailed');
       
+      console.log("Initial error message:", errorMessage);
+      console.log("error.message:", error.message);
+      console.log("error.error:", error.error);
+      console.log("Available translation:", t('toasts.emailAlreadyRegistered'));
+      
       // Handle specific error cases with translations
       // Check if the error message is EMAIL_ALREADY_REGISTERED directly
       if (error.message === 'EMAIL_ALREADY_REGISTERED' || error.error === 'EMAIL_ALREADY_REGISTERED') {
         errorMessage = t('toasts.emailAlreadyRegistered');
-        console.log("Using translated email already registered message:", errorMessage);
+        console.log("Successfully set translated message:", errorMessage);
+      } else {
+        console.log("No match found for EMAIL_ALREADY_REGISTERED");
       }
       
       toast({
