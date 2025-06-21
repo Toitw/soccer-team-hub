@@ -83,12 +83,19 @@ export default function RegisterPage() {
       setLocation("/onboarding");
     } catch (error: any) {
       console.error("Registration error:", error);
+      console.error("Error message:", error.message);
+      console.error("Error object:", JSON.stringify(error, null, 2));
       
       let errorMessage = error.message || t('toasts.actionFailed');
       
       // Handle specific error cases with translations
-      if (error.message === 'EMAIL_ALREADY_REGISTERED' || error.error === 'EMAIL_ALREADY_REGISTERED') {
+      // Check various possible error structures
+      const errorCode = error.error || error.message || error.code;
+      console.log("Error code detected:", errorCode);
+      
+      if (errorCode === 'EMAIL_ALREADY_REGISTERED') {
         errorMessage = t('validation.emailAlreadyRegistered');
+        console.log("Using translated message:", errorMessage);
       }
       
       toast({
