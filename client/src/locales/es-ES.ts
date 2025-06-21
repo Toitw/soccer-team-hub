@@ -161,7 +161,8 @@ export const esES = {
     minLength: "Debe tener al menos {{count}} caracteres",
     passwordMatch: "Las contraseñas no coinciden",
     invalidEmail: "Introduce una dirección de correo electrónico válida",
-    emailAlreadyRegistered: "Esta dirección de correo electrónico ya está registrada. Por favor usa un correo diferente o intenta iniciar sesión.",
+    emailAlreadyRegistered:
+      "Esta dirección de correo electrónico ya está registrada. Por favor usa un correo diferente o intenta iniciar sesión.",
   },
   navigation: {
     dashboard: "Panel",
@@ -882,7 +883,8 @@ export const esES = {
     players: "Jugadores",
     playersDescription: "Plantilla de jugadores del equipo",
     colaboradores: "Colaboradores",
-    colaboradoresDescription: "Colaboradores del equipo que apoyan en tareas específicas",
+    colaboradoresDescription:
+      "Colaboradores del equipo que apoyan en tareas específicas",
     administrator: "Administrador",
     inviteMember: "Invitar Miembro",
     inviteTeamMember: "Invitar Miembro al Equipo",
@@ -965,7 +967,8 @@ export const esES = {
     createTeam: "Crear Equipo",
     createTeamFirst: "Crear equipo primero",
     season: "Temporada",
-    noActiveSeason: "No se encontró temporada activa. Crea una nueva temporada en la sección de Partidos para comenzar a rastrear datos específicos de la temporada.",
+    noActiveSeason:
+      "No se encontró temporada activa. Crea una nueva temporada en la sección de Partidos para comenzar a rastrear datos específicos de la temporada.",
   },
   toasts: {
     // Mensajes comunes de toast
@@ -1011,6 +1014,7 @@ export const esES = {
     passwordResetError: "Error al restablecer contraseña",
     emailVerified: "Correo electrónico verificado",
     emailVerificationFailed: "Error en la verificación del correo electrónico",
+    emailAlreadyRegistered: "Correo electrónico ya registrado",
 
     // Mensajes relacionados con anuncios
     announcementCreated: "Anuncio creado",
@@ -1084,7 +1088,7 @@ export const esES = {
     playerAlreadyOnBenchDesc: "Este jugador ya está en el banquillo.",
     lineupSaved: "Alineación guardada",
     lineupSavedDesc: "La alineación del partido ha sido guardada correctamente",
-    playerAddedToLineup: "Jugador Añadido a la Alineación", 
+    playerAddedToLineup: "Jugador Añadido a la Alineación",
     playerAssigned: "El jugador ha sido asignado a la posición seleccionada",
     goalAdded: "Gol añadido",
     goalAddedDesc: "El gol ha sido registrado exitosamente",
@@ -1097,11 +1101,14 @@ export const esES = {
 
     // Mensajes específicos adicionales requeridos
     teamMemberRemoved: "Miembro del equipo eliminado",
-    teamMemberRemovedDesc: "El miembro del equipo ha sido eliminado correctamente",
-    teamMemberAdded: "Miembro del equipo añadido", 
-    teamMemberAddedDesc: "El nuevo miembro del equipo ha sido añadido correctamente",
+    teamMemberRemovedDesc:
+      "El miembro del equipo ha sido eliminado correctamente",
+    teamMemberAdded: "Miembro del equipo añadido",
+    teamMemberAddedDesc:
+      "El nuevo miembro del equipo ha sido añadido correctamente",
     teamMemberUpdated: "Miembro del equipo actualizado",
-    teamMemberUpdatedDesc: "El miembro del equipo ha sido actualizado correctamente",
+    teamMemberUpdatedDesc:
+      "El miembro del equipo ha sido actualizado correctamente",
     playerAddedToLineupDesc: "El jugador ha sido añadido a la alineación",
     csvDataUploaded: "Datos CSV subidos",
     csvDataUploadedDesc: "Los datos del CSV han sido subidos correctamente",
@@ -1141,6 +1148,7 @@ export const esES = {
     unauthorized: "No autorizado",
     unauthorizedDesc: "Debes iniciar sesión para acceder a esta funcionalidad",
     emailAlreadyRegistered: "Email ya registrado",
-    emailAlreadyRegisteredDesc: "Esta dirección de email ya está registrada. Por favor usa un email diferente o inicia sesión.",
+    emailAlreadyRegisteredDesc:
+      "Esta dirección de email ya está registrada. Por favor usa un email diferente o inicia sesión.",
   },
 };

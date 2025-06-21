@@ -1,9 +1,29 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -20,7 +40,7 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["admin", "coach", "player", "colaborador"]),
   teamCode: z.string().optional(),
-  agreedToTerms: z.boolean().default(true)
+  agreedToTerms: z.boolean().default(true),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -45,8 +65,8 @@ export default function RegisterPage() {
       password: "",
       role: "player",
       teamCode: teamCodeFromUrl || "",
-      agreedToTerms: true
-    }
+      agreedToTerms: true,
+    },
   });
 
   async function onSubmit(values: RegisterFormValues) {
@@ -59,15 +79,15 @@ export default function RegisterPage() {
 
       const response = await apiRequest("/api/auth/register", {
         method: "POST",
-        data: values
+        data: values,
       });
 
       setUser(response);
-      
+
       toast({
         title: "Registration successful",
-        description: response.onboardingCompleted 
-          ? "Welcome to Cancha+" 
+        description: response.onboardingCompleted
+          ? "Welcome to Cancha+"
           : "Let's complete your onboarding process",
       });
 
@@ -75,31 +95,33 @@ export default function RegisterPage() {
       // Adding console logging for debugging
       console.log("Registration response:", response);
       console.log("Onboarding status:", response.onboardingCompleted);
-      
+
       // Use router's setLocation for smoother navigation that won't cause refresh loops
       console.log("Redirecting new user to onboarding");
-      
+
       // Use setLocation that's less likely to cause refresh loops
       setLocation("/onboarding");
     } catch (error: any) {
       console.log("=== REGISTRATION PAGE ERROR HANDLER TRIGGERED ===");
       console.error("Registration error caught in register page:", error);
-      
-      let errorMessage = t('toasts.actionFailed');
-      
+
+      let errorMessage = t("toasts.actionFailed");
+
       // Check if this is an email already registered error
-      if (error.message === 'EMAIL_ALREADY_REGISTERED' || 
-          error.error === 'EMAIL_ALREADY_REGISTERED' ||
-          (error.message && error.message.includes('EMAIL_ALREADY_REGISTERED'))) {
-        errorMessage = t('toasts.emailAlreadyRegistered');
+      if (
+        error.message === "EMAIL_ALREADY_REGISTERED" ||
+        error.error === "EMAIL_ALREADY_REGISTERED" ||
+        (error.message && error.message.includes("EMAIL_ALREADY_REGISTERED"))
+      ) {
+        errorMessage = t("toasts.emailAlreadyRegistered");
       } else {
-        errorMessage = error.message || t('toasts.actionFailed');
+        errorMessage = error.message || t("toasts.actionFailed");
       }
-      
+
       toast({
         variant: "destructive",
-        title: t('toasts.registrationFailed'),
-        description: errorMessage
+        title: t("toasts.registrationFailed"),
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -107,12 +129,23 @@ export default function RegisterPage() {
   }
 
   // Wrapper function to handle form submission with proper error handling
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    form.handleSubmit(onSubmit, (errors) => {
-      console.log("Form validation errors:", errors);
-      // Handle form validation errors if needed
-    })();
+    console.log("=== FORM SUBMIT WRAPPER TRIGGERED ===");
+    
+    // First validate the form
+    const isValid = await form.trigger();
+    if (!isValid) {
+      console.log("Form validation failed:", form.formState.errors);
+      return;
+    }
+    
+    // Get form values and call onSubmit directly
+    const values = form.getValues();
+    console.log("Form values:", values);
+    
+    // Call onSubmit directly to ensure our error handling works
+    await onSubmit(values);
   };
 
   // Redirect if already logged in
@@ -159,7 +192,7 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -167,13 +200,17 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john.doe@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john.doe@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
@@ -187,23 +224,30 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="role"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="admin">Team Administrator</SelectItem>
+                        <SelectItem value="admin">
+                          Team Administrator
+                        </SelectItem>
                         <SelectItem value="coach">Coach</SelectItem>
-                        <SelectItem value="colaborador">Collaborator</SelectItem>
+                        <SelectItem value="colaborador">
+                          Collaborator
+                        </SelectItem>
                         <SelectItem value="player">Player</SelectItem>
                       </SelectContent>
                     </Select>
@@ -211,7 +255,7 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="teamCode"
@@ -219,9 +263,9 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Team Code (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Enter team code if you have one" 
-                        {...field} 
+                      <Input
+                        placeholder="Enter team code if you have one"
+                        {...field}
                         value={field.value || ""}
                       />
                     </FormControl>
@@ -229,7 +273,7 @@ export default function RegisterPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="agreedToTerms"
@@ -244,15 +288,13 @@ export default function RegisterPage() {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        I agree to the terms and conditions
-                      </FormLabel>
+                      <FormLabel>I agree to the terms and conditions</FormLabel>
                       <FormMessage />
                     </div>
                   </FormItem>
                 )}
               />
-              
+
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Creating Account..." : "Create Account"}
               </Button>
