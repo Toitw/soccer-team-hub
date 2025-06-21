@@ -755,7 +755,8 @@ export const esES = {
     attendingStatus: "Asistiendo",
     notAttendingStatus: "No Asistiendo",
     deleteEventConfirmation:
-      "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
+      ```text
+"¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     deleting: "Eliminando...",
   },
   announcements: {
@@ -1135,25 +1136,12 @@ export const esES = {
     serverErrorDesc:
       "Ocurrió un error en el servidor. Por favor, inténtalo más tarde",
 
-    // Mensajes de permisos
+    // Permission messages
     permissionDenied: "Permiso denegado",
     permissionDeniedDesc: "No tienes permisos para realizar esta acción",
     unauthorized: "No autorizado",
-
-    // Mensajes específicos para el panel de administración
-    errorLoadingUsersDesc: "Hubo un problema al cargar los datos de usuarios",
-    errorLoadingTeamsDesc: "Hubo un problema al cargar los datos de equipos",
-    userDeleted: "Usuario eliminado",
-    userDeletedDesc: "El usuario ha sido eliminado exitosamente",
-    teamDeleted: "Equipo eliminado",
-    teamDeletedDesc: "El equipo ha sido eliminado exitosamente",
-    unauthorizedDesc: "Debes iniciar sesión para acceder a esta función",
-
-    // Additional toast messages
-    noTeamOrMemberSelected: "No hay equipo o miembro seleccionado para editar",
-    noAvailablePosition: "No hay posición disponible",
-    noAvailablePositionDesc: "No hay ninguna posición disponible en la alineación",
-    playerRemovedFromLineup: "Jugador eliminado de la alineación",
-    playerRemovedFromLineupDesc: "El jugador ha sido eliminado de la alineación",
+    unauthorizedDesc: "Debes iniciar sesión para acceder a esta funcionalidad",
+    emailAlreadyRegistered: "Email ya registrado",
+    emailAlreadyRegisteredDesc: "Esta dirección de email ya está registrada. Por favor usa un email diferente o inicia sesión.",
   },
 };
