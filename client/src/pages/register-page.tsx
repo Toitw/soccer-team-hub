@@ -87,7 +87,7 @@ export default function RegisterPage() {
       let errorMessage = error.message || t('toasts.actionFailed');
       
       // Handle specific error cases with translations
-      if (error.message === 'EMAIL_ALREADY_REGISTERED') {
+      if (error.message === 'EMAIL_ALREADY_REGISTERED' || error.error === 'EMAIL_ALREADY_REGISTERED') {
         errorMessage = t('validation.emailAlreadyRegistered');
       }
       
