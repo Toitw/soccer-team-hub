@@ -88,19 +88,28 @@ export default function RegisterPage() {
       
       let errorMessage = error.message || t('toasts.actionFailed');
       
+      console.log("=== ERROR TRANSLATION DEBUG ===");
       console.log("Initial error message:", errorMessage);
       console.log("error.message:", error.message);
       console.log("error.error:", error.error);
       console.log("Available translation:", t('toasts.emailAlreadyRegistered'));
+      console.log("Checking conditions:");
+      console.log("error.message === 'EMAIL_ALREADY_REGISTERED':", error.message === 'EMAIL_ALREADY_REGISTERED');
+      console.log("error.error === 'EMAIL_ALREADY_REGISTERED':", error.error === 'EMAIL_ALREADY_REGISTERED');
       
       // Handle specific error cases with translations
       // Check if the error message is EMAIL_ALREADY_REGISTERED directly
       if (error.message === 'EMAIL_ALREADY_REGISTERED' || error.error === 'EMAIL_ALREADY_REGISTERED') {
-        errorMessage = t('toasts.emailAlreadyRegistered');
-        console.log("Successfully set translated message:", errorMessage);
+        const translatedMessage = t('toasts.emailAlreadyRegistered');
+        console.log("CONDITION MATCHED! Setting translated message:", translatedMessage);
+        errorMessage = translatedMessage;
+        console.log("errorMessage after assignment:", errorMessage);
       } else {
-        console.log("No match found for EMAIL_ALREADY_REGISTERED");
+        console.log("NO MATCH - error.message:", typeof error.message, error.message);
+        console.log("NO MATCH - error.error:", typeof error.error, error.error);
       }
+      console.log("Final errorMessage before toast:", errorMessage);
+      console.log("=== END ERROR TRANSLATION DEBUG ===");
       
       toast({
         variant: "destructive",
