@@ -1625,7 +1625,8 @@ export default function TeamPage() {
                         </TableCell>
                         <TableCell>
                           {(member.user?.position || member.position) ? 
-                            (member.user?.position || member.position) : "-"}
+                            (t(`team.positions.${member.user?.position || member.position}`) || 
+                             member.user?.position || member.position) : "-"}
                         </TableCell>
                         <TableCell>
                           {(member.user?.jerseyNumber || member.jerseyNumber) ? (
