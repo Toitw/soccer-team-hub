@@ -755,8 +755,7 @@ export const esES = {
     attendingStatus: "Asistiendo",
     notAttendingStatus: "No Asistiendo",
     deleteEventConfirmation:
-      ```text
-"¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
+      "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     deleting: "Eliminando...",
   },
   announcements: {
