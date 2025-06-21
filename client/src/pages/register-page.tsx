@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 
 const registerSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -27,6 +28,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const { toast } = useToast();
   const { user, setUser } = useAuth();
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,10 +83,18 @@ export default function RegisterPage() {
       setLocation("/onboarding");
     } catch (error: any) {
       console.error("Registration error:", error);
+      
+      let errorMessage = error.message || t('toasts.actionFailed');
+      
+      // Handle specific error cases with translations
+      if (error.message === 'EMAIL_ALREADY_REGISTERED') {
+        errorMessage = t('validation.emailAlreadyRegistered');
+      }
+      
       toast({
         variant: "destructive",
-        title: "Registration failed",
-        description: error.message || "Something went wrong. Please try again."
+        title: t('toasts.registrationFailed'),
+        description: errorMessage
       });
     } finally {
       setIsSubmitting(false);

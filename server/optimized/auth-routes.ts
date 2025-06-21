@@ -373,7 +373,7 @@ router.post("/register", async (req: Request, res: Response) => {
     // Check if email already exists
     const existingUser = await storage.getUserByEmail(validatedData.email);
     if (existingUser) {
-      return res.status(400).json({ error: "Email already registered" });
+      return res.status(400).json({ error: "EMAIL_ALREADY_REGISTERED" });
     }
     
     // Generate a verification token and expiry

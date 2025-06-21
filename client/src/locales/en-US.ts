@@ -809,8 +809,7 @@ export const enUS = {
     inviteMember: "Invite Member",
     inviteTeamMember: "Invite Team Member",
     inviteDescription: "Send an invitation email to add a new member to the team.",
-    email: "Email",
-    enterEmailAddress: "Enter email address",
+    email: "Email",    enterEmailAddress: "Enter email address",
     role: "Role",
     sendInvitation: "Send Invitation",
     name: "Name",
@@ -966,6 +965,17 @@ export const enUS = {
     substitutionAdded: "Substitution added",
     substitutionAddedDesc: "Substitution has been recorded successfully",
 
+    // Additional specific messages requested
+    teamMemberRemoved: "Team member removed",
+    teamMemberRemovedDesc: "Team member has been removed successfully",
+    teamMemberAdded: "Team member added",
+    teamMemberAddedDesc: "New team member has been added successfully",
+    teamMemberUpdated: "Team member updated",
+    teamMemberUpdatedDesc: "Team member has been updated successfully",
+    playerAddedToLineupDesc: "Player has been added to lineup",
+    csvDataUploaded: "CSV data uploaded",
+    csvDataUploadedDesc: "CSV data has been uploaded successfully",
+
     // Invitation related toast messages
     invitationSent: "Invitation sent",
     invitationSentDesc: "Invitation has been sent to {{email}}",
@@ -997,6 +1007,8 @@ export const enUS = {
     permissionDeniedDesc: "You don't have permission to perform this action",
     unauthorized: "Unauthorized",
     unauthorizedDesc: "You must be logged in to access this feature",
+    emailAlreadyRegistered: "Email already registered",
+    emailAlreadyRegisteredDesc: "This email address is already registered. Please use a different email or log in.",
   },
 };
 
@@ -1541,7 +1553,7 @@ export const esES = {
     confirmDelete: "¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.",
     attending: "asistiendo",
     attend: "Asistir",
-    notAttending: "No asistir",
+    notAttending: "No asistiendo",
     cantAttend: "No puedo asistir",
     responses: "respuestas",
     attendingStatus: "Asistiendo",
@@ -1673,7 +1685,7 @@ export const esES = {
     success: "Success",
     error: "Error",
     warning: "Warning",
-    refreshed: "Refreshed",
+    refreshed: "Actualizado",
 
     // Team management toasts
     teamCreated: "Team Created",
@@ -1696,24 +1708,24 @@ export const esES = {
     clipboardDesc: "Team join code has been copied to clipboard.",
 
     // Auth related toast messages
-    loginSuccess: "Login successful",
-    loginFailed: "Login failed",
-    welcomeBack: "Welcome back, {{name}}",
-    registrationSuccess: "Registration successful",
-    registrationFailed: "Registration failed",
-    welcomeToTeamKick: "Welcome to TeamKick, {{name}}",
-    logoutSuccess: "Logged out successfully",
-    passwordResetSuccess: "Password reset successfully",
-    passwordResetError: "Password reset error",
-    emailVerified: "Email verified",
-    emailVerificationFailed: "Email verification failed",
+    loginSuccess: "Inicio de sesión correcto",
+    loginFailed: "Error al iniciar sesión",
+    welcomeBack: "Bienvenido de nuevo, {{name}}",
+    registrationSuccess: "Registro completado con éxito",
+    registrationFailed: "Error en el registro",
+    welcomeToTeamKick: "Bienvenido a TeamKick, {{name}}",
+    logoutSuccess: "Cierre de sesión correcto",
+    passwordResetSuccess: "Contraseña restablecida correctamente",
+    passwordResetError: "Error al restablecer la contraseña",
+    emailVerified: "Correo electrónico verificado",
+    emailVerificationFailed: "Error al verificar el correo electrónico",
 
     // Announcements related toast messages
-    announcementCreated: "Announcement created",
+    announcementCreated: "Anuncio creado",
     announcementCreatedDesc: "Your announcement has been published",
-    announcementUpdated: "Announcement updated",
+    announcementUpdated: "Anuncio actualizado",
     announcementUpdatedDesc: "Your announcement has been updated",
-    announcementDeleted: "Announcement deleted",
+    announcementDeleted: "Anuncio eliminado",
     announcementDeletedDesc: "The announcement has been removed",
     refreshingAnnouncements: "Refreshing announcements from the dashboard view. Visit the Announcements page for more options.",
     announcementsLoaded: "{{count}} announcements loaded successfully.",
@@ -1721,37 +1733,37 @@ export const esES = {
     failedToRefreshAnnouncements: "Failed to refresh announcements",
 
     // Event related toast messages
-    eventCreated: "Event created",
+    eventCreated: "Evento creado",
     eventCreatedDesc: "Event has been created successfully",
-    eventUpdated: "Event updated",
+    eventUpdated: "Evento actualizado",
     eventUpdatedDesc: "Event has been updated successfully",
-    eventDeleted: "Event deleted",
+    eventDeleted: "Evento eliminado",
     eventDeletedDesc: "Event has been deleted successfully",
-    attendanceUpdated: "Attendance updated",
+    attendanceUpdated: "Asistencia actualizada",
     attendanceUpdatedDesc: "Your attendance response has been updated",
 
     // Match related toast messages
-    matchCreated: "Match created",
+    matchCreated: "Partido creado",
     matchCreatedDesc: "Match has been created successfully",
-    matchUpdated: "Match updated",
+    matchUpdated: "Partido actualizado",
     matchUpdatedDesc: "Match has been updated successfully",
-    matchDeleted: "Match deleted",
+    matchDeleted: "Partido eliminado",
     matchDeletedDesc: "Match has been deleted successfully",
-    csvUploaded: "CSV uploaded successfully",
+    csvUploaded: "CSV subido correctamente",
     csvUploadedDesc: "CSV data has been processed successfully",
-    classificationCreated: "Classification created",
+    classificationCreated: "Clasificación creada",
     classificationCreatedDesc: "Classification entry has been created successfully",
-    classificationUpdated: "Classification updated",
+    classificationUpdated: "Clasificación actualizada",
     classificationUpdatedDesc: "Classification has been updated successfully",
-    classificationDeleted: "Classification deleted",
+    classificationDeleted: "Clasificación eliminada",
     classificationDeletedDesc: "Classification entry has been deleted successfully",
 
     // Season related toast messages
-    seasonCreated: "Season created",
+    seasonCreated: "Temporada creada",
     seasonCreatedDesc: "Season has been created successfully",
-    seasonUpdated: "Season updated",
+    seasonUpdated: "Temporada actualizada",
     seasonUpdatedDesc: "Season has been updated successfully",
-    seasonDeleted: "Season deleted",
+    seasonDeleted: "Temporada eliminada",
     seasonDeletedDesc: "Season has been deleted successfully",
 
     // General action messages
@@ -1762,7 +1774,7 @@ export const esES = {
 
     // Validation messages
     validationError: "Validation error",
-    requiredField: "This field is required",
+    requiredField: "Este campo es obligatorio",
     invalidEmail: "Invalid email address",
     passwordTooShort: "Password must be at least 8 characters",
     passwordsDoNotMatch: "Passwords do not match",
@@ -1785,46 +1797,48 @@ export const esES = {
     substitutionAddedDesc: "Substitution has been recorded successfully",
 
     // Additional specific messages requested
-    teamMemberRemoved: "Team member removed",
+    teamMemberRemoved: "Miembro del equipo eliminado",
     teamMemberRemovedDesc: "Team member has been removed successfully",
-    teamMemberAdded: "Team member added",
+    teamMemberAdded: "Miembro del equipo añadido",
     teamMemberAddedDesc: "New team member has been added successfully",
-    teamMemberUpdated: "Team member updated",
+    teamMemberUpdated: "Miembro del equipo actualizado",
     teamMemberUpdatedDesc: "Team member has been updated successfully",
     playerAddedToLineupDesc: "Player has been added to lineup",
-    csvDataUploaded: "CSV data uploaded",
+    csvDataUploaded: "Datos CSV subidos",
     csvDataUploadedDesc: "CSV data has been uploaded successfully",
 
     // Invitation related toast messages
-    invitationSent: "Invitation sent",
+    invitationSent: "Invitación enviada",
     invitationSentDesc: "Invitation has been sent to {{email}}",
-    invitationError: "Invitation error",
+    invitationError: "Error de invitación",
     invitationErrorDesc: "Failed to send invitation. Please try again.",
 
     // Member claims related toast messages
-    claimApproved: "Claim approved",
+    claimApproved: "Reclamación aprobada",
     claimApprovedDesc: "Member claim has been approved",
-    claimRejected: "Claim rejected",
+    claimRejected: "Reclamación rechazada",
     claimRejectedDesc: "Member claim has been rejected",
-    claimSubmitted: "Claim submitted",
+    claimSubmitted: "Reclamación enviada",
     claimSubmittedDesc: "Your claim has been submitted for review",
 
     // Feedback related toast messages
-    feedbackSubmitted: "Feedback submitted",
+    feedbackSubmitted: "Comentarios enviados",
     feedbackSubmittedDesc: "Thank you for your feedback! We'll review it soon.",
-    feedbackError: "Feedback error",
+    feedbackError: "Error de retroalimentación",
     feedbackErrorDesc: "Failed to submit feedback. Please try again.",
 
     // Network and connection messages
-    networkError: "Network error",
+    networkError: "Error de red",
     networkErrorDesc: "Please check your connection and try again",
-    serverError: "Server error",
+    serverError: "Error del servidor",
     serverErrorDesc: "A server error occurred. Please try again later",
 
     // Permission messages
-    permissionDenied: "Permission denied",
+    permissionDenied: "Permiso denegado",
     permissionDeniedDesc: "You don't have permission to perform this action",
-    unauthorized: "Unauthorized",
+    unauthorized: "No autorizado",
     unauthorizedDesc: "You must be logged in to access this feature",
+    emailAlreadyRegistered: "El correo electrónico ya está registrado",
+    emailAlreadyRegisteredDesc: "Esta dirección de correo electrónico ya está registrada. Utilice una dirección de correo electrónico diferente o inicie sesión.",
   }
 };

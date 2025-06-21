@@ -161,6 +161,7 @@ export const esES = {
     minLength: "Debe tener al menos {{count}} caracteres",
     passwordMatch: "Las contraseñas no coinciden",
     invalidEmail: "Introduce una dirección de correo electrónico válida",
+    emailAlreadyRegistered: "Esta dirección de correo electrónico ya está registrada. Por favor usa un correo diferente o intenta iniciar sesión.",
   },
   navigation: {
     dashboard: "Panel",
