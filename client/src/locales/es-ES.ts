@@ -548,6 +548,8 @@ export const esES = {
     timeFormat: "H:mm",
     selectMatchType: "Seleccionar tipo de partido",
     enterOpponentName: "Introduce nombre del oponente",
+    noTeamSelected: "No hay equipo seleccionado",
+    uploadAndProcess: "Subir y Procesar",
     addEntry: "Añadir Entrada",
     enterMatchLocation: "Introduce ubicación del partido",
     errors: {

@@ -129,6 +129,12 @@ TeamKick Soccer Manager is a comprehensive web application for managing soccer t
 ```
 Changelog:
 - June 14, 2025. Initial setup
+- June 21, 2025. Fixed team creation during onboarding:
+  * Added missing onboarding/create-team endpoint to auth routes
+  * Fixed team_user relationship creation for proper team access
+  * Added missing translation keys (teams.creating)
+  * Resolved duplicate translation key errors
+  * Fixed form data population in settings page with proper translations
 ```
 
 ## User Preferences
