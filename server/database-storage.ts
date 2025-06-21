@@ -240,8 +240,76 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeam(id: number): Promise<boolean> {
-    await db.delete(teams).where(eq(teams.id, id));
-    return true;
+    try {
+      // Use a transaction to ensure all deletions succeed or fail together
+      await db.transaction(async (tx) => {
+        // 1. Delete all related data in the correct order to avoid foreign key violations
+        
+        // Delete match-related data first
+        const teamMatches = await tx
+          .select({ id: matches.id })
+          .from(matches)
+          .where(eq(matches.teamId, id));
+        
+        for (const match of teamMatches) {
+          // Delete match photos
+          await tx.delete(matchPhotos).where(eq(matchPhotos.matchId, match.id));
+          
+          // Delete match cards
+          await tx.delete(matchCards).where(eq(matchCards.matchId, match.id));
+          
+          // Delete match goals
+          await tx.delete(matchGoals).where(eq(matchGoals.matchId, match.id));
+          
+          // Delete match substitutions
+          await tx.delete(matchSubstitutions).where(eq(matchSubstitutions.matchId, match.id));
+          
+          // Delete match lineups
+          await tx.delete(matchLineups).where(eq(matchLineups.matchId, match.id));
+          
+          // Delete player stats for this match
+          await tx.delete(playerStats).where(eq(playerStats.matchId, match.id));
+        }
+        
+        // Delete matches
+        await tx.delete(matches).where(eq(matches.teamId, id));
+        
+        // Delete events and their attendance
+        const teamEvents = await tx
+          .select({ id: events.id })
+          .from(events)
+          .where(eq(events.teamId, id));
+        
+        for (const event of teamEvents) {
+          await tx.delete(attendance).where(eq(attendance.eventId, event.id));
+        }
+        
+        await tx.delete(events).where(eq(events.teamId, id));
+        
+        // Delete team-specific data
+        await tx.delete(announcements).where(eq(announcements.teamId, id));
+        await tx.delete(invitations).where(eq(invitations.teamId, id));
+        await tx.delete(leagueClassification).where(eq(leagueClassification.teamId, id));
+        await tx.delete(teamLineups).where(eq(teamLineups.teamId, id));
+        
+        // Delete member claims
+        await tx.delete(memberClaims).where(eq(memberClaims.teamId, id));
+        
+        // Delete team users (join associations)
+        await tx.delete(teamUsers).where(eq(teamUsers.teamId, id));
+        
+        // Delete team members
+        await tx.delete(teamMembers).where(eq(teamMembers.teamId, id));
+        
+        // Finally, delete the team itself
+        await tx.delete(teams).where(eq(teams.id, id));
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      return false;
+    }
   }
 
   // TeamMember methods
