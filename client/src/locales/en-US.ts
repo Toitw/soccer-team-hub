@@ -773,6 +773,7 @@ export const enUS = {
   },
   teams: {
     createTeam: "Create Team",
+    creating: "Creating...",
     name: "Team Name",
     category: "Category",
     categoryPlaceholder: "Select team category",

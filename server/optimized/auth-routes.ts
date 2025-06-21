@@ -556,4 +556,81 @@ router.post("/onboarding/join-team", isAuthenticated, async (req: Request, res: 
   }
 });
 
+/**
+ * Create a new team during onboarding (for admins only)
+ * POST /api/auth/onboarding/create-team
+ */
+router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    // Check if user is an admin
+    if (user.role !== "admin") {
+      return res.status(403).json({ error: "Only admins can create teams" });
+    }
+    
+    // Validate team data
+    const teamSchema = z.object({
+      name: z.string().min(1, "Team name is required"),
+      category: z.enum(["PROFESSIONAL", "FEDERATED", "AMATEUR"]),
+      teamType: z.enum(["11-a-side", "7-a-side", "Futsal"]),
+      division: z.string().optional(),
+      seasonYear: z.string().optional(),
+      logo: z.string().optional(),
+    });
+    
+    const validatedData = teamSchema.parse(req.body);
+    
+    // Generate unique join code
+    const joinCode = generateRandomCode(6);
+    
+    // Create team
+    const team = await storage.createTeam({
+      name: validatedData.name,
+      category: validatedData.category,
+      teamType: validatedData.teamType,
+      division: validatedData.division || null,
+      seasonYear: validatedData.seasonYear || null,
+      logo: validatedData.logo || null,
+      createdById: userId,
+      joinCode
+    });
+    
+    // Add current user as team admin with required fields
+    await storage.createTeamMember({
+      teamId: team.id,
+      fullName: user.fullName,
+      createdById: userId,
+      userId: userId,
+      role: "admin",
+      isVerified: true
+    });
+    
+    // Mark onboarding as completed
+    const updatedUser = await storage.updateUser(userId, { onboardingCompleted: true });
+    
+    // Return created team with join code
+    return res.status(201).json({ 
+      team,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Error creating team:", error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        error: "Validation error", 
+        details: error.errors 
+      });
+    }
+    
+    return res.status(500).json({ error: "Failed to create team" });
+  }
+});
+
 export default router;

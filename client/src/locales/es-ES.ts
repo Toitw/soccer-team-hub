@@ -793,6 +793,7 @@ export const esES = {
   },
   teams: {
     createTeam: "Crear Equipo",
+    creating: "Creando...",
     name: "Nombre del Equipo",
     teamNamePlaceholder: "ej. Huracán de Carreño",
     category: "Categoría",
