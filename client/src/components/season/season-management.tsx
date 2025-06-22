@@ -235,12 +235,15 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
+                          <div className="max-h-[400px] overflow-hidden">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                              className="w-full"
+                            />
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -274,12 +277,15 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value || undefined}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
+                          <div className="max-h-[400px] overflow-hidden">
+                            <Calendar
+                              mode="single"
+                              selected={field.value || undefined}
+                              onSelect={field.onChange}
+                              initialFocus
+                              className="w-full"
+                            />
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
