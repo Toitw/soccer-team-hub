@@ -620,31 +620,33 @@ export default function EventPage() {
             {/* CALENDAR TAB CONTENT */}
             <TabsContent value="calendar" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
-                <Card>
+                <Card className="h-fit">
                   <CardContent className="p-4">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => setSelectedDate(date)}
-                      className="rounded-md border"
-                      locale={es}
-                      modifiers={{
-                        hasEvent: events?.map(event => {
-                          // Ensure we create a proper date object without time component
-                          const date = new Date(event.startTime);
-                          return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                        }) || []
-                      }}
-                      modifiersStyles={{
-                        hasEvent: {
-                          backgroundColor: "rgba(var(--primary), 0.1)",
-                          fontWeight: "bold",
-                          color: "rgb(var(--primary))",
-                          borderRadius: "0",
-                          textDecoration: "underline",
-                        },
-                      }}
-                    />
+                    <div className="max-h-[400px] overflow-hidden">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => setSelectedDate(date)}
+                        className="rounded-md border w-full"
+                        locale={es}
+                        modifiers={{
+                          hasEvent: events?.map(event => {
+                            // Ensure we create a proper date object without time component
+                            const date = new Date(event.startTime);
+                            return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                          }) || []
+                        }}
+                        modifiersStyles={{
+                          hasEvent: {
+                            backgroundColor: "rgba(var(--primary), 0.1)",
+                            fontWeight: "bold",
+                            color: "rgb(var(--primary))",
+                            borderRadius: "0",
+                            textDecoration: "underline",
+                          },
+                        }}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 
