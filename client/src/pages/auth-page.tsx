@@ -14,17 +14,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LanguageSelector from "@/components/language-selector";
-import { 
-  loginSchema, 
-  registerSchema, 
-  LoginFormData, 
-  RegisterFormData 
+import {
+  loginSchema,
+  registerSchema,
+  LoginFormData,
+  RegisterFormData,
 } from "@/lib/validation-schemas";
 
 export default function AuthPage() {
@@ -44,24 +51,19 @@ export default function AuthPage() {
         <div className="w-full lg:w-1/2 p-6">
           <div className="mb-6 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary flex items-center">
-              Cancha 
-              <span className="relative ml-2 inline-flex items-center justify-center bg-primary text-primary-foreground rounded-full w-6 h-6 hover:animate-spin transition-all duration-300">
-                <span className="absolute inset-0 rounded-full border-2 border-primary-foreground"></span>
-                <span className="absolute top-1/2 left-1/2 w-4 h-0.5 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
-                <span className="absolute top-1/2 left-1/2 w-0.5 h-4 bg-primary-foreground transform -translate-x-1/2 -translate-y-1/2"></span>
-                <span className="absolute top-1/2 left-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
-                <span className="absolute top-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
-                <span className="absolute top-1/2 right-0 w-1 h-1 bg-primary-foreground rounded-full transform -translate-y-1/2"></span>
-                <span className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary-foreground rounded-full transform -translate-x-1/2"></span>
-              </span>
+              Cancha
             </h1>
             <LanguageSelector />
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
-              <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
+              <TabsTrigger value="login">{t("auth.login")}</TabsTrigger>
+              <TabsTrigger value="register">{t("auth.register")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
@@ -77,13 +79,26 @@ export default function AuthPage() {
         {/* Right Side - Hero */}
         <div className="hidden lg:block lg:w-1/2 bg-primary text-white p-12">
           <div className="h-full flex flex-col justify-center">
-            <h2 className="text-3xl font-bold mb-4">{t('landingPage.heroTitle')}</h2>
-            <p className="mb-6">{t('landingPage.heroSubtitle').replace('TeamKick', 'Cancha Plus')}</p>
+            <h2 className="text-3xl font-bold mb-4">
+              {t("landingPage.heroTitle")}
+            </h2>
+            <p className="mb-6">
+              {t("landingPage.heroSubtitle").replace("TeamKick", "Cancha Plus")}
+            </p>
 
             <div className="space-y-4">
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                     <circle cx="9" cy="7" r="4"></circle>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -91,35 +106,72 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">{t('landingPage.teamManagement')}</h3>
-                  <p className="text-sm opacity-80">{t('landingPage.teamManagementDesc')}</p>
+                  <h3 className="font-medium text-lg">
+                    {t("landingPage.teamManagement")}
+                  </h3>
+                  <p className="text-sm opacity-80">
+                    {t("landingPage.teamManagementDesc")}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">{t('landingPage.performanceTracking')}</h3>
-                  <p className="text-sm opacity-80">{t('landingPage.performanceTrackingDesc')}</p>
+                  <h3 className="font-medium text-lg">
+                    {t("landingPage.performanceTracking")}
+                  </h3>
+                  <p className="text-sm opacity-80">
+                    {t("landingPage.performanceTrackingDesc")}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start">
                 <div className="bg-white/20 p-2 rounded-full mr-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-medium text-lg">{t('landingPage.eventManagement')}</h3>
-                  <p className="text-sm opacity-80">{t('landingPage.eventManagementDesc')}</p>
+                  <h3 className="font-medium text-lg">
+                    {t("landingPage.eventManagement")}
+                  </h3>
+                  <p className="text-sm opacity-80">
+                    {t("landingPage.eventManagementDesc")}
+                  </p>
                 </div>
               </div>
             </div>
@@ -149,8 +201,8 @@ function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('auth.welcome')}</CardTitle>
-        <CardDescription>{t('auth.loginPrompt')}</CardDescription>
+        <CardTitle>{t("auth.welcome")}</CardTitle>
+        <CardDescription>{t("auth.loginPrompt")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -160,9 +212,12 @@ function LoginForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.username')}</FormLabel>
+                  <FormLabel>{t("auth.username")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={`${t('auth.username')}...`} {...field} />
+                    <Input
+                      placeholder={`${t("auth.username")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -174,32 +229,39 @@ function LoginForm() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex justify-between items-center">
-                    <FormLabel>{t('auth.password')}</FormLabel>
-                    <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                      {t('auth.forgotPassword')}
+                    <FormLabel>{t("auth.password")}</FormLabel>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {t("auth.forgotPassword")}
                     </Link>
                   </div>
                   <FormControl>
-                    <Input type="password" placeholder={`${t('auth.password')}...`} {...field} />
+                    <Input
+                      type="password"
+                      placeholder={`${t("auth.password")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-primary hover:bg-primary/90"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('auth.loggingIn')}
+                  {t("auth.loggingIn")}
                 </>
-              ) : t('auth.login')}
+              ) : (
+                t("auth.login")
+              )}
             </Button>
-            
-            
           </form>
         </Form>
       </CardContent>
@@ -210,7 +272,6 @@ function LoginForm() {
 function RegisterForm() {
   const { registerMutation } = useAuth();
   const { t } = useLanguage();
-  
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -226,8 +287,6 @@ function RegisterForm() {
     },
   });
 
-  
-
   const onSubmit = (data: RegisterFormData) => {
     const { confirmPassword, ...registerData } = data;
     registerMutation.mutate(registerData);
@@ -236,8 +295,8 @@ function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('auth.createAccount')}</CardTitle>
-        <CardDescription>{t('auth.registerPrompt')}</CardDescription>
+        <CardTitle>{t("auth.createAccount")}</CardTitle>
+        <CardDescription>{t("auth.registerPrompt")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -247,9 +306,12 @@ function RegisterForm() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.fullName')}</FormLabel>
+                  <FormLabel>{t("auth.fullName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={`${t('auth.fullName')}...`} {...field} />
+                    <Input
+                      placeholder={`${t("auth.fullName")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -260,9 +322,12 @@ function RegisterForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.username')}</FormLabel>
+                  <FormLabel>{t("auth.username")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={`${t('auth.username')}...`} {...field} />
+                    <Input
+                      placeholder={`${t("auth.username")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -273,14 +338,15 @@ function RegisterForm() {
               name="email"
               render={({ field }) => {
                 // Ensure field.value is always a string
-                const safeValue = typeof field.value === 'string' ? field.value : '';
+                const safeValue =
+                  typeof field.value === "string" ? field.value : "";
                 return (
                   <FormItem>
-                    <FormLabel>{t('auth.email')}</FormLabel>
+                    <FormLabel>{t("auth.email")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder={`${t('auth.email')}...`} 
+                      <Input
+                        type="email"
+                        placeholder={`${t("auth.email")}...`}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         ref={field.ref}
@@ -299,9 +365,13 @@ function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.password')}</FormLabel>
+                  <FormLabel>{t("auth.password")}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder={`${t('auth.password')}...`} {...field} />
+                    <Input
+                      type="password"
+                      placeholder={`${t("auth.password")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -312,15 +382,19 @@ function RegisterForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('auth.confirmPassword')}</FormLabel>
+                  <FormLabel>{t("auth.confirmPassword")}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder={`${t('auth.confirmPassword')}...`} {...field} />
+                    <Input
+                      type="password"
+                      placeholder={`${t("auth.confirmPassword")}...`}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="agreedToTerms"
@@ -335,9 +409,7 @@ function RegisterForm() {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      {t('auth.agreeToTerms')}
-                    </FormLabel>
+                    <FormLabel>{t("auth.agreeToTerms")}</FormLabel>
                     <FormMessage />
                   </div>
                 </FormItem>
@@ -346,22 +418,22 @@ function RegisterForm() {
 
             <Alert variant="destructive" className="mt-4 mb-2">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              <AlertDescription>
-                {t('auth.emailVerification')}
-              </AlertDescription>
+              <AlertDescription>{t("auth.emailVerification")}</AlertDescription>
             </Alert>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-primary hover:bg-primary/90"
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('auth.registering')}
+                  {t("auth.registering")}
                 </>
-              ) : t('auth.register')}
+              ) : (
+                t("auth.register")
+              )}
             </Button>
           </form>
         </Form>
