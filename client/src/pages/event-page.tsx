@@ -58,7 +58,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
-import { es } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 
@@ -628,7 +627,7 @@ export default function EventPage() {
                         selected={selectedDate}
                         onSelect={(date) => setSelectedDate(date)}
                         className="rounded-md border w-full"
-                        locale={es}
+                        locale={t("lang") === "es" ? "es" : "en"}
                         modifiers={{
                           hasEvent: events?.map(event => {
                             // Ensure we create a proper date object without time component
@@ -654,7 +653,7 @@ export default function EventPage() {
                   <CardHeader>
                     <CardTitle>
                       {selectedDate
-                        ? format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })
+                        ? format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: t("lang") === "es" ? "es" : "en" })
                         : t("events.selectDate")}
                     </CardTitle>
                     <CardDescription>
@@ -708,11 +707,11 @@ export default function EventPage() {
                                   {format(
                                     new Date(event.startTime),
                                     "H:mm",
-                                    { locale: es }
+                                    { locale: t("lang") === "es" ? "es" : "en" }
                                   )}{" "}
                                   -
                                   {event.endTime
-                                    ? format(new Date(event.endTime), " H:mm", { locale: es })
+                                    ? format(new Date(event.endTime), " H:mm", { locale: t("lang") === "es" ? "es" : "en" })
                                     : ""}
                                 </div>
                                 <div className="text-sm text-gray-500 flex items-center mb-1">
@@ -894,7 +893,7 @@ export default function EventPage() {
                                     {format(
                                       new Date(event.startTime),
                                       "EEEE, d 'de' MMMM 'de' yyyy",
-                                      { locale: es }
+                                      { locale: t("lang") === "es" ? "es" : "en" }
                                     )}
                                   </div>
                                   <div className="text-sm text-gray-500 flex items-center mb-1">
@@ -902,14 +901,14 @@ export default function EventPage() {
                                     {format(
                                       new Date(event.startTime),
                                       "H:mm",
-                                      { locale: es }
+                                      { locale: t("lang") === "es" ? "es" : "en" }
                                     )}{" "}
                                     -
                                     {event.endTime
                                       ? format(
                                           new Date(event.endTime),
                                           " H:mm",
-                                          { locale: es }
+                                          { locale: t("lang") === "es" ? "es" : "en" }
                                         )
                                       : ""}
                                   </div>
@@ -1045,7 +1044,7 @@ export default function EventPage() {
               <div className="p-4 border rounded-md mb-4">
                 <h3 className="font-medium">{currentEvent.title}</h3>
                 <div className="text-sm text-gray-500 mt-1">
-                  {format(new Date(currentEvent.startTime), "EEEE, d 'de' MMMM 'de' yyyy • H:mm", { locale: es })}
+                  {format(new Date(currentEvent.startTime), "EEEE, d 'de' MMMM 'de' yyyy • H:mm", { locale: t("lang") === "es" ? "es" : "en" })}
                 </div>
               </div>
             )}
