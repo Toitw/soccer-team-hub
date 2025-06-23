@@ -24,8 +24,9 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, Plus, Check, X, Trash2 } from 'lucide-react';
+import { format } from "date-fns";
+import { es, enUS } from "date-fns/locale";
+import { Calendar as CalendarIcon, Plus, Check, X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { queryClient, apiRequest } from '@/lib/queryClient';
@@ -35,6 +36,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useTranslation } from '@/hooks/use-translation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useLanguage } from "@/hooks/use-language";
 
 // Season form schema
 const seasonFormSchema = z.object({
@@ -61,8 +63,8 @@ interface Season {
 export function SeasonManagement({ teamId }: { teamId: number }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeSeason, setActiveSeason] = useState<number | null>(null);
+  const { t, currentLanguage } = useLanguage();
   const { toast } = useToast();
-  const { t } = useTranslation();
 
   // Fetch all seasons for the team
   const { data: seasons, isLoading } = useQuery({
@@ -226,7 +228,9 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP")
+                                format(field.value, "PPP", { 
+                                  locale: currentLanguage === 'es' ? es : enUS 
+                                })
                               ) : (
                                 <span>{t('seasons.pickDate')}</span>
                               )}
@@ -268,7 +272,9 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "PPP")
+                                format(field.value, "PPP", { 
+                                  locale: currentLanguage === 'es' ? es : enUS 
+                                })
                               ) : (
                                 <span>{t('seasons.pickDate')}</span>
                               )}
@@ -343,7 +349,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
               const inactiveSeasons = seasons
                 .filter(s => !s.isActive)
                 .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-              
+
               return (
                 <>
                   {activeSeasonData && (
@@ -354,7 +360,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                       </span>
                     </div>
                   )}
-                  
+
                   {inactiveSeasons.length > 0 && (
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-muted-foreground">{t('seasons.viewPrevious')}:</span>
@@ -488,12 +494,12 @@ function SeasonClassifications({ teamId, seasonId }: SeasonClassificationsProps)
     queryKey: ['/api/teams', teamId, 'classification'],
     queryFn: () => apiRequest(`/api/teams/${teamId}/classification`),
   });
-  
+
   const { t } = useTranslation();
-  
+
   // Filter team classifications by the current season
   const filteredClassifications = (teamClassifications || []).filter(c => c.seasonId === seasonId);
-  
+
   return (
     <ClassificationTable 
       classifications={filteredClassifications} 
