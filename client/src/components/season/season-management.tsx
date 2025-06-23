@@ -37,6 +37,7 @@ import * as z from 'zod';
 import { useTranslation } from '@/hooks/use-translation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLanguage } from "@/hooks/use-language";
+import { useMobile } from "@/hooks/use-mobile";
 
 // Season form schema
 const seasonFormSchema = z.object({
@@ -65,6 +66,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
   const [activeSeason, setActiveSeason] = useState<number | null>(null);
   const { t, currentLanguage } = useLanguage();
   const { toast } = useToast();
+  const isMobile = useMobile();
 
   // Fetch all seasons for the team
   const { data: seasons, isLoading } = useQuery({
@@ -241,7 +243,12 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start" side="bottom" sideOffset={8}>
+                          <PopoverContent 
+                            className="w-auto p-0" 
+                            align={isMobile ? "center" : "start"} 
+                            side={isMobile ? "top" : "bottom"} 
+                            sideOffset={isMobile ? 4 : 8}
+                          >
                             <div className="h-[380px] overflow-hidden">
                               <Calendar
                                 mode="single"
@@ -292,7 +299,12 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start" side="top" sideOffset={8}>
+                          <PopoverContent 
+                            className="w-auto p-0" 
+                            align={isMobile ? "center" : "start"} 
+                            side={isMobile ? "top" : "top"} 
+                            sideOffset={isMobile ? 4 : 8}
+                          >
                             <div className="h-[380px] overflow-hidden">
                               <Calendar
                                 mode="single"
