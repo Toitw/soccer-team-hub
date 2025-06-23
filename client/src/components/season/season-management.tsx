@@ -246,7 +246,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           <PopoverContent 
                             className={cn(
                               "p-0",
-                              isMobile ? "w-[320px] fixed inset-x-4 top-1/2 -translate-y-1/2 z-50" : "w-auto"
+                              isMobile ? "w-[320px] fixed left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-50" : "w-auto"
                             )}
                             align={isMobile ? "center" : "start"} 
                             side={isMobile ? "top" : "bottom"} 
@@ -305,7 +305,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           <PopoverContent 
                             className={cn(
                               "p-0",
-                              isMobile ? "w-[320px] fixed inset-x-4 top-1/2 -translate-y-1/2 z-50" : "w-auto"
+                              isMobile ? "w-[320px] fixed left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-50" : "w-auto"
                             )}
                             align={isMobile ? "center" : "start"} 
                             side={isMobile ? "top" : "top"} 
