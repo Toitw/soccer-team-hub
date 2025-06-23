@@ -244,10 +244,13 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent 
-                            className="w-auto p-0" 
+                            className={cn(
+                              "p-0",
+                              isMobile ? "w-[320px] fixed inset-x-4 top-1/2 -translate-y-1/2 z-50" : "w-auto"
+                            )}
                             align={isMobile ? "center" : "start"} 
                             side={isMobile ? "top" : "bottom"} 
-                            sideOffset={isMobile ? 4 : 8}
+                            sideOffset={isMobile ? 0 : 8}
                           >
                             <div className="h-[380px] overflow-hidden">
                               <Calendar
@@ -300,10 +303,13 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent 
-                            className="w-auto p-0" 
+                            className={cn(
+                              "p-0",
+                              isMobile ? "w-[320px] fixed inset-x-4 top-1/2 -translate-y-1/2 z-50" : "w-auto"
+                            )}
                             align={isMobile ? "center" : "start"} 
                             side={isMobile ? "top" : "top"} 
-                            sideOffset={isMobile ? 4 : 8}
+                            sideOffset={isMobile ? 0 : 8}
                           >
                             <div className="h-[380px] overflow-hidden">
                               <Calendar
