@@ -292,7 +292,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                               </Button>
                             </FormControl>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start" side="bottom" sideOffset={8}>
+                          <PopoverContent className="w-auto p-0" align="start" side="top" sideOffset={8}>
                             <div className="h-[380px] overflow-hidden">
                               <Calendar
                                 mode="single"
