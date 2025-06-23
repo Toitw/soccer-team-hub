@@ -235,7 +235,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <div className="max-h-[400px] overflow-hidden">
+                          <div className="h-[380px] overflow-hidden">
                             <Calendar
                               mode="single"
                               selected={field.value}
@@ -277,7 +277,7 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <div className="max-h-[400px] overflow-hidden">
+                          <div className="h-[380px] overflow-hidden">
                             <Calendar
                               mode="single"
                               selected={field.value || undefined}
