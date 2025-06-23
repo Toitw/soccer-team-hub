@@ -214,89 +214,103 @@ export function SeasonManagement({ teamId }: { teamId: number }) {
                 <FormField
                   control={form.control}
                   name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>{t('seasons.startDate')}</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { 
-                                  locale: currentLanguage === 'es' ? es : enUS 
-                                })
-                              ) : (
-                                <span>{t('seasons.pickDate')}</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <div className="h-[380px] overflow-hidden">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                              className="w-full"
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+                    
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>{t('seasons.startDate')}</FormLabel>
+                        <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP", { 
+                                    locale: currentLanguage === 'es' ? es : enUS 
+                                  })
+                                ) : (
+                                  <span>{t('seasons.pickDate')}</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <div className="h-[380px] overflow-hidden">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setIsStartDateOpen(false);
+                                }}
+                                initialFocus
+                                className="w-full"
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={form.control}
                   name="endDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>{t('seasons.endDate')}</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP", { 
-                                  locale: currentLanguage === 'es' ? es : enUS 
-                                })
-                              ) : (
-                                <span>{t('seasons.pickDate')}</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <div className="h-[380px] overflow-hidden">
-                            <Calendar
-                              mode="single"
-                              selected={field.value || undefined}
-                              onSelect={field.onChange}
-                              initialFocus
-                              className="w-full"
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+                    
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>{t('seasons.endDate')}</FormLabel>
+                        <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP", { 
+                                    locale: currentLanguage === 'es' ? es : enUS 
+                                  })
+                                ) : (
+                                  <span>{t('seasons.pickDate')}</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <div className="h-[380px] overflow-hidden">
+                              <Calendar
+                                mode="single"
+                                selected={field.value || undefined}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setIsEndDateOpen(false);
+                                }}
+                                initialFocus
+                                className="w-full"
+                              />
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
