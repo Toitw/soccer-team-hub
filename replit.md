@@ -150,6 +150,11 @@ Changelog:
   * Added graceful handling for Resend free tier restrictions
   * Maintained same function signatures for seamless migration
   * Updated environment variable from SENDGRID_API_KEY to RESEND_API_KEY
+- July 28, 2025. Disabled email verification for MVP:
+  * Removed email verification requirement from registration flow
+  * Users are now automatically verified upon registration
+  * Registration completes immediately without email confirmation
+  * Email verification can be re-enabled later for production
 ```
 
 ## User Preferences

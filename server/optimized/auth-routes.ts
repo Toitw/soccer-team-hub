@@ -385,11 +385,7 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "EMAIL_ALREADY_REGISTERED" });
     }
     
-    // Generate a verification token and expiry
-    const verificationToken = generateVerificationToken();
-    const verificationTokenExpiry = generateTokenExpiry(24); // 24 hours
-    
-    // Create the user with verification token
+    // Create the user with email pre-verified for MVP
     const user = await storage.createUser({
       username: validatedData.username,
       password: validatedData.password, // Will be hashed in storage implementation
@@ -399,9 +395,9 @@ router.post("/register", async (req: Request, res: Response) => {
       email: validatedData.email,
       role: validatedData.role,
       onboardingCompleted: false,
-      isEmailVerified: false,
-      verificationToken,
-      verificationTokenExpiry
+      isEmailVerified: true, // Skip email verification for MVP
+      verificationToken: null,
+      verificationTokenExpiry: null
     });
     
     // If teamCode is provided, try to join the team
@@ -423,41 +419,8 @@ router.post("/register", async (req: Request, res: Response) => {
       }
     }
 
-    // Generate the verification link
-    const baseUrl = `${req.protocol}://${req.get("host")}/verify-email`;
-    
-    // Get user's language preference from headers (fallback to Spanish)
-    const acceptLanguage = req.get('Accept-Language') || '';
-    const language = acceptLanguage.includes('en') ? 'en' : 'es';
-    
-    // Generate and send verification email
-    const emailContent = generateVerificationEmail(
-      user.username,
-      verificationToken,
-      baseUrl,
-      language
-    );
-
-    // Send the verification email and wait for result
-    const emailResult = await sendEmail(
-      user.email || '',
-      emailContent.subject,
-      emailContent.html,
-      emailContent.text
-    );
-
-    // Check if email sending failed
-    if (!emailResult.success) {
-      console.error("Failed to send verification email:", emailResult.message);
-      // Delete the created user since email verification failed
-      await storage.deleteUser(user.id);
-      return res.status(500).json({ 
-        error: "EMAIL_SEND_FAILED", 
-        message: "Failed to send verification email. Please try again." 
-      });
-    }
-
-    console.log("Verification email sent successfully");
+    // Email verification is disabled for MVP
+    console.log("Email verification disabled for MVP - user registered successfully");
 
     // Start session
     req.login(user, (err) => {
@@ -466,11 +429,11 @@ router.post("/register", async (req: Request, res: Response) => {
         return res.status(500).json({ error: "Failed to create session" });
       }
       
-      // Return user data without password and include email verification status
+      // Return user data without password
       const { password, ...userWithoutPassword } = user;
       return res.status(201).json({
         ...userWithoutPassword,
-        emailVerificationSent: true
+        emailVerificationSent: false // MVP: No email verification
       });
     });
   } catch (error) {
