@@ -1,40 +1,36 @@
 /**
  * Email utility functions for sending emails in the application
- * Uses SendGrid API for email delivery
+ * Uses Resend API for email delivery
  */
 
-import { MailService } from '@sendgrid/mail';
+import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Initialize the SendGrid mail service
-const mailService = new MailService();
-
-// Flag to track if SendGrid has been initialized
-let isInitialized = false;
+// Initialize the Resend client
+let resend: Resend | null = null;
 
 /**
- * Initialize SendGrid with API key
+ * Initialize Resend with API key
  * This ensures proper timing for environment variable loading
  */
 function initializeMailService() {
-  if (isInitialized) {
+  if (resend) {
     return true;
   }
   
-  if (process.env.SENDGRID_API_KEY) {
-    mailService.setApiKey(process.env.SENDGRID_API_KEY);
-    isInitialized = true;
-    console.log('SendGrid email service initialized successfully');
+  if (process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+    console.log('Resend email service initialized successfully');
     return true;
   } else {
-    console.warn('SENDGRID_API_KEY environment variable is not set. Email functionality will not work.');
+    console.warn('RESEND_API_KEY environment variable is not set. Email functionality will not work.');
     return false;
   }
 }
 
 /**
- * Send an email using SendGrid API
+ * Send an email using Resend API
  * 
  * @param to - Recipient email address
  * @param subject - Email subject
@@ -48,29 +44,37 @@ export async function sendEmail(
   subject: string, 
   html: string, 
   text?: string,
-  fromEmail: string = 'canchaplusapp@gmail.com'
+  fromEmail: string = 'Cancha+ <onboarding@resend.dev>'
 ): Promise<{ success: boolean; message?: string }> {
-  // Initialize SendGrid service with proper timing
+  // Initialize Resend service with proper timing
   if (!initializeMailService()) {
     return { 
       success: false, 
-      message: 'SendGrid API key is not configured. Email could not be sent.' 
+      message: 'Resend API key is not configured. Email could not be sent.' 
     };
   }
 
   try {
-    const msg = {
-      to,
+    const result = await resend!.emails.send({
       from: fromEmail,
-      subject,
+      to: [to],
+      subject: subject,
       text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
-      html,
-    };
+      html: html,
+    });
 
-    await mailService.send(msg);
+    if (result.error) {
+      console.error('Resend email error:', result.error);
+      return { 
+        success: false, 
+        message: result.error.message || 'Failed to send email' 
+      };
+    }
+
+    console.log('Email sent successfully with ID:', result.data?.id);
     return { success: true };
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    console.error('Resend email error:', error);
     return { 
       success: false, 
       message: error instanceof Error ? error.message : 'Failed to send email' 

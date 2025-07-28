@@ -2,7 +2,7 @@
  * Test script to diagnose email sending issues
  */
 import { config } from 'dotenv';
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 
 // Load environment variables
 config({ path: '.env.local' });
@@ -10,17 +10,17 @@ config({ path: '.env.local' });
 async function testEmailSending() {
   console.log('Testing email sending functionality...');
   
-  // Check if SendGrid API key is available
-  const hasApiKey = !!process.env.SENDGRID_API_KEY;
-  console.log('SendGrid API Key configured:', hasApiKey);
+  // Check if Resend API key is available
+  const hasApiKey = !!process.env.RESEND_API_KEY;
+  console.log('Resend API Key configured:', hasApiKey);
   
   if (!hasApiKey) {
-    console.error('No SendGrid API key found in environment variables');
+    console.error('No Resend API key found in environment variables');
     return;
   }
   
-  // Set the API key
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  // Initialize Resend client
+  const resend = new Resend(process.env.RESEND_API_KEY);
   
   // Generate test email content with actual verification token
   const verificationUrl = 'https://d985c910-be15-4a53-9b2c-481d78aa3062-00-29aoyq49zmm0j.worf.replit.dev/verify-email?token=bc5764c79840fa3b0bff4701bd7005812d9b5eb886151196e9a107d95002fe43';
@@ -60,26 +60,24 @@ El Equipo de Cancha+`
   console.log('To:', 'juanjrgast@gmail.com');
   
   try {
-    const msg = {
-      to: 'juanjrgast@gmail.com',
-      from: 'canchaplusapp@gmail.com',
+    console.log('Attempting to send email...');
+    const result = await resend.emails.send({
+      from: 'Cancha+ <onboarding@resend.dev>',
+      to: ['juanjrgast@gmail.com'],
       subject: emailContent.subject,
       text: emailContent.text,
       html: emailContent.html,
-    };
-
-    console.log('Attempting to send email...');
-    const result = await sgMail.send(msg);
+    });
     
-    console.log('Email send result:', result);
-    console.log('✅ Email sent successfully');
+    if (result.error) {
+      console.error('❌ Resend error:', result.error);
+    } else {
+      console.log('Email send result:', result);
+      console.log('✅ Email sent successfully with ID:', result.data?.id);
+    }
     
   } catch (error) {
     console.error('❌ Error during email test:', error);
-    
-    if (error.response) {
-      console.error('SendGrid error response:', error.response.body);
-    }
   }
 }
 
