@@ -1,10 +1,11 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Team, TeamMember } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Match } from "@shared/schema";
 import { Link } from "wouter";
 import { useLanguage } from "@/hooks/use-language";
+import { Users } from "lucide-react";
 
 // Interface for Season data
 interface Season {
@@ -113,12 +114,13 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
 
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">{t("dashboard.teamSummary")}</h2>
-          {/* Removed season display as per requirements - now managed in competitions page */}
-        </div>
-
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" />
+          {t("dashboard.teamSummary")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
         {/* Show message when no active season exists */}
         {!isDemoMode && seasons && seasons.length > 0 && !activeSeason && (
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -128,36 +130,39 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
           </div>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">{t("dashboard.players")}</p>
-            <p className="text-xl font-semibold text-primary">{playerCount}</p>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">{t("dashboard.matches")}</p>
-            <p className="text-xl font-semibold text-primary">{matchCount}</p>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">{t("dashboard.wins")}</p>
-            <p className="text-xl font-semibold text-primary">{winCount}</p>
-          </div>
-          <div className="text-center p-2 rounded-lg bg-background">
-            <p className="text-sm text-gray-500">{t("dashboard.goals")}</p>
-            <p className="text-xl font-semibold text-primary">{goalCount}</p>
-          </div>
-        </div>
+        <div className="space-y-3">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center space-x-4 mb-4">
+              <img 
+                src={team.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
+                alt={`Team ${team.name}`} 
+                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+              />
+              <div>
+                <h3 className="font-medium">{team.name}</h3>
+                <p className="text-sm text-gray-500">{team.division}</p>
+              </div>
+            </div>
 
-        <div className="flex items-center space-x-4">
-          <img 
-            src={team.logo || "https://ui-avatars.com/api/?name=Team&background=0D47A1&color=fff"} 
-            alt={`Team ${team.name}`} 
-            className="w-14 h-14 rounded-full object-cover border-2 border-primary"
-          />
-          <div>
-            <h3 className="text-lg font-medium">{team.name}</h3>
-            <p className="text-sm text-gray-500">{team.division}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="text-center p-3 rounded-lg bg-white border border-gray-200">
+                <p className="text-sm text-gray-500">{t("dashboard.players")}</p>
+                <p className="text-xl font-semibold text-primary">{playerCount}</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-white border border-gray-200">
+                <p className="text-sm text-gray-500">{t("dashboard.matches")}</p>
+                <p className="text-xl font-semibold text-primary">{matchCount}</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-white border border-gray-200">
+                <p className="text-sm text-gray-500">{t("dashboard.wins")}</p>
+                <p className="text-xl font-semibold text-primary">{winCount}</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-white border border-gray-200">
+                <p className="text-sm text-gray-500">{t("dashboard.goals")}</p>
+                <p className="text-xl font-semibold text-primary">{goalCount}</p>
+              </div>
+            </div>
           </div>
-          
         </div>
       </CardContent>
     </Card>
