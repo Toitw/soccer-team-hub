@@ -56,7 +56,8 @@ export async function sendEmail(
 
   try {
     const result = await resend!.emails.send({
-      from: fromEmail,
+      from: fromEmail.includes('@resend.dev') ? fromEmail : 'Cancha+ <onboarding@resend.dev>',
+      reply_to: fromEmail.includes('@resend.dev') ? 'canchaplusapp@gmail.com' : fromEmail,
       to: [to],
       subject: subject,
       text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
