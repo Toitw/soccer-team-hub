@@ -973,6 +973,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           onChange={(e) => setSearchQuery(e.target.value)}
                           value={searchQuery}
                           className="mb-2"
+                          autoFocus={false}
                         />
                       </div>
                       {teamMembers
