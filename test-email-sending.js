@@ -62,8 +62,7 @@ El Equipo de Cancha+`
   try {
     console.log('Attempting to send email...');
     const result = await resend.emails.send({
-      from: 'Cancha+ <onboarding@resend.dev>',
-      reply_to: 'canchaplusapp@gmail.com',
+      from: 'Cancha+ <noreply@resend.dev>',
       to: ['juanjrgast@gmail.com'],
       subject: emailContent.subject,
       text: emailContent.text,

@@ -44,7 +44,7 @@ export async function sendEmail(
   subject: string, 
   html: string, 
   text?: string,
-  fromEmail: string = 'Cancha+ <onboarding@resend.dev>'
+  fromEmail: string = 'Cancha+ <noreply@resend.dev>'
 ): Promise<{ success: boolean; message?: string }> {
   // Initialize Resend service with proper timing
   if (!initializeMailService()) {
@@ -56,8 +56,7 @@ export async function sendEmail(
 
   try {
     const result = await resend!.emails.send({
-      from: fromEmail.includes('@resend.dev') ? fromEmail : 'Cancha+ <onboarding@resend.dev>',
-      reply_to: fromEmail.includes('@resend.dev') ? 'canchaplusapp@gmail.com' : fromEmail,
+      from: fromEmail.includes('@resend.dev') ? fromEmail : 'Cancha+ <noreply@resend.dev>',
       to: [to],
       subject: subject,
       text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
