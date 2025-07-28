@@ -101,8 +101,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users).where(eq(users.id, id));
-    return true;
+    try {
+      // Use a transaction to ensure all deletions succeed or fail together
+      await db.transaction(async (tx) => {
+        // 1. Delete from teamUsers table (user-team access relationships)
+        await tx.delete(teamUsers).where(eq(teamUsers.userId, id));
+        
+        // 2. Delete from attendance table (event attendance records)
+        await tx.delete(attendance).where(eq(attendance.userId, id));
+        
+        // 3. Delete from memberClaims table where user is the claimant
+        await tx.delete(memberClaims).where(eq(memberClaims.userId, id));
+        
+        // 4. Handle memberClaims where user was the reviewer (set to null)
+        await tx
+          .update(memberClaims)
+          .set({ reviewedById: null })
+          .where(eq(memberClaims.reviewedById, id));
+        
+        // 5. Soft delete from teamMembers (mark as inactive)
+        await tx
+          .update(teamMembers)
+          .set({ 
+            isActive: false,
+            deletedAt: new Date(),
+            userId: null // Remove user association
+          })
+          .where(eq(teamMembers.userId, id));
+        
+        // 6. Handle other tables that might reference this user
+        // Note: We're preserving historical data by not deleting records where this user is createdById
+        // The createdById fields are not nullable, so we leave them as is for historical tracking
+        
+        // 7. Finally, delete the user record
+        await tx.delete(users).where(eq(users.id, id));
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
   }
 
   // Team methods

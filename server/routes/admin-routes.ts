@@ -275,11 +275,7 @@ export function createAdminRouter(storage: IStorage) {
       return errorResponse(res, 'Cannot delete superuser accounts', 403);
     }
     
-    // Borra todas sus membresías
-    const memberships = await storage.getTeamMembersByUserId(id);
-    await Promise.all(memberships.map(m => storage.deleteTeamMember(m.id)));
-    
-    // Borra al usuario
+    // Delete the user (this now handles all foreign key relationships automatically)
     const ok = await storage.deleteUser(id);
     if (!ok) return errorResponse(res, 'Failed to delete user');
     return successResponse(res, 'User deleted successfully');
