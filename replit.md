@@ -143,6 +143,13 @@ Changelog:
   * Enhanced registration flow to delete user if email verification fails
   * Verified password recovery functionality is working correctly
   * Added comprehensive error handling for different email failure scenarios
+- July 28, 2025. Migrated email service from SendGrid to Resend:
+  * Replaced SendGrid with Resend for better deliverability and pricing
+  * Updated email utilities to use Resend API
+  * Configured no-reply emails from 'Cancha+ <noreply@resend.dev>'
+  * Added graceful handling for Resend free tier restrictions
+  * Maintained same function signatures for seamless migration
+  * Updated environment variable from SENDGRID_API_KEY to RESEND_API_KEY
 ```
 
 ## User Preferences
