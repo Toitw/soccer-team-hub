@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -25,7 +25,8 @@ import { ProtectedRoute } from "./lib/protected-route";
 import { useState, useEffect, lazy, Suspense } from "react";
 
 function Router() {
-  console.log("Router: Rendering Router component");
+  const [location] = useLocation();
+  console.log("Router: Rendering Router component, current location:", location);
   
   return (
     <Switch>
@@ -78,6 +79,18 @@ function Router() {
         allowedRoles={["superuser"]} 
       />
 
+      {/* Fallback route for debugging */}
+      <Route path="*">
+        {(params) => {
+          console.log("Fallback route matched with params:", params);
+          return <div style={{ padding: "20px", backgroundColor: "lightgray" }}>
+            <h1>Fallback Route</h1>
+            <p>Current path: {window.location.pathname}</p>
+            <p>This means no other route matched.</p>
+          </div>;
+        }}
+      </Route>
+
       {/* 404 Page */}
       <Route component={NotFound} />
     </Switch>
@@ -89,13 +102,9 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <div style={{ backgroundColor: "red", padding: "10px", margin: "10px" }}>QueryClient loaded</div>
       <LanguageProvider>
-        <div style={{ backgroundColor: "green", padding: "10px", margin: "10px" }}>Language Provider loaded</div>
         <AuthProvider>
-          <div style={{ backgroundColor: "blue", padding: "10px", margin: "10px", color: "white" }}>Auth Provider loaded</div>
           <TeamProvider>
-            <div style={{ backgroundColor: "yellow", padding: "10px", margin: "10px" }}>Team Provider loaded</div>
             <div style={{ minHeight: "100vh" }}>
               <Router />
             </div>
