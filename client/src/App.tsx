@@ -25,6 +25,8 @@ import { ProtectedRoute } from "./lib/protected-route";
 import { useState, useEffect, lazy, Suspense } from "react";
 
 function Router() {
+  console.log("Router: Rendering Router component");
+  
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
@@ -83,12 +85,20 @@ function Router() {
 }
 
 function App() {
+  console.log("App: Rendering App component");
+  
   return (
     <QueryClientProvider client={queryClient}>
+      <div style={{ backgroundColor: "red", padding: "10px", margin: "10px" }}>QueryClient loaded</div>
       <LanguageProvider>
+        <div style={{ backgroundColor: "green", padding: "10px", margin: "10px" }}>Language Provider loaded</div>
         <AuthProvider>
+          <div style={{ backgroundColor: "blue", padding: "10px", margin: "10px", color: "white" }}>Auth Provider loaded</div>
           <TeamProvider>
-            <Router />
+            <div style={{ backgroundColor: "yellow", padding: "10px", margin: "10px" }}>Team Provider loaded</div>
+            <div style={{ minHeight: "100vh" }}>
+              <Router />
+            </div>
             <Toaster />
             {/* Global Feedback Button */}
             <FeedbackButton />
