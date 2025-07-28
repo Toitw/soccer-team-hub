@@ -1410,6 +1410,7 @@ export default function TeamPage() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           value={searchQuery}
                           className="mb-2"
+                          autoFocus={false}
                         />
                       </div>
                       {teamMembers
@@ -1525,6 +1526,7 @@ export default function TeamPage() {
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus={false}
                   />
                 </div>
                 {(roleFilter !== "all" || searchQuery) && (
