@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Announcement } from "@shared/schema";
 import { format } from "date-fns";
-import { PlusIcon, ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { PlusIcon, Loader2, RefreshCw, Megaphone } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -132,97 +132,95 @@ export default function Announcements({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex justify-between items-center">
-          <span>{t("announcements.latestAnnouncements")}</span>
-          <div className="flex items-center">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Megaphone className="h-5 w-5 text-primary" />
+          {t("announcements.latestAnnouncements")}
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent>
+        {!useProvidedData && (
+          <div className="flex justify-end mb-2">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="text-sm mr-1"
+              className="text-sm"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
+          </div>
+        )}
+        
+        {announcements.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <Megaphone className="h-12 w-12 text-gray-300 mb-2" />
+            <p className="text-gray-500 mb-2">{t("announcements.noAnnouncements")}</p>
             {isDemoMode ? (
               <Button
-                variant="ghost"
-                size="icon"
-                className="text-sm text-primary"
+                variant="outline"
+                size="sm"
                 onClick={onCreateClick}
               >
-                <PlusIcon className="h-5 w-5" />
+                {t("dashboard.createTeamFirst")}
               </Button>
             ) : (
               <Link to="/announcements">
-                <Button variant="ghost" size="icon" className="text-sm text-primary">
-                  <PlusIcon className="h-5 w-5" />
+                <Button variant="outline" size="sm">
+                  {t("announcements.createAnnouncement")}
                 </Button>
               </Link>
             )}
           </div>
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="px-4 pb-2">
-        {announcements.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground text-sm">
-            <p>{t("announcements.noAnnouncements")}</p>
-          </div>
         ) : (
           <div className="space-y-3">
-            {/* Only show the most recent announcement */}
-            {announcements.slice(0, 1).map(announcement => {
-              let borderColor = "border-secondary";
-              
-              if (announcement.title) {
-                if (announcement.title.includes("Training")) {
-                  borderColor = "border-accent";
-                } else if (announcement.title.includes("Equipment")) {
-                  borderColor = "border-primary";
+            <div className="bg-gray-50 p-4 rounded-lg">
+              {announcements.slice(0, 2).map((announcement, index) => {
+                let borderColor = "border-secondary";
+                
+                if (announcement.title) {
+                  if (announcement.title.includes("Training")) {
+                    borderColor = "border-accent";
+                  } else if (announcement.title.includes("Equipment")) {
+                    borderColor = "border-primary";
+                  }
                 }
-              }
-              
-              return (
-                <div key={announcement.id} className={`p-3 border-l-4 ${borderColor} bg-muted/20 rounded-r-lg shadow-sm`}>
-                  <h3 className="font-medium">{announcement.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {announcement.content}
-                  </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-muted-foreground">
-                      {announcement.createdAt ? format(new Date(announcement.createdAt), "MMMM d, yyyy") : t("common.notAvailable")}
-                    </span>
-                    <span className="text-xs font-medium text-primary">
-                      {announcement.creator?.fullName || `${t("common.user")} ${announcement.createdById}`}
-                    </span>
+                
+                return (
+                  <div key={announcement.id} className={`${index > 0 ? 'border-t border-gray-200 pt-3 mt-3' : ''}`}>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+                        <Megaphone className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{announcement.title}</h3>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {announcement.content}
+                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-gray-500">
+                            {announcement.createdAt ? format(new Date(announcement.createdAt), "MMM d, yyyy") : t("common.notAvailable")}
+                          </span>
+                          <span className="text-xs font-medium text-primary">
+                            {announcement.creator?.fullName || `${t("common.user")} ${announcement.createdById}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            
+            <Link to="/announcements">
+              <Button variant="outline" className="w-full">
+                {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
+              </Button>
+            </Link>
           </div>
         )}
       </CardContent>
-      
-      <CardFooter className="pt-2">
-        {isDemoMode ? (
-          <Button 
-            variant="ghost" 
-            className="w-full text-xs flex items-center justify-center gap-1 text-primary"
-            onClick={onCreateClick}
-          >
-            {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
-            <ArrowRight className="h-3 w-3" />
-          </Button>
-        ) : (
-          <Link to="/announcements" className="w-full">
-            <Button variant="ghost" className="w-full text-xs flex items-center justify-center gap-1 text-primary">
-              {t("common.viewAll")} {t("navigation.announcements").toLowerCase()}
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </Link>
-        )}
-      </CardFooter>
     </Card>
   );
 }

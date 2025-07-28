@@ -1,10 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Event } from "@shared/schema";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { PlusIcon, Users, MapPin } from "lucide-react";
+import { PlusIcon, Users, MapPin, CalendarDays } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 
 interface UpcomingEventsProps {
@@ -74,91 +74,90 @@ export default function UpcomingEvents({ events, isDemoMode = false, onRefresh }
 
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">{t("dashboard.upcomingEvents")}</h2>
-          <div className="flex items-center gap-2">
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                className="text-sm text-gray-500 hover:text-primary cursor-pointer"
-                title="Refresh events"
-              >
-                ↻
-              </button>
-            )}
-            <div
-              onClick={() => window.location.href = '/events'}
-              className="text-sm text-primary cursor-pointer"
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-primary" />
+          {t("dashboard.upcomingEvents")}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {onRefresh && (
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={onRefresh}
+              className="text-sm text-gray-500 hover:text-primary cursor-pointer"
+              title="Refresh events"
             >
-              {t("common.viewAll")}
-            </div>
-          </div>
-        </div>
-        
-        {events.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>{t("dashboard.noUpcomingEvents")}</p>
-          </div>
-        ) : (
-          <div className="space-y-4 mb-4">
-            {events.map(event => {
-              // Handle both field names for compatibility
-              const dateObj = formatDate(event.startTime || (event as any).startDate);
-              return (
-                <div 
-                  key={event.id} 
-                  className={`mb-4 border-l-4 ${getEventTypeColor(event.eventType)} bg-white rounded-r-lg shadow-sm overflow-hidden`}
-                >
-                  <div className="flex">
-                    <div className="w-16 sm:w-24 bg-accent/10 flex flex-col items-center justify-center p-2">
-                      <span className="text-sm font-medium text-gray-500">{dateObj.day}</span>
-                      <span className="text-xl font-bold text-primary">{dateObj.number}</span>
-                      <span className="text-xs text-gray-500">{dateObj.month}</span>
-                    </div>
-                    <div className="flex-1 p-3 pl-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.eventType || 'other')} mb-1`}>
-                            {event.eventType ? (event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)) : 'Event'}
-                          </span>
-                          <h3 className="font-medium">{event.title}</h3>
-                        </div>
-                        <span className="text-sm font-medium">{dateObj.time}</span>
-                      </div>
-                      <p className="text-sm text-gray-500">{event.location}</p>
-                      <div className="flex items-center mt-2 space-x-4">
-                        <span className="text-xs flex items-center">
-                          <MapPin className="h-3 w-3 mr-1 text-gray-400" /> 
-                          {event.eventType === "match" ? 
-                            ((event.location && typeof event.location === 'string' && event.location.includes && event.location.includes("Home")) ? t("common.home") : t("common.away")) 
-                            : (event.location || t("common.locationNotSet"))}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+              ↻
+            </button>
           </div>
         )}
         
-        {isDemoMode ? (
-          <Button 
-            variant="outline" 
-            className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary"
-            onClick={() => {
-              window.location.href = '/onboarding?fromMock=true';
-            }}
-          >
-            <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.createTeamFirst")}
-          </Button>
+        {events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6">
+            <CalendarDays className="h-12 w-12 text-gray-300 mb-2" />
+            <p className="text-gray-500 mb-2">{t("dashboard.noUpcomingEvents")}</p>
+            {isDemoMode ? (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  window.location.href = '/onboarding?fromMock=true';
+                }}
+              >
+                {t("dashboard.createTeamFirst")}
+              </Button>
+            ) : (
+              <Link href="/events">
+                <Button variant="outline" size="sm">
+                  {t("dashboard.addNewEvent")}
+                </Button>
+              </Link>
+            )}
+          </div>
         ) : (
-          <Link href="/events">
-            <Button variant="outline" className="w-full py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary">
-              <PlusIcon className="h-4 w-4 mr-2" /> {t("dashboard.addNewEvent")}
-            </Button>
-          </Link>
+          <div className="space-y-3">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              {events.slice(0, 2).map((event, index) => {
+                // Handle both field names for compatibility
+                const dateObj = formatDate(event.startTime || (event as any).startDate);
+                return (
+                  <div 
+                    key={event.id} 
+                    className={`${index > 0 ? 'border-t border-gray-200 pt-3 mt-3' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col items-center justify-center w-12 h-12 bg-white rounded-lg border border-gray-200">
+                        <span className="text-xs font-medium text-gray-500">{dateObj.day}</span>
+                        <span className="text-sm font-bold text-primary">{dateObj.number}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className={`inline-block px-2 py-1 text-xs rounded ${getEventTypeLabel(event.eventType || 'other')} mb-1`}>
+                              {event.eventType ? (event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1)) : 'Event'}
+                            </span>
+                            <h3 className="font-medium">{event.title}</h3>
+                            <div className="flex items-center mt-1 text-sm text-gray-500">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              <span className="mr-3">{event.location || t("common.locationNotSet")}</span>
+                              <span className="text-sm font-medium">{dateObj.time}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <Link href="/events">
+              <Button variant="outline" className="w-full">
+                {t("common.viewAll")} {t("dashboard.upcomingEvents").toLowerCase()}
+              </Button>
+            </Link>
+          </div>
         )}
       </CardContent>
     </Card>
