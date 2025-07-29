@@ -137,6 +137,7 @@ export const esES = {
     user: "Usuario",
     saveChanges: "Guardar Cambios",
     events: "Eventos",
+    areYouSure: "¿Estás seguro?",
   },
   feedback: {
     submitFeedback: "Enviar Comentarios",
@@ -502,6 +503,8 @@ export const esES = {
     classificationCreated: "Clasificación creada con éxito",
     classificationDeleted: "Clasificación eliminada con éxito",
     failedToUpdateClassification: "Error al actualizar la clasificación",
+    permanentlyDeleteMatch: "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",
+    permanentlyDeleteClassification: "Esto eliminará permanentemente la entrada de clasificación para {{teamName}}. Esta acción no se puede deshacer.",
     failedToCreateClassification: "Error al crear la clasificación",
     failedToDeleteClassification: "Error al eliminar la clasificación",
     downloadCSV: "Descargar como CSV",
@@ -814,6 +817,8 @@ export const esES = {
     },
     division: "División",
     divisionPlaceholder: "ej., Primera División",
+    deleteTeam: "Eliminar Equipo",
+    deleteTeamConfirmation: "¿Estás seguro de que quieres eliminar este equipo? Esta acción no se puede deshacer y eliminará todos los datos asociados incluyendo miembros del equipo, partidos, eventos y anuncios.",
   },
   onboarding: {
     welcome: "Bienvenido a Cancha+",

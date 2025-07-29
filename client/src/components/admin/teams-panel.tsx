@@ -370,14 +370,14 @@ export default function TeamsPanel() {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-destructive">Delete Team</DialogTitle>
+            <DialogTitle className="text-destructive">{t("teams.deleteTeam")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this team? This action cannot be undone and will remove all associated data including team members, matches, events, and announcements.
+              {t("teams.deleteTeamConfirmation")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -385,7 +385,7 @@ export default function TeamsPanel() {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Delete
+              {t("common.delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -136,6 +136,7 @@ export const enUS = {
     user: "User",
     saveChanges: "Save Changes",
     events: "Events",
+    areYouSure: "Are you sure?",
   },
   feedback: {
     submitFeedback: "Submit Feedback",
@@ -791,6 +792,8 @@ export const enUS = {
     },
     division: "Division",
     divisionPlaceholder: "e.g., First Division",
+    deleteTeam: "Delete Team",
+    deleteTeamConfirmation: "Are you sure you want to delete this team? This action cannot be undone and will remove all associated data including team members, matches, events, and announcements.",
   },
   onboarding: {
     welcome: "Welcome to Cancha+",

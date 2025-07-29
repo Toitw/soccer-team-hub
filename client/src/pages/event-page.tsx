@@ -1045,7 +1045,7 @@ export default function EventPage() {
               <div className="p-4 border rounded-md mb-4">
                 <h3 className="font-medium">{currentEvent.title}</h3>
                 <div className="text-sm text-gray-500 mt-1">
-                  {format(new Date(currentEvent.startTime), "EEEE, d 'de' MMMM 'de' yyyy • H:mm", { locale: t("lang") === "es" ? "es" : "en" })}
+                  {format(new Date(currentEvent.startTime), "EEEE, d 'de' MMMM 'de' yyyy • H:mm", { locale: t("lang") === "es" ? es : enUS })}
                 </div>
               </div>
             )}

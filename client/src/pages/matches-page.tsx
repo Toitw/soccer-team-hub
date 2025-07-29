@@ -1909,16 +1909,15 @@ export default function MatchesPage() {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("common.areYouSure")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the match against{" "}
-                  {matchToDelete?.opponentName}. This action cannot be undone.
+                  {t("matches.permanentlyDeleteMatch", { opponentName: matchToDelete?.opponentName ?? "Unknown" })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteMatch}>
-                  Delete
+                  {t("common.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -1931,17 +1930,15 @@ export default function MatchesPage() {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t("common.areYouSure")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the classification entry for{" "}
-                  {classificationToDelete?.externalTeamName}. This action cannot
-                  be undone.
+                  {t("matches.permanentlyDeleteClassification", { teamName: classificationToDelete?.externalTeamName ?? "Unknown" })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                Adding the overflow-x-hidden class to the top-level div and modifying the DialogContent className and the CSV example code block to prevent horizontal scrolling and modal widening.                <AlertDialogAction onClick={handleDeleteClassification}>
-                  Delete
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteClassification}>
+                  {t("common.delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
