@@ -358,7 +358,7 @@ export default function AnnouncementsPage(props: PageProps = {}) {
               </Button>
             </div>
 
-            {canManageAnnouncements() && (
+            {canManageAnnouncements() && announcements?.length > 0 && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="sm:text-base">
