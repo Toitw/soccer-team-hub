@@ -813,7 +813,7 @@ export default function TeamPage() {
                 {selectedTeam?.name || "Team"}
               </h1>
               <p className="text-gray-500">
-                {selectedTeam?.division || "No division set"}
+                {selectedTeam?.division || t("teams.noDivisionSet")}
               </p>
             </div>
             {isAdmin && (

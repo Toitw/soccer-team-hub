@@ -592,11 +592,6 @@ export const esES = {
         "Los detalles del partido han sido actualizados con éxito",
       matchCreatedDesc: "El nuevo partido ha sido añadido con éxito",
     },
-    areYouSure: "¿Estás seguro?",
-    permanentlyDeleteMatch:
-      "Esto eliminará permanentemente el partido contra {{opponentName}}. Esta acción no se puede deshacer.",
-    permanentlyDeleteClassification:
-      "Esto eliminará permanentemente la entrada de clasificación para {{teamName}}. Esta acción no se puede deshacer.",
     editLineup: "Editar Alineación",
     addLineup: "Añadir Alineación",
     editMatchLineup: "Editar Alineación de Partido",
@@ -817,6 +812,7 @@ export const esES = {
     },
     division: "División",
     divisionPlaceholder: "ej., Primera División",
+    noDivisionSet: "Sin división establecida",
     deleteTeam: "Eliminar Equipo",
     deleteTeamConfirmation: "¿Estás seguro de que quieres eliminar este equipo? Esta acción no se puede deshacer y eliminará todos los datos asociados incluyendo miembros del equipo, partidos, eventos y anuncios.",
   },
