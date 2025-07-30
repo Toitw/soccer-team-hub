@@ -946,8 +946,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </TabsList>
 
           {/* Lineup Tab */}
-          <TabsContent value="lineup" className="py-4">
-            <div className="flex justify-between items-center mb-6">
+          <TabsContent value="lineup" className="py-6">
+            <div className="flex justify-between items-center mb-8">
               <h3 className="text-lg font-medium">{t("matches.startingLineup")}</h3>
 
               {/* Add Player to Lineup Dialog */}
@@ -1518,7 +1518,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                 </div>
 
                 {/* Match Statistics: Starting and Bench Players with Stats */}
-                <div className="space-y-4">
+                <div className="space-y-6 mt-8">
                   <div>
                     <h4 className="font-medium text-sm mb-2 border-b pb-1">{t("matches.startingLineup")}</h4>
                     {lineup.players && lineup.players.length > 0 ? (
@@ -1712,8 +1712,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </TabsContent>
 
           {/* Substitutions Tab */}
-          <TabsContent value="substitutions" className="py-4">
-            <div className="flex justify-between items-center mb-4">
+          <TabsContent value="substitutions" className="py-6">
+            <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">{t("matches.subs")}</h3>
               <Dialog open={substitutionDialogOpen} onOpenChange={setSubstitutionDialogOpen}>
                 <DialogTrigger asChild>
@@ -1868,8 +1868,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </TabsContent>
 
           {/* Goals Tab */}
-          <TabsContent value="goals" className="py-4">
-            <div className="flex justify-between items-center mb-4">
+          <TabsContent value="goals" className="py-6">
+            <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">{t("matches.goals")}</h3>
               <Dialog open={goalDialogOpen} onOpenChange={setGoalDialogOpen}>
                 <DialogTrigger asChild>
@@ -2071,8 +2071,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           </TabsContent>
 
           {/* Cards Tab */}
-          <TabsContent value="cards" className="py-4">
-            <div className="flex justify-between items-center mb-4">
+          <TabsContent value="cards" className="py-6">
+            <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">{t("matches.cards")}</h3>
               <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
                 <DialogTrigger asChild>
