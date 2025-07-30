@@ -920,10 +920,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>{t("matches.matchDetails")}</span>
-          <div className="text-sm font-normal flex items-center">
-            <span className="mr-2">{t("matches.score")}:</span>
-            <Badge className="bg-green-500">{match.goalsScored} - {match.goalsConceded}</Badge>
-          </div>
+          <Badge className="bg-green-500 text-lg px-3 py-1">{match.goalsScored} - {match.goalsConceded}</Badge>
         </CardTitle>
         <CardDescription>
           {format(new Date(match.matchDate), t("matches.dateTimeFormat"), {
