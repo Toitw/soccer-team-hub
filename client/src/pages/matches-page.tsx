@@ -171,7 +171,7 @@ export default function MatchesPage() {
     resolver: zodResolver(classificationSchema),
     defaultValues: {
       externalTeamName: "",
-      points: 0,
+      points: undefined,
       position: null,
       gamesPlayed: null,
       gamesWon: null,
@@ -1576,15 +1576,15 @@ export default function MatchesPage() {
                             <Input
                               type="number"
                               {...field}
+                              value={field.value === undefined ? "" : field.value}
                               onChange={(e) => {
                                 const value = e.target.value;
-                                field.onChange(
-                                  value === ""
-                                    ? 0
-                                    : value.startsWith("0") && value.length > 1
-                                      ? parseInt(value.slice(1), 10)
-                                      : parseInt(value, 10) || 0,
-                                );
+                                if (value === "") {
+                                  field.onChange(undefined);
+                                } else {
+                                  const numValue = parseInt(value, 10);
+                                  field.onChange(isNaN(numValue) ? undefined : numValue);
+                                }
                               }}
                             />
                           </FormControl>
