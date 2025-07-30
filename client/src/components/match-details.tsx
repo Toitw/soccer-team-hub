@@ -1522,7 +1522,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   <div>
                     <h4 className="font-medium text-sm mb-2 border-b pb-1">{t("matches.startingLineup")}</h4>
                     {lineup.players && lineup.players.length > 0 ? (
-                      <ul className="divide-y">
+                      <ul className="divide-y overflow-hidden">
                         {lineup.players.map((player) => {
                           // Find stats for this player
                           const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
@@ -1535,21 +1535,21 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           ) || [];
 
                           return (
-                            <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50">
+                            <li key={player.id} className="flex justify-between items-center py-3 px-2 hover:bg-gray-50 min-w-0">
 
-                                <div className="flex-1">
-                                <div className="flex items-center">
-                                  <div className="font-medium">{player.fullName}</div>
+                                <div className="flex-1 min-w-0">
+                                <div className="flex items-center min-w-0">
+                                  <div className="font-medium truncate">{player.fullName}</div>
                                   {player.jerseyNumber && (
-                                    <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                    <span className="ml-2 text-sm text-gray-600 flex-shrink-0">#{player.jerseyNumber}</span>
                                   )}
                                   {player.position && (
-                                    <span className="ml-2 text-xs text-gray-500">{t(`team.positions.${player.position}`) || player.position}</span>
+                                    <span className="ml-2 text-xs text-gray-500 flex-shrink-0">{t(`team.positions.${player.position}`) || player.position}</span>
                                   )}
                                 </div>
                               </div>
 
-                              <div className="flex space-x-2 items-center">
+                              <div className="flex space-x-1 items-center flex-shrink-0">
                                 {/* Show goals as soccer ball icons */}
                                 {playerGoals.length > 0 && (
                                   <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
@@ -1619,7 +1619,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   {lineup.benchPlayers && lineup.benchPlayers.length > 0 && (
                     <div>
                       <h4 className="font-medium text-sm mb-2 border-b pb-1">{t("team.bench")}</h4>
-                      <ul className="divide-y">
+                      <ul className="divide-y overflow-hidden">
                         {lineup.benchPlayers.map((player) => {
                           // Find stats for bench players
                           const playerGoals = goals?.filter(g => g.scorerId === player.id) || [];
@@ -1632,21 +1632,21 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           ) || [];
 
                           return (
-                            <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100">
+                            <li key={player.id} className="flex justify-between items-center py-3 px-2 bg-gray-50 hover:bg-gray-100 min-w-0">
 
-                                <div className="flex-1">
-                                <div className="flex items-center">
-                                  <div className="font-medium">{player.fullName}</div>
+                                <div className="flex-1 min-w-0">
+                                <div className="flex items-center min-w-0">
+                                  <div className="font-medium truncate">{player.fullName}</div>
                                   {player.jerseyNumber && (
-                                    <span className="ml-2 text-sm text-gray-600">#{player.jerseyNumber}</span>
+                                    <span className="ml-2 text-sm text-gray-600 flex-shrink-0">#{player.jerseyNumber}</span>
                                   )}
                                   {player.position && (
-                                    <span className="ml-2 text-xs text-gray-500">{t(`team.positions.${player.position}`) || player.position}</span>
+                                    <span className="ml-2 text-xs text-gray-500 flex-shrink-0">{t(`team.positions.${player.position}`) || player.position}</span>
                                   )}
                                 </div>
                               </div>
 
-                              <div className="flex space-x-2 items-center">
+                              <div className="flex space-x-1 items-center flex-shrink-0">
                                 {/* Show goals for bench players (might score after substitution) */}
                                 {playerGoals.length > 0 && (
                                   <div className="flex items-center" title={`${playerGoals.length} goal${playerGoals.length > 1 ? 's' : ''}`}>
