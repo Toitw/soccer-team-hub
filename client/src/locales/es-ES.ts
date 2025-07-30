@@ -531,7 +531,7 @@ export const esES = {
     completed: "Completado",
     cancelled: "Cancelado",
     goalsScored: "Goles Marcados",
-    goalsConceded: "Goles Concedidos",
+    goalsConceded: "Goles Encajados",
     notes: "Notas",
     enterAdditionalNotes: "Introduce notas adicionales",
     win: "Victoria",
