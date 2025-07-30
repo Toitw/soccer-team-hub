@@ -268,14 +268,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
 
       // Add goalkeeper
-      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      positions.push({ id: "gk", label: t("team.gk"), top: 82, left: 50 });
 
       // Add defenders - wider spacing for fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
         positions.push({
           id: `def-${i}`,
-          label: "DEF",
+          label: t("team.def"),
           top: 60,
           left: 5 + i * defenderWidth,
         });
@@ -286,7 +286,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= midfielders; i++) {
         positions.push({
           id: `mid-${i}`,
-          label: "MID",
+          label: t("team.mid"),
           top: 35,
           left: 5 + i * midfielderWidth,
         });
@@ -297,7 +297,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= forwards; i++) {
         positions.push({
           id: `fwd-${i}`,
-          label: "FWD",
+          label: t("team.fw"),
           top: 10,
           left: 5 + i * forwardWidth,
         });
@@ -309,14 +309,14 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       const [defenders, midfielders, forwards] = pattern.split("-").map(Number);
 
       // Add goalkeeper
-      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      positions.push({ id: "gk", label: t("team.gk"), top: 82, left: 50 });
 
       // Add defenders - wider spacing for even fewer players
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
         positions.push({
           id: `def-${i}`,
-          label: "DEF",
+          label: t("team.def"),
           top: 60,
           left: 5 + i * defenderWidth,
         });
@@ -327,7 +327,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= midfielders; i++) {
         positions.push({
           id: `mid-${i}`,
-          label: "MID",
+          label: t("team.mid"),
           top: 35,
           left: 5 + i * midfielderWidth,
         });
@@ -338,7 +338,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= forwards; i++) {
         positions.push({
           id: `fwd-${i}`,
-          label: "FWD",
+          label: t("team.fw"),
           top: 10,
           left: 5 + i * forwardWidth,
         });
@@ -346,12 +346,12 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
     } else {
       // 11-a-side formations (original logic)
       const [defenders, midfielders, forwards] = formation.split("-").map(Number);
-      positions.push({ id: "gk", label: "GK", top: 82, left: 50 });
+      positions.push({ id: "gk", label: t("team.gk"), top: 82, left: 50 });
       const defenderWidth = 90 / (defenders + 1);
       for (let i = 1; i <= defenders; i++) {
         positions.push({
           id: `def-${i}`,
-          label: "DEF",
+          label: t("team.def"),
           top: 60,
           left: 5 + i * defenderWidth,
         });
@@ -360,7 +360,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= midfielders; i++) {
         positions.push({
           id: `mid-${i}`,
-          label: "MID",
+          label: t("team.mid"),
           top: 35,
           left: 10 + i * midfielderWidth,
         });
@@ -369,7 +369,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       for (let i = 1; i <= forwards; i++) {
         positions.push({
           id: `fwd-${i}`,
-          label: "FWD",
+          label: t("team.fw"),
           top: 10,
           left: 10 + i * forwardWidth,
         });
@@ -959,7 +959,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                   <DialogHeader>
                     <DialogTitle>{t("team.addPlayerToLineup")}</DialogTitle>
                     <DialogDescription>
-                      Select a player for this position
+                      {t("team.selectPlayerForPosition")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="max-h-80 overflow-y-auto py-4">
@@ -1067,7 +1067,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 defaultValue={field.value}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select formation" />
+                                  <SelectValue placeholder={t("team.selectFormation")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {availableFormations.map((formation) => (
@@ -1148,11 +1148,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                                       ? "scale-100"
                                                       : "scale-90 opacity-70"
                                                   } ${
-                                                    position.label === "GK"
+                                                    position.label === t("team.gk")
                                                       ? "bg-blue-500"
-                                                      : position.label === "DEF"
+                                                      : position.label === t("team.def")
                                                         ? "bg-red-500"
-                                                        : position.label === "MID"
+                                                        : position.label === t("team.mid")
                                                           ? "bg-green-500"
                                                           : "bg-yellow-500"
                                                   } hover:scale-110 hover:opacity-100`}
@@ -1221,11 +1221,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                               {/* Available Players */}
                               <div className="lg:col-span-2">
                                 <div className="bg-muted/30 rounded-md p-2">
-                                  <h4 className="font-medium mb-2 text-sm">Available Players</h4>
+                                  <h4 className="font-medium mb-2 text-sm">{t("team.availablePlayers")}</h4>
                                   <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                                     {selectedPosition && (
                                       <div className="bg-primary/10 p-2 rounded-md mb-2 text-sm">
-                                        <p>Select a player for position: <span className="font-bold">{selectedPosition}</span></p>
+                                        <p>{t("team.selectPlayerForPosition")}: <span className="font-bold">{selectedPosition}</span></p>
                                       </div>
                                     )}
 
@@ -1272,7 +1272,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                         )
                                     ).length === 0 && (
                                       <div className="text-center py-4 text-muted-foreground">
-                                        <p>All players are in the lineup</p>
+                                        <p>{t("team.allPlayersInLineup")}</p>
                                       </div>
                                     )}
                                   </div>
@@ -1360,7 +1360,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                             !field.value.includes(member.userId)
                                           ).length === 0 && field.value.length === 0 && (
                                             <div className="text-center py-4 text-muted-foreground">
-                                              <p>No players available for bench</p>
+                                              <p>{t("team.noPlayersAvailableForBench")}</p>
                                             </div>
                                           )}
                                         </div>
@@ -1463,11 +1463,11 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                       ? "scale-100"
                                       : "scale-90 opacity-70"
                                   } ${
-                                    position.label === "GK"
+                                    position.label === t("team.gk")
                                       ? "bg-blue-500"
-                                      : position.label === "DEF"
+                                      : position.label === t("team.def")
                                         ? "bg-red-500"
-                                        : position.label === "MID"
+                                        : position.label === t("team.mid")
                                           ? "bg-green-500"
                                           : "bg-yellow-500"
                                   }`}
@@ -1611,7 +1611,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                         })}
                       </ul>
                     ) : (
-                      <p className="text-gray-500 italic mb-4">No players in starting lineup</p>
+                      <p className="text-gray-500 italic mb-4">{t("team.noPlayersInStartingLineup")}</p>
                     )}
                   </div>
 
