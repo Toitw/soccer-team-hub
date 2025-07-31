@@ -32,8 +32,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useTranslation } from "@/hooks/use-translation";
-import { useQueryClient } from "@tanstack/react-query";
-import { UserRoundCog, UserRound, Users } from "lucide-react";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { UserRoundCog, UserRound, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { MemberClaimButton } from "@/components/team/MemberClaimButton";
 
 // Schema for user role selection
 const userRoleSchema = z.object({
@@ -68,7 +69,10 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("join");
   // State to track the onboarding step
-  const [onboardingStep, setOnboardingStep] = useState<"role" | "team">("role");
+  const [onboardingStep, setOnboardingStep] = useState<"role" | "team" | "claim">("role");
+  
+  // State to track joined team info
+  const [joinedTeam, setJoinedTeam] = useState<any>(null);
   
   // For team join form - we'll recreate the form for each step change
   const [formKey, setFormKey] = useState(0);
@@ -125,6 +129,7 @@ export default function OnboardingPage() {
       });
 
       setUser(response.user);
+      setJoinedTeam(response.team);
 
       // Mark that user just joined a team to prevent mock data creation
       window.localStorage.setItem('team_joined', Date.now().toString());
@@ -137,10 +142,8 @@ export default function OnboardingPage() {
         description: `${t("onboarding.joinTeam")}: ${response.team.name}`,
       });
 
-      // Small delay to ensure cache invalidation completes before redirect
-      setTimeout(() => {
-        setLocation("/");
-      }, 100);
+      // Move to claiming step instead of redirecting to dashboard
+      setOnboardingStep("claim");
     } catch (error: any) {
       console.error("Error joining team:", error);
       toast({
@@ -230,7 +233,54 @@ export default function OnboardingPage() {
     }
   }
 
-  // Removed skip onboarding functionality
+  // Verification request mutation
+  const requestVerificationMutation = useMutation({
+    mutationFn: async () => {
+      if (!joinedTeam) throw new Error("No team joined");
+      return apiRequest(`/api/teams/${joinedTeam.id}/verification-request`, {
+        method: "POST",
+        data: {}
+      });
+    },
+    onSuccess: () => {
+      toast({
+        titleKey: "toasts.verificationRequested",
+        descriptionKey: "toasts.verificationRequestedDesc",
+      });
+      // Complete onboarding and redirect to dashboard
+      setTimeout(() => {
+        setLocation("/");
+      }, 1000);
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        titleKey: "toasts.error",
+        description: error.message || t("toasts.actionFailed"),
+      });
+    },
+  });
+
+  // Function to skip claiming and go to dashboard
+  const skipClaiming = () => {
+    toast({
+      titleKey: "toasts.claimingSkipped",
+      descriptionKey: "toasts.claimingSkippedDesc",
+    });
+    setTimeout(() => {
+      setLocation("/");
+    }, 500);
+  };
+
+  // Fetch claimable members for the joined team
+  const { data: claimableMembers, isLoading: membersLoading } = useQuery({
+    queryKey: [`/api/teams/${joinedTeam?.id}/members`],
+    enabled: !!joinedTeam?.id && onboardingStep === "claim",
+    select: (members: any[]) => {
+      // Filter to only unverified members (claimable)
+      return members.filter(member => !member.userId && !member.user);
+    }
+  });
 
   // Show loading state while fetching user data
   const { isLoading } = useAuth();
@@ -283,9 +333,11 @@ export default function OnboardingPage() {
           <CardDescription>
             {onboardingStep === "role"
               ? t("onboarding.roleSelectionTitle")
-              : isAdmin
-                ? t("auth.joinCodeHelp")
-                : t("onboarding.joinTeamPrompt")}
+              : onboardingStep === "claim"
+                ? t("onboarding.claimMemberPrompt")
+                : isAdmin
+                  ? t("auth.joinCodeHelp")
+                  : t("onboarding.joinTeamPrompt")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -383,7 +435,8 @@ export default function OnboardingPage() {
                 </Button>
               </form>
             </Form>
-          ) : isAdmin ? (
+          ) : onboardingStep === "team" ? (
+            isAdmin ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="join">
@@ -582,7 +635,83 @@ export default function OnboardingPage() {
                 </form>
               </Form>
             </div>
-          )}
+          )
+          ) : onboardingStep === "claim" ? (
+            // Member claiming step
+            <div className="space-y-6">
+              {membersLoading ? (
+                <div className="text-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-600">{t("onboarding.loadingMembers")}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-2">
+                      {t("onboarding.claimMemberTitle")}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {joinedTeam?.name && t("onboarding.claimMemberDescription", { teamName: joinedTeam.name })}
+                    </p>
+                  </div>
+
+                  {claimableMembers && claimableMembers.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">{t("onboarding.availableMembers")}</h4>
+                      {claimableMembers.map((member: any) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="font-medium">{member.fullName}</div>
+                            <div className="text-sm text-gray-600">
+                              {member.role} {member.position && `• ${member.position}`} {member.jerseyNumber && `• #${member.jerseyNumber}`}
+                            </div>
+                          </div>
+                          <MemberClaimButton member={member} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-600">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">{t("onboarding.noClaimableMembers")}</p>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium text-sm mb-3">{t("onboarding.cantFindYourself")}</h4>
+                    <div className="space-y-3">
+                      <Button
+                        onClick={() => requestVerificationMutation.mutate()}
+                        disabled={requestVerificationMutation.isPending}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        {requestVerificationMutation.isPending ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-current mr-2"></div>
+                            {t("onboarding.requestingVerification")}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            {t("onboarding.requestVerification")}
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        onClick={skipClaiming}
+                        variant="ghost"
+                        className="w-full"
+                      >
+                        {t("onboarding.skipForNow")}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
 
           {/* Logout option */}
           <div className="mt-6 text-center">

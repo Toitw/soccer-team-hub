@@ -823,6 +823,16 @@ export const enUS = {
     tryDemoMode: "Try Demo Mode",
     exploreFeatures: "Explore the app features before creating a team",
     skipForNow: "Skip for now",
+    
+    // Member claiming step
+    loadingMembers: "Loading members...",
+    claimMemberTitle: "Claim Your Player Profile",
+    claimMemberDescription: "Found existing team members for {{teamName}}. If you see yourself in the list below, claim your profile to link it to your account.",
+    availableMembers: "Available Members to Claim",
+    noClaimableMembers: "No unclaimed members found in this team.",
+    cantFindYourself: "Can't find yourself?",
+    requestVerification: "Request Verification",
+    requestingVerification: "Requesting verification...",
   },
   settings: {
     membersTab: "Members",
@@ -1051,6 +1061,8 @@ export const enUS = {
     claimRejectedDesc: "Member claim has been rejected",
     claimSubmitted: "Claim submitted",
     claimSubmittedDesc: "Your claim has been submitted for review",
+    memberClaimedSuccess: "Member Claimed Successfully",
+    memberClaimedSuccessDesc: "You have successfully claimed your player profile!",
 
     // Feedback related toast messages
     feedbackSubmitted: "Feedback submitted",

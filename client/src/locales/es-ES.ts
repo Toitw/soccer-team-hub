@@ -858,6 +858,16 @@ export const esES = {
     tryDemoMode: "Probar Modo Demo",
     exploreFeatures: "Explora las funciones de la app antes de crear un equipo",
     skipForNow: "Saltar por ahora",
+    
+    // Paso de reclamación de miembros
+    loadingMembers: "Cargando miembros...",
+    claimMemberTitle: "Reclama Tu Perfil de Jugador",
+    claimMemberDescription: "Se encontraron miembros existentes para {{teamName}}. Si te ves en la lista abajo, reclama tu perfil para vincularlo a tu cuenta.",
+    availableMembers: "Miembros Disponibles para Reclamar",
+    noClaimableMembers: "No se encontraron miembros sin reclamar en este equipo.",
+    cantFindYourself: "¿No te encuentras?",
+    requestVerification: "Solicitar Verificación",
+    requestingVerification: "Solicitando verificación...",
   },
   settings: {
     membersTab: "Miembros",
@@ -1140,6 +1150,8 @@ export const esES = {
     claimRejectedDesc: "La reclamación de miembro ha sido rechazada",
     claimSubmitted: "Reclamación enviada",
     claimSubmittedDesc: "Tu reclamación ha sido enviada para revisión",
+    memberClaimedSuccess: "Miembro Reclamado Exitosamente",
+    memberClaimedSuccessDesc: "¡Has reclamado exitosamente tu perfil de jugador!",
 
     // Mensajes relacionados con comentarios
     feedbackSubmitted: "Comentario enviado",
