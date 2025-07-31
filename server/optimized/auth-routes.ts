@@ -520,20 +520,6 @@ router.post("/onboarding/join-team", isAuthenticated, async (req: Request, res: 
       userId: userId
     });
     
-    // Also create team_member relationship with the user's role for proper permissions
-    // Filter out superuser role as it's not valid for team members
-    const teamMemberRole = user.role === "superuser" ? "admin" : user.role;
-    
-    await storage.createTeamMember({
-      teamId: team.id,
-      userId: userId,
-      fullName: user.fullName,
-      role: teamMemberRole as "admin" | "coach" | "player" | "colaborador",
-      isVerified: true, // Auto-verify since they joined with a valid code
-      profilePicture: user.profilePicture,
-      createdById: userId // User creates their own membership during onboarding
-    });
-    
     // Mark onboarding as completed
     const updatedUser = await storage.updateUser(userId, { onboardingCompleted: true });
     
