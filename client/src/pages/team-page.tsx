@@ -264,7 +264,7 @@ export default function TeamPage() {
     resolver: zodResolver(addTeamMemberSchema),
     defaultValues: {
       fullName: "",
-      role: "player",
+      role: "player", // Always default to player (coaches can only add players anyway)
       position: "",
       jerseyNumber: undefined,
       profilePicture: "",
@@ -794,6 +794,13 @@ export default function TeamPage() {
       (member) => member.userId === user?.id && (member.role === "admin" || member.role === "coach"),
     );
 
+  // Check if current user is a coach (not admin)
+  const isCoach = teamMembers?.some(
+    (member) => member.userId === user?.id && member.role === "coach"
+  ) && !teamMembers?.some(
+    (member) => member.userId === user?.id && member.role === "admin"
+  );
+
   const getInitials = (fullName: string | undefined | null): string => {
     if (!fullName) return "U";
     const names = fullName.split(" ");
@@ -865,9 +872,10 @@ export default function TeamPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="coach">{t("auth.coach")}</SelectItem>
+                                {/* Coaches can only add players, admins can add any role */}
+                                {!isCoach && <SelectItem value="coach">{t("auth.coach")}</SelectItem>}
                                 <SelectItem value="player">{t("auth.player")}</SelectItem>
-                                <SelectItem value="colaborador">{t("auth.colaborador")}</SelectItem>
+                                {!isCoach && <SelectItem value="colaborador">{t("auth.colaborador")}</SelectItem>}
                               </SelectContent>
                             </Select>
                             <FormMessage />
