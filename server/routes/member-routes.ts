@@ -141,6 +141,10 @@ export function createMemberRouter(): Router {
       // Get the updated member with all fields for response
       const updatedMemberWithFields = await storage.getTeamMemberById(memberId);
       
+      if (!updatedMemberWithFields) {
+        return res.status(404).json({ error: "Updated team member not found" });
+      }
+      
       res.json({
         id: updatedMemberWithFields.id,
         fullName: updatedMemberWithFields.fullName,
