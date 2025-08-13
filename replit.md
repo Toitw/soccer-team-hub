@@ -11,11 +11,32 @@ TeamKick Soccer Manager is a comprehensive web application for managing soccer t
 2. **Session Secret Security**: Removed hardcoded session secret fallback and implemented secure random generation when SESSION_SECRET environment variable is not set
 3. **Email Verification**: Implemented proper email verification flow with tokens instead of auto-verifying emails on registration
 
+### Performance Optimizations (August 2025)
+1. **Database Indexes**: Added comprehensive indexes on all foreign key columns and frequently queried fields including:
+   - team_members (team_id, user_id)
+   - member_claims (team_id, user_id, team_member_id)
+   - matches (team_id, season_id, match_date)
+   - events (team_id, start_time)
+   - attendance (event_id + user_id composite)
+   - player_stats (user_id, match_id, season_id)
+   - announcements (team_id, created_at)
+   - All match-related tables (goals, cards, substitutions, lineups, photos)
+   - league_classification, seasons, feedback tables
+
+2. **Legacy Password Migration**: Implemented automatic password upgrade system:
+   - Detects legacy scrypt-based password formats during login
+   - Automatically upgrades to Argon2id hashes for enhanced security
+   - Maintains backward compatibility with existing passwords
+   - Includes migration tracking and logging
+   - All users confirmed to be using modern Argon2id hashes
+
 ### Security Best Practices Applied
 - All database queries now use parameterized statements to prevent SQL injection
 - Session secrets are cryptographically secure and unique per deployment
 - User registration requires email verification for account activation
 - Password hashing consistently uses Argon2id with secure parameters
+- Database performance optimized with comprehensive indexing strategy
+- Legacy password formats automatically migrated to modern standards
 
 ## System Architecture
 

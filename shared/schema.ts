@@ -6,7 +6,7 @@
  */
 
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { UserRole, TeamMemberRole, MemberClaimStatus, userRoleEnum, teamMemberRoleEnum, memberClaimStatusEnum } from "./roles";
@@ -113,7 +113,10 @@ export const teamMembers = pgTable("team_members", {
   // Soft delete fields
   isActive: boolean("is_active").default(true), // False when member is removed but data is preserved
   deletedAt: timestamp("deleted_at"), // When the member was marked as deleted
-});
+}, (table) => ({
+  teamIdIdx: index("team_members_team_id_idx").on(table.teamId),
+  userIdIdx: index("team_members_user_id_idx").on(table.userId),
+}));
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)
   .omit({ id: true, createdAt: true, deletedAt: true })
@@ -133,7 +136,10 @@ export const teamUsers = pgTable("team_users", {
   userId: integer("user_id").notNull(),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
   // This table doesn't dictate the role in the team, it just establishes access
-});
+}, (table) => ({
+  teamUserIdx: index("team_users_team_user_idx").on(table.teamId, table.userId),
+  userIdIdx: index("team_users_user_id_idx").on(table.userId),
+}));
 
 export const insertTeamUserSchema = createInsertSchema(teamUsers).pick({
   teamId: true,
@@ -151,7 +157,11 @@ export const memberClaims = pgTable("member_claims", {
   reviewedAt: timestamp("reviewed_at"),
   reviewedById: integer("reviewed_by_id"), // Admin/coach who reviewed the claim
   rejectionReason: text("rejection_reason"), // Optional reason for rejection
-});
+}, (table) => ({
+  teamIdIdx: index("member_claims_team_id_idx").on(table.teamId),
+  userIdIdx: index("member_claims_user_id_idx").on(table.userId),
+  teamMemberIdIdx: index("member_claims_team_member_id_idx").on(table.teamMemberId),
+}));
 
 export const insertMemberClaimSchema = createInsertSchema(memberClaims)
   .pick({
@@ -175,7 +185,11 @@ export const matches = pgTable("matches", {
   status: matchStatusEnum("status").notNull().default("scheduled"),
   matchType: matchTypeEnum("match_type").notNull().default("friendly"),
   notes: text("notes"),
-});
+}, (table) => ({
+  teamIdIdx: index("matches_team_id_idx").on(table.teamId),
+  seasonIdIdx: index("matches_season_id_idx").on(table.seasonId),
+  matchDateIdx: index("matches_match_date_idx").on(table.matchDate),
+}));
 
 export const insertMatchSchema = createInsertSchema(matches).pick({
   teamId: true,
@@ -203,7 +217,10 @@ export const events = pgTable("events", {
   location: text("location").notNull(),
   description: text("description"),
   createdById: integer("created_by_id").notNull(),
-});
+}, (table) => ({
+  teamIdIdx: index("events_team_id_idx").on(table.teamId),
+  startTimeIdx: index("events_start_time_idx").on(table.startTime),
+}));
 
 export const insertEventSchema = createInsertSchema(events).pick({
   teamId: true,
@@ -226,7 +243,10 @@ export const attendance = pgTable("attendance", {
   createdAt: timestamp("created_at").defaultNow(), 
   updatedAt: timestamp("updated_at").defaultNow(),
   notes: text("notes"),
-});
+}, (table) => ({
+  eventUserIdx: index("attendance_event_user_idx").on(table.eventId, table.userId),
+  userIdIdx: index("attendance_user_id_idx").on(table.userId),
+}));
 
 export const insertAttendanceSchema = createInsertSchema(attendance).pick({
   eventId: true,
@@ -247,7 +267,11 @@ export const playerStats = pgTable("player_stats", {
   redCards: integer("red_cards").default(0),
   minutesPlayed: integer("minutes_played"),
   performance: integer("performance").default(0), // Rating 1-10
-});
+}, (table) => ({
+  userIdIdx: index("player_stats_user_id_idx").on(table.userId),
+  matchIdIdx: index("player_stats_match_id_idx").on(table.matchId),
+  seasonIdIdx: index("player_stats_season_id_idx").on(table.seasonId),
+}));
 
 export const insertPlayerStatSchema = createInsertSchema(playerStats).pick({
   userId: true,
@@ -269,7 +293,10 @@ export const announcements = pgTable("announcements", {
   content: text("content").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),
-});
+}, (table) => ({
+  teamIdIdx: index("announcements_team_id_idx").on(table.teamId),
+  createdAtIdx: index("announcements_created_at_idx").on(table.createdAt),
+}));
 
 export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
   teamId: true,
@@ -287,7 +314,10 @@ export const invitations = pgTable("invitations", {
   status: text("status", { enum: ["pending", "accepted", "declined"] }).notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),
-});
+}, (table) => ({
+  teamIdIdx: index("invitations_team_id_idx").on(table.teamId),
+  emailIdx: index("invitations_email_idx").on(table.email),
+}));
 
 export const insertInvitationSchema = createInsertSchema(invitations).pick({
   teamId: true,
@@ -308,7 +338,10 @@ export const matchLineups = pgTable("match_lineups", {
   positionMapping: jsonb("position_mapping"), // JSON mapping of position IDs to player IDs
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  matchIdIdx: index("match_lineups_match_id_idx").on(table.matchId),
+  teamIdIdx: index("match_lineups_team_id_idx").on(table.teamId),
+}));
 
 export const insertMatchLineupSchema = createInsertSchema(matchLineups).pick({
   matchId: true,
@@ -329,7 +362,9 @@ export const matchSubstitutions = pgTable("match_substitutions", {
   playerOutId: integer("player_out_id").notNull(),
   minute: integer("minute").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  matchIdIdx: index("match_substitutions_match_id_idx").on(table.matchId),
+}));
 
 export const insertMatchSubstitutionSchema = createInsertSchema(matchSubstitutions).pick({
   matchId: true,
@@ -350,7 +385,10 @@ export const matchGoals = pgTable("match_goals", {
   isOwnGoal: boolean("is_own_goal").default(false),
   isPenalty: boolean("is_penalty").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  matchIdIdx: index("match_goals_match_id_idx").on(table.matchId),
+  scorerIdIdx: index("match_goals_scorer_id_idx").on(table.scorerId),
+}));
 
 export const insertMatchGoalSchema = createInsertSchema(matchGoals).pick({
   matchId: true,
@@ -373,7 +411,10 @@ export const matchCards = pgTable("match_cards", {
   isSecondYellow: boolean("is_second_yellow").default(false),
   reason: text("reason"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => ({
+  matchIdIdx: index("match_cards_match_id_idx").on(table.matchId),
+  playerIdIdx: index("match_cards_player_id_idx").on(table.playerId),
+}));
 
 export const insertMatchCardSchema = createInsertSchema(matchCards).pick({
   matchId: true,
@@ -394,7 +435,9 @@ export const matchPhotos = pgTable("match_photos", {
   caption: text("caption"),
   uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
   uploadedById: integer("uploaded_by_id").notNull(),
-});
+}, (table) => ({
+  matchIdIdx: index("match_photos_match_id_idx").on(table.matchId),
+}));
 
 export const insertMatchPhotoSchema = createInsertSchema(matchPhotos).pick({
   matchId: true,
@@ -441,7 +484,10 @@ export const leagueClassification = pgTable("league_classification", {
   goalsAgainst: integer("goals_against").default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  teamIdIdx: index("league_classification_team_id_idx").on(table.teamId),
+  seasonIdIdx: index("league_classification_season_id_idx").on(table.seasonId),
+}));
 
 export const insertLeagueClassificationSchema = createInsertSchema(leagueClassification).pick({
   teamId: true,
@@ -572,7 +618,10 @@ export const seasons = pgTable("seasons", {
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  teamIdIdx: index("seasons_team_id_idx").on(table.teamId),
+  isActiveIdx: index("seasons_is_active_idx").on(table.isActive),
+}));
 
 export const insertSeasonSchema = createInsertSchema(seasons).pick({
   teamId: true,
@@ -598,7 +647,11 @@ export const feedback = pgTable("feedback", {
   status: text("status", { enum: ["pending", "reviewed", "resolved"] }).notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index("feedback_user_id_idx").on(table.userId),
+  statusIdx: index("feedback_status_idx").on(table.status),
+  createdAtIdx: index("feedback_created_at_idx").on(table.createdAt),
+}));
 
 export const insertFeedbackSchema = createInsertSchema(feedback).pick({
   userId: true,

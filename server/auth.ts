@@ -44,6 +44,15 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
+ * Check if a password hash is in legacy format (needs migration)
+ * @param stored - The stored password hash
+ * @returns Boolean indicating if the hash is in legacy format
+ */
+export function isLegacyPasswordFormat(stored: string): boolean {
+  return stored.includes('.') || stored.includes(':') || !stored.startsWith('$argon2');
+}
+
+/**
  * Compare a plain password with a stored hash
  * @param supplied - The supplied plain password
  * @param stored - The stored password hash
@@ -124,6 +133,22 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {
+          // Check if user has legacy password format and migrate to Argon2id
+          if (user.password && isLegacyPasswordFormat(user.password)) {
+            try {
+              console.log(`Migrating legacy password format for user: ${user.username}`);
+              const newHash = await hashPassword(password);
+              await storage.updateUser(user.id, { password: newHash });
+              console.log(`Successfully migrated password for user: ${user.username}`);
+              
+              // Update the user object with new password hash for consistency
+              user.password = newHash;
+            } catch (migrationError) {
+              console.error(`Failed to migrate password for user ${user.username}:`, migrationError);
+              // Continue with login even if migration fails - user can still authenticate
+            }
+          }
+          
           return done(null, user);
         }
       } catch (error) {
