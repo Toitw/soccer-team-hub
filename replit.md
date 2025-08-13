@@ -4,6 +4,19 @@
 
 TeamKick Soccer Manager is a comprehensive web application for managing soccer teams. It provides functionality for team management, player statistics, match scheduling, event planning, and administrative oversight. The application is built with modern web technologies and follows a full-stack architecture with both file-based and database storage options.
 
+## Recent Security Improvements (January 2025)
+
+### Critical Vulnerabilities Fixed
+1. **SQL Injection Prevention**: Fixed SQL injection vulnerabilities in database queries by replacing string concatenation with parameterized queries using PostgreSQL's ANY operator
+2. **Session Secret Security**: Removed hardcoded session secret fallback and implemented secure random generation when SESSION_SECRET environment variable is not set
+3. **Email Verification**: Implemented proper email verification flow with tokens instead of auto-verifying emails on registration
+
+### Security Best Practices Applied
+- All database queries now use parameterized statements to prevent SQL injection
+- Session secrets are cryptographically secure and unique per deployment
+- User registration requires email verification for account activation
+- Password hashing consistently uses Argon2id with secure parameters
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -110,7 +123,7 @@ TeamKick Soccer Manager is a comprehensive web application for managing soccer t
 - **DATABASE_URL**: PostgreSQL connection string (auto-provided by Replit)
 - **ADMIN_PASSWORD**: Secure admin user password
 - **SENDGRID_API_KEY**: Email service authentication
-- **SESSION_SECRET**: Session encryption key (auto-generated fallback)
+- **SESSION_SECRET**: Session encryption key (REQUIRED for production - no longer uses hardcoded fallback)
 
 ### Database Management
 - **Schema Sync**: `npm run db:push` applies schema changes

@@ -385,7 +385,12 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "EMAIL_ALREADY_REGISTERED" });
     }
     
-    // Create the user with email pre-verified for MVP
+    // Generate verification token for email verification
+    const crypto = require('crypto');
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+    
+    // Create the user with email verification pending
     const user = await storage.createUser({
       username: validatedData.username,
       password: validatedData.password, // Will be hashed in storage implementation
@@ -395,9 +400,9 @@ router.post("/register", async (req: Request, res: Response) => {
       email: validatedData.email,
       role: validatedData.role,
       onboardingCompleted: false,
-      isEmailVerified: true, // Skip email verification for MVP
-      verificationToken: null,
-      verificationTokenExpiry: null
+      isEmailVerified: false, // Email verification required
+      verificationToken: verificationToken,
+      verificationTokenExpiry: verificationTokenExpiry
     });
     
     // If teamCode is provided, try to join the team
@@ -419,8 +424,13 @@ router.post("/register", async (req: Request, res: Response) => {
       }
     }
 
-    // Email verification is disabled for MVP
-    console.log("Email verification disabled for MVP - user registered successfully");
+    // TODO: Send verification email to user with the token
+    // For now, log the verification link (in production, this should be sent via email)
+    const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/verify-email?token=${verificationToken}`;
+    console.log(`Email verification link for ${user.email}: ${verificationLink}`);
+    
+    // Note: In production, implement proper email sending via SendGrid or similar service
+    // Example: await sendVerificationEmail(user.email, verificationToken);
 
     // Start session
     req.login(user, (err) => {

@@ -174,11 +174,12 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
 
-      // Use SQL IN clause to fetch all teams at once
+      // Use Drizzle's inArray for safe parameterized queries
+      const { inArray } = await import('drizzle-orm');
       const result = await db
         .select()
         .from(teams)
-        .where(sql`${teams.id} IN (${teamIds.join(',')})`);
+        .where(inArray(teams.id, teamIds));
 
       console.log(`Found ${result.length} teams for user ${userId}`);
       return result;
@@ -200,10 +201,11 @@ export class DatabaseStorage implements IStorage {
           return [];
         }
 
+        const { inArray } = await import('drizzle-orm');
         return db
           .select()
           .from(teams)
-          .where(sql`${teams.id} IN (${teamIds.join(',')})`);
+          .where(inArray(teams.id, teamIds));
       } catch (fallbackError) {
         console.error(`Fallback method also failed:`, fallbackError);
         return [];

@@ -96,8 +96,17 @@ export async function comparePasswords(supplied: string, stored: string | undefi
 }
 
 export function setupAuth(app: Express) {
+  // Generate a secure random session secret if not provided
+  let sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    const crypto = require('crypto');
+    sessionSecret = crypto.randomBytes(32).toString('hex');
+    console.warn('SESSION_SECRET not set in environment variables. Generated a random secret for this session.');
+    console.warn('For production, please set SESSION_SECRET environment variable to maintain sessions across restarts.');
+  }
+  
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "teamkick-soccer-platform-secret",
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
