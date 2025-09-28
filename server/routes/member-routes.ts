@@ -7,6 +7,27 @@ import { isAuthenticated, isTeamAdmin, isTeamMember } from "../auth-middleware";
 export function createMemberRouter(): Router {
   const router = Router();
 
+  // GET /api/teams/:id/users - Get team users with roles for permission checking
+  router.get("/teams/:id/users", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      // Verify user has access to this team
+      const teamUser = await storage.getTeamUser(teamId, req.user.id);
+      if (!teamUser) {
+        return res.status(403).json({ error: "Not authorized to access this team" });
+      }
+
+      const teamUsers = await storage.getTeamUsers(teamId);
+      res.json(teamUsers);
+    } catch (error) {
+      console.error("Error fetching team users:", error);
+      res.status(500).json({ error: "Failed to fetch team users" });
+    }
+  });
+
   // Get specific team member by userId
   router.get("/teams/:id/members/:userId", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

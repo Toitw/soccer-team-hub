@@ -43,7 +43,6 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import MemberClaimsManager from "@/components/team/MemberClaimsManager";
 
 // Define form schema for inviting members
 const inviteSchema = z.object({
@@ -537,9 +536,8 @@ export default function SettingsPage() {
           </div>
 
           <Tabs defaultValue="members" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full grid grid-cols-3">
+            <TabsList className="w-full grid grid-cols-2">
               <TabsTrigger value="members">{t("settings.membersTab")}</TabsTrigger>
-              <TabsTrigger value="claims">{t("settings.claimsTab")}</TabsTrigger>
               <TabsTrigger value="settings">{t("settings.configTab")}</TabsTrigger>
             </TabsList>
 
@@ -592,7 +590,7 @@ export default function SettingsPage() {
                           </TableRow>
                         ))}
                         {/* Show current user as admin if they have admin role but aren't in team members */}
-                        {user?.role === "admin" && !teamMembers?.find(m => m.userId === user.id) && (
+                        {user?.role === "admin" && !teamMembers?.find(m => m.user?.id === user.id) && (
                           <TableRow>
                             <TableCell className="font-medium flex items-center gap-2">
                               <img 
@@ -762,16 +760,6 @@ export default function SettingsPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="claims" className="mt-6 w-full">
-              <div className="grid grid-cols-1 gap-6 max-w-full">
-                {/* Import and use the MemberClaimsManager component */}
-                {selectedTeamId && (
-                  <div>
-                    <MemberClaimsManager teamId={selectedTeamId} />
-                  </div>
-                )}
-              </div>
-            </TabsContent>
 
             <TabsContent value="settings" className="mt-6 w-full">
               <Card className="w-full">

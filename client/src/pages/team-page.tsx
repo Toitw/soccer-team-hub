@@ -5,10 +5,7 @@ import {
   User,
   User as SelectUser,
   InsertTeamMember,
-  MemberClaim,
 } from "@shared/schema";
-import { MemberClaimButton } from "@/components/team/MemberClaimButton";
-import MemberClaimsManager from "@/components/team/MemberClaimsManager";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
@@ -152,6 +149,25 @@ export default function TeamPage() {
   const [showAddToLineupDialog, setShowAddToLineupDialog] =
     useState<boolean>(false);
   const [isSavingLineup, setIsSavingLineup] = useState<boolean>(false);
+
+  // Fetch team users for permission checking
+  const { data: teamUsers } = useQuery({
+    queryKey: ["/api/teams", selectedTeam?.id, "users"],
+    queryFn: async () => {
+      if (!selectedTeam?.id) return [];
+      const response = await fetch(`/api/teams/${selectedTeam.id}/users`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        if (response.status === 404 || response.status === 401) {
+          return [];
+        }
+        throw new Error(`Failed to fetch team users: ${response.statusText}`);
+      }
+      return await response.json();
+    },
+    enabled: !!selectedTeam?.id,
+  });
 
   // Fetch team lineup
   const teamLineupQueryKey = ["/api/teams", selectedTeam?.id, "lineup"];
@@ -788,18 +804,13 @@ export default function TeamPage() {
     );
   }
 
-  const isAdmin =
-    user?.role === "admin" ||
-    teamMembers?.some(
-      (member) => member.userId === user?.id && (member.role === "admin" || member.role === "coach"),
-    );
-
+  // Calculate current user's team role for permissions
+  const currentTeamRole = teamUsers?.find((teamUser: any) => teamUser.userId === user?.id)?.role;
+  
+  const isAdmin = user?.role === "admin" || currentTeamRole === "admin";
+  
   // Check if current user is a coach (not admin)
-  const isCoach = teamMembers?.some(
-    (member) => member.userId === user?.id && member.role === "coach"
-  ) && !teamMembers?.some(
-    (member) => member.userId === user?.id && member.role === "admin"
-  );
+  const isCoach = !isAdmin && currentTeamRole === "coach";
 
   const getInitials = (fullName: string | undefined | null): string => {
     if (!fullName) return "U";
@@ -1692,9 +1703,7 @@ export default function TeamPage() {
                                   {t("team.remove")}
                                 </Button>
                               </>
-                            ) : (
-                              <MemberClaimButton member={member} />
-                            )}
+                            ) : null}
                           </div>
                         </TableCell>
                       </TableRow>
