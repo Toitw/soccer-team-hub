@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Team, TeamMember } from "@shared/schema";
+import { Team, TeamUser } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { Match } from "@shared/schema";
 import { Link } from "wouter";
@@ -72,30 +72,30 @@ export default function TeamSummary({ team, isDemoMode = false }: TeamSummaryPro
     return allMatches.filter(match => !match.seasonId);
   })() : [];
 
-  // Get team members to show accurate player count
-  const { data: teamMembers } = useQuery<(TeamMember & { user: any })[]>({
-    queryKey: ["/api/teams", team?.id, "members"],
+  // Get team users to show accurate player count
+  const { data: teamUsers } = useQuery<TeamUser[]>({
+    queryKey: ["/api/teams", team?.id, "users"],
     enabled: !!team && !isDemoMode,
     queryFn: async () => {
       if (!team?.id) return [];
-      console.log(`Dashboard: Fetching team members for team ${team.id}`);
-      const response = await fetch(`/api/teams/${team.id}/members`, {
+      console.log(`Dashboard: Fetching team users for team ${team.id}`);
+      const response = await fetch(`/api/teams/${team.id}/users`, {
         credentials: "include",
       });
       if (!response.ok) {
-        console.error(`Dashboard: Error fetching team members: ${response.statusText}`);
+        console.error(`Dashboard: Error fetching team users: ${response.statusText}`);
         return [];
       }
-      const members = await response.json();
-      console.log(`Dashboard: Retrieved ${members.length} team members for team ${team.id}`);
-      return members;
+      const users = await response.json();
+      console.log(`Dashboard: Retrieved ${users.length} team users for team ${team.id}`);
+      return users;
     },
   });
 
   if (!team) return null;
 
   // If in demo mode, use mock counts, otherwise use actual data
-  const playerCount = isDemoMode ? 15 : teamMembers?.length || 0;
+  const playerCount = isDemoMode ? 15 : teamUsers?.length || 0;
   const matchCount = isDemoMode ? 8 : matches?.length || 0;
   
   // Calculate win count

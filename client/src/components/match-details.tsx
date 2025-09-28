@@ -166,13 +166,13 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
           Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
             if (typeof playerId === 'number') {
               // Find the team member by userId or member id
-              const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
+              const teamUser = teamUsers?.find(m => m.userId === playerId || m.id === playerId);
 
-              if (teamMember) {
+              if (teamUser) {
                 // Set this position with the team member
                 setLineupPositions(prev => ({
                   ...prev,
-                  [positionId]: teamMember
+                  [positionId]: teamUser
                 }));
               }
             }
@@ -530,8 +530,8 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   });
 
   // Queries
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMemberWithUser[]>({
-    queryKey: [`/api/teams/${teamId}/members`],
+  const { data: teamUsers, isLoading: teamUsersLoading } = useQuery<any[]>({
+    queryKey: [`/api/teams/${teamId}/users`],
   });
 
   const { data: lineup, isLoading: lineupLoading } = useQuery<MatchLineup & { 
@@ -566,7 +566,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
 
   // Update lineup positions when lineup data changes (after save)
   useEffect(() => {
-    if (lineup && teamMembers && lineup.positionMapping) {
+    if (lineup && teamUsers && lineup.positionMapping) {
       // Clear existing positions
       setLineupPositions({});
 
@@ -577,16 +577,16 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
       Object.entries(typedPositionMapping).forEach(([positionId, playerId]) => {
         if (typeof playerId === 'number') {
           // Find the team member by userId or member id
-          const teamMember = teamMembers?.find(m => m.userId === playerId || m.id === playerId);
+          const teamUser = teamUsers?.find(m => m.userId === playerId || m.id === playerId);
 
-          if (teamMember) {
+          if (teamUser) {
             setLineupPositions(prev => ({
               ...prev,
-              [positionId]: teamMember
+              [positionId]: teamUser
             }));
 
             // Add to playerIds array for form validation
-            const memberPlayerId = teamMember.userId || teamMember.id;
+            const memberPlayerId = teamUser.userId || teamUser.id;
             if (memberPlayerId && !playerIds.includes(memberPlayerId)) {
               playerIds.push(memberPlayerId);
             }
@@ -601,7 +601,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
         lineupForm.setValue('benchPlayerIds', lineup.benchPlayerIds || []);
       }, 0);
     }
-  }, [lineup, teamMembers, lineupForm]);
+  }, [lineup, teamUsers, lineupForm]);
 
   // Mutations
   const saveLineup = useMutation({
@@ -904,7 +904,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
   }
 
   // Loading state
-  const isLoading = teamMembersLoading || lineupLoading || substitutionsLoading || goalsLoading || cardsLoading;
+  const isLoading = teamUsersLoading || lineupLoading || substitutionsLoading || goalsLoading || cardsLoading;
   if (isLoading) {
     return (
       <Card className="border-gray-300">
@@ -973,7 +973,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                           autoFocus={false}
                         />
                       </div>
-                      {teamMembers
+                      {teamUsers
                         ?.filter(
                           (m) =>
                             m.role === "player" &&
@@ -1010,7 +1010,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                             </div>
                           </div>
                         ))}
-                      {teamMembers?.filter(
+                      {teamUsers?.filter(
                         (m) =>
                           m.role === "player" &&
                           !Object.values(lineupPositions).some(
@@ -1229,7 +1229,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                       </div>
                                     )}
 
-                                    {teamMembers
+                                    {teamUsers
                                       ?.filter(
                                         (member) =>
                                           member.role === "player" &&
@@ -1264,7 +1264,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                       ))}
 
                                     {/* Empty state */}
-                                    {teamMembers?.filter(
+                                    {teamUsers?.filter(
                                       (member) =>
                                         member.role === "player" &&
                                         !Object.values(lineupPositions).some(
@@ -1288,7 +1288,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                         <h4 className="font-medium mb-2 text-sm">Players on the Bench</h4>
                                         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                                           {/* Players not in the field lineup or on bench */}
-                                          {teamMembers?.filter(member => 
+                                          {teamUsers?.filter(member => 
                                             member.role === "player" && 
                                             member.userId !== null &&
                                             !Object.values(lineupPositions).some(p => p?.id === member.id) &&
@@ -1329,7 +1329,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                               <h5 className="text-xs font-medium text-gray-500 mb-2">Selected Bench Players:</h5>
                                               <div className="flex flex-col gap-2">
                                                 {field.value.map((playerId, index) => {
-                                                  const member = teamMembers?.find(m => m.userId === playerId);
+                                                  const member = teamUsers?.find(m => m.userId === playerId);
                                                   return member ? (
                                                     <div key={`bench-player-${playerId}-${index}`} className="flex justify-between items-center bg-primary/10 p-2 rounded-md">
                                                       <div className="text-sm font-medium">
@@ -1353,7 +1353,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                           )}
 
                                           {/* Empty state */}
-                                          {teamMembers?.filter(member => 
+                                          {teamUsers?.filter(member => 
                                             member.role === "player" && 
                                             member.userId !== null &&
                                             !Object.values(lineupPositions).some(p => p?.id === member.id) &&
@@ -1743,7 +1743,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
                                 <option value="">{t("matches.selectPlayerIn")}</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                {teamUsers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId || member.id} value={member.userId || member.id}>
                                     {member.user?.fullName || member.fullName} 
                                     {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
@@ -1769,7 +1769,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
                                 <option value="">{t("matches.selectPlayerOut")}</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                {teamUsers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId || member.id} value={member.userId || member.id}>
                                     {member.user?.fullName || member.fullName}
                                     {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
@@ -1900,7 +1900,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
                                 <option value="">{t("matches.selectGoalScorer")}</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                {teamUsers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId || member.id} value={member.userId || member.id}>
                                     {member.user?.fullName || member.fullName}
                                     {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
@@ -1926,7 +1926,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                               >
                                 <option value="">{t("matches.noAssist")}</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                {teamUsers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId || member.id} value={member.userId || member.id}>
                                     {member.user?.fullName || member.fullName}
                                     {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}
@@ -2103,7 +2103,7 @@ export default function MatchDetails({ match, teamId, onUpdate }: MatchDetailsPr
                                 onChange={(e) => field.onChange(Number(e.target.value))}
                               >
                                 <option value="">{t("matches.selectPlayer")}</option>
-                                {teamMembers?.filter(member => member.role === "player").map((member) => (
+                                {teamUsers?.filter(member => member.role === "player").map((member) => (
                                   <option key={member.userId || member.id} value={member.userId || member.id}>
                                     {member.user?.fullName || member.fullName}
                                     {(member.user?.jerseyNumber || member.jerseyNumber) ? ` (#${member.user?.jerseyNumber || member.jerseyNumber})` : ""}

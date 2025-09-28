@@ -35,15 +35,13 @@ export default function StatisticsPage() {
   const [activeTab, setActiveTab] = useState("team");
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
 
-  // Fetch team members
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<
-    (TeamMember & { user: any })[]
-  >({
-    queryKey: ["/api/teams", selectedTeam?.id, "members"],
+  // Fetch team users
+  const { data: teamUsers, isLoading: teamUsersLoading } = useQuery<any[]>({
+    queryKey: ["/api/teams", selectedTeam?.id, "users"],
     queryFn: async () => {
       if (!selectedTeam?.id) return [];
-      const response = await fetch(`/api/teams/${selectedTeam.id}/members`);
-      if (!response.ok) throw new Error("Failed to fetch team members");
+      const response = await fetch(`/api/teams/${selectedTeam.id}/users`);
+      if (!response.ok) throw new Error("Failed to fetch team users");
       return response.json();
     },
     enabled: !!selectedTeam,
@@ -315,7 +313,7 @@ export default function StatisticsPage() {
     });
   }, [matches]);
 
-  const isLoading = teamMembersLoading || matchesLoading || classificationLoading || playerStatsLoading || seasonsLoading;
+  const isLoading = teamUsersLoading || matchesLoading || classificationLoading || playerStatsLoading || seasonsLoading;
 
   if (isLoading) {
     return (

@@ -40,13 +40,13 @@ export default function TeamAttendanceManager({ teamId, eventId, showLabel = tru
   const { toast } = useToast();
   const [memberAttendance, setMemberAttendance] = useState<Record<number, string>>({});
 
-  // Fetch team members
-  const { data: teamMembers, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
-    queryKey: ["/api/teams", teamId, "members"],
+  // Fetch team users
+  const { data: teamUsers, isLoading: teamUsersLoading } = useQuery<any[]>({
+    queryKey: ["/api/teams", teamId, "users"],
     enabled: !!teamId,
     queryFn: async () => {
-      const response = await fetch(`/api/teams/${teamId}/members`);
-      if (!response.ok) throw new Error("Failed to fetch team members");
+      const response = await fetch(`/api/teams/${teamId}/users`);
+      if (!response.ok) throw new Error("Failed to fetch team users");
       return await response.json();
     }
   });
@@ -104,7 +104,7 @@ export default function TeamAttendanceManager({ teamId, eventId, showLabel = tru
     updateAttendanceMutation.mutate({ userId, status });
   };
 
-  if (teamMembersLoading || attendanceLoading) {
+  if (teamUsersLoading || attendanceLoading) {
     return (
       <Card>
         <CardContent className="pt-4">
@@ -125,31 +125,31 @@ export default function TeamAttendanceManager({ teamId, eventId, showLabel = tru
       )}
       <CardContent>
         <div className="space-y-2">
-          {teamMembers?.filter(member => member.user && member.userId).map(member => (
-            <div key={member.userId || member.id} className="flex items-center justify-between p-2 bg-background rounded-md">
+          {teamUsers?.map(teamUser => (
+            <div key={teamUser.userId || teamUser.id} className="flex items-center justify-between p-2 bg-background rounded-md">
               <div className="flex items-center gap-2">
                 <img 
-                  src={member.user.profilePicture || "/default-avatar.png"} 
-                  alt={member.user.fullName}
+                  src={teamUser.user?.profilePicture || "/default-avatar.png"} 
+                  alt={teamUser.user?.fullName || 'Unknown User'}
                   className="h-8 w-8 rounded-full"
                 />
-                <span>{member.user.fullName}</span>
+                <span>{teamUser.user?.fullName || 'Unknown User'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Button
-                  variant={memberAttendance[member.userId] === "confirmed" ? "default" : "outline"}
+                  variant={memberAttendance[teamUser.userId] === "confirmed" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => handleAttendanceChange(member.userId, "confirmed")}
+                  onClick={() => handleAttendanceChange(teamUser.userId, "confirmed")}
                 >
-                  <UserCheck className={`h-4 w-4 mr-1 ${memberAttendance[member.userId] === "confirmed" ? "text-white" : "text-secondary"}`} />
+                  <UserCheck className={`h-4 w-4 mr-1 ${memberAttendance[teamUser.userId] === "confirmed" ? "text-white" : "text-secondary"}`} />
                   Confirm
                 </Button>
                 <Button
-                  variant={memberAttendance[member.userId] === "declined" ? "destructive" : "outline"}
+                  variant={memberAttendance[teamUser.userId] === "declined" ? "destructive" : "outline"}
                   size="sm"
-                  onClick={() => handleAttendanceChange(member.userId, "declined")}
+                  onClick={() => handleAttendanceChange(teamUser.userId, "declined")}
                 >
-                  <UserX className={`h-4 w-4 mr-1 ${memberAttendance[member.userId] === "declined" ? "text-white" : "text-destructive"}`} />
+                  <UserX className={`h-4 w-4 mr-1 ${memberAttendance[teamUser.userId] === "declined" ? "text-white" : "text-destructive"}`} />
                   Decline
                 </Button>
               </div>
