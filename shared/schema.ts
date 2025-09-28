@@ -9,7 +9,7 @@ import { relations, sql } from "drizzle-orm";
 import { pgTable, text, serial, integer, boolean, timestamp, json, jsonb, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { UserRole, TeamMemberRole, MemberClaimStatus, userRoleEnum, teamMemberRoleEnum, memberClaimStatusEnum } from "./roles";
+import { UserRole, TeamMemberRole, userRoleEnum, teamMemberRoleEnum } from "./roles";
 
 // Additional enum definitions for better type safety
 export const matchStatusEnum = pgEnum("match_status", [
@@ -107,15 +107,11 @@ export const teamMembers = pgTable("team_members", {
   profilePicture: text("profile_picture"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),
-  // User association fields (for verified members)
-  userId: integer("user_id"), // Nullable - only set when a member is verified/claimed
-  isVerified: boolean("is_verified").default(false), // Indicates if this member is verified/linked to a user
   // Soft delete fields
   isActive: boolean("is_active").default(true), // False when member is removed but data is preserved
   deletedAt: timestamp("deleted_at"), // When the member was marked as deleted
 }, (table) => ({
   teamIdIdx: index("team_members_team_id_idx").on(table.teamId),
-  userIdIdx: index("team_members_user_id_idx").on(table.userId),
 }));
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)
@@ -124,8 +120,6 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers)
     position: z.string().optional().nullable(),
     jerseyNumber: z.number().int().optional().nullable(),
     profilePicture: z.string().optional().nullable(),
-    userId: z.number().optional().nullable(),
-    isVerified: z.boolean().optional().nullable(),
     isActive: z.boolean().optional(),
   });
 
@@ -134,8 +128,8 @@ export const teamUsers = pgTable("team_users", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   userId: integer("user_id").notNull(),
+  role: teamMemberRoleEnum("role").notNull().default(TeamMemberRole.PLAYER),
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
-  // This table doesn't dictate the role in the team, it just establishes access
 }, (table) => ({
   teamUserIdx: index("team_users_team_user_idx").on(table.teamId, table.userId),
   userIdIdx: index("team_users_user_id_idx").on(table.userId),
@@ -144,31 +138,9 @@ export const teamUsers = pgTable("team_users", {
 export const insertTeamUserSchema = createInsertSchema(teamUsers).pick({
   teamId: true,
   userId: true,
+  role: true,
 });
 
-// Member claims table for tracking user claims to be team members
-export const memberClaims = pgTable("member_claims", {
-  id: serial("id").primaryKey(),
-  teamId: integer("team_id").notNull(),
-  teamMemberId: integer("team_member_id").notNull(), // The member being claimed
-  userId: integer("user_id").notNull(), // The user making the claim
-  status: memberClaimStatusEnum("status").notNull().default(MemberClaimStatus.PENDING),
-  requestedAt: timestamp("requested_at").notNull().defaultNow(),
-  reviewedAt: timestamp("reviewed_at"),
-  reviewedById: integer("reviewed_by_id"), // Admin/coach who reviewed the claim
-  rejectionReason: text("rejection_reason"), // Optional reason for rejection
-}, (table) => ({
-  teamIdIdx: index("member_claims_team_id_idx").on(table.teamId),
-  userIdIdx: index("member_claims_user_id_idx").on(table.userId),
-  teamMemberIdIdx: index("member_claims_team_member_id_idx").on(table.teamMemberId),
-}));
-
-export const insertMemberClaimSchema = createInsertSchema(memberClaims)
-  .pick({
-    teamId: true,
-    teamMemberId: true,
-    userId: true,
-  });
 
 // Matches table
 export const matches = pgTable("matches", {
@@ -505,7 +477,7 @@ export const insertLeagueClassificationSchema = createInsertSchema(leagueClassif
 
 // Define relationships
 export const usersRelations = relations(users, ({ many }) => ({
-  teamMembers: many(teamMembers),
+  teamUsers: many(teamUsers),
 }));
 
 export const teamsRelations = relations(teams, ({ many, one }) => ({
@@ -514,6 +486,7 @@ export const teamsRelations = relations(teams, ({ many, one }) => ({
     references: [users.id],
   }),
   members: many(teamMembers),
+  teamUsers: many(teamUsers),
   matches: many(matches),
   events: many(events),
   announcements: many(announcements),
@@ -524,8 +497,15 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
     fields: [teamMembers.teamId],
     references: [teams.id],
   }),
+}));
+
+export const teamUsersRelations = relations(teamUsers, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamUsers.teamId],
+    references: [teams.id],
+  }),
   user: one(users, {
-    fields: [teamMembers.userId],
+    fields: [teamUsers.userId],
     references: [users.id],
   }),
 }));
@@ -564,9 +544,6 @@ export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 
 export type TeamUser = typeof teamUsers.$inferSelect;
 export type InsertTeamUser = z.infer<typeof insertTeamUserSchema>;
-
-export type MemberClaim = typeof memberClaims.$inferSelect;
-export type InsertMemberClaim = z.infer<typeof insertMemberClaimSchema>;
 
 export type Match = typeof matches.$inferSelect;
 export type InsertMatch = z.infer<typeof insertMatchSchema>;
