@@ -8,7 +8,6 @@ import { UserRole, TeamMemberRole } from "@shared/roles";
 import { randomBytes } from "crypto";
 import { createAdminRouter } from "./routes/admin-routes";
 import authRoutes from "./optimized/auth-routes";
-import { createClaimsRouter } from "./routes/claims-routes";
 import { createTeamRouter } from "./routes/team-routes";
 import { createMemberRouter } from "./routes/member-routes";
 import { createMatchEventRouter } from "./routes/match-event-routes";
@@ -53,8 +52,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register admin routes using the imported admin router that has our fixes
   const adminRouter = createAdminRouter(storage);
   
-  // Register claims routes
-  const claimsRouter = createClaimsRouter();
   
   // Register team routes
   const teamRouter = createTeamRouter();
@@ -73,7 +70,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Attach routers to main app
   app.use('/api', adminRouter);
-  app.use('/api', claimsRouter);
   app.use('/api', teamRouter);
   app.use('/api', memberRouter);
   app.use('/api', matchEventRouter);
