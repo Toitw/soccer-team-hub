@@ -369,22 +369,7 @@ export class DatabaseStorage implements IStorage {
   // Get team member by team ID and user ID
   async getTeamMember(teamId: number, userId: number): Promise<TeamMember | undefined> {
     try {
-      // First try the direct relationship
-      const [member] = await db
-        .select()
-        .from(teamMembers)
-        .where(
-          and(
-            eq(teamMembers.teamId, teamId),
-            eq(teamMembers.userId, userId)
-          )
-        );
-
-      if (member) {
-        return member;
-      }
-
-      // If not found, check through team_users table
+      // Check through team_users table (simplified system)
       const [teamUser] = await db
         .select()
         .from(teamUsers)
@@ -403,30 +388,21 @@ export class DatabaseStorage implements IStorage {
           .where(eq(users.id, userId));
 
         if (user) {
-          // Create a virtual team member with appropriate role
-          // Map user roles to team member roles correctly
-          let teamRole: 'admin' | 'coach' | 'player' | 'colaborador' = 'player';
-
-          if (user.role === 'admin' || user.role === 'superuser') {
-            teamRole = 'admin';
-          } else if (user.role === 'coach') {
-            teamRole = 'coach';
-          } else if (user.role === 'colaborador') {
-            teamRole = 'colaborador';
-          }
+          // Use the role from teamUser table directly
+          const teamRole = teamUser.role || 'player';
 
           return {
             id: -1, // Virtual ID
             teamId,
-            userId,
             fullName: user.fullName || '',
             profilePicture: user.profilePicture || '',
             position: user.position || '',
-            role: teamRole,
+            role: teamRole as 'admin' | 'coach' | 'player' | 'colaborador',
             jerseyNumber: user.jerseyNumber,
-            isVerified: true,
             createdAt: teamUser.joinedAt,
-            createdById: userId
+            createdById: userId,
+            isActive: true,
+            deletedAt: null
           };
         }
       }
@@ -442,15 +418,15 @@ export class DatabaseStorage implements IStorage {
         return {
           id: -1, // Virtual ID
           teamId: teamId,
-          userId: userId,
           fullName: user.fullName || '',
           profilePicture: user.profilePicture || '',
           position: user.position || '',
           role: 'admin',
           jerseyNumber: user.jerseyNumber,
-          isVerified: true,
           createdAt: new Date(),
-          createdById: userId
+          createdById: userId,
+          isActive: true,
+          deletedAt: null
         };
       }
 
@@ -476,15 +452,15 @@ export class DatabaseStorage implements IStorage {
           return {
             id: -2, // Virtual ID
             teamId: teamId,
-            userId: userId,
             fullName: user.fullName || '',
             profilePicture: user.profilePicture || '',
             position: user.position || '',
             role: 'admin',
             jerseyNumber: user.jerseyNumber,
-            isVerified: true,
             createdAt: new Date(),
-            createdById: userId
+            createdById: userId,
+            isActive: true,
+            deletedAt: null
           };
         }
       }
