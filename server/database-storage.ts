@@ -3,7 +3,6 @@ import {
   type Team, type InsertTeam, teams,
   type TeamMember, type InsertTeamMember, teamMembers,
   type TeamUser, type InsertTeamUser, teamUsers,
-  type MemberClaim, type InsertMemberClaim, memberClaims,
   type Match, type InsertMatch, matches,
   type Event, type InsertEvent, events,
   type Attendance, type InsertAttendance, attendance,
@@ -110,14 +109,6 @@ export class DatabaseStorage implements IStorage {
         // 2. Delete from attendance table (event attendance records)
         await tx.delete(attendance).where(eq(attendance.userId, id));
         
-        // 3. Delete from memberClaims table where user is the claimant
-        await tx.delete(memberClaims).where(eq(memberClaims.userId, id));
-        
-        // 4. Handle memberClaims where user was the reviewer (set to null)
-        await tx
-          .update(memberClaims)
-          .set({ reviewedById: null })
-          .where(eq(memberClaims.reviewedById, id));
         
         // 5. Soft delete from teamMembers (mark as inactive)
         await tx
@@ -334,7 +325,6 @@ export class DatabaseStorage implements IStorage {
         await tx.delete(teamLineups).where(eq(teamLineups.teamId, id));
         
         // Delete member claims
-        await tx.delete(memberClaims).where(eq(memberClaims.teamId, id));
         
         // Delete team users (join associations)
         await tx.delete(teamUsers).where(eq(teamUsers.teamId, id));
@@ -706,105 +696,6 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  // MemberClaim methods
-  async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
-    return db
-      .select()
-      .from(memberClaims)
-      .where(eq(memberClaims.teamId, teamId));
-  }
-
-  async getMemberClaimsByStatus(teamId: number, status: string): Promise<MemberClaim[]> {
-    return db
-      .select()
-      .from(memberClaims)
-      .where(
-        and(
-          eq(memberClaims.teamId, teamId),
-          eq(memberClaims.status, status)
-        )
-      );
-  }
-
-  async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
-    const [claim] = await db
-      .select()
-      .from(memberClaims)
-      .where(eq(memberClaims.id, id));
-
-    return claim;
-  }
-
-  async getMemberClaimByUserAndMember(userId: number, memberId: number): Promise<MemberClaim | undefined> {
-    const [claim] = await db
-      .select()
-      .from(memberClaims)
-      .where(
-        and(
-          eq(memberClaims.userId, userId),
-          eq(memberClaims.teamMemberId, memberId)
-        )
-      );
-
-    return claim;
-  }
-
-  async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
-    const [claim] = await db
-      .insert(memberClaims)
-      .values(claimData)
-      .returning();
-
-    return claim;
-  }
-
-  async updateMemberClaim(id: number, claimData: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
-    const [updatedClaim] = await db
-      .update(memberClaims)
-      .set(claimData)
-      .where(eq(memberClaims.id, id))
-      .returning();
-
-    return updatedClaim;
-  }
-
-  async approveMemberClaim(id: number, reviewerId: number): Promise<MemberClaim | undefined> {
-    const now = new Date();
-
-    const [claim] = await db
-      .update(memberClaims)
-      .set({
-        status: "approved",
-        reviewedAt: now,
-        reviewedById: reviewerId
-      })
-      .where(eq(memberClaims.id, id))
-      .returning();
-
-    if (claim) {
-      // When a claim is approved, update the team member to link with this user
-      await this.verifyTeamMember(claim.teamMemberId, claim.userId);
-    }
-
-    return claim;
-  }
-
-  async rejectMemberClaim(id: number, reviewerId: number, reason?: string): Promise<MemberClaim | undefined> {
-    const now = new Date();
-
-    const [claim] = await db
-      .update(memberClaims)
-      .set({
-        status: "rejected",
-        reviewedAt: now,
-        reviewedById: reviewerId,
-        rejectionReason: reason || null
-      })
-      .where(eq(memberClaims.id, id))
-      .returning();
-
-    return claim;
-  }
 
   // Match methods
   async getMatch(id: number): Promise<Match | undefined> {
@@ -1761,52 +1652,4 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  // Member claims methods
-  async getMemberClaims(teamId: number): Promise<MemberClaim[]> {
-    return db
-      .select()
-      .from(memberClaims)
-      .where(eq(memberClaims.teamId, teamId))
-      .orderBy(desc(memberClaims.requestedAt));
-  }
-
-  async getMemberClaimsByUser(userId: number): Promise<MemberClaim[]> {
-    return db
-      .select()
-      .from(memberClaims)
-      .where(eq(memberClaims.userId, userId))
-      .orderBy(desc(memberClaims.requestedAt));
-  }
-
-  async getMemberClaimById(id: number): Promise<MemberClaim | undefined> {
-    const [claim] = await db
-      .select()
-      .from(memberClaims)
-      .where(eq(memberClaims.id, id));
-    return claim;
-  }
-
-  async createMemberClaim(claimData: InsertMemberClaim): Promise<MemberClaim> {
-    const [claim] = await db
-      .insert(memberClaims)
-      .values(claimData)
-      .returning();
-    return claim;
-  }
-
-  async updateMemberClaim(id: number, data: Partial<MemberClaim>): Promise<MemberClaim | undefined> {
-    const [updated] = await db
-      .update(memberClaims)
-      .set(data)
-      .where(eq(memberClaims.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteMemberClaim(id: number): Promise<boolean> {
-    const deleted = await db
-      .delete(memberClaims)
-      .where(eq(memberClaims.id, id));
-    return deleted.rowCount > 0;
-  }
 }
