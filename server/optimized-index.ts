@@ -4,13 +4,10 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import path from "path";
-import { EntityStorage } from "./entity-storage";
+import { storage } from "./storage-implementation";
 import { comparePasswords } from "@shared/auth-utils";
 import { User } from "@shared/schema";
 import { Server } from "http";
-
-// Initialize storage system
-export const storage = new EntityStorage();
 
 // Set up auth config
 function setupAuth(app: Express) {
@@ -29,7 +26,16 @@ function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
-        const user = await storage.getUserByUsername(username);
+        // Support both email and username authentication
+        let user;
+        if (username.includes('@')) {
+          // If input contains @, treat as email
+          user = await storage.getUserByEmail(username);
+        } else {
+          // Otherwise, treat as username
+          user = await storage.getUserByUsername(username);
+        }
+        
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false);
         } else {

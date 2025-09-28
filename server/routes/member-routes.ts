@@ -3,6 +3,9 @@ import { storage } from "../storage-implementation";
 import { z } from "zod";
 import { TeamMemberRole } from "@shared/roles";
 import { isAuthenticated, isTeamAdmin, isTeamMember } from "../auth-middleware";
+import { sendEmail, generateTeamInvitationEmail } from "@shared/email-utils";
+import { randomBytes } from "crypto";
+import { hashPassword } from "../auth";
 
 export function createMemberRouter(): Router {
   const router = Router();
@@ -162,6 +165,10 @@ export function createMemberRouter(): Router {
       // Get the updated member with all fields for response
       const updatedMemberWithFields = await storage.getTeamMemberById(memberId);
       
+      if (!updatedMemberWithFields) {
+        return res.status(404).json({ error: "Updated member not found" });
+      }
+      
       res.json({
         id: updatedMemberWithFields.id,
         fullName: updatedMemberWithFields.fullName,
@@ -175,13 +182,13 @@ export function createMemberRouter(): Router {
     }
   });
 
-  // Create a new team member
+  // Create a new team member and send invitation
   router.post("/teams/:id/members", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
       const teamId = parseInt(req.params.id);
-      const { fullName, role, position, jerseyNumber, profilePicture } = req.body;
+      const { fullName, email, role, position, jerseyNumber, profilePicture } = req.body;
 
       // Verify user is team admin or coach
       const teamMember = await storage.getTeamMember(teamId, req.user.id);
@@ -193,16 +200,21 @@ export function createMemberRouter(): Router {
         return res.status(400).json({ error: "Full name is required" });
       }
 
-      // Create the team member
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Create the team member with invitation pending
       const newMember = await storage.createTeamMember({
         teamId,
         fullName,
+        email,
         role: role || TeamMemberRole.PLAYER,
         position: position || null,
         jerseyNumber: jerseyNumber || null,
         profilePicture: profilePicture || null,
         createdById: req.user.id,
-        isVerified: false // New members start as unverified
+        invitationStatus: "pending" // New members start with pending invitation
       });
 
       res.status(201).json(newMember);
@@ -236,6 +248,84 @@ export function createMemberRouter(): Router {
     } catch (error) {
       console.error("Error deleting team member:", error);
       res.status(500).json({ error: "Failed to delete team member" });
+    }
+  });
+
+  // Send invitation email to a team member
+  router.post("/teams/:teamId/members/:memberId/send-invitation", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const teamId = parseInt(req.params.teamId);
+      const memberId = parseInt(req.params.memberId);
+
+      // Verify user is team admin or coach
+      const teamMember = await storage.getTeamMember(teamId, req.user.id);
+      if (!teamMember || (teamMember.role !== "admin" && teamMember.role !== "coach")) {
+        return res.status(403).json({ error: "Not authorized to send invitations" });
+      }
+
+      // Get the team member to invite
+      const memberToInvite = await storage.getTeamMemberById(memberId);
+      if (!memberToInvite || memberToInvite.teamId !== teamId) {
+        return res.status(404).json({ error: "Team member not found" });
+      }
+
+      // Check if member already has an account (invitation accepted)
+      if (memberToInvite.invitationStatus === "accepted") {
+        return res.status(400).json({ error: "Member has already accepted invitation" });
+      }
+
+      // Generate invitation token
+      const invitationToken = randomBytes(32).toString('hex');
+      
+      // Update member with invitation token and sent timestamp
+      await storage.updateTeamMember(memberId, {
+        invitationToken,
+        invitationSentAt: new Date(),
+        invitationStatus: "pending"
+      });
+
+      // Get team details for email
+      const team = await storage.getTeam(teamId);
+      if (!team) {
+        return res.status(404).json({ error: "Team not found" });
+      }
+
+      // Get inviter details
+      const inviter = await storage.getUserById(req.user.id);
+      if (!inviter) {
+        return res.status(404).json({ error: "Inviter not found" });
+      }
+
+      // Generate and send invitation email
+      const emailContent = generateTeamInvitationEmail(
+        memberToInvite.fullName,
+        team.name,
+        inviter.fullName,
+        memberToInvite.position,
+        invitationToken
+      );
+
+      const emailResult = await sendEmail(
+        memberToInvite.email,
+        emailContent.subject,
+        emailContent.html,
+        emailContent.text
+      );
+
+      if (!emailResult.success) {
+        console.error("Failed to send invitation email:", emailResult.message);
+        return res.status(500).json({ error: "Failed to send invitation email" });
+      }
+
+      res.json({ 
+        message: "Invitation sent successfully",
+        sentTo: memberToInvite.email
+      });
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      res.status(500).json({ error: "Failed to send invitation" });
     }
   });
 

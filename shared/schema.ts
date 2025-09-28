@@ -31,10 +31,17 @@ export const eventTypeEnum = pgEnum("event_type", [
   "other"
 ]);
 
-// Users table
+export const memberInvitationStatusEnum = pgEnum("member_invitation_status", [
+  "pending",
+  "accepted", 
+  "declined",
+  "expired"
+]);
+
+// Users table - for people who can actually log in (created when they accept team invitation)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(), // Primary login identifier
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
   firstName: text("first_name"),
@@ -43,7 +50,6 @@ export const users = pgTable("users", {
   profilePicture: text("profile_picture").default("/default-avatar.png"),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
-  email: text("email").unique(),
   phoneNumber: text("phone_number"),
   isEmailVerified: boolean("is_email_verified").default(false),
   verificationToken: text("verification_token"),
@@ -51,11 +57,13 @@ export const users = pgTable("users", {
   resetPasswordToken: text("reset_password_token"),
   resetPasswordTokenExpiry: timestamp("reset_password_token_expiry"),
   lastLoginAt: timestamp("last_login_at"),
-  onboardingCompleted: boolean("onboarding_completed").default(false),
+  // Keep username for backward compatibility, but make it optional
+  username: text("username"),
+  onboardingCompleted: boolean("onboarding_completed").default(true), // No more onboarding needed
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
+  email: true,
   password: true,
   fullName: true,
   firstName: true,
@@ -64,11 +72,11 @@ export const insertUserSchema = createInsertSchema(users).pick({
   profilePicture: true,
   position: true,
   jerseyNumber: true,
-  email: true,
   phoneNumber: true,
   isEmailVerified: true,
   verificationToken: true,
   verificationTokenExpiry: true,
+  username: true, // Optional for backward compatibility
   onboardingCompleted: true,
 });
 
@@ -96,31 +104,54 @@ export const insertTeamSchema = createInsertSchema(teams).pick({
   joinCode: true,
 });
 
-// TeamMembers table for player-team relationship managed by admin/coach
+// TeamMembers table - the team roster managed by admin/coach
 export const teamMembers = pgTable("team_members", {
   id: serial("id").primaryKey(),
   teamId: integer("team_id").notNull(),
   fullName: text("full_name").notNull(),
+  email: text("email").notNull(), // Required for invitations
   role: teamMemberRoleEnum("role").notNull().default(TeamMemberRole.PLAYER),
   position: text("position"),
   jerseyNumber: integer("jersey_number"),
   profilePicture: text("profile_picture"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdById: integer("created_by_id").notNull(),
+  
+  // Invitation system fields
+  invitationStatus: memberInvitationStatusEnum("invitation_status").notNull().default("pending"),
+  invitationToken: text("invitation_token").unique(), // Secure token for invitation links
+  invitationSentAt: timestamp("invitation_sent_at"),
+  invitationAcceptedAt: timestamp("invitation_accepted_at"),
+  
+  // Link to user account (only set when invitation is accepted)
+  userId: integer("user_id"), // Foreign key to users table, nullable
+  
   // Soft delete fields
   isActive: boolean("is_active").default(true), // False when member is removed but data is preserved
   deletedAt: timestamp("deleted_at"), // When the member was marked as deleted
 }, (table) => ({
   teamIdIdx: index("team_members_team_id_idx").on(table.teamId),
+  emailIdx: index("team_members_email_idx").on(table.email),
+  userIdIdx: index("team_members_user_id_idx").on(table.userId),
+  invitationTokenIdx: index("team_members_invitation_token_idx").on(table.invitationToken),
 }));
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)
-  .omit({ id: true, createdAt: true, deletedAt: true })
+  .omit({ 
+    id: true, 
+    createdAt: true, 
+    deletedAt: true, 
+    invitationToken: true, // Auto-generated
+    invitationSentAt: true, // Auto-set
+    invitationAcceptedAt: true, // Auto-set
+    userId: true // Set when invitation is accepted
+  })
   .extend({
     position: z.string().optional().nullable(),
     jerseyNumber: z.number().int().optional().nullable(),
     profilePicture: z.string().optional().nullable(),
     isActive: z.boolean().optional(),
+    invitationStatus: z.enum(["pending", "accepted", "declined", "expired"]).optional(),
   });
 
 // TeamUsers table for team access through joining with code

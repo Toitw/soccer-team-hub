@@ -630,4 +630,173 @@ router.post("/onboarding/create-team", isAuthenticated, async (req: Request, res
   }
 });
 
+/**
+ * Get invitation details by token
+ * GET /api/auth/invitation/:token
+ */
+router.get("/invitation/:token", async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    
+    if (!token) {
+      return res.status(400).json({ error: "Invitation token is required" });
+    }
+
+    // Find team member with this invitation token
+    const teamMembers = await storage.getAllTeamMembers();
+    const member = teamMembers.find((m: any) => m.invitationToken === token);
+    
+    if (!member) {
+      return res.status(404).json({ error: "Invalid invitation token" });
+    }
+
+    // Check if invitation is still pending
+    if (member.invitationStatus !== "pending") {
+      return res.status(400).json({ 
+        error: "Invitation no longer valid",
+        status: member.invitationStatus 
+      });
+    }
+
+    // Get team details
+    const team = await storage.getTeam(member.teamId);
+    if (!team) {
+      return res.status(404).json({ error: "Team not found" });
+    }
+
+    // Check if email already has a user account
+    const users = await storage.getAllUsers();
+    const existingUser = users.find((u: any) => u.email === member.email);
+
+    return res.json({
+      memberName: member.fullName,
+      teamName: team.name,
+      position: member.position,
+      role: member.role,
+      email: member.email,
+      hasExistingAccount: !!existingUser
+    });
+  } catch (error) {
+    console.error("Error getting invitation details:", error);
+    return res.status(500).json({ error: "Failed to get invitation details" });
+  }
+});
+
+/**
+ * Accept invitation and create user account
+ * POST /api/auth/invitation/accept
+ */
+router.post("/invitation/accept", async (req: Request, res: Response) => {
+  try {
+    const { token, password, firstName, lastName } = req.body;
+    
+    if (!token) {
+      return res.status(400).json({ error: "Invitation token is required" });
+    }
+    
+    if (!password) {
+      return res.status(400).json({ error: "Password is required" });
+    }
+
+    // Find team member with this invitation token
+    const teamMembers = await storage.getAllTeamMembers();
+    const member = teamMembers.find((m: any) => m.invitationToken === token);
+    
+    if (!member) {
+      return res.status(404).json({ error: "Invalid invitation token" });
+    }
+
+    // Check if invitation is still pending
+    if (member.invitationStatus !== "pending") {
+      return res.status(400).json({ 
+        error: "Invitation no longer valid",
+        status: member.invitationStatus 
+      });
+    }
+
+    // Check if email already has a user account
+    const users = await storage.getAllUsers();
+    const existingUser = users.find((u: any) => u.email === member.email);
+    
+    let user;
+    if (existingUser) {
+      // User already exists - link invitation to existing account
+      user = existingUser;
+      
+      // Check if user is already linked to this team member
+      if (member.userId && member.userId === existingUser.id) {
+        return res.status(400).json({ error: "Invitation already accepted by this user" });
+      }
+      
+      // Update team member to link to existing user account
+      await storage.updateTeamMember(member.id, {
+        userId: existingUser.id,
+        invitationStatus: "accepted",
+        invitationAcceptedAt: new Date()
+      });
+      
+      // Check if team_user relationship already exists
+      const existingTeamUser = await storage.getTeamUser(member.teamId, existingUser.id);
+      if (!existingTeamUser) {
+        // Create team_user relationship for access
+        await storage.createTeamUser({
+          teamId: member.teamId,
+          userId: existingUser.id,
+          role: member.role
+        });
+      }
+    } else {
+      // New user - create account
+      if (!password) {
+        return res.status(400).json({ error: "Password is required for new accounts" });
+      }
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+
+      // Create user account
+      user = await storage.createUser({
+        email: member.email,
+        password: hashedPassword,
+        fullName: member.fullName,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        role: member.role,
+        position: member.position,
+        jerseyNumber: member.jerseyNumber,
+        profilePicture: member.profilePicture,
+        isEmailVerified: true, // Auto-verified through invitation
+        onboardingCompleted: true // Skip onboarding since they were invited
+      });
+
+      // Update team member to link to user account
+      await storage.updateTeamMember(member.id, {
+        userId: user.id,
+        invitationStatus: "accepted",
+        invitationAcceptedAt: new Date()
+      });
+
+      // Create team_user relationship for access
+      await storage.createTeamUser({
+        teamId: member.teamId,
+        userId: user.id,
+        role: member.role
+      });
+    }
+
+    // Return success with user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(201).json({
+      success: true,
+      message: existingUser ? "Invitation accepted - team access granted" : "Invitation accepted - account created",
+      user: userWithoutPassword,
+      isNewAccount: !existingUser
+    });
+
+  } catch (error) {
+    console.error("Error accepting invitation:", error);
+    return res.status(500).json({ error: "Failed to accept invitation" });
+  }
+});
+
 export default router;
