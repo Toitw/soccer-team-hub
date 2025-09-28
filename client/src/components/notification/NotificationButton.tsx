@@ -15,16 +15,10 @@ type ClaimNotification = {
 };
 
 export default function NotificationButton() {
-  // Fetch notifications for pending claims
-  const { data: notifications = [], isLoading } = useQuery<ClaimNotification[]>({
-    queryKey: ["/api/notifications/claims"],
-    refetchInterval: 60000, // Refetch every minute
-  });
-
-  // Calculate total pending claims
-  const totalPendingClaims = Array.isArray(notifications) 
-    ? notifications.reduce((sum, notification) => sum + notification.count, 0) 
-    : 0;
+  // Claims system has been removed, so we show empty notifications
+  const notifications: ClaimNotification[] = [];
+  const isLoading = false;
+  const totalPendingClaims = 0;
 
   return (
     <Popover>
