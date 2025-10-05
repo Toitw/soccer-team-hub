@@ -1,42 +1,43 @@
 /**
  * Email utility functions for sending emails in the application
- * Uses Resend API for email delivery
+ * Uses Brevo API for email delivery
  */
 
-import { Resend } from 'resend';
+import * as brevo from '@getbrevo/brevo';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Initialize the Resend client
-let resend: Resend | null = null;
+// Initialize the Brevo client
+let apiInstance: brevo.TransactionalEmailsApi | null = null;
 
 /**
- * Initialize Resend with API key
+ * Initialize Brevo with API key
  * This ensures proper timing for environment variable loading
  */
 function initializeMailService() {
-  if (resend) {
+  if (apiInstance) {
     return true;
   }
   
-  if (process.env.RESEND_API_KEY) {
-    resend = new Resend(process.env.RESEND_API_KEY);
-    console.log('Resend email service initialized successfully');
+  if (process.env.BREVO_API_KEY) {
+    apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+    console.log('Brevo email service initialized successfully');
     return true;
   } else {
-    console.warn('RESEND_API_KEY environment variable is not set. Email functionality will not work.');
+    console.warn('BREVO_API_KEY environment variable is not set. Email functionality will not work.');
     return false;
   }
 }
 
 /**
- * Send an email using Resend API
+ * Send an email using Brevo API
  * 
  * @param to - Recipient email address
  * @param subject - Email subject
  * @param html - HTML content of the email
  * @param text - Plain text content of the email
- * @param fromEmail - Sender email address (defaults to canchaplusapp@gmail.com)
+ * @param fromEmail - Sender email address (defaults to Cancha+ support)
  * @returns Object with success status and optional error message
  */
 export async function sendEmail(
@@ -44,68 +45,30 @@ export async function sendEmail(
   subject: string, 
   html: string, 
   text?: string,
-  fromEmail: string = 'Cancha+ <noreply@resend.dev>'
+  fromEmail: string = 'Cancha+ <noreply@canchaplusapp.com>'
 ): Promise<{ success: boolean; message?: string }> {
-  // Initialize Resend service with proper timing
+  // Initialize Brevo service with proper timing
   if (!initializeMailService()) {
     return { 
       success: false, 
-      message: 'Resend API key is not configured. Email could not be sent.' 
+      message: 'Brevo API key is not configured. Email could not be sent.' 
     };
   }
 
   try {
-    const result = await resend!.emails.send({
-      from: fromEmail.includes('@resend.dev') ? fromEmail : 'Cancha+ <noreply@resend.dev>',
-      to: [to],
-      subject: subject,
-      text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML if text not provided
-      html: html,
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+    sendSmtpEmail.textContent = text || html.replace(/<[^>]*>/g, ''); // Strip HTML if text not provided
+    sendSmtpEmail.sender = { name: 'Cancha+', email: 'noreply@canchaplusapp.com' };
+    sendSmtpEmail.to = [{ email: to }];
 
-    if (result.error) {
-      console.error('Resend email error:', result.error);
-      
-      // Handle Resend free tier restrictions
-      if (result.error.statusCode === 403 && (
-        result.error.error?.includes('testing emails') || 
-        result.error.error?.includes('only send testing emails') ||
-        result.error.error?.includes('verify a domain') ||
-        result.error.error?.includes('your own email address')
-      )) {
-        console.log('Resend free tier restriction detected - treating as successful for development');
-        console.log('User would receive email in production with verified domain');
-        return { 
-          success: true, 
-          message: 'Email verification sent successfully' 
-        };
-      }
-      
-      return { 
-        success: false, 
-        message: result.error.message || 'Failed to send email' 
-      };
-    }
+    const result = await apiInstance!.sendTransacEmail(sendSmtpEmail);
 
-    console.log('Email sent successfully with ID:', result.data?.id);
+    console.log('Email sent successfully with ID:', result.body.messageId);
     return { success: true };
   } catch (error) {
-    console.error('Resend email error:', error);
-    
-    // Handle Resend free tier restrictions in catch block too
-    if (error && typeof error === 'object' && (
-      ('statusCode' in error && error.statusCode === 403) ||
-      (error instanceof Error && error.message.includes('testing emails')) ||
-      (error instanceof Error && error.message.includes('verify a domain')) ||
-      (error instanceof Error && error.message.includes('your own email address'))
-    )) {
-      console.log('Resend free tier restriction detected in catch - treating as successful for development');
-      console.log('User would receive email in production with verified domain');
-      return { 
-        success: true, 
-        message: 'Email verification sent successfully' 
-      };
-    }
+    console.error('Brevo email error:', error);
     
     return { 
       success: false, 
