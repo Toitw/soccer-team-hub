@@ -189,6 +189,14 @@ Changelog:
   * Users are now automatically verified upon registration
   * Registration completes immediately without email confirmation
   * Email verification can be re-enabled later for production
+- October 5, 2025. Migrated email service from Resend to Brevo:
+  * Replaced Resend with Brevo for better free tier (9,000 emails/month vs 3,000)
+  * Brevo allows sending to any email without domain verification
+  * Updated email utilities to use @getbrevo/brevo SDK
+  * Changed sender email from noreply@resend.dev to noreply@canchaplusapp.com
+  * Removed Resend package and cleaned up dependencies
+  * Updated environment variable from RESEND_API_KEY to BREVO_API_KEY
+  * All email functionality tested and working (verification, password reset, invitations)
 ```
 
 ## User Preferences
